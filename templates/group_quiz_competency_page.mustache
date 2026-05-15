@@ -11,7 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    @template local_yetkinlik/group_quiz_report
+    @template local_competency_report/group_quiz_report
 
     Example context (json):
     {
@@ -21,8 +21,8 @@
             { "id": 2, "name": "B Grubu", "selected": false }
         ],
         "quizzes": [
-            { "id": 10, "name": "Matematik Sınavı", "selected": true },
-            { "id": 11, "name": "Fizik Sınavı", "selected": false }
+            { "id": 10, "name": "Matematik SÄ±navÄ±", "selected": true },
+            { "id": 11, "name": "Fizik SÄ±navÄ±", "selected": false }
         ],
         "has_data": true,
         "competencies": [
@@ -31,7 +31,7 @@
         ],
         "students": [
             {
-                "studentlink": "<a href='#'>Ali Yılmaz</a>",
+                "studentlink": "<a href='#'>Ali YÄ±lmaz</a>",
                 "scores": [
                     { "rate": "85", "color": "green" },
                     { "rate": "40", "color": "red" }
@@ -44,7 +44,7 @@
         ]
     }
 }}
-<div class="local_yetkinlik_group_quiz_report">
+<div class="local_competency_report_group_quiz_report">
     <form method="get" class="form-inline mb-4">
         <input type="hidden" name="courseid" value="{{courseid}}">
         
@@ -60,7 +60,7 @@
             {{/quizzes}}
         </select>
 
-        <button type="submit" class="btn btn-primary">{{#str}}show, local_yetkinlik{{/str}}</button>
+        <button type="submit" class="btn btn-primary">{{#str}}show, local_competency_report{{/str}}</button>
     </form>
 
     {{#has_data}}
@@ -69,7 +69,7 @@
             <table class="generaltable table table-bordered table-striped mt-3">
                 <thead>
                     <tr>
-                        <th>{{#str}}student, local_yetkinlik{{/str}}</th>
+                        <th>{{#str}}student, local_competency_report{{/str}}</th>
                         {{#competencies}}
                             <th class="text-center">{{shortname}}</th>
                         {{/competencies}}
@@ -90,7 +90,7 @@
                 </tbody>
                 <tfoot>
                     <tr class="table-secondary font-weight-bold">
-                        <td>{{#str}}total, local_yetkinlik{{/str}}</td>
+                        <td>{{#str}}total, local_competency_report{{/str}}</td>
                         {{#totals}}
                             <td class="text-center" style="color: {{color}};">
                                 {{#rate}}%{{rate}}{{/rate}}
@@ -104,7 +104,7 @@
         {{/competencies.0}}
         
         {{^competencies}}
-            <div class="alert alert-info">{{#str}}noexamdata, local_yetkinlik{{/str}}</div>
+            <div class="alert alert-info">{{#str}}noexamdata, local_competency_report{{/str}}</div>
         {{/competencies}}
     {{/has_data}}
 </div>

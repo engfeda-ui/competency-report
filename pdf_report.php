@@ -17,8 +17,8 @@
 /**
  * PDF Export for competency analysis.
  *
- * @package    local_yetkinlik
- * @copyright  2026 Hakan Çiğci {@link https://hakancigci.com.tr}
+ * @package    local_competency_report
+ * @copyright  2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -35,18 +35,18 @@ global $DB, $CFG;
 // Access control: Ensure the user has the 'viewreports' capability defined in access.php.
 if ($courseid) {
     $context = context_course::instance($courseid);
-    require_capability('local/yetkinlik:viewreports', $context);
+    require_capability('local/competency_report:viewreports', $context);
     $course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
-    $reporttitle = get_string('report_title', 'local_yetkinlik', $course->fullname);
+    $reporttitle = get_string('report_title', 'local_competency_report', $course->fullname);
 
     $wheresql = "WHERE quiz.course = :courseid AND quiza.state = 'finished'";
     $params = ['courseid' => $courseid];
 } else {
     // System-wide report access.
     $context = context_system::instance();
-    require_capability('local/yetkinlik:viewreports', $context);
+    require_capability('local/competency_report:viewreports', $context);
 
-    $reporttitle = get_string('report_title', 'local_yetkinlik');
+    $reporttitle = get_string('report_title', 'local_competency_report');
     $wheresql = "WHERE quiza.state = 'finished'";
     $params = [];
 }
@@ -60,7 +60,7 @@ $sql = "
     JOIN {quiz} quiz ON quiz.id = quiza.quiz
     JOIN {question_usages} qu ON qu.id = quiza.uniqueid
     JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-    JOIN {qbank_yetkinlik_qmap} m ON m.questionid = qa.questionid
+    JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
     JOIN {competency} c ON c.id = m.competencyid
     JOIN (
         SELECT MAX(fraction) AS fraction, questionattemptid
@@ -81,7 +81,7 @@ foreach ($rows as $r) {
 }
 
 // Generate AI analysis comment.
-$comment = local_yetkinlik_generate_comment($rates);
+$comment = local_competency_report_generate_comment($rates);
 
 /* --- PDF Preparation --- */
 
@@ -104,7 +104,7 @@ $pdf->SetFont('freeserif', '', 9);
 
 // Use Moodle userdate for localized time.
 $dateconfig = get_string('strftimedatetimeshort', 'langconfig');
-$dateinfo = get_string('creation_date', 'local_yetkinlik') . ": " . userdate(time(), $dateconfig);
+$dateinfo = get_string('creation_date', 'local_competency_report') . ": " . userdate(time(), $dateconfig);
 $pdf->Cell(0, 5, $dateinfo, 0, 1, 'R');
 $pdf->Ln(5);
 
@@ -113,11 +113,11 @@ $html = '
 <table border="1" cellpadding="6">
     <thead>
         <tr bgcolor="#f2f2f2" style="font-weight: bold;">
-            <th width="15%" align="center">' . get_string('competencycode', 'local_yetkinlik') . '</th>
-            <th width="41%" align="center">' . get_string('competencyname', 'local_yetkinlik') . '</th>
-            <th width="14%" align="center">' . get_string('questioncount', 'local_yetkinlik') . '</th>
-            <th width="14%" align="center">' . get_string('correctcount', 'local_yetkinlik') . '</th>
-            <th width="16%" align="center">' . get_string('successrate', 'local_yetkinlik') . '</th>
+            <th width="15%" align="center">' . get_string('competencycode', 'local_competency_report') . '</th>
+            <th width="41%" align="center">' . get_string('competencyname', 'local_competency_report') . '</th>
+            <th width="14%" align="center">' . get_string('questioncount', 'local_competency_report') . '</th>
+            <th width="14%" align="center">' . get_string('correctcount', 'local_competency_report') . '</th>
+            <th width="16%" align="center">' . get_string('successrate', 'local_competency_report') . '</th>
         </tr>
     </thead>
     <tbody>';
@@ -148,7 +148,7 @@ if (!empty($comment)) {
     $pdf->Ln(5);
     $pdf->SetFont('freeserif', 'B', 12);
     $pdf->SetFillColor(240, 240, 240);
-    $pdf->Cell(0, 10, " " . get_string('generalcomment', 'local_yetkinlik'), 0, 1, 'L', true);
+    $pdf->Cell(0, 10, " " . get_string('generalcomment', 'local_competency_report'), 0, 1, 'L', true);
 
     $pdf->Ln(2);
     $pdf->SetFont('freeserif', '', 11);

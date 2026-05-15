@@ -11,7 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    @template local_yetkinlik/student_report
+    @template local_competency_report/student_report
 
     Example context (json):
     {
@@ -30,18 +30,18 @@
         "ai_comment": "You are showing great progress! Especially in math competency, your success rate has reached 80%."
     }
 }}
-<div class="local_yetkinlik_student_report">
+<div class="local_competency_report_student_report">
     {{#has_data}}
         {{! Achievement Statistics Table }}
         <div class="table-responsive">
             <table class="generaltable table table-bordered table-hover mt-3 shadow-sm bg-white">
                 <thead class="thead-dark">
                     <tr>
-                        <th>{{#str}}competencycode, local_yetkinlik{{/str}}</th>
-                        <th>{{#str}}competency, local_yetkinlik{{/str}}</th>
-                        <th class="text-center">{{#str}}questioncount, local_yetkinlik{{/str}}</th>
-                        <th class="text-center">{{#str}}correctcount, local_yetkinlik{{/str}}</th>
-                        <th class="text-center">{{#str}}successrate, local_yetkinlik{{/str}}</th>
+                        <th>{{#str}}competencycode, local_competency_report{{/str}}</th>
+                        <th>{{#str}}competency, local_competency_report{{/str}}</th>
+                        <th class="text-center">{{#str}}questioncount, local_competency_report{{/str}}</th>
+                        <th class="text-center">{{#str}}correctcount, local_competency_report{{/str}}</th>
+                        <th class="text-center">{{#str}}successrate, local_competency_report{{/str}}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -63,14 +63,14 @@
         {{! PDF Report Export Button }}
         <div class="mt-4">
             <a href="{{pdf_url}}" class="btn btn-secondary shadow-sm" target="_blank">
-                <i class="fa fa-file-pdf-o"></i> {{#str}}pdfmystudent, local_yetkinlik{{/str}}
+                <i class="fa fa-file-pdf-o"></i> {{#str}}pdfmystudent, local_competency_report{{/str}}
             </a>
         </div>
 
         {{! AI Commentary and Analysis Section }}
         {{#ai_comment}}
         <div class="ai-analysis mt-5">
-            <h3 class="mb-3"><i class="fa fa-magic text-info"></i> {{#str}}generalcomment, local_yetkinlik{{/str}}</h3>
+            <h3 class="mb-3"><i class="fa fa-magic text-info"></i> {{#str}}generalcomment, local_competency_report{{/str}}</h3>
             <div class="alert alert-info border-left-info shadow-sm p-4">
                 {{{ai_comment}}}
             </div>
@@ -81,7 +81,7 @@
     {{^has_data}}
         {{! Empty State Notification }}
         <div class="alert alert-warning shadow-sm">
-            <i class="fa fa-exclamation-triangle"></i> {{#str}}nodatafound, local_yetkinlik{{/str}}
+            <i class="fa fa-exclamation-triangle"></i> {{#str}}nodatafound, local_competency_report{{/str}}
         </div>
     {{/has_data}}
 </div>

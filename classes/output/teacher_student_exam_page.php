@@ -17,12 +17,12 @@
 /**
  * Renderable class for teacher's student-exam analysis view.
  *
- * @package    local_yetkinlik
- * @copyright  2026 Hakan Çiğci {@link https://hakancigci.com.tr}
+ * @package    local_competency_report
+ * @copyright  2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_yetkinlik\output;
+namespace local_competency_report\output;
 
 use renderable;
 use templatable;
@@ -34,8 +34,8 @@ use stdClass;
  *
  * This class handles the data exportation for the teacher student exam Mustache template.
  *
- * @package    local_yetkinlik
- * @copyright  2026 Hakan Çiğci
+ * @package    local_competency_report
+ * @copyright  2026 Hakan Ã‡iÄŸci
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class teacher_student_exam_page implements renderable, templatable {
@@ -84,7 +84,7 @@ class teacher_student_exam_page implements renderable, templatable {
         $export->chart_config = json_encode([
             'labels' => $labels,
             'values' => $values,
-            'label'  => get_string('successrate', 'local_yetkinlik') . ' %',
+            'label'  => get_string('successrate', 'local_competency_report') . ' %',
         ]);
 
         return $export;

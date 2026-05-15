@@ -17,8 +17,8 @@
 /**
  * Report for competency analysis based on group and quiz selection.
  *
- * @package    local_yetkinlik
- * @copyright  2026 Hakan Çiğci {@link https://hakancigci.com.tr}
+ * @package    local_competency_report
+ * @copyright  2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -35,13 +35,13 @@ $context = context_course::instance($courseid);
 require_capability('mod/quiz:viewreports', $context);
 
 // 3. Page Settings (Must be defined before header output).
-$PAGE->set_url('/local/yetkinlik/group_quiz_competency.php', [
+$PAGE->set_url('/local/competency_report/group_quiz_competency.php', [
     'courseid' => $courseid,
     'groupid'  => $groupid,
     'quizid'   => $quizid,
 ]);
-$PAGE->set_title(get_string('groupquizcompetency', 'local_yetkinlik'));
-$PAGE->set_heading(get_string('groupquizcompetency', 'local_yetkinlik'));
+$PAGE->set_title(get_string('groupquizcompetency', 'local_competency_report'));
+$PAGE->set_heading(get_string('groupquizcompetency', 'local_competency_report'));
 $PAGE->set_pagelayout('course');
 $PAGE->set_context($context);
 
@@ -53,7 +53,7 @@ $renderdata->courseid = $courseid;
 $groups = groups_get_all_groups($courseid);
 $renderdata->groups = [[
     'id' => 0,
-    'name' => get_string('selectgroup', 'local_yetkinlik'),
+    'name' => get_string('selectgroup', 'local_competency_report'),
     'selected' => ($groupid == 0),
 ]];
 foreach ($groups as $g) {
@@ -68,7 +68,7 @@ foreach ($groups as $g) {
 $quizzes = $DB->get_records('quiz', ['course' => $courseid], 'name ASC');
 $renderdata->quizzes = [[
     'id' => 0,
-    'name' => get_string('selectquiz', 'local_yetkinlik'),
+    'name' => get_string('selectquiz', 'local_competency_report'),
     'selected' => ($quizid == 0),
 ]];
 foreach ($quizzes as $q) {
@@ -100,7 +100,7 @@ if ($groupid && $quizid) {
         FROM {quiz_attempts} quiza
         JOIN {question_usages} qu ON qu.id = quiza.uniqueid
         JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-        JOIN {qbank_yetkinlik_qmap} m ON m.questionid = qa.questionid
+        JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
         JOIN {competency} c ON c.id = m.competencyid
         WHERE quiza.quiz = :quizid
         ORDER BY c.shortname", ['quizid' => $quizid]);
@@ -116,7 +116,7 @@ if ($groupid && $quizid) {
         FROM {quiz_attempts} quiza
         JOIN {question_usages} qu ON qu.id = quiza.uniqueid
         JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-        JOIN {qbank_yetkinlik_qmap} m ON m.questionid = qa.questionid
+        JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
         JOIN (
             SELECT questionattemptid, MAX(fraction) AS fraction
             FROM {question_attempt_steps}
@@ -134,7 +134,7 @@ if ($groupid && $quizid) {
     $grouptotals = [];
     foreach ($students as $s) {
         $row = new stdClass();
-        $detailurl = new moodle_url('/local/yetkinlik/student_competency_detail.php', [
+        $detailurl = new moodle_url('/local/competency_report/student_competency_detail.php', [
             'courseid' => $courseid,
             'userid' => $s->id,
         ]);
@@ -180,7 +180,7 @@ if ($groupid && $quizid) {
 // 5. OUTPUT START.
 echo $OUTPUT->header();
 
-$page = new \local_yetkinlik\output\group_quiz_competency_page($courseid, $groupid, $quizid, $renderdata);
+$page = new \local_competency_report\output\group_quiz_competency_page($courseid, $groupid, $quizid, $renderdata);
 echo $OUTPUT->render($page);
 
 echo $OUTPUT->footer();

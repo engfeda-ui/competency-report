@@ -11,7 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    @template local_yetkinlik/teacher_panel
+    @template local_competency_report/teacher_panel
 
     Example context (json):
     {
@@ -19,8 +19,8 @@
         "userid": 2,
         "quizid": 10,
         "students": [
-            { "id": 1, "name": "Ali Yılmaz", "selected": false },
-            { "id": 2, "name": "Ayşe Demir", "selected": true }
+            { "id": 1, "name": "Ali YÄ±lmaz", "selected": false },
+            { "id": 2, "name": "AyÅŸe Demir", "selected": true }
         ],
         "quizzes": [
             { "id": 10, "name": "Matematik Vize", "selected": true },
@@ -39,7 +39,7 @@
         "chart_config": "{\"labels\":[\"Y01\"], \"values\":[80], \"label\":\"Success Rate\"}"
     }
 }}
-<div class="local_yetkinlik_teacher_panel">
+<div class="local_competency_report_teacher_panel">
     {{! Display the moodleform }}
     <div class="card mb-4 border-0 shadow-sm bg-light">
         <div class="card-body">
@@ -54,10 +54,10 @@
                 <table class="generaltable table table-hover shadow-sm bg-white border">
                     <thead class="thead-dark">
                         <tr>
-                            <th>{{#str}}competency, local_yetkinlik{{/str}}</th>
-                            <th class="text-center">{{#str}}questioncount, local_yetkinlik{{/str}}</th>
-                            <th class="text-center">{{#str}}correctcount, local_yetkinlik{{/str}}</th>
-                            <th class="text-center">{{#str}}successrate, local_yetkinlik{{/str}}</th>
+                            <th>{{#str}}competency, local_competency_report{{/str}}</th>
+                            <th class="text-center">{{#str}}questioncount, local_competency_report{{/str}}</th>
+                            <th class="text-center">{{#str}}correctcount, local_competency_report{{/str}}</th>
+                            <th class="text-center">{{#str}}successrate, local_competency_report{{/str}}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -84,14 +84,14 @@
         {{^has_rows}}
             {{! No data alert }}
             <div class="alert alert-info shadow-sm mt-3">
-                <i class="fa fa-info-circle mr-2"></i> {{#str}}nodatafound, local_yetkinlik{{/str}}
+                <i class="fa fa-info-circle mr-2"></i> {{#str}}nodatafound, local_competency_report{{/str}}
             </div>
         {{/has_rows}}
     {{/has_selection}}
 </div>
 
 {{#js}}
-require(['local_yetkinlik/visualizer'], function(Visualizer) {
+require(['local_competency_report/visualizer'], function(Visualizer) {
     var canvas = document.getElementById('teacher_student_chart');
     if (canvas) {
         var config = JSON.parse(canvas.getAttribute('data-config'));

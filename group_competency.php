@@ -17,8 +17,8 @@
 /**
  * Report for competency.
  *
- * @package    local_yetkinlik
- * @copyright  2026 Hakan Çiğci {@link https://hakancigci.com.tr}
+ * @package    local_competency_report
+ * @copyright  2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -29,12 +29,12 @@ $groupid = optional_param('groupid', 0, PARAM_INT);
 
 require_login($courseid);
 $context = context_course::instance($courseid);
-require_capability('local/yetkinlik:viewreports', $context);
+require_capability('local/competency_report:viewreports', $context);
 
 // Page definitions and navigation.
-$PAGE->set_url('/local/yetkinlik/group_competency.php', ['courseid' => $courseid]);
-$PAGE->set_title(get_string('groupcompetency', 'local_yetkinlik'));
-$PAGE->set_heading(get_string('groupcompetency', 'local_yetkinlik'));
+$PAGE->set_url('/local/competency_report/group_competency.php', ['courseid' => $courseid]);
+$PAGE->set_title(get_string('groupcompetency', 'local_competency_report'));
+$PAGE->set_heading(get_string('groupcompetency', 'local_competency_report'));
 $PAGE->set_pagelayout('course');
 $PAGE->set_context($context);
 
@@ -68,7 +68,7 @@ if ($groupid) {
     // 3. Fetch mapped competencies list.
     $competencies = (array) $DB->get_records_sql("
         SELECT DISTINCT c.id, c.shortname
-        FROM {qbank_yetkinlik_qmap} m
+        FROM {qbank_competency_qmap} m
         JOIN {competency} c ON c.id = m.competencyid
         ORDER BY c.shortname ASC
     ");
@@ -86,7 +86,7 @@ if ($groupid) {
         FROM {quiz_attempts} quiza
         JOIN {question_usages} qu ON qu.id = quiza.uniqueid
         JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-        JOIN {qbank_yetkinlik_qmap} m ON m.questionid = qa.questionid
+        JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
         JOIN (
             SELECT questionattemptid, MAX(fraction) AS fraction
             FROM {question_attempt_steps}
@@ -112,7 +112,7 @@ if ($groupid) {
     foreach ($students as $s) {
         $row = new stdClass();
         $detailurl = new moodle_url(
-            '/local/yetkinlik/student_competency_detail.php',
+            '/local/competency_report/student_competency_detail.php',
             ['courseid' => $courseid, 'userid' => $s->id]
         );
         $row->studentlink = html_writer::link(
@@ -179,7 +179,7 @@ if ($groupid) {
 // 7. Output rendering.
 echo $OUTPUT->header();
 
-$page = new \local_yetkinlik\output\group_competency_page($courseid, $groupid, $renderdata);
+$page = new \local_competency_report\output\group_competency_page($courseid, $groupid, $renderdata);
 echo $OUTPUT->render($page);
 
 echo $OUTPUT->footer();

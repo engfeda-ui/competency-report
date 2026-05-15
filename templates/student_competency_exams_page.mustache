@@ -15,7 +15,7 @@
     along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 }}
 {{!
-    @template local_yetkinlik/student_competency_exams_page
+    @template local_competency_report/student_competency_exams_page
 
     Template for displaying student performance report for a specific competency.
 
@@ -49,7 +49,7 @@
         ]
     }
 }}
-<div class="local_yetkinlik_competency_exams">
+<div class="local_competency_report_competency_exams">
     {{! 1. Competency Selection Filter }}
     <div class="card mb-4 border-0 shadow-sm bg-light">
         <div class="card-body">
@@ -57,9 +57,9 @@
                 <input type="hidden" name="courseid" value="{{courseid}}">
                 <div class="form-row align-items-end">
                     <div class="col-12 col-md-9 mb-3 mb-md-0">
-                        <label class="font-weight-bold" for="id_competency_select">{{#str}}selectcompetency, local_yetkinlik{{/str}}</label>
+                        <label class="font-weight-bold" for="id_competency_select">{{#str}}selectcompetency, local_competency_report{{/str}}</label>
                         <select name="competencyid" id="id_competency_select" class="form-control">
-                            <option value="0">{{#str}}selectcompetency, local_yetkinlik{{/str}}</option>
+                            <option value="0">{{#str}}selectcompetency, local_competency_report{{/str}}</option>
                             {{#competencies}}
                                 <option value="{{id}}" {{#selected}}selected{{/selected}}>{{shortname}}</option>
                             {{/competencies}}
@@ -67,7 +67,7 @@
                     </div>
                     <div class="col-12 col-md-3">
                         <button type="submit" class="btn btn-primary btn-block">
-                            <i class="fa fa-search"></i> {{#str}}show, local_yetkinlik{{/str}}
+                            <i class="fa fa-search"></i> {{#str}}show, local_competency_report{{/str}}
                         </button>
                     </div>
                 </div>
@@ -84,15 +84,15 @@
 
         {{! 2. Summary Table }}
         {{#rows.0}}
-        <h4 class="mt-4">{{#str}}summaryreport, local_yetkinlik{{/str}}</h4>
+        <h4 class="mt-4">{{#str}}summaryreport, local_competency_report{{/str}}</h4>
         <div class="table-responsive">
             <table class="generaltable table table-hover shadow-sm bg-white">
                 <thead class="thead-dark">
                     <tr>
-                        <th>{{#str}}quiz, local_yetkinlik{{/str}}</th>
-                        <th class="text-center">{{#str}}question, local_yetkinlik{{/str}}</th>
-                        <th class="text-center">{{#str}}correct, local_yetkinlik{{/str}}</th>
-                        <th class="text-center">{{#str}}success, local_yetkinlik{{/str}}</th>
+                        <th>{{#str}}quiz, local_competency_report{{/str}}</th>
+                        <th class="text-center">{{#str}}question, local_competency_report{{/str}}</th>
+                        <th class="text-center">{{#str}}correct, local_competency_report{{/str}}</th>
+                        <th class="text-center">{{#str}}success, local_competency_report{{/str}}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -110,7 +110,7 @@
                 {{#total}}
                 <tfoot>
                     <tr class="table-secondary font-weight-bold">
-                        <td>{{#str}}total, local_yetkinlik{{/str}}</td>
+                        <td>{{#str}}total, local_competency_report{{/str}}</td>
                         <td class="text-center">{{questions}}</td>
                         <td class="text-center">{{correct}}</td>
                         <td class="text-center {{colorclass}}">%{{rate}}</td>
@@ -123,14 +123,14 @@
 
         {{! 3. Detailed Question Links }}
         {{#has_questions}}
-        <h4 class="mt-5">{{#str}}questionlinks, local_yetkinlik{{/str}}</h4>
+        <h4 class="mt-5">{{#str}}questionlinks, local_competency_report{{/str}}</h4>
         <div class="table-responsive">
             <table class="generaltable table table-bordered table-hover mt-3 shadow-sm bg-white">
                 <thead class="thead-light">
                     <tr>
-                        <th>{{#str}}quiz, local_yetkinlik{{/str}}</th>
-                        <th>{{#str}}questionname, local_yetkinlik{{/str}}</th>
-                        <th class="text-center">{{#str}}action, local_yetkinlik{{/str}}</th>
+                        <th>{{#str}}quiz, local_competency_report{{/str}}</th>
+                        <th>{{#str}}questionname, local_competency_report{{/str}}</th>
+                        <th class="text-center">{{#str}}action, local_competency_report{{/str}}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -140,7 +140,7 @@
                         <td>{{questionname}}</td>
                         <td class="text-center">
                             <a href="{{url}}" class="btn btn-sm btn-outline-primary view-question-modal">
-                                <i class="fa fa-search"></i> {{#str}}viewattempt, local_yetkinlik{{/str}}
+                                <i class="fa fa-search"></i> {{#str}}viewattempt, local_competency_report{{/str}}
                             </a>
                         </td>
                     </tr>
@@ -152,15 +152,15 @@
 
         {{^rows}}
             <div class="alert alert-warning shadow-sm">
-                <i class="fa fa-exclamation-triangle"></i> {{#str}}nocompetencyexamdata, local_yetkinlik{{/str}}
+                <i class="fa fa-exclamation-triangle"></i> {{#str}}nocompetencyexamdata, local_competency_report{{/str}}
             </div>
         {{/rows}}
     {{/has_selection}}
 </div>
 
 {{#js}}
-require(['core/form-autocomplete', 'local_yetkinlik/modal_viewer'], function(Autocomplete, ModalViewer) {
-    Autocomplete.enhance('#id_competency_select', false, false, "{{#str}}selectcompetency, local_yetkinlik{{/str}}");
+require(['core/form-autocomplete', 'local_competency_report/modal_viewer'], function(Autocomplete, ModalViewer) {
+    Autocomplete.enhance('#id_competency_select', false, false, "{{#str}}selectcompetency, local_competency_report{{/str}}");
     ModalViewer.init('.view-question-modal');
 });
 {{/js}}

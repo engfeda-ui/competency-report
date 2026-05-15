@@ -15,14 +15,14 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Local plugin "yetkinlik" - Privacy provider.
+ * Local plugin "competency_report" - Privacy provider.
  *
- * @package    local_yetkinlik
- * @copyright  2026 Hakan Çiğci {@link https://hakancigci.com.tr}
+ * @package    local_competency_report
+ * @copyright  2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_yetkinlik\privacy;
+namespace local_competency_report\privacy;
 
 use core_privacy\local\metadata\collection;
 use core_privacy\local\metadata\provider as metadataprovider;
@@ -30,8 +30,8 @@ use core_privacy\local\metadata\provider as metadataprovider;
 /**
  * Privacy Subsystem implementation.
  *
- * @package    local_yetkinlik
- * @copyright  2026 Hakan Çiğci {@link https://hakancigci.com.tr}
+ * @package    local_competency_report
+ * @copyright  2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class provider implements metadataprovider {

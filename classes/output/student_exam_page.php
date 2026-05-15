@@ -17,12 +17,12 @@
 /**
  * Renderable class for student exam-based competency analysis page.
  *
- * @package    local_yetkinlik
- * @copyright  2026 Hakan Çiğci {@link https://hakancigci.com.tr}
+ * @package    local_competency_report
+ * @copyright  2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_yetkinlik\output;
+namespace local_competency_report\output;
 
 use renderable;
 use templatable;
@@ -32,8 +32,8 @@ use stdClass;
 /**
  * Output class for student exam competency page.
  *
- * @package    local_yetkinlik
- * @copyright  2026 Hakan Çiğci {@link https://hakancigci.com.tr}
+ * @package    local_competency_report
+ * @copyright  2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class student_exam_page implements renderable, templatable {
@@ -105,7 +105,7 @@ class student_exam_page implements renderable, templatable {
                 'labels'     => $labels,
                 'chartData'  => $chartdata,
                 'bgColors'   => $bgcolors,
-                'chartLabel' => get_string('successpercent', 'local_yetkinlik') . ' (%)',
+                'chartLabel' => get_string('successpercent', 'local_competency_report') . ' (%)',
             ]);
         }
 

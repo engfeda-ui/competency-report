@@ -17,8 +17,8 @@
 /**
  * AI and Rule-based commentary logic for competencies.
  *
- * @package    local_yetkinlik
- * @copyright  2026 Hakan Çiğci {@link https://hakancigci.com.tr}
+ * @package    local_competency_report
+ * @copyright  2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -29,12 +29,12 @@
  * @param string $context The context of the comment (student or school).
  * @return string
  */
-function local_yetkinlik_generate_comment(array $stats, $context = 'student') {
-    if (!get_config('local_yetkinlik', 'enable_ai')) {
-        return local_yetkinlik_rule_based_comment($stats);
+function local_competency_report_generate_comment(array $stats, $context = 'student') {
+    if (!get_config('local_competency_report', 'enable_ai')) {
+        return local_competency_report_rule_based_comment($stats);
     }
     // Call AI comment function.
-    return local_yetkinlik_ai_comment($stats, $context);
+    return local_competency_report_ai_comment($stats, $context);
 }
 
 /**
@@ -43,7 +43,7 @@ function local_yetkinlik_generate_comment(array $stats, $context = 'student') {
  * @param array $stats
  * @return string
  */
-function local_yetkinlik_rule_based_comment(array $stats) {
+function local_competency_report_rule_based_comment(array $stats) {
     $red = [];
     $orange = [];
     $blue = [];
@@ -61,25 +61,25 @@ function local_yetkinlik_rule_based_comment(array $stats) {
         }
     }
 
-    $text = html_writer::tag('b', get_string('generalcomment', 'local_yetkinlik') . ":") . html_writer::empty_tag('br');
+    $text = html_writer::tag('b', get_string('generalcomment', 'local_competency_report') . ":") . html_writer::empty_tag('br');
 
     if ($red) {
-        $text .= html_writer::tag('span', get_string('comment_red', 'local_yetkinlik', implode(', ', $red)), [
+        $text .= html_writer::tag('span', get_string('comment_red', 'local_competency_report', implode(', ', $red)), [
             'style' => 'color: red;',
         ]) . html_writer::empty_tag('br');
     }
     if ($orange) {
-        $text .= html_writer::tag('span', get_string('comment_orange', 'local_yetkinlik', implode(', ', $orange)), [
+        $text .= html_writer::tag('span', get_string('comment_orange', 'local_competency_report', implode(', ', $orange)), [
             'style' => 'color: orange;',
         ]) . html_writer::empty_tag('br');
     }
     if ($blue) {
-        $text .= html_writer::tag('span', get_string('comment_blue', 'local_yetkinlik', implode(', ', $blue)), [
+        $text .= html_writer::tag('span', get_string('comment_blue', 'local_competency_report', implode(', ', $blue)), [
             'style' => 'color: blue;',
         ]) . html_writer::empty_tag('br');
     }
     if ($green) {
-        $text .= html_writer::tag('span', get_string('comment_green', 'local_yetkinlik', implode(', ', $green)), [
+        $text .= html_writer::tag('span', get_string('comment_green', 'local_competency_report', implode(', ', $green)), [
             'style' => 'color: green;',
         ]) . html_writer::empty_tag('br');
     }
@@ -94,22 +94,22 @@ function local_yetkinlik_rule_based_comment(array $stats) {
  * @param string $context
  * @return string
  */
-function local_yetkinlik_ai_comment(array $stats, $context = 'student') {
+function local_competency_report_ai_comment(array $stats, $context = 'student') {
     global $CFG;
     require_once($CFG->libdir . '/filelib.php');
 
-    $apikey = get_config('local_yetkinlik', 'apikey');
-    $model  = get_config('local_yetkinlik', 'model');
+    $apikey = get_config('local_competency_report', 'apikey');
+    $model  = get_config('local_competency_report', 'model');
 
     if (empty($apikey) || empty($model)) {
-        return get_string('ai_not_configured', 'local_yetkinlik');
+        return get_string('ai_not_configured', 'local_competency_report');
     }
 
     // Prompt selection.
     if ($context === 'school') {
-        $prompt = get_string('ai_prompt_school', 'local_yetkinlik') . "\n";
+        $prompt = get_string('ai_prompt_school', 'local_competency_report') . "\n";
     } else {
-        $prompt = get_string('ai_prompt_student', 'local_yetkinlik') . "\n";
+        $prompt = get_string('ai_prompt_student', 'local_competency_report') . "\n";
     }
 
     foreach ($stats as $k => $v) {
@@ -127,7 +127,7 @@ function local_yetkinlik_ai_comment(array $stats, $context = 'student') {
         "messages" => [
             [
                 "role" => "system",
-                "content" => get_string('ai_system_prompt', 'local_yetkinlik'),
+                "content" => get_string('ai_system_prompt', 'local_competency_report'),
             ],
             [
                 "role" => "user",
@@ -148,7 +148,7 @@ function local_yetkinlik_ai_comment(array $stats, $context = 'student') {
         return $data['choices'][0]['message']['content'];
     }
 
-    return get_string('ai_failed', 'local_yetkinlik');
+    return get_string('ai_failed', 'local_competency_report');
 }
 
 /**
@@ -157,25 +157,25 @@ function local_yetkinlik_ai_comment(array $stats, $context = 'student') {
  * @param array $stats
  * @return string
  */
-function local_yetkinlik_structured_comment(array $stats) {
-    $text = html_writer::tag('b', get_string('generalcomment', 'local_yetkinlik') . ":") . html_writer::empty_tag('br');
+function local_competency_report_structured_comment(array $stats) {
+    $text = html_writer::tag('b', get_string('generalcomment', 'local_competency_report') . ":") . html_writer::empty_tag('br');
 
     foreach ($stats as $shortname => $rate) {
         $a = ['shortname' => $shortname, 'rate' => $rate];
         if ($rate <= 39) {
-            $text .= html_writer::tag('span', get_string('structured_red', 'local_yetkinlik', $a), [
+            $text .= html_writer::tag('span', get_string('structured_red', 'local_competency_report', $a), [
                 'style' => 'color: red;',
             ]) . html_writer::empty_tag('br');
         } else if ($rate >= 40 && $rate <= 59) {
-            $text .= html_writer::tag('span', get_string('structured_orange', 'local_yetkinlik', $a), [
+            $text .= html_writer::tag('span', get_string('structured_orange', 'local_competency_report', $a), [
                 'style' => 'color: orange;',
             ]) . html_writer::empty_tag('br');
         } else if ($rate >= 60 && $rate <= 79) {
-            $text .= html_writer::tag('span', get_string('structured_blue', 'local_yetkinlik', $a), [
+            $text .= html_writer::tag('span', get_string('structured_blue', 'local_competency_report', $a), [
                 'style' => 'color: blue;',
             ]) . html_writer::empty_tag('br');
         } else if ($rate >= 80) {
-            $text .= html_writer::tag('span', get_string('structured_green', 'local_yetkinlik', $a), [
+            $text .= html_writer::tag('span', get_string('structured_green', 'local_competency_report', $a), [
                 'style' => 'color: green;',
             ]) . html_writer::empty_tag('br');
         }

@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Settings for the yetkinlik plugin.
+ * Settings for the competency_report plugin.
  *
- * @package    local_yetkinlik
- * @copyright  2026 Hakan Çiğci {@link https://hakancigci.com.tr}
+ * @package    local_competency_report
+ * @copyright  2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -26,40 +26,40 @@ defined('MOODLE_INTERNAL') || die();
 
 if ($hassiteconfig) {
     // 1. Define the Settings Page.
-    $settings = new admin_settingpage('local_yetkinlik', get_string('pluginname', 'local_yetkinlik'));
+    $settings = new admin_settingpage('local_competency_report', get_string('pluginname', 'local_competency_report'));
 
     if ($ADMIN->fulltree) {
         // AI integration toggle (enable/disable).
         $settings->add(new admin_setting_configcheckbox(
-            'local_yetkinlik/enable_ai',
-            get_string('enable_ai', 'local_yetkinlik'),
-            get_string('enable_ai_desc', 'local_yetkinlik'),
+            'local_competency_report/enable_ai',
+            get_string('enable_ai', 'local_competency_report'),
+            get_string('enable_ai_desc', 'local_competency_report'),
             0
         ));
 
         // API Key.
         $settings->add(new admin_setting_configtext(
-            'local_yetkinlik/apikey',
-            get_string('apikey', 'local_yetkinlik'),
-            get_string('apikey_desc', 'local_yetkinlik'),
+            'local_competency_report/apikey',
+            get_string('apikey', 'local_competency_report'),
+            get_string('apikey_desc', 'local_competency_report'),
             '',
             PARAM_TEXT
         ));
 
         // Model name.
         $settings->add(new admin_setting_configtext(
-            'local_yetkinlik/model',
-            get_string('model', 'local_yetkinlik'),
-            get_string('model_desc', 'local_yetkinlik'),
+            'local_competency_report/model',
+            get_string('model', 'local_competency_report'),
+            get_string('model_desc', 'local_competency_report'),
             'gpt-4',
             PARAM_ALPHANUMEXT
         ));
 
         // Maximum number of rows.
         $settings->add(new admin_setting_configtext(
-            'local_yetkinlik/maxrows',
-            get_string('maxrows', 'local_yetkinlik'),
-            get_string('maxrows_desc', 'local_yetkinlik'),
+            'local_competency_report/maxrows',
+            get_string('maxrows', 'local_competency_report'),
+            get_string('maxrows_desc', 'local_competency_report'),
             100,
             PARAM_INT
         ));
@@ -70,16 +70,16 @@ if ($hassiteconfig) {
 
     // 3. Add External Report Pages under the "Reports" menu.
     $ADMIN->add('reports', new admin_externalpage(
-        'local_yetkinlik_schoolreport',
-        get_string('schoolreport', 'local_yetkinlik'),
-        new moodle_url('/local/yetkinlik/school_report.php'),
+        'local_competency_report_schoolreport',
+        get_string('schoolreport', 'local_competency_report'),
+        new moodle_url('/local/competency_report/school_report.php'),
         'moodle/site:config'
     ));
 
     $ADMIN->add('reports', new admin_externalpage(
-        'local_yetkinlik_schoolpdf',
-        get_string('schoolpdf', 'local_yetkinlik'),
-        new moodle_url('/local/yetkinlik/school_pdf.php'),
+        'local_competency_report_schoolpdf',
+        get_string('schoolpdf', 'local_competency_report'),
+        new moodle_url('/local/competency_report/school_pdf.php'),
         'moodle/site:config'
     ));
 }

@@ -18,8 +18,8 @@
  * Teacher view: Student-specific competency performance report.
  * Provides filters and detailed question links with modal support.
  *
- * @package    local_yetkinlik
- * @copyright  2026 Hakan Çiğci {@link https://hakancigci.com.tr}
+ * @package    local_competency_report
+ * @copyright  2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -34,25 +34,25 @@ require_login($courseid);
 $context = context_course::instance($courseid);
 require_capability('mod/quiz:viewreports', $context);
 
-$PAGE->set_url('/local/yetkinlik/teacher_student_competency.php', ['courseid' => $courseid]);
-$PAGE->set_title(get_string('teacherstudentcompetency', 'local_yetkinlik'));
-$PAGE->set_heading(get_string('teacherstudentcompetency', 'local_yetkinlik'));
+$PAGE->set_url('/local/competency_report/teacher_student_competency.php', ['courseid' => $courseid]);
+$PAGE->set_title(get_string('teacherstudentcompetency', 'local_competency_report'));
+$PAGE->set_heading(get_string('teacherstudentcompetency', 'local_competency_report'));
 $PAGE->set_pagelayout('course');
 
 // 1. Data Preparation.
 $students = get_enrolled_users($context);
-$studentoptions = [0 => get_string('selectstudent', 'local_yetkinlik')];
+$studentoptions = [0 => get_string('selectstudent', 'local_competency_report')];
 foreach ($students as $s) {
     $studentoptions[$s->id] = fullname($s);
 }
 
 $competencies = $DB->get_records_sql("
     SELECT DISTINCT c.id, c.shortname
-    FROM {qbank_yetkinlik_qmap} m
+    FROM {qbank_competency_qmap} m
     JOIN {competency} c ON c.id = m.competencyid
     ORDER BY c.shortname");
 
-$compoptions = [0 => get_string('selectcompetency', 'local_yetkinlik')];
+$compoptions = [0 => get_string('selectcompetency', 'local_competency_report')];
 foreach ($competencies as $c) {
     $compoptions[$c->id] = $c->shortname;
 }
@@ -60,7 +60,7 @@ foreach ($competencies as $c) {
 /**
  * Filter form for student and competency selection.
  */
-class local_yetkinlik_teacher_form extends moodleform {
+class local_competency_report_teacher_form extends moodleform {
     /**
      * Form definition.
      */
@@ -72,22 +72,22 @@ class local_yetkinlik_teacher_form extends moodleform {
         $mform->addElement(
             'autocomplete',
             'userid',
-            get_string('selectstudent', 'local_yetkinlik'),
+            get_string('selectstudent', 'local_competency_report'),
             $this->_customdata['studentoptions']
         );
 
         $mform->addElement(
             'autocomplete',
             'competencyid',
-            get_string('selectcompetency', 'local_yetkinlik'),
+            get_string('selectcompetency', 'local_competency_report'),
             $this->_customdata['compoptions']
         );
 
-        $this->add_action_buttons(false, get_string('show', 'local_yetkinlik'));
+        $this->add_action_buttons(false, get_string('show', 'local_competency_report'));
     }
 }
 
-$mform = new local_yetkinlik_teacher_form(null, ['studentoptions' => $studentoptions, 'compoptions' => $compoptions]);
+$mform = new local_competency_report_teacher_form(null, ['studentoptions' => $studentoptions, 'compoptions' => $compoptions]);
 $mform->set_data(['courseid' => $courseid, 'userid' => $userid, 'competencyid' => $competencyid]);
 
 if ($frmdata = $mform->get_data()) {
@@ -116,7 +116,7 @@ if ($userid && $competencyid) {
                    JOIN {quiz} quiz ON quiz.id = quiza.quiz
                    JOIN {question_usages} qu ON qu.id = quiza.uniqueid
                    JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-                   JOIN {qbank_yetkinlik_qmap} map ON map.questionid = qa.questionid
+                   JOIN {qbank_competency_qmap} map ON map.questionid = qa.questionid
                    JOIN (
                        SELECT MAX(fraction) AS fraction, questionattemptid
                        FROM {question_attempt_steps}
@@ -166,7 +166,7 @@ if ($userid && $competencyid) {
                    JOIN {question_usages} qu ON qu.id = quiza.uniqueid
                    JOIN {question_attempts} qa ON qa.questionusageid = qu.id
                    JOIN {question} q ON q.id = qa.questionid
-                   INNER JOIN {qbank_yetkinlik_qmap} map ON map.questionid = qa.questionid
+                   INNER JOIN {qbank_competency_qmap} map ON map.questionid = qa.questionid
                    WHERE map.competencyid = :competencyid AND quiza.userid = :userid AND quiza.state = 'finished'
                    ORDER BY quiz.name ASC, qa.slot ASC";
 
@@ -189,6 +189,6 @@ if ($userid && $competencyid) {
 }
 
 echo $OUTPUT->header();
-$page = new \local_yetkinlik\output\teacher_student_competency_page($renderdata, $mform);
+$page = new \local_competency_report\output\teacher_student_competency_page($renderdata, $mform);
 echo $OUTPUT->render($page);
 echo $OUTPUT->footer();

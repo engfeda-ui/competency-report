@@ -17,8 +17,8 @@
 /**
  * Detailed competency report for a specific student.
  *
- * @package    local_yetkinlik
- * @copyright  2026 Hakan Çiğci {@link https://hakancigci.com.tr}
+ * @package    local_competency_report
+ * @copyright  2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -41,10 +41,10 @@ $course  = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
 $student = $DB->get_record('user', ['id' => $userid], '*', MUST_EXIST);
 
 // Page definitions and setup.
-$PAGE->set_url('/local/yetkinlik/student_competency_detail.php', ['courseid' => $courseid, 'userid' => $userid]);
+$PAGE->set_url('/local/competency_report/student_competency_detail.php', ['courseid' => $courseid, 'userid' => $userid]);
 $PAGE->set_context($context);
 $PAGE->set_pagelayout('course');
-$PAGE->set_title(get_string('studentreport', 'local_yetkinlik'));
+$PAGE->set_title(get_string('studentreport', 'local_competency_report'));
 $PAGE->set_heading(fullname($student) . ' - ' . $course->fullname);
 
 // 1. Data Preparation.
@@ -56,7 +56,7 @@ $sql = "SELECT c.id, c.shortname, c.description,
         JOIN {question_usages} qu ON qu.id = quiza.uniqueid
         JOIN {question_attempts} qa ON qa.questionusageid = qu.id
         JOIN {quiz} quiz ON quiz.id = quiza.quiz
-        JOIN {qbank_yetkinlik_qmap} m ON m.questionid = qa.questionid
+        JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
         JOIN {competency} c ON c.id = m.competencyid
         JOIN (
             SELECT MAX(fraction) AS fraction, questionattemptid
@@ -76,16 +76,16 @@ foreach ($rows as $r) {
 
 $renderdata = new stdClass();
 $renderdata->rows = $rows;
-$pdfurl = new moodle_url('/local/yetkinlik/parent_pdf.php', ['courseid' => $courseid, 'userid' => $userid]);
+$pdfurl = new moodle_url('/local/competency_report/parent_pdf.php', ['courseid' => $courseid, 'userid' => $userid]);
 $renderdata->pdf_url = $pdfurl->out(false);
 
 // Generate personalized AI feedback for the student.
-$renderdata->ai_comment = local_yetkinlik_generate_comment($rates, 'student');
+$renderdata->ai_comment = local_competency_report_generate_comment($rates, 'student');
 
 // 3. Output Generation.
 echo $OUTPUT->header();
 
-$page = new \local_yetkinlik\output\student_competency_detail_page($renderdata);
+$page = new \local_competency_report\output\student_competency_detail_page($renderdata);
 echo $OUTPUT->render($page);
 
 echo $OUTPUT->footer();

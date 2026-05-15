@@ -1,23 +1,23 @@
-# local_yetkinlik
+# local_competency_report
 
-A Moodle **Competency Analysis and Reporting** plugin. This plugin analyzes and reports on user competencies based on the question‑competency links created by `qbank_yetkinlik`.
+A Moodle **Competency Analysis and Reporting** plugin. This plugin analyzes and reports on user competencies based on the questionâ€‘competency links created by `qbank_competency`.
 
 ## Features
-- Generate analysis based on competency‑linked questions
+- Generate analysis based on competencyâ€‘linked questions
 - Track user competency progress
-- Provide color‑coded and motivational feedback
+- Provide colorâ€‘coded and motivational feedback
 - Export PDF reports
-- Multi‑language support
-- Works in integration with `qbank_yetkinlik`
+- Multiâ€‘language support
+- Works in integration with `qbank_competency`
 
 ## Installation
-1. Copy this plugin into `moodle/local/yetkinlik`.
-2. In Moodle, go to **Site administration → Plugins → Install plugins**.
+1. Copy this plugin into `moodle/local/competency_report`.
+2. In Moodle, go to **Site administration â†’ Plugins â†’ Install plugins**.
 3. Complete the installation wizard.
 4. Purge caches.
 
 ## Usage
-- First, assign competencies to questions using `qbank_yetkinlik`.
+- First, assign competencies to questions using `qbank_competency`.
 - This plugin then produces analysis and reports based on those assignments.
 - Feedback is automatically generated with color codes and motivational messages.
 

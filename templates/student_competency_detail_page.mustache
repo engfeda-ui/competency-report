@@ -11,7 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    @template local_yetkinlik/student_detail
+    @template local_competency_report/student_detail
 
     Example context (json):
     {
@@ -19,7 +19,7 @@
         "rows": [
             {
                 "shortname": "YET-01",
-                "description": "Problem Çözme ve Analitik Düşünme",
+                "description": "Problem Ã‡Ã¶zme ve Analitik DÃ¼ÅŸÃ¼nme",
                 "questions": 12,
                 "correct": 9,
                 "rate": "75",
@@ -27,7 +27,7 @@
             },
             {
                 "shortname": "YET-02",
-                "description": "Eleştirel Düşünme",
+                "description": "EleÅŸtirel DÃ¼ÅŸÃ¼nme",
                 "questions": 8,
                 "correct": 8,
                 "rate": "100",
@@ -35,10 +35,10 @@
             }
         ],
         "pdf_url": "#",
-        "ai_comment": "<p>Öğrenci genel olarak <b>başarılı</b> bir grafik çizmektedir. Analitik düşünme alanında gelişime açıktır.</p>"
+        "ai_comment": "<p>Ã–ÄŸrenci genel olarak <b>baÅŸarÄ±lÄ±</b> bir grafik Ã§izmektedir. Analitik dÃ¼ÅŸÃ¼nme alanÄ±nda geliÅŸime aÃ§Ä±ktÄ±r.</p>"
     }
 }}
-<div class="local_yetkinlik_student_detail">
+<div class="local_competency_report_student_detail">
     
     {{#has_data}}
         {{! Competency Breakdown Table }}
@@ -46,11 +46,11 @@
             <table class="generaltable table table-bordered table-hover shadow-sm bg-white">
                 <thead class="thead-dark">
                     <tr>
-                        <th>{{#str}}competencycode, local_yetkinlik{{/str}}</th>
-                        <th>{{#str}}competency, local_yetkinlik{{/str}}</th>
-                        <th class="text-center">{{#str}}questioncount, local_yetkinlik{{/str}}</th>
-                        <th class="text-center">{{#str}}correctcount, local_yetkinlik{{/str}}</th>
-                        <th class="text-center">{{#str}}successrate, local_yetkinlik{{/str}}</th>
+                        <th>{{#str}}competencycode, local_competency_report{{/str}}</th>
+                        <th>{{#str}}competency, local_competency_report{{/str}}</th>
+                        <th class="text-center">{{#str}}questioncount, local_competency_report{{/str}}</th>
+                        <th class="text-center">{{#str}}correctcount, local_competency_report{{/str}}</th>
+                        <th class="text-center">{{#str}}successrate, local_competency_report{{/str}}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -72,13 +72,13 @@
         {{! PDF Export Button }}
         <div class="mt-4">
             <a href="{{pdf_url}}" class="btn btn-secondary" target="_blank">
-                <i class="fa fa-file-pdf-o"></i> {{#str}}pdfmystudent, local_yetkinlik{{/str}}
+                <i class="fa fa-file-pdf-o"></i> {{#str}}pdfmystudent, local_competency_report{{/str}}
             </a>
         </div>
 
         {{! AI Commentary Section }}
         <div class="ai-commentary mt-5">
-            <h3 class="mb-3"><i class="fa fa-magic text-info"></i> {{#str}}generalcomment, local_yetkinlik{{/str}}</h3>
+            <h3 class="mb-3"><i class="fa fa-magic text-info"></i> {{#str}}generalcomment, local_competency_report{{/str}}</h3>
             <div class="alert alert-info border-left-info shadow-sm p-4">
                 {{{ai_comment}}}
             </div>
@@ -88,7 +88,7 @@
     {{^has_data}}
         {{! No Data Found Alert }}
         <div class="alert alert-warning">
-            <i class="fa fa-exclamation-triangle"></i> {{#str}}nodatafound, local_yetkinlik{{/str}}
+            <i class="fa fa-exclamation-triangle"></i> {{#str}}nodatafound, local_competency_report{{/str}}
         </div>
     {{/has_data}}
 </div>

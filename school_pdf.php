@@ -17,8 +17,8 @@
 /**
  * PDF Export for competency.
  *
- * @package    local_yetkinlik
- * @copyright  2026 Hakan Çiğci {@link https://hakancigci.com.tr}
+ * @package    local_competency_report
+ * @copyright  2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -38,7 +38,7 @@ if ($courseid) {
     $course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
 
     // Fetch course-specific title from the language file.
-    $reporttitle = get_string('report_title', 'local_yetkinlik', $course->fullname);
+    $reporttitle = get_string('report_title', 'local_competency_report', $course->fullname);
 
     $wheresql = "WHERE quiz.course = :courseid AND quiza.state = 'finished'";
     $params = ['courseid' => $courseid];
@@ -47,7 +47,7 @@ if ($courseid) {
     require_capability('moodle/site:config', $context);
 
     // Fetch general title from the language file.
-    $reporttitle = get_string('report_title', 'local_yetkinlik');
+    $reporttitle = get_string('report_title', 'local_competency_report');
 
     $wheresql = "WHERE quiza.state = 'finished'";
     $params = [];
@@ -62,7 +62,7 @@ $sql = "
     JOIN {quiz} quiz ON quiz.id = quiza.quiz
     JOIN {question_usages} qu ON qu.id = quiza.uniqueid
     JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-    JOIN {qbank_yetkinlik_qmap} m ON m.questionid = qa.questionid
+    JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
     JOIN {competency} c ON c.id = m.competencyid
     JOIN (
         SELECT MAX(fraction) AS fraction, questionattemptid
@@ -83,7 +83,7 @@ foreach ($rows as $r) {
 }
 
 // Generate AI comment.
-$comment = local_yetkinlik_generate_comment($rates);
+$comment = local_competency_report_generate_comment($rates);
 
 /* PDF Preparation. */
 $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
@@ -102,7 +102,7 @@ $pdf->SetFont('freeserif', '', 12);
 $pdf->SetFont('freeserif', 'B', 16);
 $pdf->Cell(0, 10, $reporttitle, 0, 1, 'C');
 $pdf->SetFont('freeserif', '', 9);
-$pdf->Cell(0, 5, get_string('creation_date', 'local_yetkinlik') . ": " . date('d.m.Y H:i'), 0, 1, 'R');
+$pdf->Cell(0, 5, get_string('creation_date', 'local_competency_report') . ": " . date('d.m.Y H:i'), 0, 1, 'R');
 $pdf->Ln(5);
 
 // HTML table headers fetched from language file.
@@ -110,11 +110,11 @@ $html = '
 <table border="0.5" cellpadding="6" style="width: 100%;">
     <thead>
         <tr style="background-color: #f2f2f2; font-weight: bold; text-align: center;">
-            <th width="15%">' . get_string('competencycode', 'local_yetkinlik') . '</th>
-            <th width="45%">' . get_string('competencyname', 'local_yetkinlik') . '</th>
-            <th width="12%">' . get_string('questioncount', 'local_yetkinlik') . '</th>
-            <th width="12%">' . get_string('correctcount', 'local_yetkinlik') . '</th>
-            <th width="16%">' . get_string('successrate', 'local_yetkinlik') . '</th>
+            <th width="15%">' . get_string('competencycode', 'local_competency_report') . '</th>
+            <th width="45%">' . get_string('competencyname', 'local_competency_report') . '</th>
+            <th width="12%">' . get_string('questioncount', 'local_competency_report') . '</th>
+            <th width="12%">' . get_string('correctcount', 'local_competency_report') . '</th>
+            <th width="16%">' . get_string('successrate', 'local_competency_report') . '</th>
         </tr>
     </thead>
     <tbody>';
@@ -150,7 +150,7 @@ if (!empty($comment)) {
     $pdf->Ln(8);
     $pdf->SetFont('freeserif', 'B', 12);
     $pdf->SetFillColor(240, 240, 240);
-    $pdf->Cell(0, 10, " " . get_string('generalcomment', 'local_yetkinlik'), 0, 1, 'L', true);
+    $pdf->Cell(0, 10, " " . get_string('generalcomment', 'local_competency_report'), 0, 1, 'L', true);
 
     $pdf->Ln(2);
     $pdf->SetFont('freeserif', '', 11);

@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Capability definitions for the local_yetkinlik plugin.
+ * Capability definitions for the local_competency_report plugin.
  *
- * @package    local_yetkinlik
- * @copyright  2026 Hakan Çiğci {@link https://hakancigci.com.tr}
+ * @package    local_competency_report
+ * @copyright  2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -27,7 +27,7 @@ defined('MOODLE_INTERNAL') || die();
 $capabilities = [
 
     // Ability to manage question-competency mapping.
-    'local/yetkinlik:manage' => [
+    'local/competency_report:manage' => [
         'riskbitmask'  => RISK_CONFIG,
         'captype'      => 'write',
         'contextlevel' => CONTEXT_COURSE,
@@ -38,7 +38,7 @@ $capabilities = [
     ],
 
     // Ability to view all competency reports (Teachers and Managers).
-    'local/yetkinlik:viewreports' => [
+    'local/competency_report:viewreports' => [
         'captype'      => 'read',
         'contextlevel' => CONTEXT_COURSE,
         'archetypes'   => [
@@ -49,7 +49,7 @@ $capabilities = [
     ],
 
     // Ability to view own competency analysis (Students).
-    'local/yetkinlik:viewownreport' => [
+    'local/competency_report:viewownreport' => [
         'captype'      => 'read',
         'contextlevel' => CONTEXT_COURSE,
         'archetypes'   => [

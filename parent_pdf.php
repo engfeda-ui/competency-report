@@ -17,8 +17,8 @@
 /**
  * PDF report generator for student competencies.
  *
- * @package    local_yetkinlik
- * @copyright  2026 Hakan Çiğci {@link https://hakancigci.com.tr}
+ * @package    local_competency_report
+ * @copyright  2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -53,7 +53,7 @@ $sql = "
     JOIN {question_usages} qu ON qu.id = quiza.uniqueid
     JOIN {question_attempts} qa ON qa.questionusageid = qu.id
     JOIN {quiz} quiz ON quiz.id = quiza.quiz
-    JOIN {qbank_yetkinlik_qmap} m ON m.questionid = qa.questionid
+    JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
     JOIN {competency} c ON c.id = m.competencyid
     JOIN (
         SELECT MAX(fraction) AS fraction, questionattemptid
@@ -80,13 +80,13 @@ foreach ($rows as $r) {
 
 // Generate AI Comment.
 require_once(__DIR__ . '/ai.php');
-$comment = local_yetkinlik_generate_comment($stats, 'student');
+$comment = local_competency_report_generate_comment($stats, 'student');
 
 /* PDF Initialization */
 $pdf = new TCPDF();
 $pdf->SetCreator(PDF_CREATOR);
-$pdf->SetAuthor('Moodle Yetkinlik');
-$pdf->SetTitle(get_string('studentpdfreport', 'local_yetkinlik'));
+$pdf->SetAuthor('Moodle Competency Report');
+$pdf->SetTitle(get_string('studentpdfreport', 'local_competency_report'));
 $pdf->setPrintHeader(false);
 $pdf->setPrintFooter(false);
 $pdf->AddPage();
@@ -97,15 +97,15 @@ $pdf->SetFont('freeserif', 'B', 14);
 $pdf->Cell(0, 10, fullname($student), 0, 1, 'L');
 $pdf->SetFont('freeserif', '', 11);
 $pdf->Cell(0, 7, $course->fullname, 0, 1, 'L');
-$pdf->Cell(0, 7, get_string('studentpdfreport', 'local_yetkinlik'), 0, 1, 'L');
+$pdf->Cell(0, 7, get_string('studentpdfreport', 'local_competency_report'), 0, 1, 'L');
 $pdf->Ln(5);
 
 /* Table Header */
 $pdf->SetFillColor(224, 224, 224);
 $pdf->SetFont('freeserif', 'B', 10);
-$pdf->Cell(40, 10, get_string('competencycode', 'local_yetkinlik'), 1, 0, 'C', true);
-$pdf->Cell(100, 10, get_string('competency', 'local_yetkinlik'), 1, 0, 'C', true);
-$pdf->Cell(40, 10, get_string('success', 'local_yetkinlik'), 1, 1, 'C', true);
+$pdf->Cell(40, 10, get_string('competencycode', 'local_competency_report'), 1, 0, 'C', true);
+$pdf->Cell(100, 10, get_string('competency', 'local_competency_report'), 1, 0, 'C', true);
+$pdf->Cell(40, 10, get_string('success', 'local_competency_report'), 1, 1, 'C', true);
 
 /* Table Body */
 $pdf->SetFont('freeserif', '', 10);
@@ -138,19 +138,19 @@ foreach ($rates as $row) {
 // AI Comment Section.
 $pdf->Ln(10);
 $pdf->SetFont('freeserif', 'B', 11);
-$pdf->Cell(0, 10, get_string('generalcomment', 'local_yetkinlik'), 0, 1);
+$pdf->Cell(0, 10, get_string('generalcomment', 'local_competency_report'), 0, 1);
 $pdf->SetFont('freeserif', '', 10);
 $pdf->writeHTML($comment, true, false, true, false, '');
 
 // Legend.
 $pdf->Ln(10);
 $pdf->SetFont('freeserif', 'B', 9);
-$pdf->Cell(0, 7, get_string('colorlegend', 'local_yetkinlik'), 0, 1);
+$pdf->Cell(0, 7, get_string('colorlegend', 'local_competency_report'), 0, 1);
 $pdf->SetFont('freeserif', '', 8);
-$legend = get_string('redlegend', 'local_yetkinlik') . " | " .
-          get_string('orangelegend', 'local_yetkinlik') . " | " .
-          get_string('bluelegend', 'local_yetkinlik') . " | " .
-          get_string('greenlegend', 'local_yetkinlik');
+$legend = get_string('redlegend', 'local_competency_report') . " | " .
+          get_string('orangelegend', 'local_competency_report') . " | " .
+          get_string('bluelegend', 'local_competency_report') . " | " .
+          get_string('greenlegend', 'local_competency_report');
 $pdf->Cell(0, 5, $legend, 0, 1);
 
 $pdf->Output("rapor_" . $student->idnumber . ".pdf", "I");

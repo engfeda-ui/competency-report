@@ -17,12 +17,12 @@
 /**
  * Report for competency analysis based on school-wide or course-specific data.
  *
- * @package    local_yetkinlik
- * @copyright  2026 Hakan Çiğci {@link https://hakancigci.com.tr}
+ * @package    local_competency_report
+ * @copyright  2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_yetkinlik\output;
+namespace local_competency_report\output;
 
 use renderable;
 use templatable;
@@ -33,8 +33,8 @@ use moodle_url;
 /**
  * Renderable class for the school-wide competency report.
  *
- * @package    local_yetkinlik
- * @copyright  2026 Hakan Çiğci {@link https://hakancigci.com.tr}
+ * @package    local_competency_report
+ * @copyright  2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class school_report_page implements renderable, templatable {
@@ -60,7 +60,7 @@ class school_report_page implements renderable, templatable {
         $export = new stdClass();
         $export->has_data = !empty($this->data->rows);
         $export->courseid = $this->data->courseid;
-        $export->pdf_url = (new moodle_url('/local/yetkinlik/school_pdf.php', ['courseid' => $this->data->courseid]))->out(false);
+        $export->pdf_url = (new moodle_url('/local/competency_report/school_pdf.php', ['courseid' => $this->data->courseid]))->out(false);
 
         if ($export->has_data) {
             $export->rows = [];
@@ -95,7 +95,7 @@ class school_report_page implements renderable, templatable {
             // AI Commentary Section.
             if (!empty($this->data->comment)) {
                 $export->ai_comment = [
-                    'title'   => get_string('generalcomment', 'local_yetkinlik'),
+                    'title'   => get_string('generalcomment', 'local_competency_report'),
                     'content' => format_text($this->data->comment, FORMAT_HTML),
                 ];
             }

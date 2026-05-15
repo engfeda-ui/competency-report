@@ -14,10 +14,10 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Graphic drawing for the local_yetkinlik plugin.
+ * Graphic drawing for the local_competency_report plugin.
  *
- * @module      local_yetkinlik/charts
- * @copyright   2026 Hakan Çiğci {@link https://hakancigci.com.tr}
+ * @module      local_competency_report/charts
+ * @copyright   2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

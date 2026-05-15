@@ -17,8 +17,8 @@
 /**
  * Modular selector form for competency and quiz reports.
  *
- * @package    local_yetkinlik
- * @copyright  2026 Hakan Çiğci {@link https://hakancigci.com.tr}
+ * @package    local_competency_report
+ * @copyright  2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -27,13 +27,13 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->libdir . '/formslib.php');
 
 /**
- * Selector form class for local_yetkinlik reports.
+ * Selector form class for local_competency_report reports.
  *
- * @package    local_yetkinlik
- * @copyright  2026 Hakan Çiğci
+ * @package    local_competency_report
+ * @copyright  2026 Hakan Ã‡iÄŸci
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class local_yetkinlik_selector_form extends moodleform {
+class local_competency_report_selector_form extends moodleform {
     /**
      * Define the form elements based on custom data flags.
      */
@@ -50,7 +50,7 @@ class local_yetkinlik_selector_form extends moodleform {
         $context = context_course::instance($courseid);
 
         // 1. Student Selection (Always visible).
-        $users = [0 => get_string('selectuser', 'local_yetkinlik')];
+        $users = [0 => get_string('selectuser', 'local_competency_report')];
         $enrolled = get_enrolled_users($context, '', 0, 'u.id, u.firstname, u.lastname, u.department');
 
         if (!empty($enrolled)) {
@@ -66,8 +66,8 @@ class local_yetkinlik_selector_form extends moodleform {
             }
         }
 
-        $mform->addElement('autocomplete', 'userid', get_string('selectuser', 'local_yetkinlik'), $users, [
-            'placeholder' => get_string('searchuserorprept', 'local_yetkinlik'),
+        $mform->addElement('autocomplete', 'userid', get_string('selectuser', 'local_competency_report'), $users, [
+            'placeholder' => get_string('searchuserorprept', 'local_competency_report'),
             'multiple' => false,
         ]);
         $mform->setType('userid', PARAM_INT);
@@ -87,7 +87,7 @@ class local_yetkinlik_selector_form extends moodleform {
         $mform->setType('courseid', PARAM_INT);
 
         // Action buttons.
-        $this->add_action_buttons(false, get_string('filter', 'local_yetkinlik'));
+        $this->add_action_buttons(false, get_string('filter', 'local_competency_report'));
     }
 
     /**
@@ -100,10 +100,10 @@ class local_yetkinlik_selector_form extends moodleform {
         global $DB;
         $mform = $this->_form;
 
-        $competencies = [0 => get_string('allcompetencies', 'local_yetkinlik')];
+        $competencies = [0 => get_string('allcompetencies', 'local_competency_report')];
         $sql = "SELECT DISTINCT c.id, c.shortname
                 FROM {competency} c
-                JOIN {qbank_yetkinlik_qmap} m ON m.competencyid = c.id
+                JOIN {qbank_competency_qmap} m ON m.competencyid = c.id
                 WHERE m.courseid = :courseid";
 
         $records = $DB->get_records_sql($sql, ['courseid' => $courseid]);
@@ -113,8 +113,8 @@ class local_yetkinlik_selector_form extends moodleform {
             }
         }
 
-        $mform->addElement('autocomplete', 'competencyid', get_string('selectcompetency', 'local_yetkinlik'), $competencies, [
-            'placeholder' => get_string('searchcompetency', 'local_yetkinlik'),
+        $mform->addElement('autocomplete', 'competencyid', get_string('selectcompetency', 'local_competency_report'), $competencies, [
+            'placeholder' => get_string('searchcompetency', 'local_competency_report'),
             'multiple' => false,
         ]);
         $mform->setType('competencyid', PARAM_INT);
@@ -130,7 +130,7 @@ class local_yetkinlik_selector_form extends moodleform {
         global $DB;
         $mform = $this->_form;
 
-        $quizzes = [0 => get_string('selectquiz', 'local_yetkinlik')];
+        $quizzes = [0 => get_string('selectquiz', 'local_competency_report')];
         $records = $DB->get_records('quiz', ['course' => $courseid], 'name ASC');
 
         if ($records) {
@@ -139,8 +139,8 @@ class local_yetkinlik_selector_form extends moodleform {
             }
         }
 
-        $mform->addElement('autocomplete', 'quizid', get_string('selectquiz', 'local_yetkinlik'), $quizzes, [
-            'placeholder' => get_string('searchquiz', 'local_yetkinlik'),
+        $mform->addElement('autocomplete', 'quizid', get_string('selectquiz', 'local_competency_report'), $quizzes, [
+            'placeholder' => get_string('searchquiz', 'local_competency_report'),
             'multiple' => false,
         ]);
         $mform->setType('quizid', PARAM_INT);

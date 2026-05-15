@@ -17,19 +17,19 @@
 /**
  * Class Report for Competency Matching.
  *
- * @package    local_yetkinlik
- * @copyright  2026 Hakan Çiğci {@link https://hakancigci.com.tr}
+ * @package    local_competency_report
+ * @copyright  2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_yetkinlik\task;
+namespace local_competency_report\task;
 
 /**
  * Class process_competency_rates_task
  *
  * Background task to calculate quiz-based competency success rates.
  *
- * @package    local_yetkinlik
+ * @package    local_competency_report
  */
 class process_competency_rates_task extends \core\task\adhoc_task {
     /**
@@ -44,7 +44,7 @@ class process_competency_rates_task extends \core\task\adhoc_task {
         $contextid = \context_course::instance($courseid)->id;
 
         $sql = "SELECT DISTINCT c.id, c.shortname
-                  FROM {qbank_yetkinlik_qmap} m
+                  FROM {qbank_competency_qmap} m
                   JOIN {competency} c ON c.id = m.competencyid
               ORDER BY c.shortname";
         $competencies = $DB->get_records_sql($sql);
@@ -67,8 +67,8 @@ class process_competency_rates_task extends \core\task\adhoc_task {
 
                 $evidence = new \stdClass();
                 $evidence->userid = $student->id;
-                $evidence->name = get_string('process_success_title', 'local_yetkinlik') . " (" . date('d.m.Y') . ")";
-                $evidence->description = get_string('evidence_description', 'local_yetkinlik', $a);
+                $evidence->name = get_string('process_success_title', 'local_competency_report') . " (" . date('d.m.Y') . ")";
+                $evidence->description = get_string('evidence_description', 'local_competency_report', $a);
                 $evidence->descriptionformat = FORMAT_HTML;
                 $evidence->url = '';
                 $evidence->timecreated = time();
@@ -101,11 +101,11 @@ class process_competency_rates_task extends \core\task\adhoc_task {
                 $cevidence->action = 1;
                 $cevidence->actionuserid = $adminid;
                 $cevidence->descidentifier = 'evidence';
-                $cevidence->desccomponent = 'local_yetkinlik';
+                $cevidence->desccomponent = 'local_competency_report';
                 $cevidence->desca = null;
                 $cevidence->url = '';
                 $cevidence->grade = (int)$rate;
-                $cevidence->note = get_string('evidence_note', 'local_yetkinlik', $a);
+                $cevidence->note = get_string('evidence_note', 'local_competency_report', $a);
                 $cevidence->timecreated = time();
                 $cevidence->timemodified = time();
                 $cevidence->usermodified = $adminid;
@@ -130,7 +130,7 @@ class process_competency_rates_task extends \core\task\adhoc_task {
                   JOIN {question_usages} qu ON qu.id = quiza.uniqueid
                   JOIN {question_attempts} qa ON qa.questionusageid = qu.id
                   JOIN {quiz} quiz ON quiz.id = quiza.quiz
-                  JOIN {qbank_yetkinlik_qmap} m ON m.questionid = qa.questionid
+                  JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
                   JOIN (
                        SELECT MAX(fraction) AS fraction, questionattemptid
                          FROM {question_attempt_steps}

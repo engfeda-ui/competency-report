@@ -17,13 +17,13 @@
 /**
  * Teacher view for specific student analysis based on a selected quiz.
  *
- * @package    local_yetkinlik
- * @copyright  2026 Hakan Çiğci {@link https://hakancigci.com.tr}
+ * @package    local_competency_report
+ * @copyright  2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 require_once(__DIR__ . '/../../config.php');
-require_once($CFG->dirroot . '/local/yetkinlik/forms/selector_form.php');
+require_once($CFG->dirroot . '/local/competency_report/forms/selector_form.php');
 
 $courseid = required_param('courseid', PARAM_INT);
 require_login($courseid);
@@ -33,13 +33,13 @@ $context = context_course::instance($courseid);
 require_capability('mod/quiz:viewreports', $context);
 
 // Page configuration and navigation setup.
-$PAGE->set_url('/local/yetkinlik/teacher_student_exam.php', ['courseid' => $courseid]);
-$PAGE->set_title(get_string('studentanalysis', 'local_yetkinlik'));
-$PAGE->set_heading(get_string('studentanalysis', 'local_yetkinlik'));
+$PAGE->set_url('/local/competency_report/teacher_student_exam.php', ['courseid' => $courseid]);
+$PAGE->set_title(get_string('studentanalysis', 'local_competency_report'));
+$PAGE->set_heading(get_string('studentanalysis', 'local_competency_report'));
 $PAGE->set_pagelayout('course');
 
 // Initialize the form: Hide competency, show quiz.
-$mform = new \local_yetkinlik_selector_form(null, [
+$mform = new \local_competency_report_selector_form(null, [
     'courseid' => $courseid,
     'showcompetency' => false, // This hides competencies.
     'showquiz' => true, // Added comma after last item to fix NormalizedArrays error.
@@ -62,7 +62,7 @@ if ($fromform = $mform->get_data()) {
                 FROM {quiz_attempts} quiza
                 JOIN {question_usages} qu ON qu.id = quiza.uniqueid
                 JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-                JOIN {qbank_yetkinlik_qmap} m ON m.questionid = qa.questionid
+                JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
                 JOIN {competency} c ON c.id = m.competencyid
                 JOIN (
                     SELECT MAX(fraction) AS fraction, questionattemptid
@@ -96,7 +96,7 @@ if ($fromform = $mform->get_data()) {
 // Render the output.
 echo $OUTPUT->header();
 
-$page = new \local_yetkinlik\output\teacher_student_exam_page($data, $mform);
+$page = new \local_competency_report\output\teacher_student_exam_page($data, $mform);
 echo $OUTPUT->render($page);
 
 echo $OUTPUT->footer();

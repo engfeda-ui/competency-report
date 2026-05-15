@@ -17,8 +17,8 @@
 /**
  * Main student competency report page.
  *
- * @package    local_yetkinlik
- * @copyright  2026 Hakan Çiğci {@link https://hakancigci.com.tr}
+ * @package    local_competency_report
+ * @copyright  2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -33,10 +33,10 @@ $context = context_course::instance($courseid);
 $userid = $USER->id;
 
 // Page Setup.
-$PAGE->set_url('/local/yetkinlik/student_report.php', ['courseid' => $courseid]);
+$PAGE->set_url('/local/competency_report/student_report.php', ['courseid' => $courseid]);
 $PAGE->set_context($context);
 $PAGE->set_pagelayout('course');
-$PAGE->set_title(get_string('studentreport', 'local_yetkinlik'));
+$PAGE->set_title(get_string('studentreport', 'local_competency_report'));
 $PAGE->set_heading($course->fullname);
 
 // 1. Data Query.
@@ -48,7 +48,7 @@ $sql = "SELECT c.id, c.shortname, c.description, c.descriptionformat,
         JOIN {question_usages} qu ON qu.id = quiza.uniqueid
         JOIN {question_attempts} qa ON qa.questionusageid = qu.id
         JOIN {quiz} quiz ON quiz.id = quiza.quiz
-        JOIN {qbank_yetkinlik_qmap} m ON m.questionid = qa.questionid
+        JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
         JOIN {competency} c ON c.id = m.competencyid
         JOIN (
             SELECT MAX(fraction) AS fraction, questionattemptid
@@ -71,15 +71,15 @@ foreach ($rows as $r) {
 $renderdata = new stdClass();
 $renderdata->rows = $rows;
 $renderdata->context = $context;
-$renderdata->pdf_url = (new moodle_url('/local/yetkinlik/parent_pdf.php', ['courseid' => $courseid]))->out(false);
+$renderdata->pdf_url = (new moodle_url('/local/competency_report/parent_pdf.php', ['courseid' => $courseid]))->out(false);
 
 // Generate AI comment based on performance if data exists.
-$renderdata->ai_comment = !empty($rates) ? local_yetkinlik_generate_comment($rates, 'student') : null;
+$renderdata->ai_comment = !empty($rates) ? local_competency_report_generate_comment($rates, 'student') : null;
 
 // 4. Output Generation.
 echo $OUTPUT->header();
 
-$page = new \local_yetkinlik\output\student_report_page($renderdata);
+$page = new \local_competency_report\output\student_report_page($renderdata);
 echo $OUTPUT->render($page);
 
 echo $OUTPUT->footer();

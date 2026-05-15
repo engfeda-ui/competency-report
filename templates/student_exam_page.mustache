@@ -11,29 +11,29 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    @template local_yetkinlik/student_exam
+    @template local_competency_report/student_exam
 
     Example context (json):
     {
         "courseid": 2,
         "quizid": 101,
         "quizzes": [
-            { "id": 101, "name": "Vize Sınavı", "selected": true },
-            { "id": 102, "name": "Final Sınavı", "selected": false }
+            { "id": 101, "name": "Vize SÄ±navÄ±", "selected": true },
+            { "id": 102, "name": "Final SÄ±navÄ±", "selected": false }
         ],
         "has_data": true,
         "rows": [
             {
                 "shortname": "MAT01",
-                "description": "Türev ve İntegral Uygulamaları",
+                "description": "TÃ¼rev ve Ä°ntegral UygulamalarÄ±",
                 "rate": "85",
                 "color": "#28a745"
             }
         ],
-        "chart_config": "{\"labels\":[\"MAT01\"],\"datasets\":[{\"label\":\"Başarı\",\"data\":[85]}]}"
+        "chart_config": "{\"labels\":[\"MAT01\"],\"datasets\":[{\"label\":\"BaÅŸarÄ±\",\"data\":[85]}]}"
     }
 }}
-<div class="local_yetkinlik_student_exam">
+<div class="local_competency_report_student_exam">
     
     {{! 1. Quiz Selection Form }}
     <div class="card mb-4 border-0 shadow-sm bg-light">
@@ -42,7 +42,7 @@
                 <input type="hidden" name="courseid" value="{{courseid}}">
                 
                 <label class="mr-2 font-weight-bold" for="quizid_select">
-                    {{#str}}selectquiz, local_yetkinlik{{/str}}
+                    {{#str}}selectquiz, local_competency_report{{/str}}
                 </label>
                 
                 <select name="quizid" id="quizid_select" class="form-control mr-2">
@@ -52,7 +52,7 @@
                 </select>
                 
                 <button type="submit" class="btn btn-primary">
-                    {{#str}}show, local_yetkinlik{{/str}}
+                    {{#str}}show, local_competency_report{{/str}}
                 </button>
             </form>
         </div>
@@ -65,9 +65,9 @@
                 <table class="generaltable table table-hover mt-3 shadow-sm bg-white">
                     <thead class="thead-dark">
                         <tr>
-                            <th>{{#str}}competencycode, local_yetkinlik{{/str}}</th>
-                            <th>{{#str}}competency, local_yetkinlik{{/str}}</th>
-                            <th class="text-center">{{#str}}success, local_yetkinlik{{/str}}</th>
+                            <th>{{#str}}competencycode, local_competency_report{{/str}}</th>
+                            <th>{{#str}}competency, local_competency_report{{/str}}</th>
+                            <th class="text-center">{{#str}}success, local_competency_report{{/str}}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -92,7 +92,7 @@
             </div>
 
             {{#js}}
-            require(['local_yetkinlik/visualizer'], function(Visualizer) {
+            require(['local_competency_report/visualizer'], function(Visualizer) {
                 var canvas = document.getElementById('studentexamchart');
                 if (canvas) {
                     // Extract and parse the chart configuration from data attribute.
@@ -107,7 +107,7 @@
         {{^has_data}}
             {{! Empty State Notification }}
             <div class="alert alert-info">
-                {{#str}}noexamdata, local_yetkinlik{{/str}}
+                {{#str}}noexamdata, local_competency_report{{/str}}
             </div>
         {{/has_data}}
     {{/quizid}}

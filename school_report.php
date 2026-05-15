@@ -17,8 +17,8 @@
 /**
  * Report for competency analysis based on school-wide or course-specific data.
  *
- * @package    local_yetkinlik
- * @copyright  2026 Hakan Çiğci {@link https://hakancigci.com.tr}
+ * @package    local_competency_report
+ * @copyright  2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -35,20 +35,20 @@ if ($courseid) {
     $context = context_course::instance($courseid);
     require_capability('moodle/course:view', $context);
     $course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
-    $reporttitle = get_string('report_title', 'local_yetkinlik', $course->fullname);
+    $reporttitle = get_string('report_title', 'local_competency_report', $course->fullname);
     $wheresql = "WHERE quiz.course = :courseid AND quiza.state = 'finished'";
     $params = ['courseid' => $courseid];
 } else {
     // If no course is specified, treat as a site-wide report (admin access).
     $context = context_system::instance();
     require_capability('moodle/site:config', $context);
-    $reporttitle = get_string('report_title', 'local_yetkinlik');
+    $reporttitle = get_string('report_title', 'local_competency_report');
     $wheresql = "WHERE quiza.state = 'finished'";
     $params = [];
 }
 
 // Page definitions.
-$PAGE->set_url(new moodle_url('/local/yetkinlik/school_report.php', ['courseid' => $courseid]));
+$PAGE->set_url(new moodle_url('/local/competency_report/school_report.php', ['courseid' => $courseid]));
 $PAGE->set_context($context);
 $PAGE->set_title($reporttitle);
 $PAGE->set_heading($reporttitle);
@@ -62,7 +62,7 @@ $sql = "SELECT c.id, c.shortname, c.description,
         JOIN {quiz} quiz ON quiz.id = quiza.quiz
         JOIN {question_usages} qu ON qu.id = quiza.uniqueid
         JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-        JOIN {qbank_yetkinlik_qmap} m ON m.questionid = qa.questionid
+        JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
         JOIN {competency} c ON c.id = m.competencyid
         JOIN (
             SELECT MAX(fraction) AS fraction, questionattemptid
@@ -87,13 +87,13 @@ if (!empty($rows)) {
         $rates[$r->shortname] = $r->attempts ? ($r->correct / $r->attempts) * 100 : 0;
     }
     // Generate AI commentary based on success rates (Function defined in ai.php).
-    $renderdata->comment = local_yetkinlik_generate_comment($rates);
+    $renderdata->comment = local_competency_report_generate_comment($rates);
 }
 
 // Output generation.
 echo $OUTPUT->header();
 
-$page = new \local_yetkinlik\output\school_report_page($renderdata);
+$page = new \local_competency_report\output\school_report_page($renderdata);
 echo $OUTPUT->render($page);
 
 echo $OUTPUT->footer();

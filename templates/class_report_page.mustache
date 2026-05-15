@@ -11,12 +11,12 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    @template local_yetkinlik/class_report_page
+    @template local_competency_report/class_report_page
 
     Example context (json):
     {
         "pdf_url": "#",
-        "form_html": "<form><select class='custom-select'><option>Grup Seçin</option></select></form>",
+        "form_html": "<form><select class='custom-select'><option>Grup SeÃ§in</option></select></form>",
         "has_data": true,
         "rows": [
             {
@@ -29,12 +29,12 @@
         "chart_config": "{\"labels\":[\"Y01\"],\"datasets\":[]}"
     }
 }}
-<div class="local_yetkinlik_class_report">
+<div class="local_competency_report_class_report">
 
     {{! 1. Top Buttons and Links }}
     <div class="d-flex justify-content-between align-items-center mb-3">
         <a href="{{pdf_url}}" class="btn btn-secondary" target="_blank">
-            <i class="fa fa-file-pdf-o"></i> {{#str}}pdfreport, local_yetkinlik{{/str}}
+            <i class="fa fa-file-pdf-o"></i> {{#str}}pdfreport, local_competency_report{{/str}}
         </a>
     </div>
 
@@ -51,10 +51,10 @@
             <table class="generaltable table table-bordered table-hover mt-4 shadow-sm bg-white">
                 <thead class="thead-dark">
                     <tr>
-                        <th scope="col">{{#str}}competencyname, local_yetkinlik{{/str}}</th>
-                        <th scope="col" class="text-center">{{#str}}courseavg, local_yetkinlik{{/str}}</th>
-                        <th scope="col" class="text-center">{{#str}}classavg, local_yetkinlik{{/str}}</th>
-                        <th scope="col" class="text-center">{{#str}}studentavg, local_yetkinlik{{/str}}</th>
+                        <th scope="col">{{#str}}competencyname, local_competency_report{{/str}}</th>
+                        <th scope="col" class="text-center">{{#str}}courseavg, local_competency_report{{/str}}</th>
+                        <th scope="col" class="text-center">{{#str}}classavg, local_competency_report{{/str}}</th>
+                        <th scope="col" class="text-center">{{#str}}studentavg, local_competency_report{{/str}}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -73,7 +73,7 @@
         {{! 4. Chart Area }}
         <div class="card mt-4 p-4 shadow-sm bg-white border-0">
             <div class="card-title">
-                <h5><i class="fa fa-bar-chart"></i> {{#str}}visual_report, local_yetkinlik{{/str}}</h5>
+                <h5><i class="fa fa-bar-chart"></i> {{#str}}visual_report, local_competency_report{{/str}}</h5>
             </div>
             <div style="height:400px; width:100%; position: relative;">
                 {{! Store configuration data safely in data-chart-config }}
@@ -85,14 +85,14 @@
     {{^has_data}}
         {{! No Data Found Warning }}
         <div class="alert alert-info shadow-sm">
-            <i class="fa fa-info-circle"></i> {{#str}}nodatafound, local_yetkinlik{{/str}}
+            <i class="fa fa-info-circle"></i> {{#str}}nodatafound, local_competency_report{{/str}}
         </div>
     {{/has_data}}
 </div>
 
 {{#has_data}}
 {{#js}}
-require(['jquery', 'local_yetkinlik/visualizer', 'core/log'], function($, Visualizer, Log) {
+require(['jquery', 'local_competency_report/visualizer', 'core/log'], function($, Visualizer, Log) {
     var canvas = document.getElementById('studentClassChart');
     if (canvas) {
         var rawData = canvas.getAttribute('data-chart-config');

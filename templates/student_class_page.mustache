@@ -11,7 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    @template local_yetkinlik/student_analysis
+    @template local_competency_report/student_analysis
 
     Example context (json):
     {
@@ -28,17 +28,17 @@
         "chart_config": "{\"labels\":[\"Matematik\"],\"datasets\":[]}"
     }
 }}
-<div class="local_yetkinlik_student_analysis">
+<div class="local_competency_report_student_analysis">
     {{#has_data}}
         {{! Comparison Table }}
         <div class="table-responsive">
             <table class="generaltable table-hover mt-3 shadow-sm bg-white border w-100">
                 <thead class="thead-dark">
                     <tr>
-                        <th>{{#str}}competencyname, local_yetkinlik{{/str}}</th>
-                        <th class="text-center">{{#str}}courseavg, local_yetkinlik{{/str}}</th>
-                        <th class="text-center">{{#str}}classavg, local_yetkinlik{{/str}}</th>
-                        <th class="text-center">{{#str}}myavg, local_yetkinlik{{/str}}</th>
+                        <th>{{#str}}competencyname, local_competency_report{{/str}}</th>
+                        <th class="text-center">{{#str}}courseavg, local_competency_report{{/str}}</th>
+                        <th class="text-center">{{#str}}classavg, local_competency_report{{/str}}</th>
+                        <th class="text-center">{{#str}}myavg, local_competency_report{{/str}}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -64,7 +64,7 @@
         </div>
 
         {{#js}}
-        require(['local_yetkinlik/visualizer'], function(Visualizer) {
+        require(['local_competency_report/visualizer'], function(Visualizer) {
             var canvas = document.getElementById('studentClassChart');
             if (canvas) {
                 var config = JSON.parse(canvas.getAttribute('data-chart-config'));
@@ -77,7 +77,7 @@
     {{^has_data}}
         {{! No Data Alert }}
         <div class="alert alert-info">
-            <i class="fa fa-info-circle"></i> {{#str}}nodatafound, local_yetkinlik{{/str}}
+            <i class="fa fa-info-circle"></i> {{#str}}nodatafound, local_competency_report{{/str}}
         </div>
     {{/has_data}}
 </div>

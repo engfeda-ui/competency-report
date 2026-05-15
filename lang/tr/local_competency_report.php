@@ -1,0 +1,150 @@
+<?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
+/**
+ * Turkish strings for local_competency_report plugin.
+ *
+ * @package    local_competency_report
+ * @copyright  2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+defined('MOODLE_INTERNAL') || die();
+
+$string['action'] = 'Eylem';
+$string['ai_failed'] = 'Yapay zeka isteÄŸi baÅŸarÄ±sÄ±z oldu.';
+$string['ai_not_configured'] = 'Yapay zeka aktif ancak ayarlar eksik.';
+$string['ai_prompt_school'] = 'AÅŸaÄŸÄ±daki competency_report yÃ¼zdelerine dayanarak okul iÃ§in bir pedagojik analiz ve geliÅŸim stratejisi yazÄ±n:';
+$string['ai_prompt_student'] = 'AÅŸaÄŸÄ±daki competency_report yÃ¼zdelerine dayanarak Ã¶ÄŸrenci iÃ§in kÄ±sa bir pedagojik analiz yazÄ±n:';
+$string['ai_system_prompt'] = 'Siz bir eÄŸitim asistanÄ±sÄ±nÄ±z. Ã–ÄŸrenciler veya okullar iÃ§in motivasyonel ve pedagojik geri bildirimler saÄŸlayÄ±n.';
+$string['allcompetencies'] = 'TÃ¼m Competency Reportler';
+$string['alltime'] = 'TÃ¼m zamanlar';
+$string['allusers'] = 'TÃ¼m Ã–ÄŸrenciler';
+$string['analysisfor'] = 'KazanÄ±m Analizim: {$a}';
+$string['apikey'] = 'API AnahtarÄ±';
+$string['apikey_desc'] = 'OpenAI veya Azure OpenAI API anahtarÄ±nÄ±zÄ± girin. <a href="https://platform.openai.com/account/api-keys" target="_blank">OpenAI anahtarÄ± iÃ§in tÄ±klayÄ±n</a>.';
+$string['bluelegend'] = 'Mavi: BÃ¼yÃ¼k Oranda KazanÄ±ldÄ± (%60â€“79)';
+$string['btn_process_now'] = 'BaÅŸarÄ± OranlarÄ±nÄ± Arka Planda Ä°ÅŸle';
+$string['classavg'] = 'SÄ±nÄ±f OrtalamasÄ±';
+$string['classinfo'] = 'SÄ±nÄ±f: {$a}';
+$string['classreport'] = 'SÄ±nÄ±f KazanÄ±m Raporu';
+$string['colorlegend'] = 'Renk AnahtarÄ±:';
+$string['comment'] = 'Yorum';
+$string['comment_blue'] = 'BÃ¼yÃ¼k oranda Ã¶ÄŸrenilen konular: {$a}';
+$string['comment_green'] = 'Tam Ã¶ÄŸrenilen konular: {$a}';
+$string['comment_orange'] = 'KÄ±smen Ã¶ÄŸrenilen konular: {$a}';
+$string['comment_red'] = 'HenÃ¼z kazanÄ±lamayan konular: {$a}';
+$string['compareinfo'] = 'Bu raporda kendi baÅŸarÄ±nÄ±zÄ±, kursun geneli ve sÄ±nÄ±fÄ±nÄ±zla kÄ±yaslayabilirsiniz.';
+$string['competency'] = 'Competency Report / KazanÄ±m';
+$string['competencycode'] = 'Competency Report Kodu';
+$string['competencyname'] = 'KazanÄ±m / Competency Report';
+$string['correct'] = 'DoÄŸru';
+$string['correctcount'] = 'DoÄŸru SayÄ±sÄ±';
+$string['courseavg'] = 'Kurs OrtalamasÄ±';
+$string['creation_date'] = 'OluÅŸturulma Tarihi';
+$string['enable_ai'] = 'Yapay Zeka Entegrasyonunu Aktif Et';
+$string['enable_ai_desc'] = 'Yapay zeka tabanlÄ± pedagojik yorumlarÄ± aktif eder. API anahtarÄ± ve model seÃ§imi aÅŸaÄŸÄ±dan yapÄ±lmalÄ±dÄ±r.';
+$string['error_no_enrolment'] = 'Bu kursa kayÄ±tlÄ± olmadÄ±ÄŸÄ±nÄ±z iÃ§in raporu gÃ¶rÃ¼ntÃ¼leyemezsiniz.';
+$string['evidence'] = 'KanÄ±t';
+$string['evidence_description'] = 'Competency Report {$a->competency} iÃ§in baÅŸarÄ±: %{$a->rate}';
+$string['evidence_note'] = 'Competency Report {$a->competency} iÃ§in baÅŸarÄ±: %{$a->rate}';
+$string['filter'] = 'Filtrele';
+$string['filterlabel'] = 'Filtrele';
+$string['generalcomment'] = 'Genel Yorum';
+$string['greenlegend'] = 'YeÅŸil: Tam KazanÄ±ldÄ± (%80+)';
+$string['groupcompetency'] = 'Grup Competency Report Analizi';
+$string['groupquizcompetency'] = 'Grup SÄ±nav Competency Report Analizi';
+$string['last30days'] = 'Son 30 gÃ¼n';
+$string['last90days'] = 'Son 90 gÃ¼n';
+$string['maxrows'] = 'Maksimum satÄ±r';
+$string['maxrows_desc'] = 'Tablolarda gÃ¶rÃ¼ntÃ¼lenecek maksimum satÄ±r sayÄ±sÄ±.';
+$string['model'] = 'Model';
+$string['model_desc'] = 'KullanÄ±lacak model adÄ±nÄ± girin (Ã–rn: gpt-4).';
+$string['myavg'] = 'Benim BaÅŸarÄ±m';
+$string['mycompetencies'] = 'KazanÄ±m Analizlerim';
+$string['mycompetencyexams'] = 'Competency Report BazlÄ± SÄ±navlarÄ±m';
+$string['mycompetencystate'] = 'Competency Report Durumu';
+$string['myexamanalysis'] = 'SÄ±nav KazanÄ±m Analizim';
+$string['myreportcard'] = 'Karnem';
+$string['nocompetencies'] = 'Competency Report yok.';
+$string['nocompetencyexamdata'] = 'Bu competency_report iÃ§in sÄ±nav verisi bulunamadÄ±.';
+$string['nodatafound'] = 'Bu kursta henÃ¼z analiz edilecek tamamlanmÄ±ÅŸ sÄ±nav verisi bulunamadÄ±.';
+$string['nodatastudentcompetency'] = 'Bu Ã¶ÄŸrenci iÃ§in bu competency_reportte sÄ±nav verisi bulunamadÄ±.';
+$string['noexamdata'] = 'Bu sÄ±nav iÃ§in competency_report verisi bulunamadÄ±.';
+$string['orangelegend'] = 'Turuncu: KÄ±smen KazanÄ±ldÄ± (%40â€“59)';
+$string['pdfmystudent'] = 'ðŸ“„ PDF Karnemi GÃ¶rÃ¼ntÃ¼le';
+$string['pdfreport'] = 'ðŸ“„ PDF Raporu';
+$string['pluginname'] = 'Competency Report Analiz Sistemi';
+$string['privacy:metadata'] = 'Competency Report eklentisi herhangi bir kiÅŸisel veri depolamaz.';
+$string['privacy:metadata:openai:answertext'] = 'The student\'s response is sent to be evaluated by the AI model.';
+$string['privacy:metadata:openai:externalpurpose'] = 'The plugin sends question texts and user responses to the OpenAI API to provide AI-generated feedback and competency analysis.';
+$string['privacy:metadata:openai:questiontext'] = 'The text of the question is sent to provide context for the AI analysis.';
+$string['process_queued'] = 'BaÅŸarÄ± oranÄ± hesaplama iÅŸlemi kuyruÄŸa eklendi. Arka planda tamamlanacak.';
+$string['process_success_desc'] = 'Bu iÅŸlem Ã¶ÄŸrencilerin sÄ±nav sorularÄ±ndaki baÅŸarÄ± yÃ¼zdelerini hesaplayÄ±p kanÄ±t olarak ekler.';
+$string['process_success_heading'] = 'YÃ¼zdelik BaÅŸarÄ±larÄ± KanÄ±tlara Aktar';
+$string['process_success_title'] = 'BaÅŸarÄ±larÄ± Arka Planda Ä°ÅŸle';
+$string['question'] = 'Soru';
+$string['questioncount'] = 'Soru SayÄ±sÄ±';
+$string['questionlinks'] = 'Ä°lgili Soru DetaylarÄ±';
+$string['questionname'] = 'Soru AdÄ±';
+$string['quiz'] = 'SÄ±nav';
+$string['recordupdated'] = 'KayÄ±t baÅŸarÄ±yla gÃ¼ncellendi';
+$string['redlegend'] = 'KÄ±rmÄ±zÄ±: KazanÄ±lmadÄ± (%0â€“39)';
+$string['report_heading'] = 'Competency Report Analizi DetaylÄ± Raporu';
+$string['report_title'] = 'DetaylÄ± Competency Report Raporu';
+$string['savechanges'] = 'DeÄŸiÅŸiklikleri Kaydet';
+$string['schoolpdf'] = 'Okul PDF Raporu';
+$string['schoolpdfreport'] = 'Okul Genel BaÅŸarÄ± Raporu';
+$string['schoolreport'] = 'Okul Genel Raporu';
+$string['searchcompetency'] = 'KazanÄ±m ara';
+$string['searchquiz'] = 'SÄ±nav ara';
+$string['searchuserorprept'] = 'Ã–ÄŸrenci veya rapor ara';
+$string['selectcompetency'] = 'Competency Report seÃ§iniz';
+$string['selectgroup'] = 'Grup seÃ§iniz';
+$string['selectquiz'] = 'SÄ±nav seÃ§iniz';
+$string['selectstudent'] = 'Ã–ÄŸrenci seÃ§iniz';
+$string['selectuser'] = 'Ã–ÄŸrenci seÃ§iniz';
+$string['show'] = 'GÃ¶ster';
+$string['structured_blue'] = '{$a->shortname}: BaÅŸarÄ± oranÄ± %{$a->rate}. BÃ¼yÃ¼k oranda Ã¶ÄŸrenildi. Ã–neri: Eksik kalan noktalarÄ± gÃ¶zden geÃ§ir.';
+$string['structured_green'] = '{$a->shortname}: BaÅŸarÄ± oranÄ± %{$a->rate}. Tam baÅŸarÄ± saÄŸlandÄ±. Ã–neri: Ä°leri dÃ¼zey etkinliklere geÃ§ebilirsin.';
+$string['structured_orange'] = '{$a->shortname}: BaÅŸarÄ± oranÄ± %{$a->rate}. KÄ±smen Ã¶ÄŸrenildi. Ã–neri: Daha fazla Ã¶rnek soru Ã§Ã¶zerek pekiÅŸtir.';
+$string['structured_red'] = '{$a->shortname}: BaÅŸarÄ± oranÄ± %{$a->rate}. HenÃ¼z yeterli geliÅŸim saÄŸlanamadÄ±. Ã–neri: Konuyu tekrar et ve ek kaynaklardan yararlan.';
+$string['student'] = 'Ã–ÄŸrenci';
+$string['studentanalysis'] = 'Ã–ÄŸrenci Competency Report Analizi';
+$string['studentavg'] = 'Ã–ÄŸrenci OrtalamasÄ±';
+$string['studentclass'] = 'Competency Report Durumu';
+$string['studentcompetencydetail'] = 'Ã–ÄŸrenci Competency Report DetayÄ±';
+$string['studentcompetencyexams'] = 'Competency Report BazlÄ± SÄ±nav Analizim';
+$string['studentexam'] = 'SÄ±nav KazanÄ±m Analizim';
+$string['studentexamanalysis'] = 'Ã–ÄŸrenci SÄ±nav Analizi';
+$string['studentpdfreport'] = 'Competency Report GeliÅŸim Raporu';
+$string['studentreport'] = 'Competency Report Karnem';
+$string['success'] = 'BaÅŸarÄ±';
+$string['success_threshold'] = 'BaÅŸarÄ± eÅŸiÄŸi';
+$string['success_threshold_desc'] = 'Renk kodlamasÄ± iÃ§in varsayÄ±lan baÅŸarÄ± yÃ¼zdesi.';
+$string['successpercent'] = 'BaÅŸarÄ± YÃ¼zdesi';
+$string['successrate'] = 'BaÅŸarÄ± OranÄ± (%)';
+$string['summaryreport'] = 'Competency Report BaÅŸarÄ± Ã–zeti';
+$string['teacherstudentcompetency'] = 'Ã–ÄŸrenci Competency Report Analizi';
+$string['timeline'] = 'Zaman Ã‡izelgesi';
+$string['timelineheading'] = 'Zaman Ä°Ã§inde Competency Report GeliÅŸimi';
+$string['total'] = 'TOPLAM';
+$string['user'] = 'Ã–ÄŸrenci';
+$string['viewattempt'] = 'Ä°nceleme';
+$string['visual_report'] = 'GÃ¶rsel rapor';
+$string['competency_report:manage'] = 'Soru-competency_report eÅŸleÅŸtirmelerini yÃ¶net';
+$string['competency_report:viewownreport'] = 'Kendi competency_report analiz raporunu gÃ¶rÃ¼ntÃ¼le';
+$string['competency_report:viewreports'] = 'TÃ¼m Ã¶ÄŸrenci competency_report raporlarÄ±nÄ± gÃ¶rÃ¼ntÃ¼le';

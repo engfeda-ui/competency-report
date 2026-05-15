@@ -18,12 +18,12 @@
  * Renderable class for the student competency progress timeline.
  * Prepares time-series data for chart visualization.
  *
- * @package    local_yetkinlik
- * @copyright  2026 Hakan Çiğci {@link https://hakancigci.com.tr}
+ * @package    local_competency_report
+ * @copyright  2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_yetkinlik\output;
+namespace local_competency_report\output;
 
 use renderable;
 use templatable;
@@ -33,8 +33,8 @@ use stdClass;
 /**
  * Output class for student competency timeline page.
  *
- * @package    local_yetkinlik
- * @copyright  2026 Hakan Çiğci {@link https://hakancigci.com.tr}
+ * @package    local_competency_report
+ * @copyright  2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class timeline_page implements renderable, templatable {
@@ -65,17 +65,17 @@ class timeline_page implements renderable, templatable {
         $export->filter_options = [
             [
                 'value' => 30,
-                'label' => get_string('last30days', 'local_yetkinlik'),
+                'label' => get_string('last30days', 'local_competency_report'),
                 'selected' => ($this->data->days == 30),
             ],
             [
                 'value' => 90,
-                'label' => get_string('last90days', 'local_yetkinlik'),
+                'label' => get_string('last90days', 'local_competency_report'),
                 'selected' => ($this->data->days == 90),
             ],
             [
                 'value' => 0,
-                'label' => get_string('alltime', 'local_yetkinlik'),
+                'label' => get_string('alltime', 'local_competency_report'),
                 'selected' => ($this->data->days == 0),
             ],
         ];
@@ -84,7 +84,7 @@ class timeline_page implements renderable, templatable {
         $export->chart_config = json_encode([
             'labels'       => $this->data->periods,
             'datasets'     => $this->data->datasets,
-            'successLabel' => get_string('successrate', 'local_yetkinlik'),
+            'successLabel' => get_string('successrate', 'local_competency_report'),
         ]);
 
         // Determine if there is sufficient data to render the visualization.

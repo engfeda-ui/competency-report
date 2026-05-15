@@ -11,7 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    @template local_yetkinlik/timeline
+    @template local_competency_report/timeline
 
     Example context (json):
     {
@@ -24,7 +24,7 @@
         "chart_config": "{\"labels\":[\"Monday\",\"Tuesday\"],\"datasets\":[{\"label\":\"Success Rate\",\"data\":[65,70]}]}"
     }
 }}
-<div class="local_yetkinlik_timeline">
+<div class="local_competency_report_timeline">
 
     {{! 1. Filter Selection Card }}
     <div class="card mb-4 border-0 shadow-sm bg-light">
@@ -33,7 +33,7 @@
                 <input type="hidden" name="courseid" value="{{courseid}}">
 
                 <label class="mr-2 font-weight-bold" for="days_select">
-                    {{#str}}filterlabel, local_yetkinlik{{/str}}
+                    {{#str}}filterlabel, local_competency_report{{/str}}
                 </label>
 
                 <select name="days" id="days_select" class="form-control mr-2 custom-select">
@@ -43,7 +43,7 @@
                 </select>
 
                 <button type="submit" class="btn btn-primary">
-                    {{#str}}show, local_yetkinlik{{/str}}
+                    {{#str}}show, local_competency_report{{/str}}
                 </button>
             </form>
         </div>
@@ -59,7 +59,7 @@
     </div>
 
     {{#js}}
-    require(['local_yetkinlik/visualizer'], function(Visualizer) {
+    require(['local_competency_report/visualizer'], function(Visualizer) {
         var canvas = document.getElementById('timeline');
         if (canvas) {
             // Retrieve and parse JSON configuration for Chart.js.
@@ -75,7 +75,7 @@
     {{^has_data}}
     {{! 3. Empty State Notification }}
     <div class="alert alert-info border-0 shadow-sm">
-        <i class="fa fa-info-circle"></i> {{#str}}nodatafound, local_yetkinlik{{/str}}
+        <i class="fa fa-info-circle"></i> {{#str}}nodatafound, local_competency_report{{/str}}
     </div>
     {{/has_data}}
 

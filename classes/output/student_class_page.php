@@ -17,12 +17,12 @@
 /**
  * Renderable class for student performance analysis compared with class/course data.
  *
- * @package    local_yetkinlik
- * @copyright  2026 Hakan Çiğci {@link https://hakancigci.com.tr}
+ * @package    local_competency_report
+ * @copyright  2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_yetkinlik\output;
+namespace local_competency_report\output;
 
 use renderable;
 use templatable;
@@ -32,8 +32,8 @@ use stdClass;
 /**
  * Output class for student class comparison page.
  *
- * @package    local_yetkinlik
- * @copyright  2026 Hakan Çiğci {@link https://hakancigci.com.tr}
+ * @package    local_competency_report
+ * @copyright  2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class student_class_page implements renderable, templatable {
@@ -101,9 +101,9 @@ class student_class_page implements renderable, templatable {
                 'classData'  => $classrates,
                 'myData'     => $myrates,
                 'labelNames' => [
-                    'course' => get_string('courseavg', 'local_yetkinlik'),
-                    'class'  => get_string('classavg', 'local_yetkinlik'),
-                    'my'     => get_string('myavg', 'local_yetkinlik'),
+                    'course' => get_string('courseavg', 'local_competency_report'),
+                    'class'  => get_string('classavg', 'local_competency_report'),
+                    'my'     => get_string('myavg', 'local_competency_report'),
                 ],
             ]);
         }
