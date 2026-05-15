@@ -1,0 +1,110 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    @template local_yetkinlik/group_quiz_report
+
+    Example context (json):
+    {
+        "courseid": 2,
+        "groups": [
+            { "id": 1, "name": "A Grubu", "selected": true },
+            { "id": 2, "name": "B Grubu", "selected": false }
+        ],
+        "quizzes": [
+            { "id": 10, "name": "Matematik Sınavı", "selected": true },
+            { "id": 11, "name": "Fizik Sınavı", "selected": false }
+        ],
+        "has_data": true,
+        "competencies": [
+            { "shortname": "Y01" },
+            { "shortname": "Y02" }
+        ],
+        "students": [
+            {
+                "studentlink": "<a href='#'>Ali Yılmaz</a>",
+                "scores": [
+                    { "rate": "85", "color": "green" },
+                    { "rate": "40", "color": "red" }
+                ]
+            }
+        ],
+        "totals": [
+            { "rate": "65", "color": "blue" },
+            { "rate": "55", "color": "orange" }
+        ]
+    }
+}}
+<div class="local_yetkinlik_group_quiz_report">
+    <form method="get" class="form-inline mb-4">
+        <input type="hidden" name="courseid" value="{{courseid}}">
+        
+        <select name="groupid" class="form-control mr-2">
+            {{#groups}}
+                <option value="{{id}}" {{#selected}}selected{{/selected}}>{{name}}</option>
+            {{/groups}}
+        </select>
+
+        <select name="quizid" class="form-control mr-2">
+            {{#quizzes}}
+                <option value="{{id}}" {{#selected}}selected{{/selected}}>{{name}}</option>
+            {{/quizzes}}
+        </select>
+
+        <button type="submit" class="btn btn-primary">{{#str}}show, local_yetkinlik{{/str}}</button>
+    </form>
+
+    {{#has_data}}
+        {{#competencies.0}}
+        <div class="table-responsive">
+            <table class="generaltable table table-bordered table-striped mt-3">
+                <thead>
+                    <tr>
+                        <th>{{#str}}student, local_yetkinlik{{/str}}</th>
+                        {{#competencies}}
+                            <th class="text-center">{{shortname}}</th>
+                        {{/competencies}}
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#students}}
+                        <tr>
+                            <td>{{{studentlink}}}</td>
+                            {{#scores}}
+                                <td class="text-center" style="color: {{color}}; font-weight: bold;">
+                                    {{#rate}}%{{rate}}{{/rate}}
+                                    {{^rate}}-{{/rate}}
+                                </td>
+                            {{/scores}}
+                        </tr>
+                    {{/students}}
+                </tbody>
+                <tfoot>
+                    <tr class="table-secondary font-weight-bold">
+                        <td>{{#str}}total, local_yetkinlik{{/str}}</td>
+                        {{#totals}}
+                            <td class="text-center" style="color: {{color}};">
+                                {{#rate}}%{{rate}}{{/rate}}
+                                {{^rate}}-{{/rate}}
+                            </td>
+                        {{/totals}}
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        {{/competencies.0}}
+        
+        {{^competencies}}
+            <div class="alert alert-info">{{#str}}noexamdata, local_yetkinlik{{/str}}</div>
+        {{/competencies}}
+    {{/has_data}}
+</div>

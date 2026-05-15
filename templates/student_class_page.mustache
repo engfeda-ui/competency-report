@@ -1,0 +1,83 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    @template local_yetkinlik/student_analysis
+
+    Example context (json):
+    {
+        "has_data": true,
+        "rows": [
+            {
+                "shortname": "Matematik",
+                "courserate": "75",
+                "classrate": "65",
+                "myrate": "80",
+                "colorclass": "text-success"
+            }
+        ],
+        "chart_config": "{\"labels\":[\"Matematik\"],\"datasets\":[]}"
+    }
+}}
+<div class="local_yetkinlik_student_analysis">
+    {{#has_data}}
+        {{! Comparison Table }}
+        <div class="table-responsive">
+            <table class="generaltable table-hover mt-3 shadow-sm bg-white border w-100">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>{{#str}}competencyname, local_yetkinlik{{/str}}</th>
+                        <th class="text-center">{{#str}}courseavg, local_yetkinlik{{/str}}</th>
+                        <th class="text-center">{{#str}}classavg, local_yetkinlik{{/str}}</th>
+                        <th class="text-center">{{#str}}myavg, local_yetkinlik{{/str}}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#rows}}
+                    <tr>
+                        <td><strong>{{shortname}}</strong></td>
+                        <td class="text-center text-muted">%{{courserate}}</td>
+                        <td class="text-center text-muted">%{{classrate}}</td>
+                        <td class="text-center font-weight-bold {{colorclass}}" style="font-size:1.1em">
+                            %{{myrate}}
+                        </td>
+                    </tr>
+                    {{/rows}}
+                </tbody>
+            </table>
+        </div>
+
+        {{! Comparative Chart Area }}
+        <div class="card mt-4 p-4 shadow-sm bg-white border-0">
+            <div style="height:400px; min-height:400px; width:100%; position: relative;">
+                <canvas id="studentClassChart" data-chart-config="{{chart_config}}"></canvas>
+            </div>
+        </div>
+
+        {{#js}}
+        require(['local_yetkinlik/visualizer'], function(Visualizer) {
+            var canvas = document.getElementById('studentClassChart');
+            if (canvas) {
+                var config = JSON.parse(canvas.getAttribute('data-chart-config'));
+                Visualizer.initStudentClass(config);
+            }
+        });
+        {{/js}}
+    {{/has_data}}
+
+    {{^has_data}}
+        {{! No Data Alert }}
+        <div class="alert alert-info">
+            <i class="fa fa-info-circle"></i> {{#str}}nodatafound, local_yetkinlik{{/str}}
+        </div>
+    {{/has_data}}
+</div>

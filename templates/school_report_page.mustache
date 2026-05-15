@@ -1,0 +1,92 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    @template local_yetkinlik/school_report
+
+    Example context (json):
+    {
+        "has_data": true,
+        "ai_comment": {
+            "title": "Yapay Zeka Analizi",
+            "content": "<p>Genel başarı oranı %75'in üzerindedir.</p>"
+        },
+        "rows": [
+            {
+                "shortname": "MAT01",
+                "description": "Temel Matematik Yetkinliği",
+                "attempts": 150,
+                "correct": 120,
+                "rate": "80",
+                "rowclass": ""
+            }
+        ],
+        "pdf_url": "#"
+    }
+}}
+<div class="local_yetkinlik_school_report">
+
+    {{#has_data}}
+        {{! AI Analiz Bölümü }}
+        {{#ai_comment}}
+        <div class="card border-info shadow-sm mb-4">
+            <div class="card-body">
+                <h4 class="card-title text-info border-bottom pb-2">
+                    <i class="fa fa-magic mr-2"></i> {{title}}
+                </h4>
+                <div class="card-text text-muted">
+                    {{{content}}}
+                </div>
+            </div>
+        </div>
+        {{/ai_comment}}
+
+        {{! Başarı Tablosu }}
+        <div class="table-responsive shadow-sm">
+            <table class="generaltable table table-hover bg-white mb-0">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>{{#str}}competencycode, local_yetkinlik{{/str}}</th>
+                        <th>{{#str}}competencyname, local_yetkinlik{{/str}}</th>
+                        <th class="text-center">{{#str}}questioncount, local_yetkinlik{{/str}}</th>
+                        <th class="text-center">{{#str}}correctcount, local_yetkinlik{{/str}}</th>
+                        <th class="text-center">{{#str}}successrate, local_yetkinlik{{/str}}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#rows}}
+                    <tr class="{{rowclass}}">
+                        <td><strong>{{shortname}}</strong></td>
+                        <td>{{{description}}}</td>
+                        <td class="text-center">{{attempts}}</td>
+                        <td class="text-center">{{correct}}</td>
+                        <td class="text-center"><strong>%{{rate}}</strong></td>
+                    </tr>
+                    {{/rows}}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="d-flex justify-content-end mt-4">
+            <a href="{{pdf_url}}" class="btn btn-outline-danger shadow-sm px-4">
+                <i class="fa fa-file-pdf-o"></i> {{#str}}schoolpdf, local_yetkinlik{{/str}}
+            </a>
+        </div>
+    {{/has_data}}
+
+    {{^has_data}}
+        <div class="alert alert-info">
+            <i class="fa fa-info-circle"></i> {{#str}}nodatafound, local_yetkinlik{{/str}}
+        </div>
+    {{/has_data}}
+
+</div>

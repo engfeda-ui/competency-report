@@ -1,0 +1,87 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    @template local_yetkinlik/student_report
+
+    Example context (json):
+    {
+        "has_data": true,
+        "rows": [
+            {
+                "shortname": "C01",
+                "description": "Basic Competency Description",
+                "questions": 10,
+                "correct": 8,
+                "rate": "80",
+                "color": "#28a745"
+            }
+        ],
+        "pdf_url": "#",
+        "ai_comment": "You are showing great progress! Especially in math competency, your success rate has reached 80%."
+    }
+}}
+<div class="local_yetkinlik_student_report">
+    {{#has_data}}
+        {{! Achievement Statistics Table }}
+        <div class="table-responsive">
+            <table class="generaltable table table-bordered table-hover mt-3 shadow-sm bg-white">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>{{#str}}competencycode, local_yetkinlik{{/str}}</th>
+                        <th>{{#str}}competency, local_yetkinlik{{/str}}</th>
+                        <th class="text-center">{{#str}}questioncount, local_yetkinlik{{/str}}</th>
+                        <th class="text-center">{{#str}}correctcount, local_yetkinlik{{/str}}</th>
+                        <th class="text-center">{{#str}}successrate, local_yetkinlik{{/str}}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#rows}}
+                    <tr>
+                        <td class="font-weight-bold">{{shortname}}</td>
+                        <td>{{{description}}}</td>
+                        <td class="text-center">{{questions}}</td>
+                        <td class="text-center">{{correct}}</td>
+                        <td class="text-center font-weight-bold" style="color: {{color}};">
+                            %{{rate}}
+                        </td>
+                    </tr>
+                    {{/rows}}
+                </tbody>
+            </table>
+        </div>
+
+        {{! PDF Report Export Button }}
+        <div class="mt-4">
+            <a href="{{pdf_url}}" class="btn btn-secondary shadow-sm" target="_blank">
+                <i class="fa fa-file-pdf-o"></i> {{#str}}pdfmystudent, local_yetkinlik{{/str}}
+            </a>
+        </div>
+
+        {{! AI Commentary and Analysis Section }}
+        {{#ai_comment}}
+        <div class="ai-analysis mt-5">
+            <h3 class="mb-3"><i class="fa fa-magic text-info"></i> {{#str}}generalcomment, local_yetkinlik{{/str}}</h3>
+            <div class="alert alert-info border-left-info shadow-sm p-4">
+                {{{ai_comment}}}
+            </div>
+        </div>
+        {{/ai_comment}}
+    {{/has_data}}
+
+    {{^has_data}}
+        {{! Empty State Notification }}
+        <div class="alert alert-warning shadow-sm">
+            <i class="fa fa-exclamation-triangle"></i> {{#str}}nodatafound, local_yetkinlik{{/str}}
+        </div>
+    {{/has_data}}
+</div>

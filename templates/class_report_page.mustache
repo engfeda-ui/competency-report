@@ -1,0 +1,109 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    @template local_yetkinlik/class_report_page
+
+    Example context (json):
+    {
+        "pdf_url": "#",
+        "form_html": "<form><select class='custom-select'><option>Grup Seçin</option></select></form>",
+        "has_data": true,
+        "rows": [
+            {
+                "shortname": "Y01",
+                "courserate": "75",
+                "classrate": "68",
+                "studentrate": "82"
+            }
+        ],
+        "chart_config": "{\"labels\":[\"Y01\"],\"datasets\":[]}"
+    }
+}}
+<div class="local_yetkinlik_class_report">
+
+    {{! 1. Top Buttons and Links }}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <a href="{{pdf_url}}" class="btn btn-secondary" target="_blank">
+            <i class="fa fa-file-pdf-o"></i> {{#str}}pdfreport, local_yetkinlik{{/str}}
+        </a>
+    </div>
+
+    {{! 2. Selector Form Area }}
+    <div class="card mb-4 p-3 bg-light border-0 shadow-sm">
+        <div class="card-body">
+            {{{form_html}}}
+        </div>
+    </div>
+
+    {{#has_data}}
+        {{! 3. Report Table }}
+        <div class="table-responsive">
+            <table class="generaltable table table-bordered table-hover mt-4 shadow-sm bg-white">
+                <thead class="thead-dark">
+                    <tr>
+                        <th scope="col">{{#str}}competencyname, local_yetkinlik{{/str}}</th>
+                        <th scope="col" class="text-center">{{#str}}courseavg, local_yetkinlik{{/str}}</th>
+                        <th scope="col" class="text-center">{{#str}}classavg, local_yetkinlik{{/str}}</th>
+                        <th scope="col" class="text-center">{{#str}}studentavg, local_yetkinlik{{/str}}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#rows}}
+                    <tr>
+                        <td><strong>{{shortname}}</strong></td>
+                        <td class="text-center font-weight-bold text-dark">%{{courserate}}</td>
+                        <td class="text-center text-muted">%{{classrate}}</td>
+                        <td class="text-center text-primary font-weight-bold">%{{studentrate}}</td>
+                    </tr>
+                    {{/rows}}
+                </tbody>
+            </table>
+        </div>
+
+        {{! 4. Chart Area }}
+        <div class="card mt-4 p-4 shadow-sm bg-white border-0">
+            <div class="card-title">
+                <h5><i class="fa fa-bar-chart"></i> {{#str}}visual_report, local_yetkinlik{{/str}}</h5>
+            </div>
+            <div style="height:400px; width:100%; position: relative;">
+                {{! Store configuration data safely in data-chart-config }}
+                <canvas id="studentClassChart" data-chart-config="{{chart_config}}"></canvas>
+            </div>
+        </div>
+    {{/has_data}}
+
+    {{^has_data}}
+        {{! No Data Found Warning }}
+        <div class="alert alert-info shadow-sm">
+            <i class="fa fa-info-circle"></i> {{#str}}nodatafound, local_yetkinlik{{/str}}
+        </div>
+    {{/has_data}}
+</div>
+
+{{#has_data}}
+{{#js}}
+require(['jquery', 'local_yetkinlik/visualizer', 'core/log'], function($, Visualizer, Log) {
+    var canvas = document.getElementById('studentClassChart');
+    if (canvas) {
+        var rawData = canvas.getAttribute('data-chart-config');
+        try {
+            var params = JSON.parse(rawData);
+            Visualizer.initStudentClass(params);
+        } catch (e) {
+            Log.error("An error occurred while loading the Competency Chart");
+            Log.error(e);
+        }
+    }
+});
+{{/js}}
+{{/has_data}}

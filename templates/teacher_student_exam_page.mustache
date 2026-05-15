@@ -1,0 +1,101 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    @template local_yetkinlik/teacher_panel
+
+    Example context (json):
+    {
+        "courseid": 5,
+        "userid": 2,
+        "quizid": 10,
+        "students": [
+            { "id": 1, "name": "Ali Yılmaz", "selected": false },
+            { "id": 2, "name": "Ayşe Demir", "selected": true }
+        ],
+        "quizzes": [
+            { "id": 10, "name": "Matematik Vize", "selected": true },
+            { "id": 11, "name": "Fizik Final", "selected": false }
+        ],
+        "has_rows": true,
+        "rows": [
+            {
+                "shortname": "Y01",
+                "attempts": 5,
+                "correct": 4,
+                "rate": "80",
+                "rowclass": "table-success"
+            }
+        ],
+        "chart_config": "{\"labels\":[\"Y01\"], \"values\":[80], \"label\":\"Success Rate\"}"
+    }
+}}
+<div class="local_yetkinlik_teacher_panel">
+    {{! Display the moodleform }}
+    <div class="card mb-4 border-0 shadow-sm bg-light">
+        <div class="card-body">
+            {{{form_html}}}
+        </div>
+    </div>
+
+    {{#has_selection}}
+        {{#has_rows}}
+            {{! Data Table }}
+            <div class="table-responsive">
+                <table class="generaltable table table-hover shadow-sm bg-white border">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>{{#str}}competency, local_yetkinlik{{/str}}</th>
+                            <th class="text-center">{{#str}}questioncount, local_yetkinlik{{/str}}</th>
+                            <th class="text-center">{{#str}}correctcount, local_yetkinlik{{/str}}</th>
+                            <th class="text-center">{{#str}}successrate, local_yetkinlik{{/str}}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{#rows}}
+                        <tr class="{{rowclass}}">
+                            <td><strong>{{shortname}}</strong></td>
+                            <td class="text-center">{{attempts}}</td>
+                            <td class="text-center">{{correct}}</td>
+                            <td class="text-center font-weight-bold">%{{rate}}</td>
+                        </tr>
+                        {{/rows}}
+                    </tbody>
+                </table>
+            </div>
+
+            {{! Chart Container }}
+            <div class="card mt-4 p-4 shadow-sm bg-white border-0">
+                <div style="position: relative; height:45vh; width:100%">
+                    <canvas id="teacher_student_chart" data-config="{{chart_config}}"></canvas>
+                </div>
+            </div>
+        {{/has_rows}}
+
+        {{^has_rows}}
+            {{! No data alert }}
+            <div class="alert alert-info shadow-sm mt-3">
+                <i class="fa fa-info-circle mr-2"></i> {{#str}}nodatafound, local_yetkinlik{{/str}}
+            </div>
+        {{/has_rows}}
+    {{/has_selection}}
+</div>
+
+{{#js}}
+require(['local_yetkinlik/visualizer'], function(Visualizer) {
+    var canvas = document.getElementById('teacher_student_chart');
+    if (canvas) {
+        var config = JSON.parse(canvas.getAttribute('data-config'));
+        Visualizer.initBarChart('teacher_student_chart', config.labels, config.values, config.label);
+    }
+});
+{{/js}}

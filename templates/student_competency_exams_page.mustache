@@ -1,0 +1,166 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_yetkinlik/student_competency_exams_page
+
+    Template for displaying student performance report for a specific competency.
+
+    Context variables required for this template:
+    * courseid - The ID of the current course.
+    * competencyid - The ID of the selected competency.
+    * competencies - List of available competencies for selection.
+    * has_selection - Boolean indicating if a competency is selected.
+    * description - The description of the competency.
+    * rows - Array of quiz summary rows.
+    * total - Aggregated total performance data.
+    * has_questions - Boolean indicating if detailed question links exist.
+    * questiondetails - Array of individual question attempts with review URLs.
+
+    Example context (json):
+    {
+        "courseid": 2,
+        "competencyid": 1,
+        "has_selection": true,
+        "description": "Competency description text.",
+        "competencies": [
+            {"id": 1, "shortname": "Competency 1", "selected": true}
+        ],
+        "rows": [
+            {"quizname": "Quiz 1", "quizurl": "#", "questions": 5, "correct": 4.5, "rate": 90, "colorclass": "text-success"}
+        ],
+        "total": {"questions": 5, "correct": 4.5, "rate": 90, "colorclass": "text-success"},
+        "has_questions": true,
+        "questiondetails": [
+            {"quizname": "Quiz 1", "questionname": "Q1", "url": "#"}
+        ]
+    }
+}}
+<div class="local_yetkinlik_competency_exams">
+    {{! 1. Competency Selection Filter }}
+    <div class="card mb-4 border-0 shadow-sm bg-light">
+        <div class="card-body">
+            <form method="get" id="competency_filter_form">
+                <input type="hidden" name="courseid" value="{{courseid}}">
+                <div class="form-row align-items-end">
+                    <div class="col-12 col-md-9 mb-3 mb-md-0">
+                        <label class="font-weight-bold" for="id_competency_select">{{#str}}selectcompetency, local_yetkinlik{{/str}}</label>
+                        <select name="competencyid" id="id_competency_select" class="form-control">
+                            <option value="0">{{#str}}selectcompetency, local_yetkinlik{{/str}}</option>
+                            {{#competencies}}
+                                <option value="{{id}}" {{#selected}}selected{{/selected}}>{{shortname}}</option>
+                            {{/competencies}}
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <button type="submit" class="btn btn-primary btn-block">
+                            <i class="fa fa-search"></i> {{#str}}show, local_yetkinlik{{/str}}
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{#has_selection}}
+        {{#description}}
+        <div class="alert alert-info border-left-info shadow-sm mb-4">
+            <i class="fa fa-info-circle"></i> {{{description}}}
+        </div>
+        {{/description}}
+
+        {{! 2. Summary Table }}
+        {{#rows.0}}
+        <h4 class="mt-4">{{#str}}summaryreport, local_yetkinlik{{/str}}</h4>
+        <div class="table-responsive">
+            <table class="generaltable table table-hover shadow-sm bg-white">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>{{#str}}quiz, local_yetkinlik{{/str}}</th>
+                        <th class="text-center">{{#str}}question, local_yetkinlik{{/str}}</th>
+                        <th class="text-center">{{#str}}correct, local_yetkinlik{{/str}}</th>
+                        <th class="text-center">{{#str}}success, local_yetkinlik{{/str}}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#rows}}
+                    <tr>
+                        <td>
+                            <a href="{{quizurl}}" target="_blank"><strong>{{quizname}}</strong></a>
+                        </td>
+                        <td class="text-center">{{questions}}</td>
+                        <td class="text-center">{{correct}}</td>
+                        <td class="text-center font-weight-bold {{colorclass}}">%{{rate}}</td>
+                    </tr>
+                    {{/rows}}
+                </tbody>
+                {{#total}}
+                <tfoot>
+                    <tr class="table-secondary font-weight-bold">
+                        <td>{{#str}}total, local_yetkinlik{{/str}}</td>
+                        <td class="text-center">{{questions}}</td>
+                        <td class="text-center">{{correct}}</td>
+                        <td class="text-center {{colorclass}}">%{{rate}}</td>
+                    </tr>
+                </tfoot>
+                {{/total}}
+            </table>
+        </div>
+        {{/rows.0}}
+
+        {{! 3. Detailed Question Links }}
+        {{#has_questions}}
+        <h4 class="mt-5">{{#str}}questionlinks, local_yetkinlik{{/str}}</h4>
+        <div class="table-responsive">
+            <table class="generaltable table table-bordered table-hover mt-3 shadow-sm bg-white">
+                <thead class="thead-light">
+                    <tr>
+                        <th>{{#str}}quiz, local_yetkinlik{{/str}}</th>
+                        <th>{{#str}}questionname, local_yetkinlik{{/str}}</th>
+                        <th class="text-center">{{#str}}action, local_yetkinlik{{/str}}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#questiondetails}}
+                    <tr>
+                        <td>{{quizname}}</td>
+                        <td>{{questionname}}</td>
+                        <td class="text-center">
+                            <a href="{{url}}" class="btn btn-sm btn-outline-primary view-question-modal">
+                                <i class="fa fa-search"></i> {{#str}}viewattempt, local_yetkinlik{{/str}}
+                            </a>
+                        </td>
+                    </tr>
+                    {{/questiondetails}}
+                </tbody>
+            </table>
+        </div>
+        {{/has_questions}}
+
+        {{^rows}}
+            <div class="alert alert-warning shadow-sm">
+                <i class="fa fa-exclamation-triangle"></i> {{#str}}nocompetencyexamdata, local_yetkinlik{{/str}}
+            </div>
+        {{/rows}}
+    {{/has_selection}}
+</div>
+
+{{#js}}
+require(['core/form-autocomplete', 'local_yetkinlik/modal_viewer'], function(Autocomplete, ModalViewer) {
+    Autocomplete.enhance('#id_competency_select', false, false, "{{#str}}selectcompetency, local_yetkinlik{{/str}}");
+    ModalViewer.init('.view-question-modal');
+});
+{{/js}}

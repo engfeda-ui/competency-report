@@ -1,0 +1,99 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    @template local_yetkinlik/group_competency_page
+
+    Example context (json):
+    {
+        "courseid": 2,
+        "has_group": true,
+        "groups": [
+            { "id": 1, "name": "Group A", "selected": true },
+            { "id": 2, "name": "Group B", "selected": false }
+        ],
+        "competencies": [
+            { "shortname": "Competency 1" },
+            { "shortname": "Competency 2" }
+        ],
+        "students": [
+            {
+                "studentlink": "<a href='#'>Ali Yılmaz</a>",
+                "scores": [
+                    { "rate": "85", "color": "green" },
+                    { "rate": "45", "color": "orange" }
+                ]
+            }
+        ],
+        "totals": [
+            { "rate": "65", "color": "blue" },
+            { "rate": "55", "color": "red" }
+        ]
+    }
+}}
+<div class="local_yetkinlik_group_report">
+    <form method="get" class="mb-3 d-flex align-items-center">
+        <input type="hidden" name="courseid" value="{{courseid}}">
+        <select name="groupid" class="custom-select w-auto mr-2">
+            <option value="0">{{#str}}selectgroup, local_yetkinlik{{/str}}</option>
+            {{#groups}}
+                <option value="{{id}}" {{#selected}}selected{{/selected}}>{{name}}</option>
+            {{/groups}}
+        </select>
+        <button type="submit" class="btn btn-primary">{{#str}}show, local_yetkinlik{{/str}}</button>
+    </form>
+
+    {{#has_group}}
+        {{#competencies.0}}
+        <div class="table-responsive">
+            <table class="generaltable table table-bordered table-striped mt-3">
+                <thead>
+                    <tr>
+                        <th>{{#str}}student, local_yetkinlik{{/str}}</th>
+                        {{#competencies}}
+                            <th class="text-center">{{shortname}}</th>
+                        {{/competencies}}
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#students}}
+                        <tr>
+                            <td>{{{studentlink}}}</td>
+                            {{#scores}}
+                                <td class="text-center" style="color: {{color}}; font-weight: bold;">
+                                    {{#rate}}%{{rate}}{{/rate}}
+                                    {{^rate}}-{{/rate}}
+                                </td>
+                            {{/scores}}
+                        </tr>
+                    {{/students}}
+                </tbody>
+                <tfoot>
+                    <tr class="table-secondary font-weight-bold">
+                        <td>{{#str}}total, local_yetkinlik{{/str}}</td>
+                        {{#totals}}
+                            <td class="text-center" style="color: {{color}};">
+                                {{#rate}}%{{rate}}{{/rate}}
+                                {{^rate}}-{{/rate}}
+                            </td>
+                        {{/totals}}
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        {{/competencies.0}}
+
+        {{^competencies}}
+            <div class="alert alert-info">{{#str}}nocompetencies, local_yetkinlik{{/str}}</div>
+        {{/competencies}}
+    {{/has_group}}
+</div>
