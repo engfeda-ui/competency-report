@@ -18,7 +18,7 @@
  * Local plugin "competency_report" - Privacy provider.
  *
  * @package    local_competency_report
-  * @copyright  2026 Mahmoud Salem
+ * @copyright  2026 Mahmoud Salem
  * @copyright  based on work by 2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -32,7 +32,7 @@ use core_privacy\local\metadata\provider as metadataprovider;
  * Privacy Subsystem implementation.
  *
  * @package    local_competency_report
-  * @copyright  2026 Mahmoud Salem
+ * @copyright  2026 Mahmoud Salem
  * @copyright  based on work by 2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
