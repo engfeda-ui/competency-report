@@ -18,7 +18,8 @@
  * Renderable class for student competency exam analysis page.
  *
  * @package    local_competency_report
- * @copyright  2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
+  * @copyright  2026 Mahmoud Salem
+ * @copyright  based on work by 2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -33,7 +34,8 @@ use stdClass;
  * Output class for student competency exams page.
  *
  * @package    local_competency_report
- * @copyright  2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
+  * @copyright  2026 Mahmoud Salem
+ * @copyright  based on work by 2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class student_competency_exams_page implements renderable, templatable {

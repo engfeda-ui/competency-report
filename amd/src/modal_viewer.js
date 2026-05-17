@@ -17,7 +17,8 @@
  * Modal viewer for competency question review.
  *
  * @module     local_competency_report/modal_viewer
- * @copyright  2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
+  * @copyright  2026 Mahmoud Salem
+ * @copyright  based on work by 2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 define(['jquery', 'core/modal_factory', 'core/modal_events', 'core/str', 'core/notification'],
