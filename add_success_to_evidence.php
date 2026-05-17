@@ -43,6 +43,7 @@ $PAGE->set_heading(get_string('process_success_heading', 'local_competency_repor
 echo $OUTPUT->header();
 
 if ($run) {
+    require_sesskey();
     // Create an adhoc task.
     $task = new \local_competency_report\task\process_competency_rates_task();
     $task->set_custom_data([
