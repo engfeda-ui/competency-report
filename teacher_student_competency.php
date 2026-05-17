@@ -109,7 +109,7 @@ if ($userid && $competencyid) {
         $renderdata->description = format_text($comp->description, $comp->descriptionformat);
     }
 
-    // 3a. Summary Table Data.
+    // Fetch summary table data.
     $sqlsummary = "SELECT quiz.id AS quizid, quiz.name AS quizname, MAX(quiza.id) as lastattemptid,
                           SUM(qa.maxfraction) AS questions, SUM(qas.fraction) AS correct
                    FROM {quiz_attempts} quiza
@@ -159,7 +159,7 @@ if ($userid && $competencyid) {
         ];
     }
 
-    // 3b. Detail Table Data.
+    // Fetch detail table data.
     $sqldetails = "SELECT qa.id, q.name AS qname, quiz.name AS quizname, quiza.id AS attemptid, qa.slot
                    FROM {quiz_attempts} quiza
                    JOIN {quiz} quiz ON quiz.id = quiza.quiz

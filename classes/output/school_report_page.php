@@ -60,7 +60,10 @@ class school_report_page implements renderable, templatable {
         $export = new stdClass();
         $export->has_data = !empty($this->data->rows);
         $export->courseid = $this->data->courseid;
-        $export->pdf_url = (new moodle_url('/local/competency_report/school_pdf.php', ['courseid' => $this->data->courseid]))->out(false);
+        $export->pdf_url = (new moodle_url(
+            '/local/competency_report/school_pdf.php',
+            ['courseid' => $this->data->courseid]
+        ))->out(false);
 
         if ($export->has_data) {
             $export->rows = [];

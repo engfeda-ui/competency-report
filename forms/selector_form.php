@@ -113,10 +113,16 @@ class local_competency_report_selector_form extends moodleform {
             }
         }
 
-        $mform->addElement('autocomplete', 'competencyid', get_string('selectcompetency', 'local_competency_report'), $competencies, [
-            'placeholder' => get_string('searchcompetency', 'local_competency_report'),
-            'multiple' => false,
-        ]);
+        $mform->addElement(
+            'autocomplete',
+            'competencyid',
+            get_string('selectcompetency', 'local_competency_report'),
+            $competencies,
+            [
+                'placeholder' => get_string('searchcompetency', 'local_competency_report'),
+                'multiple' => false,
+            ]
+        );
         $mform->setType('competencyid', PARAM_INT);
     }
 

@@ -31,7 +31,6 @@
  * @return void
  */
 function local_competency_report_extend_navigation_course($navigation, $course, $context) {
-
     // 1. Teacher Reports Section.
     if (has_capability('mod/quiz:viewreports', $context)) {
         // General class report.
