@@ -19,7 +19,7 @@
  *
  * @package    local_competency_report
  * @copyright  2026 Mahmoud Salem
- * @copyright  based on work by 2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
+ * @copyright  based on work by 2026 Hakan Çiğci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -27,10 +27,10 @@ defined('MOODLE_INTERNAL') || die();
 
 /** @var stdClass $plugin */
 $plugin->component = 'local_competency_report';       // Full name of the plugin (category_name).
-$plugin->version   = 2026031250;              // The current module version (YYYYMMDDXX).
+$plugin->version   = 2026051900;              // The current module version (YYYYMMDDXX).
 $plugin->requires  = 2024042210;              // Requires Moodle 4.5 or later.
 $plugin->maturity  = MATURITY_STABLE;          // Stable release.
-$plugin->release   = '3.0.7';                 // Human-readable version name.
+$plugin->release   = '3.0.8';                 // Human-readable version name.
 
 // Plugin dependencies (Other plugins that must be installed first).
 $plugin->dependencies = [
