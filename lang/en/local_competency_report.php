@@ -19,7 +19,7 @@
  *
  * @package    local_competency_report
  * @copyright  2026 Mahmoud Salem
- * @copyright  based on work by 2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
+ * @copyright  based on work by 2026 Hakan Çiğci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -37,7 +37,7 @@ $string['allusers'] = 'All students';
 $string['analysisfor'] = 'Competency Analysis: {$a}';
 $string['apikey'] = 'API Key';
 $string['apikey_desc'] = 'Enter your OpenAI or Azure OpenAI API key. <a href="https://platform.openai.com/account/api-keys" target="_blank">Click here for OpenAI key</a>.';
-$string['bluelegend'] = 'Blue: Mostly achieved (60Ã¢â‚¬â€œ79%)';
+$string['bluelegend'] = 'Blue: Mostly achieved (60–79%)';
 $string['btn_process_now'] = 'Process Success Rates Now';
 $string['classavg'] = 'Class Average';
 $string['classinfo'] = 'Class: {$a}';
@@ -85,9 +85,9 @@ $string['nocompetencyexamdata'] = 'No exam data found for this competency.';
 $string['nodatafound'] = 'No completed quiz data found for analysis in this course yet.';
 $string['nodatastudentcompetency'] = 'No quiz data found for this student in this competency.';
 $string['noexamdata'] = 'No competency data found for this exam.';
-$string['orangelegend'] = 'Orange: Partially achieved (40Ã¢â‚¬â€œ59%)';
-$string['pdfmystudent'] = 'Ã°Å¸â€œâ€ž View My PDF Report';
-$string['pdfreport'] = 'Ã°Å¸â€œâ€ž PDF Report';
+$string['orangelegend'] = 'Orange: Partially achieved (40–59%)';
+$string['pdfmystudent'] = '📄 View My PDF Report';
+$string['pdfreport'] = '📄 PDF Report';
 $string['pluginname'] = 'Competency Plugin';
 $string['privacy:metadata'] = 'The Competency Report plugin does not store any personal data.';
 $string['privacy:metadata:openai:answertext'] = 'The student\'s response is sent to be evaluated by the AI model.';
@@ -103,7 +103,7 @@ $string['questionlinks'] = 'Related Question Details';
 $string['questionname'] = 'Question Title';
 $string['quiz'] = 'Quiz';
 $string['recordupdated'] = 'Record updated successfully';
-$string['redlegend'] = 'Red: Not achieved (0Ã¢â‚¬â€œ39%)';
+$string['redlegend'] = 'Red: Not achieved (0–39%)';
 $string['report_heading'] = 'Competency Analysis Detailed Report';
 $string['report_title'] = 'Detailed Competency Report';
 $string['savechanges'] = 'Save changes';
