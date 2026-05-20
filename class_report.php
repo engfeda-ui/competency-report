@@ -38,7 +38,7 @@ $course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
 $PAGE->set_url('/local/competency_report/class_report.php', ['courseid' => $courseid]);
 $PAGE->set_context($context);
 $PAGE->set_pagelayout('course');
-$PAGE->set_title(get_string('report_title', 'local_competency_report'));
+$PAGE->set_title(get_string('report_title', 'local_competency_report', $course->fullname));
 $PAGE->set_heading($course->fullname . " - " . get_string('report_heading', 'local_competency_report'));
 
 // 1. Parameter Management and Form.

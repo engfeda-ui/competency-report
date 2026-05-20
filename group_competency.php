@@ -66,13 +66,14 @@ if ($groupid) {
         ORDER BY u.idnumber ASC
     ", ['groupid' => $groupid, 'courseid' => $courseid]);
 
-    // 3. Fetch mapped competencies list.
+    // 3. Fetch mapped competencies list — scoped to this course.
     $competencies = (array) $DB->get_records_sql("
         SELECT DISTINCT c.id, c.shortname
         FROM {qbank_competency_qmap} m
         JOIN {competency} c ON c.id = m.competencyid
+        WHERE m.courseid = :courseid
         ORDER BY c.shortname ASC
-    ");
+    ", ['courseid' => $courseid]);
     $renderdata->competencies = array_values($competencies);
 
     // 4. Performance data query optimized with unique key for easier mapping.

@@ -43,7 +43,7 @@ if ($courseid) {
     // If no course is specified, treat as a site-wide report (admin access).
     $context = context_system::instance();
     require_capability('moodle/site:config', $context);
-    $reporttitle = get_string('report_title', 'local_competency_report');
+    $reporttitle = get_string('report_title', 'local_competency_report', get_string('schoolreport', 'local_competency_report'));
     $wheresql = "WHERE quiza.state = 'finished'";
     $params = [];
 }

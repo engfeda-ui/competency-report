@@ -92,7 +92,7 @@
 
 {{#has_data}}
 {{#js}}
-require(['jquery', 'local_competency_report/visualizer', 'core/log'], function($, Visualizer, Log) {
+require(['local_competency_report/visualizer', 'core/log'], function(Visualizer, Log) {
     var canvas = document.getElementById('studentClassChart');
     if (canvas) {
         var rawData = canvas.getAttribute('data-chart-config');

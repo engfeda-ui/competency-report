@@ -38,12 +38,13 @@ $PAGE->set_title(get_string('studentcompetencyexams', 'local_competency_report')
 $PAGE->set_heading(get_string('studentcompetencyexams', 'local_competency_report'));
 $PAGE->set_pagelayout('course');
 
-// 1. Fetch available competencies for the selection filter.
+// 1. Fetch available competencies for the selection filter — scoped to this course.
 $compsraw = $DB->get_records_sql("
     SELECT DISTINCT c.id, c.shortname
     FROM {qbank_competency_qmap} m
     JOIN {competency} c ON c.id = m.competencyid
-    ORDER BY c.shortname");
+    WHERE m.courseid = :courseid
+    ORDER BY c.shortname", ['courseid' => $courseid]);
 
 $competencies = [];
 foreach ($compsraw as $c) {

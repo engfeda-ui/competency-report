@@ -33,6 +33,9 @@ $course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
 $context = context_course::instance($courseid);
 $userid = $USER->id;
 
+// Students can view their own report; teachers can view any student's report.
+require_capability('local/competency_report:viewownreport', $context);
+
 // Page Setup.
 $PAGE->set_url('/local/competency_report/student_report.php', ['courseid' => $courseid]);
 $PAGE->set_context($context);

@@ -31,6 +31,9 @@ $context  = context_course::instance($courseid);
 
 require_login($course);
 
+// Students can view their own class comparison; teachers can view it too.
+require_capability('local/competency_report:viewownreport', $context);
+
 // Page settings and navigation.
 $PAGE->set_url('/local/competency_report/student_class.php', ['courseid' => $courseid]);
 $PAGE->set_context($context);
@@ -66,33 +69,54 @@ $renderdata->studentdata = [];
 if (!empty($coursedata)) {
     // 2. Class (Department) Average.
     if (!empty($USER->department)) {
-        // Fetch data filtered by user department.
-        $classsql = str_replace(
-            "GROUP BY c.id, c.shortname",
-            "AND u.department = :dept GROUP BY c.id",
-            $coursesql
-        );
-        $classsql = str_replace(
-            "FROM {quiz_attempts} quiza",
-            "FROM {quiz_attempts} quiza JOIN {user} u ON quiza.userid = u.id",
-            $classsql
-        );
+        // Build class SQL directly — avoids fragile str_replace on the base query.
+        $classsql = "SELECT c.id, c.shortname,
+                            CAST(SUM(qa.maxfraction) AS DECIMAL(12, 1)) AS attempts,
+                            CAST(SUM(qas.fraction) AS DECIMAL(12, 1)) AS correct
+                     FROM {quiz_attempts} quiza
+                     JOIN {user} u ON quiza.userid = u.id
+                     JOIN {quiz} quiz ON quiz.id = quiza.quiz
+                     JOIN {question_usages} qu ON qu.id = quiza.uniqueid
+                     JOIN {question_attempts} qa ON qa.questionusageid = qu.id
+                     JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
+                     JOIN {competency} c ON c.id = m.competencyid
+                     JOIN (
+                         SELECT MAX(fraction) AS fraction, questionattemptid
+                         FROM {question_attempt_steps}
+                         GROUP BY questionattemptid
+                     ) qas ON qas.questionattemptid = qa.id
+                     WHERE quiz.course = :courseid
+                       AND quiza.state = 'finished'
+                       AND u.department = :dept
+                     GROUP BY c.id, c.shortname";
         $renderdata->classdata = $DB->get_records_sql($classsql, [
             'courseid' => $courseid,
-            'dept' => $USER->department,
+            'dept'     => $USER->department,
         ]);
     }
 
     // 3. Student's Individual Data.
-    // Fetch data filtered by current user's ID.
-    $studentsql = str_replace(
-        "GROUP BY c.id, c.shortname",
-        "AND quiza.userid = :userid GROUP BY c.id",
-        $coursesql
-    );
+    $studentsql = "SELECT c.id, c.shortname,
+                          CAST(SUM(qa.maxfraction) AS DECIMAL(12, 1)) AS attempts,
+                          CAST(SUM(qas.fraction) AS DECIMAL(12, 1)) AS correct
+                   FROM {quiz_attempts} quiza
+                   JOIN {quiz} quiz ON quiz.id = quiza.quiz
+                   JOIN {question_usages} qu ON qu.id = quiza.uniqueid
+                   JOIN {question_attempts} qa ON qa.questionusageid = qu.id
+                   JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
+                   JOIN {competency} c ON c.id = m.competencyid
+                   JOIN (
+                       SELECT MAX(fraction) AS fraction, questionattemptid
+                       FROM {question_attempt_steps}
+                       GROUP BY questionattemptid
+                   ) qas ON qas.questionattemptid = qa.id
+                   WHERE quiz.course = :courseid
+                     AND quiza.state = 'finished'
+                     AND quiza.userid = :userid
+                   GROUP BY c.id, c.shortname";
     $renderdata->studentdata = $DB->get_records_sql($studentsql, [
         'courseid' => $courseid,
-        'userid' => $USER->id,
+        'userid'   => $USER->id,
     ]);
 }
 

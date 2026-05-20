@@ -51,7 +51,8 @@ $competencies = $DB->get_records_sql("
     SELECT DISTINCT c.id, c.shortname
     FROM {qbank_competency_qmap} m
     JOIN {competency} c ON c.id = m.competencyid
-    ORDER BY c.shortname");
+    WHERE m.courseid = :courseid
+    ORDER BY c.shortname", ['courseid' => $courseid]);
 
 $compoptions = [0 => get_string('selectcompetency', 'local_competency_report')];
 foreach ($competencies as $c) {

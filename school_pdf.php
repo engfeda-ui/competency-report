@@ -48,7 +48,7 @@ if ($courseid) {
     require_capability('moodle/site:config', $context);
 
     // Fetch general title from the language file.
-    $reporttitle = get_string('report_title', 'local_competency_report');
+    $reporttitle = get_string('report_title', 'local_competency_report', get_string('schoolreport', 'local_competency_report'));
 
     $wheresql = "WHERE quiza.state = 'finished'";
     $params = [];
