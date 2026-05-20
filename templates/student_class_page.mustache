@@ -64,13 +64,13 @@
         </div>
 
         {{#js}}
-        import { initStudentClass } from 'local_competency_report/visualizer';
-
-        const canvas = document.getElementById('studentClassChart');
-        if (canvas) {
-            const config = JSON.parse(canvas.getAttribute('data-chart-config'));
-            initStudentClass(config);
-        }
+        require(['local_competency_report/visualizer'], function(Visualizer) {
+            const canvas = document.getElementById('studentClassChart');
+            if (canvas) {
+                const config = JSON.parse(canvas.getAttribute('data-chart-config'));
+                Visualizer.initStudentClass(config);
+            }
+        });
         {{/js}}
     {{/has_data}}
 

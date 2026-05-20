@@ -91,11 +91,11 @@
 </div>
 
 {{#js}}
-import { initBarChart } from 'local_competency_report/visualizer';
-
-const canvas = document.getElementById('teacher_student_chart');
-if (canvas) {
-    const config = JSON.parse(canvas.getAttribute('data-config'));
-    initBarChart('teacher_student_chart', config.labels, config.values, config.label);
-}
+require(['local_competency_report/visualizer'], function(Visualizer) {
+    const canvas = document.getElementById('teacher_student_chart');
+    if (canvas) {
+        const config = JSON.parse(canvas.getAttribute('data-config'));
+        Visualizer.initBarChart('teacher_student_chart', config.labels, config.values, config.label);
+    }
+});
 {{/js}}

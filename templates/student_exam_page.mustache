@@ -92,14 +92,14 @@
             </div>
 
             {{#js}}
-            import { initStudentExam } from 'local_competency_report/visualizer';
-
-            const canvas = document.getElementById('studentexamchart');
-            if (canvas) {
-                // Extract and parse the chart configuration from data attribute.
-                const config = JSON.parse(canvas.getAttribute('data-chart-config'));
-                initStudentExam(config);
-            }
+            require(['local_competency_report/visualizer'], function(Visualizer) {
+                const canvas = document.getElementById('studentexamchart');
+                if (canvas) {
+                    // Extract and parse the chart configuration from data attribute.
+                    const config = JSON.parse(canvas.getAttribute('data-chart-config'));
+                    Visualizer.initStudentExam(config);
+                }
+            });
             {{/js}}
 
         {{/has_data}}

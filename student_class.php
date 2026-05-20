@@ -32,7 +32,9 @@ $context  = context_course::instance($courseid);
 require_login($course);
 
 // Students can view their own class comparison; teachers can view it too.
-require_capability('local/competency_report:viewownreport', $context);
+if (!has_capability('local/competency_report:viewownreport', $context) && !has_capability('local/competency_report:viewreports', $context)) {
+    require_capability('local/competency_report:viewownreport', $context);
+}
 
 // Page settings and navigation.
 $PAGE->set_url('/local/competency_report/student_class.php', ['courseid' => $courseid]);

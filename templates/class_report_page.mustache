@@ -92,19 +92,18 @@
 
 {{#has_data}}
 {{#js}}
-import { initStudentClass } from 'local_competency_report/visualizer';
-import Log from 'core/log';
-
-const canvas = document.getElementById('studentClassChart');
-if (canvas) {
-    const rawData = canvas.getAttribute('data-chart-config');
-    try {
-        const params = JSON.parse(rawData);
-        initStudentClass(params);
-    } catch (e) {
-        Log.error("An error occurred while loading the Competency Chart");
-        Log.error(e);
+require(['local_competency_report/visualizer', 'core/log'], function(Visualizer, Log) {
+    const canvas = document.getElementById('studentClassChart');
+    if (canvas) {
+        const rawData = canvas.getAttribute('data-chart-config');
+        try {
+            const params = JSON.parse(rawData);
+            Visualizer.initStudentClass(params);
+        } catch (e) {
+            Log.error("An error occurred while loading the Competency Chart");
+            Log.error(e);
+        }
     }
-}
+});
 {{/js}}
 {{/has_data}}

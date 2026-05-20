@@ -59,16 +59,16 @@
     </div>
 
     {{#js}}
-    import { initTimeline } from 'local_competency_report/visualizer';
+    require(['local_competency_report/visualizer'], function(Visualizer) {
+        const canvas = document.getElementById('timeline');
+        if (canvas) {
+            // Retrieve and parse JSON configuration for Chart.js.
+            const config = JSON.parse(canvas.getAttribute('data-chart-config'));
 
-    const canvas = document.getElementById('timeline');
-    if (canvas) {
-        // Retrieve and parse JSON configuration for Chart.js.
-        const config = JSON.parse(canvas.getAttribute('data-chart-config'));
-
-        // Invoke the initTimeline function within visualizer.js to render the line chart.
-        initTimeline(config);
-    }
+            // Invoke the initTimeline function within visualizer.js to render the line chart.
+            Visualizer.initTimeline(config);
+        }
+    });
     {{/js}}
     {{/has_data}}
 
