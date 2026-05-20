@@ -64,6 +64,15 @@ if ($hassiteconfig) {
             100,
             PARAM_INT
         ));
+
+        // Success threshold for competency colour coding and failgrade integration.
+        $settings->add(new admin_setting_configtext(
+            'local_competency_report/success_threshold',
+            get_string('success_threshold', 'local_competency_report'),
+            get_string('success_threshold_desc', 'local_competency_report'),
+            60,
+            PARAM_INT
+        ));
     }
 
     // 2. Add the Settings Page under "Local Plugins".

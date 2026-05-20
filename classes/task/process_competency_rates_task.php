@@ -47,10 +47,13 @@ class process_competency_rates_task extends \core\task\adhoc_task {
         $sql = "SELECT DISTINCT c.id, c.shortname
                   FROM {qbank_competency_qmap} m
                   JOIN {competency} c ON c.id = m.competencyid
+                 WHERE m.courseid = :courseid
               ORDER BY c.shortname";
-        $competencies = $DB->get_records_sql($sql);
+        $competencies = $DB->get_records_sql($sql, ['courseid' => $courseid]);
 
-        $students = $DB->get_records('user', ['deleted' => 0, 'suspended' => 0]);
+        // Fetch only enrolled, active students in this course — not all site users.
+        $context = \context_course::instance($courseid);
+        $students = get_enrolled_users($context, 'mod/quiz:attempt', 0, 'u.*', null, 0, 0, true);
 
         foreach ($students as $student) {
             foreach ($competencies as $c) {
