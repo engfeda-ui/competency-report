@@ -59,7 +59,7 @@ if ($run) {
     // Information box and action button.
     echo $OUTPUT->box(get_string('process_success_desc', 'local_competency_report'), 'generalbox boxaligncenter');
 
-    $url = new moodle_url($PAGE->url, ['run' => 1, 'courseid' => $courseid]);
+    $url = new moodle_url($PAGE->url, ['run' => 1, 'courseid' => $courseid, 'sesskey' => sesskey()]);
     echo $OUTPUT->single_button($url, get_string('btn_process_now', 'local_competency_report'));
 }
 

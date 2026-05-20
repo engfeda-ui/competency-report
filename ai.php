@@ -162,7 +162,9 @@ function local_competency_report_structured_comment(array $stats) {
     $text = html_writer::tag('b', get_string('generalcomment', 'local_competency_report') . ":") . html_writer::empty_tag('br');
 
     foreach ($stats as $shortname => $rate) {
-        $a = ['shortname' => $shortname, 'rate' => $rate];
+        $a = new \stdClass();
+        $a->shortname = $shortname;
+        $a->rate = $rate;
         if ($rate <= 39) {
             $text .= html_writer::tag('span', get_string('structured_red', 'local_competency_report', $a), [
                 'style' => 'color: red;',

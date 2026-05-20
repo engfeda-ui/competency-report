@@ -132,7 +132,7 @@ foreach ($rows as $r) {
     $html .= '
         <tr bgcolor="' . $bgcolor . '">
             <td width="15%" align="center"><b>' . s($r->shortname) . '</b></td>
-            <td width="41%">' . $cleandesc . '</td>
+            <td width="41%">' . s($cleandesc) . '</td>
             <td width="14%" align="center">' . $r->attempts . '</td>
             <td width="14%" align="center">' . $r->correct . '</td>
             <td width="16%" align="center"><b>%' . $rate . '</b></td>
