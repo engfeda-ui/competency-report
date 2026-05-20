@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.0.8-blue.svg?style=flat-square)](https://github.com)
+[![Version](https://img.shields.io/badge/Version-v3.0.9-blue.svg?style=flat-square)](https://github.com)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_competency`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -35,7 +35,7 @@ A professional Moodle reporting engine that calculates and visualises student co
 | **Moodle Framework** | Moodle 4.5 to 5.0+ |
 | **PHP Runtime** | PHP 8.1, PHP 8.2, PHP 8.3 |
 | **Database System** | PostgreSQL 13+, MySQL 8.0+, or MariaDB 10.5+ |
-| **Required Plugin** | [**`qbank_competency`**](https://github.com/engfeda-ui/moodle-qbank_competency) ≥ 2026031240 |
+| **Required Plugin** | [**`qbank_competency`**](https://github.com/engfeda-ui/moodle-qbank_competency) ≥ 2026052003 |
 
 ---
 
@@ -81,6 +81,12 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 ---
 
 ## 📋 Changelog
+
+### v3.0.9 — 2026-05-20
+- **Refactor:** Updated Mustache templates to utilize modern standard ES6 named module imports from `visualizer.js` instead of the obsolete RequireJS module system.
+- **Fix:** Resolved a critical session key mismatch in `add_success_to_evidence.php` that caused background evidence process launching to crash with an "Invalid session key" error.
+- **Fix:** Converted `$a` variable inside `local_competency_report_structured_comment` to a `stdClass` object to resolve property dereferencing notices/warnings.
+- **Fix:** Escaped XML special characters using Moodle's `s()` helper inside `pdf_report.php` and `school_pdf.php` to prevent TCPDF HTML parser corruption.
 
 ### v3.0.8 — 2026-05-19
 - **Fix:** Added `success_threshold` to `settings.php` — this setting was referenced by `quizaccess_failgrade` and the background evidence task but was not exposed in the admin UI, making it impossible to change from the default.
