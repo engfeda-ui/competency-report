@@ -30,5 +30,5 @@ $definitions = [
         'simplekeys' => true,
         'simpledata' => true,
         'ttl' => 86400 * 7, // 7 days TTL (expires after a week).
-    ]
+    ],
 ];

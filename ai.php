@@ -47,21 +47,23 @@ function local_competency_report_generate_comment(array $stats, $context = 'stud
             return $cachedcomment;
         }
     } catch (\Exception $e) {
-        // Fallback silently if cache is not initialized.
+        $cache = null; // Fallback silently if cache is not initialized.
     }
 
     // Call AI comment function.
     $comment = local_competency_report_ai_comment($stats, $context);
 
     // Save in cache if successful.
-    if ($comment !== get_string('ai_failed', 'local_competency_report') &&
-        $comment !== get_string('ai_not_configured', 'local_competency_report')) {
+    if (
+        $comment !== get_string('ai_failed', 'local_competency_report') &&
+        $comment !== get_string('ai_not_configured', 'local_competency_report')
+    ) {
         try {
             if (isset($cache)) {
                 $cache->set($cachekey, $comment);
             }
         } catch (\Exception $e) {
-            // Ignore cache save errors.
+            $unused = $e; // Ignore cache save errors.
         }
     }
 

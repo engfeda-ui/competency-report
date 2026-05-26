@@ -34,7 +34,8 @@ $context = context_course::instance($courseid);
 $userid = $USER->id;
 
 // Students can view their own report; teachers can view any student's report.
-if (!has_capability('local/competency_report:viewownreport', $context) && !has_capability('local/competency_report:viewreports', $context)) {
+if (!has_capability('local/competency_report:viewownreport', $context) &&
+        !has_capability('local/competency_report:viewreports', $context)) {
     require_capability('local/competency_report:viewownreport', $context);
 }
 
