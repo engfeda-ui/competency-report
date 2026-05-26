@@ -32,8 +32,10 @@ $context  = context_course::instance($courseid);
 require_login($course);
 
 // Students can view their own class comparison; teachers can view it too.
-if (!has_capability('local/competency_report:viewownreport', $context) &&
-        !has_capability('local/competency_report:viewreports', $context)) {
+if (
+    !has_capability('local/competency_report:viewownreport', $context)
+    && !has_capability('local/competency_report:viewreports', $context)
+) {
     require_capability('local/competency_report:viewownreport', $context);
 }
 
