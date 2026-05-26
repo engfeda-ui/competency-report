@@ -12,27 +12,23 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version details for the local_competency_report plugin.
+ * Cache definitions for local_competency_report.
  *
  * @package    local_competency_report
  * @copyright  2026 Mahmoud Salem
- * @copyright  based on work by 2026 Hakan Çiğci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-/** @var stdClass $plugin */
-$plugin->component = 'local_competency_report';       // Full name of the plugin (category_name).
-$plugin->version   = 2026052500;              // The current module version (YYYYMMDDXX).
-$plugin->requires  = 2024042210;              // Requires Moodle 4.5 or later.
-$plugin->maturity  = MATURITY_STABLE;          // Stable release.
-$plugin->release   = '3.1.0';                 // Human-readable version name.
-
-// Plugin dependencies (Other plugins that must be installed first).
-$plugin->dependencies = [
-    'qbank_competency' => 2026052500,
+$definitions = [
+    'ai_feedback' => [
+        'mode' => cache_store::MODE_APPLICATION,
+        'simplekeys' => true,
+        'simpledata' => true,
+        'ttl' => 86400 * 7, // 7 days TTL (expires after a week).
+    ]
 ];

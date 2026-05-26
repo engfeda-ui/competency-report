@@ -38,6 +38,28 @@ if ($hassiteconfig) {
             0
         ));
 
+        // AI Provider.
+        $settings->add(new admin_setting_configselect(
+            'local_competency_report/ai_provider',
+            get_string('ai_provider', 'local_competency_report'),
+            get_string('ai_provider_desc', 'local_competency_report'),
+            'openai',
+            [
+                'openai' => get_string('ai_provider_openai', 'local_competency_report'),
+                'local'  => get_string('ai_provider_local', 'local_competency_report'),
+            ]
+        ));
+
+        // Local LLM Endpoint.
+        $settings->add(new admin_setting_configtext(
+            'local_competency_report/local_endpoint',
+            get_string('local_endpoint', 'local_competency_report'),
+            get_string('local_endpoint_desc', 'local_competency_report'),
+            'http://localhost:11434/v1',
+            PARAM_RAW
+        ));
+
+
         // API Key.
         $settings->add(new admin_setting_configtext(
             'local_competency_report/apikey',

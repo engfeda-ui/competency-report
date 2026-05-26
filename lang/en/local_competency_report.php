@@ -31,7 +31,14 @@ $string['ai_not_configured'] = 'AI integration is active but settings are incomp
 $string['ai_prompt_school'] = 'Write a pedagogical analysis and strategy for the school based on the following competency percentages:';
 $string['ai_prompt_student'] = 'Write a short pedagogical analysis for the student based on the following competency percentages:';
 $string['ai_system_prompt'] = 'You are an educational assistant. Provide motivational and pedagogical feedback for students or schools.';
+$string['ai_provider'] = 'AI Provider';
+$string['ai_provider_desc'] = 'Select whether to use the official OpenAI cloud service or a locally hosted LLM (like Ollama or vLLM).';
+$string['ai_provider_openai'] = 'OpenAI Cloud API';
+$string['ai_provider_local'] = 'Local LLM (OpenAI-compatible API)';
+$string['local_endpoint'] = 'Local LLM Endpoint URL';
+$string['local_endpoint_desc'] = 'Enter the base URL of your locally running LLM server (e.g. http://localhost:11434/v1 for Ollama).';
 $string['allcompetencies'] = 'All competencies';
+
 $string['alltime'] = 'All time';
 $string['allusers'] = 'All students';
 $string['analysisfor'] = 'Competency Analysis: {$a}';

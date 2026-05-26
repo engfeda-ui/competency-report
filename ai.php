@@ -34,8 +34,38 @@ function local_competency_report_generate_comment(array $stats, $context = 'stud
     if (!get_config('local_competency_report', 'enable_ai')) {
         return local_competency_report_rule_based_comment($stats);
     }
+
+    // Generate unique cache key for the student grades.
+    $statskeys = $stats;
+    ksort($statskeys);
+    $cachekey = md5(json_encode($statskeys) . '_' . $context);
+
+    try {
+        $cache = \cache::make('local_competency_report', 'ai_feedback');
+        $cachedcomment = $cache->get($cachekey);
+        if ($cachedcomment !== false) {
+            return $cachedcomment;
+        }
+    } catch (\Exception $e) {
+        // Fallback silently if cache is not initialized.
+    }
+
     // Call AI comment function.
-    return local_competency_report_ai_comment($stats, $context);
+    $comment = local_competency_report_ai_comment($stats, $context);
+
+    // Save in cache if successful.
+    if ($comment !== get_string('ai_failed', 'local_competency_report') &&
+        $comment !== get_string('ai_not_configured', 'local_competency_report')) {
+        try {
+            if (isset($cache)) {
+                $cache->set($cachekey, $comment);
+            }
+        } catch (\Exception $e) {
+            // Ignore cache save errors.
+        }
+    }
+
+    return $comment;
 }
 
 /**
@@ -99,10 +129,19 @@ function local_competency_report_ai_comment(array $stats, $context = 'student') 
     global $CFG;
     require_once($CFG->libdir . '/filelib.php');
 
+    $provider = get_config('local_competency_report', 'ai_provider');
+    if (!$provider) {
+        $provider = 'openai';
+    }
+
     $apikey = get_config('local_competency_report', 'apikey');
     $model  = get_config('local_competency_report', 'model');
 
-    if (empty($apikey) || empty($model)) {
+    if ($provider === 'openai' && (empty($apikey) || empty($model))) {
+        return get_string('ai_not_configured', 'local_competency_report');
+    }
+
+    if ($provider === 'local' && empty($model)) {
         return get_string('ai_not_configured', 'local_competency_report');
     }
 
@@ -118,10 +157,23 @@ function local_competency_report_ai_comment(array $stats, $context = 'student') 
     }
 
     $curl = new \curl();
-    $headers = [
-        "Authorization: Bearer {$apikey}",
-        "Content-Type: application/json",
-    ];
+    $headers = ["Content-Type: application/json"];
+    if (!empty($apikey)) {
+        $headers[] = "Authorization: Bearer {$apikey}";
+    }
+
+    if ($provider === 'local') {
+        $endpoint = get_config('local_competency_report', 'local_endpoint');
+        if (empty($endpoint)) {
+            $endpoint = 'http://localhost:11434/v1';
+        }
+        $endpoint = rtrim($endpoint, '/');
+        if (strpos($endpoint, '/chat/completions') === false) {
+            $endpoint .= '/chat/completions';
+        }
+    } else {
+        $endpoint = "https://api.openai.com/v1/chat/completions";
+    }
 
     $postdata = json_encode([
         "model" => $model,
@@ -142,7 +194,7 @@ function local_competency_report_ai_comment(array $stats, $context = 'student') 
         'timeout'    => 30,
     ];
 
-    $response = $curl->post("https://api.openai.com/v1/chat/completions", $postdata, $options);
+    $response = $curl->post($endpoint, $postdata, $options);
     $data = json_decode($response, true);
 
     if (json_last_error() === JSON_ERROR_NONE && !empty($data['choices'][0]['message']['content'])) {
