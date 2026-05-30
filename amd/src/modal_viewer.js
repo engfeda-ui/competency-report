@@ -31,7 +31,7 @@ define(['jquery', 'core/modal_factory', 'core/modal_events', 'core/str', 'core/n
          * @param {string} selector The CSS selector for the links (e.g., '.view-question-modal')
          */
         init: function(selector) {
-            $(selector).on('click', function(e) {
+            $(document.querySelectorAll(selector)).on('click', function(e) {
                 // Prevent the default link behavior (opening in a new tab).
                 e.preventDefault();
 
