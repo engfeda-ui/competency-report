@@ -31,35 +31,38 @@ define(['jquery', 'core/modal_factory', 'core/modal_events', 'core/str', 'core/n
          * @param {string} selector The CSS selector for the links (e.g., '.view-question-modal')
          */
         init: function(selector) {
-            $(document.querySelectorAll(selector)).on('click', function(e) {
-                // Prevent the default link behavior (opening in a new tab).
-                e.preventDefault();
+            var elements = document.querySelectorAll(selector);
+            elements.forEach(function(element) {
+                element.addEventListener('click', function(e) {
+                    // Prevent the default link behavior (opening in a new tab).
+                    e.preventDefault();
 
-                var targetUrl = $(this).attr('href');
+                    var targetUrl = element.getAttribute('href');
 
-                // Fetch the translated string for the modal title.
-                // We use 'viewattempt' from our local_competency_report language file.
-                Str.get_string('viewattempt', 'local_competency_report').then(function(title) {
+                    // Fetch the translated string for the modal title.
+                    // We use 'viewattempt' from our local_competency_report language file.
+                    Str.get_string('viewattempt', 'local_competency_report').then(function(title) {
 
-                    // Create the Moodle Modal instance.
-                    return ModalFactory.create({
-                        type: ModalFactory.types.CANCEL,
-                        title: title,
-                        body: '<iframe src="' + targetUrl + '" width="100%" height="600px" frameborder="0"></iframe>',
-                        large: true
-                    });
+                        // Create the Moodle Modal instance.
+                        return ModalFactory.create({
+                            type: ModalFactory.types.CANCEL,
+                            title: title,
+                            body: '<iframe src="' + targetUrl + '" width="100%" height="600px" frameborder="0"></iframe>',
+                            large: true
+                        });
 
-                }).then(function(modal) {
-                    // Display the modal to the user.
-                    modal.show();
+                    }).then(function(modal) {
+                        // Display the modal to the user.
+                        modal.show();
 
-                    // Destroy the modal from the DOM once it is hidden to free up memory.
-                    modal.getRoot().on(ModalEvents.hidden, function() {
-                        modal.destroy();
-                    });
+                        // Destroy the modal from the DOM once it is hidden to free up memory.
+                        modal.getRoot().on(ModalEvents.hidden, function() {
+                            modal.destroy();
+                        });
 
-                    return;
-                }).catch(Notification.exception);
+                        return;
+                    }).catch(Notification.exception);
+                });
             });
         }
     };
