@@ -55,7 +55,7 @@ if ($groupid) {
 
     // 2. Retrieve student list (Filtered by the selected group and student role).
     $students = (array) $DB->get_records_sql("
-        SELECT u.id, u.idnumber, u.firstname, u.lastname
+        SELECT u.*
         FROM {groups_members} gm
         JOIN {user} u ON u.id = gm.userid
         JOIN {role_assignments} ra ON ra.userid = u.id

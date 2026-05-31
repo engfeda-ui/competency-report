@@ -85,7 +85,7 @@ if ($groupid && $quizid) {
 
     // Fetch Students (Filtering by selected group and student role).
     $students = (array)$DB->get_records_sql("
-        SELECT u.id, u.firstname, u.lastname
+        SELECT u.*
         FROM {groups_members} gm
         JOIN {user} u ON u.id = gm.userid
         JOIN {role_assignments} ra ON ra.userid = u.id
