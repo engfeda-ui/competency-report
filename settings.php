@@ -97,8 +97,34 @@ if ($hassiteconfig) {
         ));
     }
 
+    // --- At-Risk Student Alert Settings ---
+    if ($ADMIN->fulltree) {
+        $settings->add(new admin_setting_heading(
+            'local_competency_report/alerts_heading',
+            get_string('enable_alerts', 'local_competency_report'),
+            ''
+        ));
+
+        $settings->add(new admin_setting_configcheckbox(
+            'local_competency_report/enable_alerts',
+            get_string('enable_alerts', 'local_competency_report'),
+            get_string('enable_alerts_desc', 'local_competency_report'),
+            0
+        ));
+
+        $settings->add(new admin_setting_configtext(
+            'local_competency_report/alert_threshold',
+            get_string('alert_threshold', 'local_competency_report'),
+            get_string('alert_threshold_desc', 'local_competency_report'),
+            40,
+            PARAM_INT
+        ));
+    }
+
     // 2. Add the Settings Page under "Local Plugins".
     $ADMIN->add('localplugins', $settings);
+
+
 
     // 3. Add External Report Pages under the "Reports" menu.
     $ADMIN->add('reports', new admin_externalpage(

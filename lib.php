@@ -179,3 +179,81 @@ function local_competency_report_extend_navigation_course($navigation, $course, 
         );
     }
 }
+
+/**
+ * Check if a student is at risk (multiple weak competencies) and send an alert to course teachers.
+ *
+ * @param int   $userid    The student user ID.
+ * @param int   $courseid  The course ID.
+ * @param array $rates     Associative array of competency shortname => rate (0-100).
+ * @return void
+ */
+function local_competency_report_check_and_notify($userid, $courseid, array $rates) {
+    global $DB, $CFG;
+
+    // Read alert threshold from settings (default: 40%).
+    $threshold = (int)(get_config('local_competency_report', 'alert_threshold') ?: 40);
+    $alertenabled = get_config('local_competency_report', 'enable_alerts');
+
+    if (!$alertenabled) {
+        return;
+    }
+
+    $weakcompetencies = array_filter($rates, function($r) use ($threshold) {
+        return $r < $threshold;
+    });
+
+    // Only alert if 2 or more competencies are weak.
+    if (count($weakcompetencies) < 2) {
+        return;
+    }
+
+    $student = $DB->get_record('user', ['id' => $userid], 'id, firstname, lastname, email');
+    $course  = $DB->get_record('course', ['id' => $courseid], 'id, fullname');
+    if (!$student || !$course) {
+        return;
+    }
+
+    // Fetch all teachers enrolled in the course.
+    $context = context_course::instance($courseid);
+    $teachers = get_enrolled_users($context, 'mod/quiz:viewreports', 0, 'u.id, u.firstname, u.lastname, u.email');
+
+    if (empty($teachers)) {
+        return;
+    }
+
+    // Build weak competency list for the message body.
+    $weaklist = '';
+    foreach ($weakcompetencies as $code => $rate) {
+        $weaklist .= "• {$code}: " . round($rate, 1) . "%\n";
+    }
+
+    $reporturl = (new moodle_url('/local/competency_report/student_competency_detail.php', [
+        'courseid' => $courseid,
+        'userid'   => $userid,
+    ]))->out(false);
+
+    foreach ($teachers as $teacher) {
+        $message = new \core\message\message();
+        $message->component         = 'local_competency_report';
+        $message->name              = 'studentatrisk';
+        $message->userfrom          = \core_user::get_noreply_user();
+        $message->userto            = $teacher;
+        $message->subject           = get_string('alert_subject', 'local_competency_report', fullname($student));
+        $message->fullmessage       = get_string('alert_body', 'local_competency_report', (object)[
+            'student'  => fullname($student),
+            'course'   => $course->fullname,
+            'weaklist' => $weaklist,
+            'url'      => $reporturl,
+        ]);
+        $message->fullmessageformat = FORMAT_PLAIN;
+        $message->fullmessagehtml   = '<p>' . str_replace("\n", '<br>', $message->fullmessage) . '</p>';
+        $message->smallmessage      = get_string('alert_subject', 'local_competency_report', fullname($student));
+        $message->notification      = 1;
+        $message->contexturl        = $reporturl;
+        $message->contexturlname    = get_string('studentcompetencydetail', 'local_competency_report');
+
+        message_send($message);
+    }
+}
+

@@ -245,6 +245,63 @@ Follow these rules strictly:
 }
 
 /**
+ * Generates a personalized AI remedial study plan using an enriched prompt.
+ *
+ * @param string $fullprompt The complete, pre-built prompt string.
+ * @return string HTML study plan or error string.
+ */
+function local_competency_report_generate_study_plan($fullprompt) {
+    global $CFG;
+    require_once($CFG->libdir . '/filelib.php');
+
+    $provider = get_config('local_competency_report', 'ai_provider') ?: 'openai';
+    $apikey   = get_config('local_competency_report', 'apikey');
+    $model    = get_config('local_competency_report', 'model');
+
+    if ($provider === 'openai' && (empty($apikey) || empty($model))) {
+        return get_string('ai_not_configured', 'local_competency_report');
+    }
+    if ($provider === 'local' && empty($model)) {
+        return get_string('ai_not_configured', 'local_competency_report');
+    }
+
+    $curloptions = ($provider === 'local') ? ['ignoresecurity' => true] : [];
+    $curl = new \curl($curloptions);
+
+    $headers = ['Content-Type: application/json'];
+    if (!empty($apikey)) {
+        $headers[] = "Authorization: Bearer {$apikey}";
+    }
+
+    if ($provider === 'local') {
+        $endpoint = rtrim(get_config('local_competency_report', 'local_endpoint') ?: 'http://localhost:11434/v1', '/');
+        if (strpos($endpoint, '/chat/completions') === false) {
+            $endpoint .= '/chat/completions';
+        }
+    } else {
+        $endpoint = 'https://api.openai.com/v1/chat/completions';
+    }
+
+    $postdata = json_encode([
+        'model'    => $model,
+        'messages' => [
+            ['role' => 'system', 'content' => 'You are an expert educational psychologist and personal study coach. Output only clean HTML — no markdown, no preamble.'],
+            ['role' => 'user',   'content' => $fullprompt],
+        ],
+    ]);
+
+    $response = $curl->post($endpoint, $postdata, ['httpheader' => $headers, 'timeout' => 60]);
+    $data = json_decode($response, true);
+
+    if (json_last_error() === JSON_ERROR_NONE && !empty($data['choices'][0]['message']['content'])) {
+        return $data['choices'][0]['message']['content'];
+    }
+
+    return get_string('ai_failed', 'local_competency_report');
+}
+
+
+/**
  * Generates a structured rule-based comment list.
  *
  * @param array $stats
@@ -278,3 +335,4 @@ function local_competency_report_structured_comment(array $stats) {
 
     return $text;
 }
+

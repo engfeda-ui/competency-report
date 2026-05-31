@@ -170,4 +170,24 @@ $string['custom_prompt_placeholder'] = 'e.g. Write in English, keep it extremely
 $string['btn_generate_ai'] = 'Generate AI Analysis';
 $string['exportpdf'] = 'Export PDF Report';
 
+// Radar Gap Analysis Chart strings.
+$string['radar_chart_title']   = '📊 Competency Gap Analysis — Your Profile vs Class Average';
+$string['radar_chart_desc']    = 'The blue area shows your personal mastery level. The grey dotted line shows the class average. Areas where your profile dips below the grey line indicate competencies to focus on.';
+$string['radar_legend_student'] = 'Your Performance';
+$string['radar_legend_class']   = 'Class Average';
 
+// AI Personalized Study Plan strings.
+$string['btn_studyplan']       = '📋 Generate My Personalized Study Plan';
+$string['studyplan_title']     = '🎯 Your Personalized Remedial Study Plan';
+$string['studyplan_generating'] = 'Generating your personalized study plan, please wait…';
+$string['studyplan_error']     = 'Could not generate the study plan. Please try again.';
+$string['studyplan_language']  = 'Language';
+
+// At-Risk Notification strings.
+$string['enable_alerts']        = 'Enable At-Risk Student Alerts';
+$string['enable_alerts_desc']   = 'When enabled, teachers receive an automatic notification when a student has 2 or more competencies below the alert threshold.';
+$string['alert_threshold']      = 'At-Risk Alert Threshold (%)';
+$string['alert_threshold_desc'] = 'Students with competency rates below this percentage (default: 40%) will trigger an alert to enrolled teachers.';
+$string['alert_subject']        = '⚠️ At-Risk Student Alert: {$a}';
+$string['alert_body']           = "Dear Teacher,\n\nThis is an automated alert from the Competency Report system.\n\nStudent \"{$a->student}\" in the course \"{$a->course}\" has 2 or more competencies below the alert threshold:\n\n{$a->weaklist}\nPlease review the student's full report here:\n{$a->url}\n\nThis notification was sent automatically upon quiz submission.";
+$string['messageprovider:studentatrisk'] = 'At-risk student competency alert';

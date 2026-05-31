@@ -76,21 +76,64 @@ foreach ($rows as $r) {
     $rates[$r->shortname] = $r->questions ? ($r->correct / $r->questions) * 100 : 0;
 }
 
-// 3. Prepare Render Data Object.
+// 3. Compute CLASS AVERAGE rates for the Radar Chart comparison.
+$classavgrows = $DB->get_records_sql("
+    SELECT c.id, c.shortname,
+           CAST(SUM(qa.maxfraction) AS DECIMAL(12,1)) AS questions,
+           CAST(SUM(qas.fraction) AS DECIMAL(12,1)) AS correct
+    FROM {quiz_attempts} quiza
+    JOIN {question_usages} qu ON qu.id = quiza.uniqueid
+    JOIN {question_attempts} qa ON qa.questionusageid = qu.id
+    JOIN {quiz} quiz ON quiz.id = quiza.quiz
+    JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
+    JOIN {competency} c ON c.id = m.competencyid
+    JOIN (
+        SELECT MAX(fraction) AS fraction, questionattemptid
+        FROM {question_attempt_steps}
+        GROUP BY questionattemptid
+    ) qas ON qas.questionattemptid = qa.id
+    WHERE quiz.course = :courseid AND quiza.state = 'finished'
+    GROUP BY c.id, c.shortname
+", ['courseid' => $courseid]);
+
+$classrates = [];
+foreach ($classavgrows as $cr) {
+    $classrates[$cr->shortname] = $cr->questions ? round(($cr->correct / $cr->questions) * 100, 1) : 0;
+}
+
+// Build radar chart data (labels, student values, class avg values).
+$chartlabels = [];
+$chartstudent = [];
+$chartclass = [];
+foreach ($rates as $shortname => $rate) {
+    $chartlabels[] = $shortname;
+    $chartstudent[] = round($rate, 1);
+    $chartclass[] = $classrates[$shortname] ?? 0;
+}
+$chartdata = json_encode([
+    'labels'   => $chartlabels,
+    'student'  => $chartstudent,
+    'class'    => $chartclass,
+]);
+
+// 4. Prepare Render Data Object.
 $renderdata = new stdClass();
 $renderdata->rows = $rows;
 $renderdata->courseid = $courseid;
 $renderdata->userid = $userid;
 $renderdata->context = $context;
 $renderdata->pdf_url = (new moodle_url('/local/competency_report/parent_pdf.php', ['courseid' => $courseid]))->out(false);
+$renderdata->chart_data = $chartdata;
+$renderdata->has_radar = count($chartlabels) >= 2; // Only show chart if ≥2 competencies.
 
 // AI feedback is now loaded on-demand via AJAX to avoid slow page loads.
 $renderdata->ai_comment = null;
 
-// 4. Output Generation.
+// 5. Output Generation.
 echo $OUTPUT->header();
 
 $page = new \local_competency_report\output\student_report_page($renderdata);
 echo $OUTPUT->render($page);
 
 echo $OUTPUT->footer();
+

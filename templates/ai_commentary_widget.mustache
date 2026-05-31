@@ -74,6 +74,39 @@
     </div>
 </div>
 
+{{! AI Study Plan Section — shown when userid is available (student context) }}
+{{#userid}}
+<div class="ai-studyplan mt-3 mb-4" id="studyplan-container-{{userid}}">
+    <div class="card border-0 shadow-sm" style="border-left: 5px solid #28a745; border-left-width: 5px;">
+        <div class="card-body">
+            <h5 class="card-title font-weight-bold mb-3" style="color: #28a745;">
+                <i class="fa fa-list-alt mr-2"></i> AI Personalized Study Plan
+            </h5>
+            <p class="text-muted small mb-3">
+                AI analyzes your weak competencies and builds a structured 2-week personalized remedial plan just for you.
+            </p>
+            <button id="btn-studyplan-{{userid}}" class="btn btn-success px-4 font-weight-bold shadow-sm" style="border-radius: 8px;">
+                <i class="fa fa-graduation-cap mr-2"></i> {{#str}}btn_studyplan, local_competency_report{{/str}}
+            </button>
+
+            <div id="studyplan-loading-{{userid}}" class="d-none align-items-center text-success p-3 bg-white rounded border mt-3 shadow-inner">
+                <div class="spinner-border mr-3 text-success" role="status" style="width: 1.8rem; height: 1.8rem;">
+                    <span class="sr-only">Loading...</span>
+                </div>
+                <strong class="d-block text-dark">{{#str}}studyplan_generating, local_competency_report{{/str}}</strong>
+            </div>
+
+            <div id="studyplan-result-{{userid}}" class="d-none mt-3 p-4 bg-white rounded border shadow-inner" style="border-left: 5px solid #28a745;">
+                <h5 class="font-weight-bold mb-3" style="color:#28a745;">
+                    <i class="fa fa-check-circle mr-2"></i> {{#str}}studyplan_title, local_competency_report{{/str}}
+                </h5>
+                <div class="studyplan-content text-dark" style="font-size: 1rem; line-height: 1.7;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{{/userid}}
+
 {{#js}}
 require(['jquery'], function($) {
     var context = "{{context_type}}";
@@ -179,3 +212,51 @@ require(['jquery'], function($) {
 });
 {{/js}}
 
+{{#userid}}
+{{#js}}
+require(['jquery'], function($) {
+    var uid = '{{userid}}';
+    var btnPlan = $('#btn-studyplan-' + uid);
+    var loadingPlan = $('#studyplan-loading-' + uid);
+    var resultPlan = $('#studyplan-result-' + uid);
+    var contentPlan = resultPlan.find('.studyplan-content');
+
+    if (!btnPlan.length) { return; }
+
+    btnPlan.on('click', function(e) {
+        e.preventDefault();
+        loadingPlan.removeClass('d-none').addClass('d-flex');
+        resultPlan.addClass('d-none');
+        btnPlan.prop('disabled', true);
+
+        $.ajax({
+            url: M.cfg.wwwroot + '/local/competency_report/ajax_studyplan.php',
+            type: 'POST',
+            dataType: 'json',
+            data: {
+                courseid: '{{courseid}}',
+                userid: uid,
+                language: 'English'
+            },
+            success: function(data) {
+                loadingPlan.removeClass('d-flex').addClass('d-none');
+                btnPlan.prop('disabled', false);
+                if (data.success) {
+                    contentPlan.html(data.html);
+                    resultPlan.removeClass('d-none');
+                } else {
+                    contentPlan.html('<div class="text-danger"><i class="fa fa-exclamation-circle mr-1"></i>' + (data.error || 'Error generating study plan.') + '</div>');
+                    resultPlan.removeClass('d-none');
+                }
+            },
+            error: function() {
+                loadingPlan.removeClass('d-flex').addClass('d-none');
+                btnPlan.prop('disabled', false);
+                contentPlan.html('<div class="text-danger"><i class="fa fa-exclamation-circle mr-1"></i>Connection failed. Please check your AI settings.</div>');
+                resultPlan.removeClass('d-none');
+            }
+        });
+    });
+});
+{{/js}}
+{{/userid}}

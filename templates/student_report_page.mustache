@@ -78,8 +78,95 @@
             </a>
         </div>
 
+        {{#has_radar}}
+        {{! Radar Gap Analysis Chart — Student vs Class Average }}
+        <div class="card border-0 shadow-sm mt-4 mb-4">
+            <div class="card-header bg-dark text-white d-flex align-items-center">
+                <i class="fa fa-crosshairs mr-2"></i>
+                <strong>{{#str}}radar_chart_title, local_competency_report{{/str}}</strong>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">{{#str}}radar_chart_desc, local_competency_report{{/str}}</p>
+                <div style="position: relative; max-width: 480px; margin: 0 auto;">
+                    <canvas id="competency-radar-chart-{{userid}}" width="480" height="480"></canvas>
+                </div>
+                <div class="d-flex justify-content-center mt-3 gap-4">
+                    <span class="badge badge-pill px-3 py-2" style="background:#007bff; color:white; font-size:0.85rem;">
+                        <i class="fa fa-user mr-1"></i> {{#str}}radar_legend_student, local_competency_report{{/str}}
+                    </span>
+                    <span class="badge badge-pill px-3 py-2 ml-2" style="background:rgba(150,150,150,0.6); color:#333; font-size:0.85rem;">
+                        <i class="fa fa-users mr-1"></i> {{#str}}radar_legend_class, local_competency_report{{/str}}
+                    </span>
+                </div>
+            </div>
+        </div>
+        {{/has_radar}}
+
         {{! Reusable AI Commentary & Focus Analysis Widget }}
         {{> local_competency_report/ai_commentary_widget }}
+
+{{#js}}
+require(['core/chartjs'], function(Chart) {
+    var rawData = {{{chart_data}}};
+    if (!rawData || !rawData.labels || rawData.labels.length < 2) { return; }
+
+    var ctx = document.getElementById('competency-radar-chart-{{userid}}');
+    if (!ctx) { return; }
+
+    new Chart(ctx.getContext('2d'), {
+        type: 'radar',
+        data: {
+            labels: rawData.labels,
+            datasets: [
+                {
+                    label: '{{#str}}radar_legend_student, local_competency_report{{/str}}',
+                    data: rawData.student,
+                    backgroundColor: 'rgba(0, 123, 255, 0.15)',
+                    borderColor: '#007bff',
+                    borderWidth: 2.5,
+                    pointBackgroundColor: '#007bff',
+                    pointRadius: 4,
+                },
+                {
+                    label: '{{#str}}radar_legend_class, local_competency_report{{/str}}',
+                    data: rawData.class,
+                    backgroundColor: 'rgba(150,150,150,0.1)',
+                    borderColor: 'rgba(100,100,100,0.5)',
+                    borderWidth: 1.5,
+                    borderDash: [5, 3],
+                    pointBackgroundColor: 'rgba(100,100,100,0.6)',
+                    pointRadius: 3,
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                r: {
+                    beginAtZero: true,
+                    min: 0,
+                    max: 100,
+                    ticks: {
+                        stepSize: 20,
+                        callback: function(v) { return v + '%'; },
+                        font: { size: 10 }
+                    },
+                    pointLabels: { font: { size: 11, weight: 'bold' } }
+                }
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) { return ctx.dataset.label + ': ' + ctx.raw + '%'; }
+                    }
+                }
+            }
+        }
+    });
+});
+{{/js}}
+
     {{/has_data}}
 
     {{^has_data}}

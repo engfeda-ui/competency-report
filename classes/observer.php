@@ -137,7 +137,37 @@ class observer {
             $cevidence->usermodified = $adminid;
             $DB->insert_record('competency_evidence', $cevidence);
         }
+
+        // 3. After syncing all competencies, check if this student is at-risk and notify teachers.
+        // Collect ALL competency rates for this student/course (not just this quiz).
+        $allratesql = "SELECT c.shortname,
+                              CAST(SUM(qa.maxfraction) AS DECIMAL(12,1)) AS questions,
+                              CAST(SUM(qas.fraction) AS DECIMAL(12,1)) AS correct
+                         FROM {quiz_attempts} quiza
+                         JOIN {question_usages} qu ON qu.id = quiza.uniqueid
+                         JOIN {question_attempts} qa ON qa.questionusageid = qu.id
+                         JOIN {quiz} quiz ON quiz.id = quiza.quiz
+                         JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
+                         JOIN {competency} c ON c.id = m.competencyid
+                         JOIN (
+                              SELECT MAX(fraction) AS fraction, questionattemptid
+                                FROM {question_attempt_steps}
+                            GROUP BY questionattemptid
+                         ) qas ON qas.questionattemptid = qa.id
+                        WHERE quiz.course = :courseid AND quiza.userid = :userid AND quiza.state = 'finished'
+                     GROUP BY c.shortname";
+
+        $allrates = [];
+        $allraterows = $DB->get_records_sql($allratesql, ['courseid' => $courseid, 'userid' => $userid]);
+        foreach ($allraterows as $ar) {
+            $allrates[$ar->shortname] = $ar->questions > 0 ? ($ar->correct / $ar->questions) * 100 : 0;
+        }
+
+        if (!empty($allrates)) {
+            local_competency_report_check_and_notify($userid, $courseid, $allrates);
+        }
     }
+
 
     /**
      * Calculate user competency rate based on quiz attempts.
