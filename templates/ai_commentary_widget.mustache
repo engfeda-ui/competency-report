@@ -1,0 +1,181 @@
+{{!
+    Reusable AI Commentary Widget
+    Template variables:
+    * courseid
+    * userid (optional)
+    * groupid (optional)
+    * quizid (optional)
+    * context_type (student, school, group, quiz)
+}}
+<div class="ai-commentary mt-4 mb-4" id="ai-report-container-{{context_type}}">
+    <div class="card border-info shadow-sm bg-light">
+        <div class="card-body">
+            <h4 class="card-title text-info border-bottom pb-2 mb-3">
+                <i class="fa fa-magic mr-2"></i> {{#str}}generalcomment, local_competency_report{{/str}} (AI Analysis)
+            </h4>
+
+            <!-- Focus Type Selector (Competency vs. General Grades) -->
+            <div class="form-group mb-3">
+                <label class="font-weight-bold text-muted d-block mb-2">
+                    <i class="fa fa-sliders mr-1"></i> {{#str}}ai_analysis_focus, local_competency_report{{/str}}
+                </label>
+                <div class="d-flex flex-wrap gap-2">
+                    <button type="button" class="btn btn-outline-info active mr-2 mb-2 font-weight-bold" id="btn-focus-competency-{{context_type}}" style="transition: all 0.2s ease;">
+                        <i class="fa fa-crosshairs mr-1"></i> {{#str}}ai_focus_competency, local_competency_report{{/str}}
+                    </button>
+                    <button type="button" class="btn btn-outline-info mb-2 font-weight-bold" id="btn-focus-grades-{{context_type}}" style="transition: all 0.2s ease;">
+                        <i class="fa fa-bar-chart mr-1"></i> {{#str}}ai_focus_grades, local_competency_report{{/str}}
+                    </button>
+                </div>
+            </div>
+
+            <!-- Custom Prompt Input -->
+            <div class="form-group mb-3">
+                <label for="custom-prompt-input-{{context_type}}" class="font-weight-bold text-muted">
+                    <i class="fa fa-pencil-square-o mr-1"></i> {{#str}}opt_instructions, local_competency_report{{/str}}
+                </label>
+                <input type="text" id="custom-prompt-input-{{context_type}}" class="form-control form-control-lg bg-white shadow-inner" placeholder="{{#str}}custom_prompt_placeholder, local_competency_report{{/str}}" style="border: 1px solid #ced4da; border-radius: 8px;">
+                <small class="form-text text-muted">Write custom instructions to guide the AI report (e.g. language, length, focus).</small>
+            </div>
+
+            <!-- Trigger Action Button -->
+            <div class="d-flex align-items-center mb-3">
+                <button id="btn-generate-ai-{{context_type}}" class="btn btn-info btn-lg px-4 font-weight-bold shadow-sm" style="border-radius: 8px;">
+                    <i class="fa fa-play mr-2"></i> {{#str}}btn_generate_ai, local_competency_report{{/str}}
+                </button>
+            </div>
+
+            <!-- Loading Spinner (Hidden by default) -->
+            <div id="ai-loading-{{context_type}}" class="d-none align-items-center text-info p-3 bg-white rounded border mb-3 shadow-inner">
+                <div class="spinner-border mr-3" role="status" style="width: 2rem; height: 2rem;">
+                    <span class="sr-only">Loading...</span>
+                </div>
+                <div>
+                    <strong class="d-block text-dark">Analyzing performance metrics...</strong>
+                    <span class="text-muted small">AI is generating a structured pedagogical commentary. Please wait.</span>
+                </div>
+            </div>
+
+            <!-- Results Alert Box (Hidden by default) -->
+            <div id="ai-response-box-{{context_type}}" class="d-none alert alert-light border border-info shadow-inner p-4 rounded-lg bg-white" style="border-left: 5px solid #17a2b8 !important;">
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+                    <h5 class="text-info font-weight-bold mb-0">
+                        <i class="fa fa-magic mr-1"></i> AI Feedback Report
+                    </h5>
+                    <a href="#" id="btn-export-pdf-{{context_type}}" class="btn btn-outline-danger btn-sm font-weight-bold shadow-sm" target="_blank" style="border-radius: 6px; transition: all 0.2s ease;">
+                        <i class="fa fa-file-pdf-o mr-1"></i> {{#str}}exportpdf, local_competency_report{{/str}}
+                    </a>
+                </div>
+                <div class="ai-content-html text-dark leading-relaxed" style="font-size: 1.05rem; line-height: 1.6;">
+                    <!-- AI response will be injected here as formatted HTML -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{#js}}
+require(['jquery'], function($) {
+    var context = "{{context_type}}";
+    var btn = $('#btn-generate-ai-' + context);
+    var btnComp = $('#btn-focus-competency-' + context);
+    var btnGrades = $('#btn-focus-grades-' + context);
+    var loading = $('#ai-loading-' + context);
+    var responseBox = $('#ai-response-box-' + context);
+    var contentHtml = responseBox.find('.ai-content-html');
+    
+    var focusType = 'competency';
+
+    function updatePdfUrl() {
+        var customPrompt = $('#custom-prompt-input-' + context).val();
+        var pdfBtn = $('#btn-export-pdf-' + context);
+        var baseUrl = '';
+        var params = {
+            courseid: "{{courseid}}",
+            focus_type: focusType,
+            custom_prompt: customPrompt
+        };
+
+        if (context === 'student') {
+            baseUrl = M.cfg.wwwroot + '/local/competency_report/parent_pdf.php';
+            params.userid = "{{userid}}";
+        } else {
+            baseUrl = M.cfg.wwwroot + '/local/competency_report/school_pdf.php';
+            if (context === 'group') {
+                params.groupid = "{{groupid}}";
+            }
+        }
+
+        var queryString = $.param(params);
+        pdfBtn.attr('href', baseUrl + '?' + queryString);
+    }
+
+    btnComp.on('click', function(e) {
+        e.preventDefault();
+        btnComp.addClass('active btn-info text-white').removeClass('btn-outline-info');
+        btnGrades.removeClass('active btn-info text-white').addClass('btn-outline-info');
+        focusType = 'competency';
+        updatePdfUrl();
+    });
+
+    btnGrades.on('click', function(e) {
+        e.preventDefault();
+        btnGrades.addClass('active btn-info text-white').removeClass('btn-outline-info');
+        btnComp.removeClass('active btn-info text-white').addClass('btn-outline-info');
+        focusType = 'grades';
+        updatePdfUrl();
+    });
+
+    $('#custom-prompt-input-' + context).on('change keyup input', function() {
+        updatePdfUrl();
+    });
+
+    btn.on('click', function(e) {
+        e.preventDefault();
+        var customPrompt = $('#custom-prompt-input-' + context).val();
+        updatePdfUrl();
+        
+        // Show loading spinner
+        loading.removeClass('d-none').addClass('d-flex');
+        responseBox.addClass('d-none');
+        btn.prop('disabled', true);
+
+        $.ajax({
+            url: M.cfg.wwwroot + '/local/competency_report/ajax_ai.php',
+            type: 'POST',
+            dataType: 'json',
+            data: {
+                courseid: "{{courseid}}",
+                userid: "{{userid}}",
+                groupid: "{{groupid}}",
+                quizid: "{{quizid}}",
+                custom_prompt: customPrompt,
+                context_type: context,
+                focus_type: focusType
+            },
+            success: function(data) {
+                loading.removeClass('d-flex').addClass('d-none');
+                btn.prop('disabled', false);
+                if (data.success) {
+                    contentHtml.html(data.html);
+                    responseBox.removeClass('d-none');
+                    updatePdfUrl();
+                } else {
+                    contentHtml.html('<div class="text-danger"><i class="fa fa-exclamation-circle mr-2"></i> Error: ' + data.error + '</div>');
+                    responseBox.removeClass('d-none');
+                }
+            },
+            error: function() {
+                loading.removeClass('d-flex').addClass('d-none');
+                btn.prop('disabled', false);
+                contentHtml.html('<div class="text-danger"><i class="fa fa-exclamation-circle mr-2"></i> Connection failed. Please check local LLM / Ollama availability.</div>');
+                responseBox.removeClass('d-none');
+            }
+        });
+    });
+
+    // Initial URL sync.
+    updatePdfUrl();
+});
+{{/js}}
+

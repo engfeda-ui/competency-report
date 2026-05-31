@@ -15,11 +15,10 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * PDF Export for competency.
+ * Premium PDF export for school-wide or group competency & grade analysis.
  *
  * @package    local_competency_report
  * @copyright  2026 Mahmoud Salem
- * @copyright  based on work by 2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -27,66 +26,173 @@ require_once(__DIR__ . '/../../config.php');
 require_once($CFG->libdir . '/tcpdf/tcpdf.php');
 require_once(__DIR__ . '/ai.php');
 
-require_login();
+global $DB, $USER;
 
-// Parameter validation.
-$courseid = optional_param('courseid', 0, PARAM_INT);
-global $DB;
+// 1. Parameter Validation.
+$courseid     = required_param('courseid', PARAM_INT);
+$groupid      = optional_param('groupid', 0, PARAM_INT);
+$focustype    = optional_param('focus_type', 'competency', PARAM_ALPHA); // 'competency' or 'grades'
+$customprompt = optional_param('custom_prompt', '', PARAM_RAW);
 
-if ($courseid) {
-    $context = context_course::instance($courseid);
-    require_capability('moodle/course:view', $context);
-    $course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
+// 2. Authentication & Capability Checks.
+require_login($courseid);
+$context = context_course::instance($courseid);
+require_capability('local/competency_report:viewreports', $context);
 
-    // Fetch course-specific title from the language file.
-    $reporttitle = get_string('report_title', 'local_competency_report', $course->fullname);
+$course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
+$group = null;
+if ($groupid) {
+    $group = $DB->get_record('groups', ['id' => $groupid, 'courseid' => $courseid], '*', MUST_EXIST);
+}
 
-    $wheresql = "WHERE quiz.course = :courseid AND quiza.state = 'finished'";
-    $params = ['courseid' => $courseid];
+// Determine Context Type string for AI analysis.
+$contexttype = ($groupid > 0) ? 'group' : 'school';
+
+// 3. Define report title based on focus and scope.
+if ($focustype === 'grades') {
+    if ($group) {
+        $reporttitle = "General Grades Report - Group: " . $group->name;
+    } else {
+        $reporttitle = "General Grades Report - Course: " . $course->fullname;
+    }
 } else {
-    $context = context_system::instance();
-    require_capability('moodle/site:config', $context);
-
-    // Fetch general title from the language file.
-    $reporttitle = get_string('report_title', 'local_competency_report', get_string('schoolreport', 'local_competency_report'));
-
-    $wheresql = "WHERE quiza.state = 'finished'";
-    $params = [];
+    if ($group) {
+        $reporttitle = "Detailed Competency Report - Group: " . $group->name;
+    } else {
+        $reporttitle = "Detailed Competency Report - Course: " . $course->fullname;
+    }
 }
 
-// SQL for Data Retrieval.
-$sql = "
-    SELECT c.id, c.shortname, c.description,
-           CAST(SUM(qa.maxfraction) AS DECIMAL(12, 1)) AS attempts,
-           CAST(SUM(qas.fraction) AS DECIMAL(12, 1)) AS correct
-    FROM {quiz_attempts} quiza
-    JOIN {quiz} quiz ON quiz.id = quiza.quiz
-    JOIN {question_usages} qu ON qu.id = quiza.uniqueid
-    JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-    JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
-    JOIN {competency} c ON c.id = m.competencyid
-    JOIN (
-        SELECT MAX(fraction) AS fraction, questionattemptid
-        FROM {question_attempt_steps}
-        GROUP BY questionattemptid
-    ) qas ON qas.questionattemptid = qa.id
-    $wheresql
-    GROUP BY c.id, c.shortname, c.description
-    ORDER BY c.shortname ASC
-";
-
-$rows = $DB->get_records_sql($sql, $params);
+// 4. Performance Data Queries.
 $rates = [];
+$tablehtml = '';
 
-foreach ($rows as $r) {
-    $rate = $r->attempts ? number_format(($r->correct / $r->attempts) * 100, 1) : 0;
-    $rates[$r->shortname] = $rate;
+if ($focustype === 'grades') {
+    // GENERAL GRADES MODE.
+    if ($groupid) {
+        $sql = "SELECT q.id, q.name, AVG(qa.grade) as avggrade, q.grade as maxgrade, COUNT(qa.id) as attempts
+                FROM {quiz_attempts} qa
+                JOIN {quiz} q ON q.id = qa.quiz
+                JOIN {groups_members} gm ON gm.userid = qa.userid
+                WHERE q.course = :courseid AND gm.groupid = :groupid AND qa.state = 'finished'
+                GROUP BY q.id, q.name, q.grade
+                ORDER BY q.name ASC";
+        $rows = $DB->get_records_sql($sql, ['courseid' => $courseid, 'groupid' => $groupid]);
+    } else {
+        $sql = "SELECT q.id, q.name, AVG(qa.grade) as avggrade, q.grade as maxgrade, COUNT(qa.id) as attempts
+                FROM {quiz_attempts} qa
+                JOIN {quiz} q ON q.id = qa.quiz
+                WHERE q.course = :courseid AND qa.state = 'finished'
+                GROUP BY q.id, q.name, q.grade
+                ORDER BY q.name ASC";
+        $rows = $DB->get_records_sql($sql, ['courseid' => $courseid]);
+    }
+
+    foreach ($rows as $r) {
+        $rate = $r->maxgrade ? round(($r->avggrade / $r->maxgrade) * 100) : 0;
+        $rates[$r->name] = $rate;
+    }
+
+    // Build Table HTML for General Grades.
+    $tablehtml = '
+    <table border="1" cellpadding="6">
+        <thead>
+            <tr bgcolor="#f2f2f2" style="font-weight: bold;">
+                <th width="45%" align="center">Quiz / Exam Name</th>
+                <th width="15%" align="center">Attempts</th>
+                <th width="24%" align="center">Average Score</th>
+                <th width="16%" align="center">Success Rate</th>
+            </tr>
+        </thead>
+        <tbody>';
+
+    foreach ($rows as $r) {
+        $rate = $r->maxgrade ? round(($r->avggrade / $r->maxgrade) * 100) : 0;
+        $bgcolor = $rate >= 80 ? '#e6ffec' : ($rate >= 60 ? '#e6f2ff' : ($rate >= 40 ? '#fff9e6' : '#ffe6e6'));
+        $avgscore = number_format($r->avggrade, 1) . ' / ' . number_format($r->maxgrade, 1);
+
+        $tablehtml .= '
+            <tr bgcolor="' . $bgcolor . '">
+                <td width="45%"><b>' . s($r->name) . '</b></td>
+                <td width="15%" align="center">' . $r->attempts . '</td>
+                <td width="24%" align="center">' . $avgscore . '</td>
+                <td width="16%" align="center"><b>%' . $rate . '</b></td>
+            </tr>';
+    }
+    $tablehtml .= '</tbody></table>';
+
+} else {
+    // COMPETENCY ACHIEVEMENTS MODE.
+    if ($groupid) {
+        $wheresql = "WHERE quiz.course = :courseid AND quiza.state = 'finished' AND quiza.userid IN (SELECT userid FROM {groups_members} WHERE groupid = :groupid)";
+        $params = ['courseid' => $courseid, 'groupid' => $groupid];
+    } else {
+        $wheresql = "WHERE quiz.course = :courseid AND quiza.state = 'finished'";
+        $params = ['courseid' => $courseid];
+    }
+
+    $sql = "
+        SELECT c.id, c.shortname, c.description,
+               CAST(SUM(qa.maxfraction) AS DECIMAL(12, 1)) AS attempts,
+               CAST(SUM(qas.fraction) AS DECIMAL(12, 1)) AS correct
+        FROM {quiz_attempts} quiza
+        JOIN {quiz} quiz ON quiz.id = quiza.quiz
+        JOIN {question_usages} qu ON qu.id = quiza.uniqueid
+        JOIN {question_attempts} qa ON qa.questionusageid = qu.id
+        JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
+        JOIN {competency} c ON c.id = m.competencyid
+        JOIN (
+            SELECT MAX(fraction) AS fraction, questionattemptid
+            FROM {question_attempt_steps}
+            GROUP BY questionattemptid
+        ) qas ON qas.questionattemptid = qa.id
+        $wheresql
+        GROUP BY c.id, c.shortname, c.description
+        ORDER BY c.shortname ASC
+    ";
+
+    $rows = $DB->get_records_sql($sql, $params);
+
+    foreach ($rows as $r) {
+        $rate = $r->attempts ? round(($r->correct / $r->attempts) * 100) : 0;
+        $rates[$r->shortname] = $rate;
+    }
+
+    // Build Table HTML for Competency achievements.
+    $tablehtml = '
+    <table border="1" cellpadding="6">
+        <thead>
+            <tr bgcolor="#f2f2f2" style="font-weight: bold;">
+                <th width="15%" align="center">' . get_string('competencycode', 'local_competency_report') . '</th>
+                <th width="41%" align="center">' . get_string('competencyname', 'local_competency_report') . '</th>
+                <th width="14%" align="center">' . get_string('questioncount', 'local_competency_report') . '</th>
+                <th width="14%" align="center">' . get_string('correctcount', 'local_competency_report') . '</th>
+                <th width="16%" align="center">' . get_string('successrate', 'local_competency_report') . '</th>
+            </tr>
+        </thead>
+        <tbody>';
+
+    foreach ($rows as $r) {
+        $rate = $r->attempts ? round(($r->correct / $r->attempts) * 100) : 0;
+        $cleandesc = html_entity_decode(strip_tags($r->description), ENT_QUOTES, 'UTF-8');
+        $bgcolor = $rate >= 80 ? '#e6ffec' : ($rate >= 60 ? '#e6f2ff' : ($rate >= 40 ? '#fff9e6' : '#ffe6e6'));
+
+        $tablehtml .= '
+            <tr bgcolor="' . $bgcolor . '">
+                <td width="15%" align="center"><b>' . s($r->shortname) . '</b></td>
+                <td width="41%">' . s($cleandesc) . '</td>
+                <td width="14%" align="center">' . $r->attempts . '</td>
+                <td width="14%" align="center">' . $r->correct . '</td>
+                <td width="16%" align="center"><b>%' . $rate . '</b></td>
+            </tr>';
+    }
+    $tablehtml .= '</tbody></table>';
 }
 
-// Generate AI comment.
-$comment = local_competency_report_generate_comment($rates);
+// 5. Generate AI comment using exact parameters.
+$comment = local_competency_report_generate_comment($rates, $contexttype, $customprompt, $focustype);
 
-/* PDF Preparation. */
+// 6. PDF Generation (TCPDF).
 $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
 $pdf->SetCreator('Moodle');
 $pdf->SetTitle($reporttitle);
@@ -96,68 +202,51 @@ $pdf->SetMargins(15, 15, 15);
 $pdf->SetAutoPageBreak(true, PDF_MARGIN_BOTTOM);
 $pdf->AddPage();
 
-// Font settings (for UTF-8 / Turkish character support).
-$pdf->SetFont('freeserif', '', 12);
+// Set font for robust UTF-8 / Arabic support.
+$pdf->SetFont('freeserif', '', 11);
 
-// Header section.
+// Header Banner.
 $pdf->SetFont('freeserif', 'B', 16);
-$pdf->Cell(0, 10, $reporttitle, 0, 1, 'C');
-$pdf->SetFont('freeserif', '', 9);
-$pdf->Cell(0, 5, get_string('creation_date', 'local_competency_report') . ": " . date('d.m.Y H:i'), 0, 1, 'R');
-$pdf->Ln(5);
-
-// HTML table headers fetched from language file.
-$html = '
-<table border="0.5" cellpadding="6" style="width: 100%;">
-    <thead>
-        <tr style="background-color: #f2f2f2; font-weight: bold; text-align: center;">
-            <th width="15%">' . get_string('competencycode', 'local_competency_report') . '</th>
-            <th width="45%">' . get_string('competencyname', 'local_competency_report') . '</th>
-            <th width="12%">' . get_string('questioncount', 'local_competency_report') . '</th>
-            <th width="12%">' . get_string('correctcount', 'local_competency_report') . '</th>
-            <th width="16%">' . get_string('successrate', 'local_competency_report') . '</th>
-        </tr>
-    </thead>
-    <tbody>';
-
-foreach ($rows as $r) {
-    $rate = $r->attempts ? number_format(($r->correct / $r->attempts) * 100, 1) : 0;
-
-    // Clean HTML tags.
-    $cleandesc = html_entity_decode(strip_tags($r->description), ENT_QUOTES, 'UTF-8');
-
-    // Color scaling based on success rate.
-    $bgcolor = $rate >= 70 ? '#e6ffec' : ($rate >= 50 ? '#fff9e6' : '#ffe6e6');
-
-    $html .= '
-        <tr bgcolor="' . $bgcolor . '">
-            <td width="15%" style="text-align: center;"><b>' . s($r->shortname) . '</b></td>
-            <td width="45%">' . s($cleandesc) . '</td>
-            <td width="12%" style="text-align: center;">' . $r->attempts . '</td>
-            <td width="12%" style="text-align: center;">' . $r->correct . '</td>
-            <td width="16%" style="text-align: center; font-weight: bold;">%' . $rate . '</td>
-        </tr>';
+$pdf->Cell(0, 10, $reporttitle, 0, 1, 'L');
+$pdf->SetFont('freeserif', '', 10);
+$pdf->Cell(0, 6, "Subject / Course: " . $course->fullname, 0, 1, 'L');
+if ($group) {
+    $pdf->Cell(0, 6, "Group / Class: " . $group->name, 0, 1, 'L');
 }
 
-$html .= '</tbody></table>';
+$dateconfig = get_string('strftimedatetimeshort', 'langconfig');
+$dateinfo = get_string('creation_date', 'local_competency_report') . ": " . userdate(time(), $dateconfig);
+$pdf->Cell(0, 6, $dateinfo, 0, 1, 'L');
+$pdf->Ln(5);
 
-// Render table to PDF.
-$pdf->writeHTML($html, true, false, true, false, '');
+// Render HTML Table.
+$pdf->SetFont('freeserif', '', 10);
+$pdf->writeHTML($tablehtml, true, false, true, false, '');
 
-// AI analysis note (if a comment exists).
+// Render AI Commentary Section.
 if (!empty($comment)) {
-    $cleancomment = html_entity_decode(strip_tags($comment), ENT_QUOTES, 'UTF-8');
-
     $pdf->Ln(8);
     $pdf->SetFont('freeserif', 'B', 12);
     $pdf->SetFillColor(240, 240, 240);
-    $pdf->Cell(0, 10, " " . get_string('generalcomment', 'local_competency_report'), 0, 1, 'L', true);
-
+    $pdf->Cell(0, 10, " ✨ Pedagogical AI Analysis Commentary", 0, 1, 'L', true);
     $pdf->Ln(2);
-    $pdf->SetFont('freeserif', '', 11);
-    $pdf->MultiCell(0, 7, $cleancomment, 0, 'L', false, 1);
+
+    $pdf->SetFont('freeserif', '', 10);
+    $pdf->writeHTML($comment, true, false, true, false, '');
 }
 
-// Output.
-$pdf->Output("competency_report.pdf", "I");
+// Legend.
+$pdf->Ln(8);
+$pdf->SetFont('freeserif', 'B', 9);
+$pdf->Cell(0, 7, get_string('colorlegend', 'local_competency_report'), 0, 1);
+$pdf->SetFont('freeserif', '', 8);
+$legend = get_string('redlegend', 'local_competency_report') . " | " .
+          get_string('orangelegend', 'local_competency_report') . " | " .
+          get_string('bluelegend', 'local_competency_report') . " | " .
+          get_string('greenlegend', 'local_competency_report');
+$pdf->Cell(0, 5, $legend, 0, 1);
+
+// Final PDF output.
+$filename = "report_" . clean_filename($reporttitle) . ".pdf";
+$pdf->Output($filename, "I");
 exit;

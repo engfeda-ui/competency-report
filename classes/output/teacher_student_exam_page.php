@@ -88,6 +88,11 @@ class teacher_student_exam_page implements renderable, templatable {
             'label'  => get_string('successrate', 'local_competency_report') . ' %',
         ]);
 
+        $export->courseid = $this->data->courseid;
+        $export->quizid = $this->data->quizid;
+        $export->userid = $this->data->userid;
+        $export->context_type = 'quiz';
+
         return $export;
     }
 }

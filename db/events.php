@@ -15,11 +15,20 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * PDF Export redirect for backwards compatibility.
+// Event observer registrations for local_competency_report plugin.
  *
  * @package    local_competency_report
  * @copyright  2026 Mahmoud Salem
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once(__DIR__ . '/school_pdf.php');
+defined('MOODLE_INTERNAL') || die();
+
+$observers = [
+    [
+        'eventname'   => '\mod_quiz\event\attempt_submitted',
+        'callback'    => 'local_competency_report\observer::quiz_attempt_submitted',
+        'priority'    => 500,
+        'internal'    => 0,
+    ]
+];

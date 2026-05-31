@@ -92,8 +92,7 @@
         </div>
         {{/competencies.0}}
 
-        {{^competencies}}
-            <div class="alert alert-info">{{#str}}nocompetencies, local_competency_report{{/str}}</div>
-        {{/competencies}}
+        {{! Reusable AI Commentary & Focus Analysis Widget }}
+        {{> local_competency_report/ai_commentary_widget }}
     {{/has_group}}
 </div>

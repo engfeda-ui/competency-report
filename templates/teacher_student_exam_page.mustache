@@ -79,6 +79,9 @@
                     <canvas id="teacher_student_chart" data-config="{{chart_config}}"></canvas>
                 </div>
             </div>
+
+            {{! Reusable AI Commentary & Focus Analysis Widget }}
+            {{> local_competency_report/ai_commentary_widget }}
         {{/has_rows}}
 
         {{^has_rows}}

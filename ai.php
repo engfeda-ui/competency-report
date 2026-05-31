@@ -30,15 +30,15 @@
  * @param string $context The context of the comment (student or school).
  * @return string
  */
-function local_competency_report_generate_comment(array $stats, $context = 'student', $customprompt = '') {
+function local_competency_report_generate_comment(array $stats, $context = 'student', $customprompt = '', $focustype = 'competency') {
     if (!get_config('local_competency_report', 'enable_ai')) {
         return local_competency_report_rule_based_comment($stats);
     }
 
-    // Generate unique cache key for the student grades and custom prompts.
+    // Generate unique cache key for the student grades, custom prompts and focus type.
     $statskeys = $stats;
     ksort($statskeys);
-    $cachekey = md5(json_encode($statskeys) . '_' . $context . '_' . md5($customprompt));
+    $cachekey = md5(json_encode($statskeys) . '_' . $context . '_' . md5($customprompt) . '_' . $focustype);
 
     try {
         $cache = \cache::make('local_competency_report', 'ai_feedback');
@@ -51,7 +51,7 @@ function local_competency_report_generate_comment(array $stats, $context = 'stud
     }
 
     // Call AI comment function.
-    $comment = local_competency_report_ai_comment($stats, $context, $customprompt);
+    $comment = local_competency_report_ai_comment($stats, $context, $customprompt, $focustype);
 
     // Save in cache if successful.
     if (
@@ -127,7 +127,7 @@ function local_competency_report_rule_based_comment(array $stats) {
  * @param string $context
  * @return string
  */
-function local_competency_report_ai_comment(array $stats, $context = 'student', $customprompt = '') {
+function local_competency_report_ai_comment(array $stats, $context = 'student', $customprompt = '', $focustype = 'competency') {
     global $CFG;
     require_once($CFG->libdir . '/filelib.php');
 
@@ -147,8 +147,23 @@ function local_competency_report_ai_comment(array $stats, $context = 'student', 
         return get_string('ai_not_configured', 'local_competency_report');
     }
 
-    // Highly optimized, concise, bulleted HTML system prompt.
-    $systemprompt = "You are a professional pedagogical advisor.
+    // Configure prompt depending on focus (Competency vs. General Grades)
+    if ($focustype === 'grades') {
+        $systemprompt = "You are a professional pedagogical advisor.
+Your task is to analyze the general quiz grades and exam scores of the student, group, or course and write a highly structured, concise, and actionable pedagogical feedback report.
+Follow these rules strictly:
+1. Output format: Write directly in HTML. Use clean paragraphs, strong bold headers, and bulleted lists.
+2. Tone: Extremely professional, encouraging, and direct.
+3. Length: Keep it short, concise, and focused. Avoid verbose introduction/conclusion fluff. Maximum 180 words.
+4. Language: Write in English unless the custom instruction explicitly requests another language.
+5. Structure:
+   - <h4><strong>Exam Performance Summary</strong></h4> followed by a very brief summary.
+   - <h4><strong>Strengths & Progress</strong></h4> followed by bullet points.
+   - <h4><strong>Recommendations & Next Steps</strong></h4> followed by bullet points.";
+
+        $prompt = "Write a pedagogical analysis of the following general grade results for context: {$context}\n";
+    } else {
+        $systemprompt = "You are a professional pedagogical advisor.
 Your task is to analyze the student or class competency success percentages and write a highly structured, concise, and actionable pedagogical feedback report.
 Follow these rules strictly:
 1. Output format: Write directly in HTML. Use clean paragraphs, strong bold headers, and bulleted lists.
@@ -160,11 +175,11 @@ Follow these rules strictly:
    - <h4><strong>Key Strengths</strong></h4> followed by bullet points.
    - <h4><strong>Areas for Development & Next Steps</strong></h4> followed by bullet points with actionable next steps.";
 
-    // Prompt selection.
-    if ($context === 'school') {
-        $prompt = get_string('ai_prompt_school', 'local_competency_report') . "\n";
-    } else {
-        $prompt = get_string('ai_prompt_student', 'local_competency_report') . "\n";
+        if ($context === 'school') {
+            $prompt = get_string('ai_prompt_school', 'local_competency_report') . "\n";
+        } else {
+            $prompt = get_string('ai_prompt_student', 'local_competency_report') . "\n";
+        }
     }
 
     foreach ($stats as $k => $v) {

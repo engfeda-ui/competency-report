@@ -15,11 +15,23 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * PDF Export redirect for backwards compatibility.
+ * Task definitions for the competency_report plugin.
  *
  * @package    local_competency_report
  * @copyright  2026 Mahmoud Salem
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once(__DIR__ . '/school_pdf.php');
+defined('MOODLE_INTERNAL') || die();
+
+$tasks = [
+    [
+        'classname' => 'local_competency_report\task\scheduled_competency_rates_task',
+        'blocking' => 0,
+        'minute' => '0',
+        'hour' => '1', // Every night at 1:00 AM
+        'day' => '*',
+        'dayofweek' => '*',
+        'month' => '*'
+    ]
+];

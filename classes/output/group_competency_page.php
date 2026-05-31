@@ -72,11 +72,12 @@ class group_competency_page implements renderable, templatable {
         $export->courseid = $this->courseid;
         $export->has_group = $this->groupid > 0;
 
-        // Ensure sequential keys (0, 1, 2...) for Mustache loops.
         $export->groups = !empty($this->data->groups) ? array_values((array)$this->data->groups) : [];
         $export->competencies = !empty($this->data->competencies) ? array_values((array)$this->data->competencies) : [];
         $export->students = !empty($this->data->students) ? array_values((array)$this->data->students) : [];
         $export->totals = !empty($this->data->totals) ? array_values((array)$this->data->totals) : [];
+        $export->groupid = $this->groupid;
+        $export->context_type = 'group';
 
         return $export;
     }

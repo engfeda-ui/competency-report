@@ -111,6 +111,10 @@ class student_exam_page implements renderable, templatable {
             ]);
         }
 
+        global $USER;
+        $export->userid = $USER->id;
+        $export->context_type = 'quiz';
+
         return $export;
     }
 }

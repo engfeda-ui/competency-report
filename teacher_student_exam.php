@@ -50,6 +50,7 @@ $data = new stdClass();
 $data->rows = [];
 $data->userid = 0;
 $data->quizid = 0;
+$data->courseid = $courseid;
 
 if ($fromform = $mform->get_data()) {
     $data->userid = $fromform->userid;

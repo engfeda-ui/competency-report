@@ -156,3 +156,18 @@ $string['visual_report'] = 'Visual report';
 $string['competency_report:manage'] = 'Manage question-competency mappings';
 $string['competency_report:viewownreport'] = 'View own competency analysis report';
 $string['competency_report:viewreports'] = 'View all student competency reports';
+
+// AI Commentary and Premium UI strings.
+$string['student_banner_title'] = '🎓 Student Competency Report';
+$string['student_banner_desc'] = 'This is your personal competency profile showing your academic progress and achievements in this course.';
+$string['teacher_banner_title'] = '👨‍🏫 Teacher Dashboard: Detailed Review';
+$string['teacher_banner_desc'] = 'Review individual student competency achievements, general quiz results, and direct AI-powered pedagogical analysis.';
+$string['ai_analysis_focus'] = 'AI Analysis Focus';
+$string['ai_focus_competency'] = 'Competency Achievements';
+$string['ai_focus_grades'] = 'General Grades & Exam Results';
+$string['opt_instructions'] = 'Special Instructions (Optional):';
+$string['custom_prompt_placeholder'] = 'e.g. Write in English, keep it extremely short, focus on weaknesses...';
+$string['btn_generate_ai'] = 'Generate AI Analysis';
+$string['exportpdf'] = 'Export PDF Report';
+
+
