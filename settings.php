@@ -75,7 +75,7 @@ if ($hassiteconfig) {
             get_string('model', 'local_competency_report'),
             get_string('model_desc', 'local_competency_report'),
             'gpt-4',
-            PARAM_ALPHANUMEXT
+            PARAM_RAW
         ));
 
         // Maximum number of rows.
