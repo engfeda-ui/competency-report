@@ -79,11 +79,13 @@ foreach ($rows as $r) {
 // 3. Prepare Render Data Object.
 $renderdata = new stdClass();
 $renderdata->rows = $rows;
+$renderdata->courseid = $courseid;
+$renderdata->userid = $userid;
 $renderdata->context = $context;
 $renderdata->pdf_url = (new moodle_url('/local/competency_report/parent_pdf.php', ['courseid' => $courseid]))->out(false);
 
-// Generate AI comment based on performance if data exists.
-$renderdata->ai_comment = !empty($rates) ? local_competency_report_generate_comment($rates, 'student') : null;
+// AI feedback is now loaded on-demand via AJAX to avoid slow page loads.
+$renderdata->ai_comment = null;
 
 // 4. Output Generation.
 echo $OUTPUT->header();

@@ -36,19 +36,89 @@
 <div class="local_competency_report_school_report">
 
     {{#has_data}}
-        {{! AI Analiz BÃ¶lÃ¼mÃ¼ }}
-        {{#ai_comment}}
-        <div class="card border-info shadow-sm mb-4">
-            <div class="card-body">
-                <h4 class="card-title text-info border-bottom pb-2">
-                    <i class="fa fa-magic mr-2"></i> {{title}}
-                </h4>
-                <div class="card-text text-muted">
-                    {{{content}}}
+        {{! AI Commentary Section }}
+        <div class="ai-commentary mb-4" id="ai-report-container">
+            <div class="card border-info shadow-sm bg-light">
+                <div class="card-body">
+                    <h4 class="card-title text-info border-bottom pb-2 mb-3">
+                        <i class="fa fa-magic mr-2"></i> {{#str}}generalcomment, local_competency_report{{/str}} (AI Analysis)
+                    </h4>
+                    
+                    <!-- Custom Prompt Input -->
+                    <div class="form-group mb-3">
+                        <label for="custom-prompt-input" class="font-weight-bold text-muted">
+                            <i class="fa fa-pencil-square-o mr-1"></i> Special Instructions (Optional):
+                        </label>
+                        <input type="text" id="custom-prompt-input" class="form-control form-control-lg border-info shadow-sm" placeholder="e.g. Write in Arabic, keep it extremely short, focus on frontend..." style="border-radius: 8px;">
+                        <small class="form-text text-muted">Write custom instructions to guide the AI report (e.g. language, length, focus).</small>
+                    </div>
+
+                    <!-- Action Button & Loading -->
+                    <div class="d-flex align-items-center mb-3">
+                        <button type="button" class="btn btn-info btn-lg text-white shadow-sm font-weight-bold px-4 py-2 mr-3" id="btn-generate-ai" style="border-radius: 8px; transition: transform 0.2s; cursor: pointer;">
+                            <i class="fa fa-play mr-2"></i> Generate AI Analysis
+                        </button>
+                        <div id="ai-loading" class="d-none align-items-center text-info">
+                            <div class="spinner-border mr-2" role="status" style="width: 1.5rem; height: 1.5rem;"></div>
+                            <span class="font-weight-bold">Analyzing performance data...</span>
+                        </div>
+                    </div>
+
+                    <!-- AI Output Content -->
+                    <div class="alert alert-info border-left-info shadow-sm p-4 d-none" id="ai-response-box" style="border-radius: 8px;">
+                        <div class="ai-content-html font-weight-normal text-dark" style="line-height: 1.6;"></div>
+                    </div>
                 </div>
             </div>
         </div>
-        {{/ai_comment}}
+
+        {{#js}}
+        require(['jquery'], function($) {
+            var btn = $('#btn-generate-ai');
+            var loading = $('#ai-loading');
+            var responseBox = $('#ai-response-box');
+            var contentHtml = responseBox.find('.ai-content-html');
+
+            btn.on('click', function(e) {
+                e.preventDefault();
+                var customPrompt = $('#custom-prompt-input').val();
+                
+                // Show loading spinner
+                loading.removeClass('d-none').addClass('d-flex');
+                responseBox.addClass('d-none');
+                btn.prop('disabled', true);
+
+                $.ajax({
+                    url: M.cfg.wwwroot + '/local/competency_report/ajax_ai.php',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        courseid: "{{courseid}}",
+                        userid: "{{userid}}",
+                        custom_prompt: customPrompt,
+                        context_type: "{{context_type}}"
+                    },
+                    success: function(data) {
+                        loading.removeClass('d-flex').addClass('d-none');
+                        btn.prop('disabled', false);
+                        if (data.success) {
+                            contentHtml.html(data.html);
+                            responseBox.removeClass('d-none');
+                        } else {
+                            contentHtml.html('<div class="text-danger"><i class="fa fa-exclamation-circle mr-2"></i> Error: ' + data.error + '</div>');
+                            responseBox.removeClass('d-none');
+                        }
+                    },
+                    error: function() {
+                        loading.removeClass('d-flex').addClass('d-none');
+                        btn.prop('disabled', false);
+                        contentHtml.html('<div class="text-danger"><i class="fa fa-exclamation-circle mr-2"></i> Connection failed. Please make sure Ollama is running locally.</div>');
+                        responseBox.removeClass('d-none');
+                    }
+                });
+            });
+        });
+        {{/js}}
 
         {{! BaÅŸarÄ± Tablosu }}
         <div class="table-responsive shadow-sm">

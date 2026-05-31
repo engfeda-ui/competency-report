@@ -104,6 +104,9 @@ class school_report_page implements renderable, templatable {
                     'content' => format_text($this->data->comment, FORMAT_HTML),
                 ];
             }
+            $export->courseid = $this->data->courseid;
+            $export->userid = 0;
+            $export->context_type = 'school';
         }
 
         return $export;

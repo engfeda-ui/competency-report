@@ -87,8 +87,8 @@ if (!empty($rows)) {
     foreach ($rows as $r) {
         $rates[$r->shortname] = $r->attempts ? ($r->correct / $r->attempts) * 100 : 0;
     }
-    // Generate AI commentary based on success rates (Function defined in ai.php).
-    $renderdata->comment = local_competency_report_generate_comment($rates);
+    // AI feedback is now loaded on-demand via AJAX to avoid slow page loads.
+    $renderdata->comment = null;
 }
 
 // Output generation.
