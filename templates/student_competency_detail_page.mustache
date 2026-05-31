@@ -41,6 +41,20 @@
 <div class="local_competency_report_student_detail">
     
     {{#has_data}}
+        <!-- Teacher Premium View Header Banner -->
+        <div class="alert alert-warning d-flex align-items-center shadow-sm border-0 rounded-lg p-3 mb-4 bg-light text-dark border-left border-warning" style="border-left-width: 5px !important;">
+            <div class="mr-3 bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; min-width: 48px;">
+                <i class="fa fa-user-tie fa-lg"></i>
+            </div>
+            <div class="w-100">
+                <div class="d-flex align-items-center justify-content-between flex-wrap">
+                    <h5 class="mb-1 font-weight-bold text-dark"><i class="fa fa-chalkboard-teacher mr-1"></i> {{#str}}studentcompetencydetail, local_competency_report{{/str}}</h5>
+                    <span class="badge badge-warning text-dark px-3 py-1 font-weight-bold rounded-pill"><i class="fa fa-shield-alt mr-1"></i> {{#str}}teacherstudentcompetency, local_competency_report{{/str}}</span>
+                </div>
+                <p class="mb-0 text-muted small">شاشة المعلم الخاصة بمراجعة وتحليل كفايات الطالب وتوجيه الذكاء الاصطناعي بشكل تفصيلي.</p>
+            </div>
+        </div>
+
         {{! Competency Breakdown Table }}
         <div class="table-responsive">
             <table class="generaltable table table-bordered table-hover shadow-sm bg-white">

@@ -38,9 +38,11 @@ require_login();
 if ($contexttype === 'school') {
     if ($courseid) {
         $context = context_course::instance($courseid);
+        $PAGE->set_context($context);
         require_capability('moodle/course:view', $context);
     } else {
         $context = context_system::instance();
+        $PAGE->set_context($context);
         require_capability('moodle/site:config', $context);
     }
 } else {
@@ -51,6 +53,7 @@ if ($contexttype === 'school') {
         exit;
     }
     $context = context_course::instance($courseid);
+    $PAGE->set_context($context);
     require_login($courseid);
 
     // If requesting another student's report, require teacher capability.
@@ -137,6 +140,6 @@ $comment = local_competency_report_generate_comment($rates, $contexttype, $custo
 header('Content-Type: application/json');
 echo json_encode([
     'success' => true,
-    'html' => format_text($comment, FORMAT_HTML)
+    'html' => format_text($comment, FORMAT_HTML, ['context' => $context])
 ]);
 exit;
