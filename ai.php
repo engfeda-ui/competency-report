@@ -158,7 +158,13 @@ function local_competency_report_ai_comment(array $stats, $context = 'student') 
         $prompt .= "{$k}: %{$v}\n";
     }
 
-    $curl = new \curl();
+    // Bypassing cURL security check for local LLMs (e.g. Ollama) on custom ports/subnets.
+    $curloptions = [];
+    if ($provider === 'local') {
+        $curloptions['ignoresecurity'] = true;
+    }
+    $curl = new \curl($curloptions);
+
     $headers = ["Content-Type: application/json"];
     if (!empty($apikey)) {
         $headers[] = "Authorization: Bearer {$apikey}";
