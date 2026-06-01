@@ -333,6 +333,6 @@ $comment = local_competency_report_generate_comment($rates, $contexttype, $custo
 header('Content-Type: application/json');
 echo json_encode([
     'success' => true,
-    'html' => format_text($comment, FORMAT_HTML, ['context' => $context])
+    'html' => format_text($comment, FORMAT_HTML, ['context' => $context]),
 ]);
 exit;

@@ -30,5 +30,5 @@ $observers = [
         'callback'    => 'local_competency_report\observer::quiz_attempt_submitted',
         'priority'    => 500,
         'internal'    => 0,
-    ]
+    ],
 ];

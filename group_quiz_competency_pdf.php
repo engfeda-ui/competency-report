@@ -15,12 +15,12 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
-// Landscape PDF report generator for Group Quiz Competency Analysis.
-//
-// @package    local_competency_report
-// @copyright  2026 Mahmoud Salem
-// @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
-*/
+ * Landscape PDF report generator for Group Quiz Competency Analysis.
+ *
+ * @package    local_competency_report
+ * @copyright  2026 Mahmoud Salem
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->libdir . '/tcpdf/tcpdf.php');

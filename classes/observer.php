@@ -70,7 +70,6 @@ class observer {
                   JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
                   JOIN {competency} c ON c.id = m.competencyid
                  WHERE quiza.id = :attemptid AND m.courseid = :courseid";
-        
         $competencies = $DB->get_records_sql($sql, ['attemptid' => $eventdata->id, 'courseid' => $courseid]);
 
         if (empty($competencies)) {

@@ -192,13 +192,11 @@ $pdf->Cell(0, 6, $course->fullname, 0, 1, 'C');
 
 // Plan meta: sessions, language, total hours.
 $totalhours = $sessions;
-$pdf->Cell(0, 6,
-    get_string('studyplan_sessions_label', 'local_competency_report') . ': ' . $sessions
+$infotext = get_string('studyplan_sessions_label', 'local_competency_report') . ': ' . $sessions
     . ' × 1 ' . get_string('studyplan_session_hint_short', 'local_competency_report')
     . ' = ' . $totalhours . ' h'
-    . '   |   Language: ' . $language,
-    0, 1, 'C'
-);
+    . '   |   Language: ' . $language;
+$pdf->Cell(0, 6, $infotext, 0, 1, 'C');
 $pdf->SetTextColor(0, 0, 0);
 $pdf->Ln(3);
 

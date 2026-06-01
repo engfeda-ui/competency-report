@@ -136,4 +136,3 @@ $page = new \local_competency_report\output\student_report_page($renderdata);
 echo $OUTPUT->render($page);
 
 echo $OUTPUT->footer();
-
