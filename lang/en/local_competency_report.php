@@ -38,7 +38,6 @@ $string['ai_provider_local'] = 'Local LLM (OpenAI-compatible API)';
 $string['local_endpoint'] = 'Local LLM Endpoint URL';
 $string['local_endpoint_desc'] = 'Enter the base URL of your locally running LLM server (e.g. http://localhost:11434/v1 for Ollama).';
 $string['allcompetencies'] = 'All competencies';
-
 $string['alltime'] = 'All time';
 $string['allusers'] = 'All students';
 $string['analysisfor'] = 'Competency Analysis: {$a}';
@@ -177,11 +176,18 @@ $string['radar_legend_student'] = 'Your Performance';
 $string['radar_legend_class']   = 'Class Average';
 
 // AI Personalized Study Plan strings.
-$string['btn_studyplan']       = '📋 Generate My Personalized Study Plan';
-$string['studyplan_title']     = '🎯 Your Personalized Remedial Study Plan';
-$string['studyplan_generating'] = 'Generating your personalized study plan, please wait…';
-$string['studyplan_error']     = 'Could not generate the study plan. Please try again.';
-$string['studyplan_language']  = 'Language';
+$string['btn_studyplan']           = '📋 Generate My Personalized Study Plan';
+$string['studyplan_title']         = '🎯 Your Personalized Remedial Study Plan';
+$string['studyplan_generating']    = 'Generating your personalized study plan, please wait…';
+$string['studyplan_error']         = 'Could not generate the study plan. Please try again.';
+$string['studyplan_language']      = 'Language';
+$string['studyplan_desc']          = 'AI analyses your weak competencies and generates a personalised, session-by-session remedial plan — each session is 1 hour, scheduled to fit your timetable.';
+$string['studyplan_sessions_label'] = 'Number of Sessions';
+$string['studyplan_sessions_unit'] = 'sessions';
+$string['studyplan_session_hint']  = 'Each session = 1 hour. Enter how many sessions are available in the student\'s timetable.';
+$string['studyplan_session_hint_short'] = 'hour';
+$string['btn_studyplan_pdf']       = '📄 Export Study Plan as PDF';
+$string['studyplan_pdf_title']     = 'AI Personalized Study Plan';
 
 // At-Risk Notification strings.
 $string['enable_alerts']        = 'Enable At-Risk Student Alerts';

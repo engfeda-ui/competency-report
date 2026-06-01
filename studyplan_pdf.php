@@ -15,33 +15,31 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * AJAX Endpoint to generate a personalized AI remedial study plan (session-based).
+ * PDF export for the AI personalized remedial study plan (session-based).
  *
  * @package    local_competency_report
  * @copyright  2026 Mahmoud Salem
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-define('AJAX_SCRIPT', true);
 require_once(__DIR__ . '/../../config.php');
+require_once($CFG->libdir . '/tcpdf/tcpdf.php');
 require_once(__DIR__ . '/ai.php');
 
 // 1. Parameters.
 $courseid = required_param('courseid', PARAM_INT);
 $userid   = optional_param('userid', 0, PARAM_INT);
 $language = optional_param('language', 'English', PARAM_ALPHA);
-$sessions = optional_param('sessions', 10, PARAM_INT); // Number of 1-hour sessions.
+$sessions = optional_param('sessions', 10, PARAM_INT);
 
-// Clamp sessions to a safe range.
+// Clamp sessions.
 $sessions = max(1, min(60, $sessions));
-
-// Scale max words proportionally: ~60 words per session, min 200, max 1200.
 $maxwords = max(200, min(1200, $sessions * 60));
+$midpoint = (int)round($sessions / 2);
 
 // 2. Auth.
 require_login($courseid);
 $context = context_course::instance($courseid);
-$PAGE->set_context($context);
 
 if (empty($userid)) {
     $userid = $USER->id;
@@ -52,14 +50,12 @@ if ($userid != $USER->id) {
     require_capability('local/competency_report:viewownreport', $context);
 }
 
-// 2b. Verify AI is enabled.
+// 3. Check AI is enabled.
 if (!get_config('local_competency_report', 'enable_ai')) {
-    header('Content-Type: application/json');
-    echo json_encode(['success' => false, 'error' => get_string('ai_not_configured', 'local_competency_report')]);
-    exit;
+    print_error('ai_not_configured', 'local_competency_report');
 }
 
-// 3. Fetch competency rates for this student.
+// 4. Fetch competency data.
 $sql = "SELECT c.id, c.shortname, c.description,
                CAST(SUM(qa.maxfraction) AS DECIMAL(12,1)) AS questions,
                CAST(SUM(qas.fraction) AS DECIMAL(12,1)) AS correct
@@ -80,12 +76,10 @@ $sql = "SELECT c.id, c.shortname, c.description,
 $rows = $DB->get_records_sql($sql, ['courseid' => $courseid, 'userid' => $userid]);
 
 if (empty($rows)) {
-    header('Content-Type: application/json');
-    echo json_encode(['success' => false, 'error' => get_string('nodatafound', 'local_competency_report')]);
-    exit;
+    print_error('nodatafound', 'local_competency_report');
 }
 
-// Separate into weak (<60%) and strong (≥60%) competencies.
+// 5. Separate weak vs strong.
 $weak   = [];
 $strong = [];
 foreach ($rows as $r) {
@@ -102,13 +96,7 @@ $student     = $DB->get_record('user', ['id' => $userid], 'firstname, lastname')
 $studentname = fullname($student);
 $course      = $DB->get_record('course', ['id' => $courseid], 'fullname');
 
-// Decide how to label sessions in the prompt.
-$weakcount       = count($weak);
-$sessionspercomp = ($weakcount > 0) ? (int)ceil($sessions / $weakcount) : $sessions;
-// Midpoint session number for milestone checkpoints.
-$midpoint = (int)round($sessions / 2);
-
-// 4. Build the session-based study-plan prompt.
+// 6. Build session-based prompt (identical to ajax_studyplan.php).
 $prompt = "You are an expert educational psychologist and pedagogical coach.
 Create a highly structured, actionable, personalized remedial study plan for the student \"{$studentname}\" enrolled in the course \"{$course->fullname}\".
 
@@ -156,18 +144,129 @@ STRICT REQUIREMENTS:
    For EACH weak competency: 2-3 specific, named techniques (e.g., spaced repetition, worked examples, retrieval practice).
 
    <h4><strong>✅ Milestone Checkpoints</strong></h4>
-   Define 2-3 measurable checkpoints at Sessions {$midpoint}, and {$sessions} to assess progress.
+   Define 2-3 measurable checkpoints at Sessions {$midpoint} and {$sessions} to assess progress.
 
 4. Be SPECIFIC and ACTIONABLE — no generic advice.
 5. Maximum {$maxwords} words total.
 ";
 
-// 5. Call AI with study plan system prompt.
-$plan = local_competency_report_generate_study_plan($prompt);
+// 7. Generate plan via AI.
+$planhtml = local_competency_report_generate_study_plan($prompt);
 
-header('Content-Type: application/json');
-echo json_encode([
-    'success' => true,
-    'html'    => format_text($plan, FORMAT_HTML, ['context' => $context]),
-]);
+// 8. Determine RTL for Arabic language.
+$isrtl = ($language === 'Arabic');
+
+// 9. Build PDF.
+$pdf = new TCPDF(($isrtl ? 'RTL' : 'LTR'), 'mm', 'A4', true, 'UTF-8');
+$pdf->SetCreator('Moodle Competency Report');
+$pdf->SetAuthor($studentname);
+$pdf->SetTitle(get_string('studyplan_pdf_title', 'local_competency_report') . ' — ' . $studentname);
+$pdf->SetRTL($isrtl);
+$pdf->setPrintHeader(false);
+$pdf->setPrintFooter(false);
+$pdf->SetAutoPageBreak(true, 15);
+$pdf->AddPage();
+$pdf->SetFont('freeserif', '', 12);
+
+// --- Branded Header ---
+$pdf->SetFillColor(0, 90, 160);
+$pdf->Rect(0, 0, 210, 22, 'F');
+$pdf->SetTextColor(255, 255, 255);
+$pdf->SetFont('freeserif', 'B', 15);
+$pdf->SetXY(10, 5);
+$pdf->Cell(0, 12, get_string('studyplan_pdf_title', 'local_competency_report'), 0, 1, $isrtl ? 'R' : 'L');
+$pdf->SetTextColor(0, 0, 0);
+$pdf->Ln(8);
+
+// --- Student / Course Info Block ---
+$pdf->SetFillColor(240, 248, 255);
+$pdf->SetFont('freeserif', 'B', 12);
+$pdf->Cell(0, 8, $studentname, 0, 1, 'C', false);
+$pdf->SetFont('freeserif', '', 11);
+$pdf->SetTextColor(80, 80, 80);
+$pdf->Cell(0, 6, $course->fullname, 0, 1, 'C');
+
+// Plan meta: sessions, language, total hours.
+$totalhours = $sessions;
+$pdf->Cell(0, 6,
+    get_string('studyplan_sessions_label', 'local_competency_report') . ': ' . $sessions
+    . ' × 1 ' . get_string('studyplan_session_hint_short', 'local_competency_report')
+    . ' = ' . $totalhours . ' h'
+    . '   |   Language: ' . $language,
+    0, 1, 'C'
+);
+$pdf->SetTextColor(0, 0, 0);
+$pdf->Ln(3);
+
+// Divider.
+$pdf->SetDrawColor(0, 90, 160);
+$pdf->SetLineWidth(0.6);
+$pdf->Line(10, $pdf->GetY(), 200, $pdf->GetY());
+$pdf->Ln(5);
+
+// --- Weak Competency Summary Table ---
+if (!empty($weak)) {
+    $pdf->SetFont('freeserif', 'B', 10);
+    $pdf->SetFillColor(220, 235, 255);
+    $pdf->Cell(0, 8, '⚠  ' . ($language === 'Arabic' ? 'الكفايات التي تحتاج علاجاً' : 'Competencies Requiring Remediation'), 1, 1, 'L', true);
+
+    $pdf->SetFont('freeserif', 'B', 9);
+    $pdf->SetFillColor(200, 218, 255);
+    $pdf->Cell(30, 7, ($language === 'Arabic' ? 'الكود' : 'Code'), 1, 0, 'C', true);
+    $pdf->Cell(110, 7, ($language === 'Arabic' ? 'الوصف' : 'Description'), 1, 0, 'L', true);
+    $pdf->Cell(25, 7, ($language === 'Arabic' ? 'الإتقان %' : 'Mastery %'), 1, 0, 'C', true);
+    $pdf->Cell(25, 7, ($language === 'Arabic' ? 'الحصص المقترحة' : 'Suggested Sessions'), 1, 1, 'C', true);
+
+    $pdf->SetFont('freeserif', '', 9);
+    $totalweak = count($weak);
+    $sessionsassigned = 0;
+    $i = 0;
+    foreach ($weak as $code => $info) {
+        $i++;
+        $rate = $info['rate'];
+        // Proportional session allocation: weaker gets more.
+        $weight = max(1, (int)round((1 - ($rate / 100)) * $sessions / $totalweak * 1.5));
+        if ($i === $totalweak) {
+            $weight = $sessions - $sessionsassigned; // Last takes the remainder.
+        }
+        $sessionsassigned += $weight;
+
+        if ($rate < 40) {
+            $pdf->SetFillColor(255, 205, 205); // Red.
+        } else {
+            $pdf->SetFillColor(255, 238, 195); // Orange.
+        }
+
+        $x = $pdf->GetX();
+        $y = $pdf->GetY();
+        $descheight = max(7, $pdf->getStringHeight(110, $info['desc']));
+        $pdf->MultiCell(30, $descheight, $code, 1, 'C', true, 0, $x, $y, true);
+        $pdf->MultiCell(110, $descheight, $info['desc'], 1, 'L', true, 0, $x + 30, $y, true);
+        $pdf->MultiCell(25, $descheight, '%' . $rate, 1, 'C', true, 0, $x + 140, $y, true);
+        $pdf->MultiCell(25, $descheight, $weight, 1, 'C', true, 1, $x + 165, $y, true);
+    }
+    $pdf->Ln(5);
+}
+
+// --- AI Study Plan Content ---
+$pdf->SetFillColor(235, 255, 240);
+$pdf->SetFont('freeserif', 'B', 11);
+$pdf->Cell(0, 9, '🎯 ' . get_string('studyplan_pdf_title', 'local_competency_report'), 1, 1, 'L', true);
+$pdf->Ln(2);
+$pdf->SetFont('freeserif', '', 10);
+$pdf->writeHTML($planhtml, true, false, true, false, $isrtl ? 'R' : '');
+
+// --- Footer ---
+$pdf->Ln(8);
+$pdf->SetDrawColor(180, 180, 180);
+$pdf->SetLineWidth(0.3);
+$pdf->Line(10, $pdf->GetY(), 200, $pdf->GetY());
+$pdf->Ln(2);
+$pdf->SetFont('freeserif', 'I', 8);
+$pdf->SetTextColor(140, 140, 140);
+$pdf->Cell(0, 5, 'Generated by Competency Report AI System — ' . date('d M Y, H:i'), 0, 1, 'C');
+
+// 10. Output PDF inline.
+$safefilename = preg_replace('/[^a-zA-Z0-9_-]/', '_', $studentname);
+$pdf->Output("studyplan_{$safefilename}_{$sessions}sessions.pdf", 'I');
 exit;

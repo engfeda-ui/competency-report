@@ -31,7 +31,8 @@ $courseid     = optional_param('courseid', 0, PARAM_INT);
 $userid       = optional_param('userid', 0, PARAM_INT);
 $groupid      = optional_param('groupid', 0, PARAM_INT);
 $quizid       = optional_param('quizid', 0, PARAM_INT);
-$customprompt = optional_param('custom_prompt', '', PARAM_RAW);
+$customprompt = optional_param('custom_prompt', '', PARAM_TEXT);
+
 $contexttype  = optional_param('context_type', 'student', PARAM_ALPHA); // 'student', 'school', 'group', 'quiz'
 $focustype    = optional_param('focus_type', 'competency', PARAM_ALPHA); // 'competency', 'grades'
 
