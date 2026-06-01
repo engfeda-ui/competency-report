@@ -15,11 +15,10 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Class Report for Competency Matching output class.
+ * Unified Course Master Report Page Renderable.
  *
  * @package    local_competency_report
  * @copyright  2026 Mahmoud Salem
- * @copyright  based on work by 2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -31,55 +30,51 @@ use renderer_base;
 use stdClass;
 
 /**
- * Renderable page class for the competency class report.
+ * Renderable class for the Unified Course Master Report page.
  *
  * @package    local_competency_report
  * @copyright  2026 Mahmoud Salem
- * @copyright  based on work by 2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class class_report_page implements renderable, templatable {
-    /** @var stdClass Data to be rendered */
+class course_master_report_page implements renderable, templatable {
+    /** @var stdClass The data to render. */
     protected $data;
 
-    /** @var \moodleform The filter form */
-    protected $mform;
-
     /**
-     * Constructor
+     * Constructor.
      *
      * @param stdClass $data
-     * @param \moodleform $mform
      */
-    public function __construct($data, $mform) {
+    public function __construct($data) {
         $this->data = $data;
-        $this->mform = $mform;
     }
 
     /**
-     * Export data for the Mustache template.
+     * Export data for Mustache.
      *
      * @param renderer_base $output
      * @return stdClass
      */
     public function export_for_template(renderer_base $output) {
         $export = new stdClass();
-
-        // Render and pass the form HTML.
-        $export->form_html = $this->mform->render();
-
-        // PDF report URL.
-        $pdfurl = new \moodle_url('/local/competency_report/pdf_report.php', ['courseid' => $this->data->courseid]);
-        $export->pdf_url = $pdfurl->out(false);
-
-        // Table data.
-        $export->has_data = !empty($this->data->rows);
-        $export->rows = $this->data->rows;
-
-        $export->chart_config = json_encode($this->data->chart_params);
         $export->courseid = $this->data->courseid;
-        $export->userid = !empty($this->data->userid) ? $this->data->userid : 0;
-        $export->context_type = 'student';
+        $export->coursename = $this->data->coursename;
+
+        // Statistics.
+        $export->stats = $this->data->stats;
+
+        // Exams & Grades.
+        $export->quizzes = $this->data->quizzes;
+
+        // Course competencies.
+        $export->competencies = $this->data->competencies;
+
+        // Group Comparison Matrix.
+        $export->matrix_headers = $this->data->matrix_headers;
+        $export->matrix_rows = $this->data->matrix_rows;
+
+        // Context details for the standard AI commentary widget.
+        $export->context_type = 'course_master';
 
         return $export;
     }

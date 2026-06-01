@@ -33,9 +33,9 @@
 
     {{! 1. Top Buttons and Links }}
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <a href="{{pdf_url}}" class="btn btn-secondary" target="_blank">
+        <button id="btn-export-class-pdf-top" class="btn btn-secondary">
             <i class="fa fa-file-pdf-o"></i> {{#str}}pdfreport, local_competency_report{{/str}}
-        </a>
+        </button>
     </div>
 
     {{! 2. Selector Form Area }}
@@ -80,6 +80,9 @@
                 <canvas id="studentClassChart" data-chart-config="{{chart_config}}"></canvas>
             </div>
         </div>
+
+        {{! Reusable AI Commentary & Focus Analysis Widget }}
+        {{> local_competency_report/ai_commentary_widget }}
     {{/has_data}}
 
     {{^has_data}}
@@ -92,7 +95,7 @@
 
 {{#has_data}}
 {{#js}}
-require(['local_competency_report/visualizer', 'core/log'], function(Visualizer, Log) {
+require(['local_competency_report/visualizer', 'core/log', 'jquery'], function(Visualizer, Log, $) {
     const canvas = document.getElementById('studentClassChart');
     if (canvas) {
         const rawData = canvas.getAttribute('data-chart-config');
@@ -104,6 +107,46 @@ require(['local_competency_report/visualizer', 'core/log'], function(Visualizer,
             Log.error(e);
         }
     }
+
+    $('#btn-export-class-pdf-top').on('click', function(e) {
+        e.preventDefault();
+        var editedHtml = '';
+        var aiContent = $('.ai-content-html');
+        if (aiContent.length && aiContent.html().trim() !== '') {
+            editedHtml = aiContent.html();
+        }
+        
+        var userid = parseInt("{{userid}}") || 0;
+        var targetUrl = (userid > 0) 
+            ? M.cfg.wwwroot + '/local/competency_report/parent_pdf.php' 
+            : M.cfg.wwwroot + '/local/competency_report/school_pdf.php';
+
+        var form = $('<form>', {
+            action: targetUrl,
+            method: 'POST',
+            target: '_blank'
+        });
+
+        var params = {
+            courseid: "{{courseid}}",
+            pdf_content: editedHtml
+        };
+        if (userid > 0) {
+            params.userid = userid;
+        }
+
+        $.each(params, function(key, val) {
+            form.append($('<input>', {
+                type: 'hidden',
+                name: key,
+                value: val
+            }));
+        });
+
+        $('body').append(form);
+        form.submit();
+        form.remove();
+    });
 });
 {{/js}}
 {{/has_data}}

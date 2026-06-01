@@ -33,6 +33,7 @@ $courseid     = required_param('courseid', PARAM_INT);
 $groupid      = optional_param('groupid', 0, PARAM_INT);
 $focustype    = optional_param('focus_type', 'competency', PARAM_ALPHA); // 'competency' or 'grades'
 $customprompt = optional_param('custom_prompt', '', PARAM_RAW);
+$pdfcontent   = optional_param('pdf_content', '', PARAM_RAW);
 
 // 2. Authentication & Capability Checks.
 require_login($courseid);
@@ -70,20 +71,20 @@ $tablehtml = '';
 if ($focustype === 'grades') {
     // GENERAL GRADES MODE.
     if ($groupid) {
-        $sql = "SELECT q.id, q.name, AVG(qa.grade) as avggrade, q.grade as maxgrade, COUNT(qa.id) as attempts
+        $sql = "SELECT q.id, q.name, AVG(qa.sumgrades) as avggrade, q.sumgrades as maxgrade, COUNT(qa.id) as attempts
                 FROM {quiz_attempts} qa
                 JOIN {quiz} q ON q.id = qa.quiz
                 JOIN {groups_members} gm ON gm.userid = qa.userid
                 WHERE q.course = :courseid AND gm.groupid = :groupid AND qa.state = 'finished'
-                GROUP BY q.id, q.name, q.grade
+                GROUP BY q.id, q.name, q.sumgrades
                 ORDER BY q.name ASC";
         $rows = $DB->get_records_sql($sql, ['courseid' => $courseid, 'groupid' => $groupid]);
     } else {
-        $sql = "SELECT q.id, q.name, AVG(qa.grade) as avggrade, q.grade as maxgrade, COUNT(qa.id) as attempts
+        $sql = "SELECT q.id, q.name, AVG(qa.sumgrades) as avggrade, q.sumgrades as maxgrade, COUNT(qa.id) as attempts
                 FROM {quiz_attempts} qa
                 JOIN {quiz} q ON q.id = qa.quiz
                 WHERE q.course = :courseid AND qa.state = 'finished'
-                GROUP BY q.id, q.name, q.grade
+                GROUP BY q.id, q.name, q.sumgrades
                 ORDER BY q.name ASC";
         $rows = $DB->get_records_sql($sql, ['courseid' => $courseid]);
     }
@@ -190,7 +191,14 @@ if ($focustype === 'grades') {
 }
 
 // 5. Generate AI comment using exact parameters.
-$comment = local_competency_report_generate_comment($rates, $contexttype, $customprompt, $focustype);
+// Generate AI Comment with the correct focus and custom prompt, or use POSTed content.
+if (!empty($pdfcontent)) {
+    $comment = $pdfcontent;
+} else {
+    $comment = local_competency_report_generate_comment($rates, $contexttype, $customprompt, $focustype);
+}
+// Strip any non-BMP unicode characters (emojis) to prevent TCPDF font warnings.
+$comment = preg_replace('/[^\x{0000}-\x{FFFF}]/u', '', $comment);
 
 // 6. PDF Generation (TCPDF).
 $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
@@ -248,5 +256,9 @@ $pdf->Cell(0, 5, $legend, 0, 1);
 
 // Final PDF output.
 $filename = "report_" . clean_filename($reporttitle) . ".pdf";
+// Clear output buffer to prevent PHP warnings/headers-already-sent errors from corrupting the PDF.
+if (ob_get_length()) {
+    ob_end_clean();
+}
 $pdf->Output($filename, "I");
 exit;

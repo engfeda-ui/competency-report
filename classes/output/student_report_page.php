@@ -97,6 +97,7 @@ class student_report_page implements renderable, templatable {
         $export->courseid = $this->data->courseid;
         $export->userid = $this->data->userid;
         $export->context_type = 'student';
+        $export->active_reportcard = true;
         $export->chart_data = $this->data->chart_data ?? '{}';
         $export->has_radar = !empty($this->data->has_radar) && $this->data->has_radar;
 

@@ -30,6 +30,7 @@ $courseid     = required_param('courseid', PARAM_INT);
 $userid       = optional_param('userid', $USER->id, PARAM_INT);
 $focustype    = optional_param('focus_type', 'competency', PARAM_ALPHA); // 'competency' or 'grades'
 $customprompt = optional_param('custom_prompt', '', PARAM_RAW);
+$pdfcontent   = optional_param('pdf_content', '', PARAM_RAW);
 
 require_login($courseid);
 
@@ -50,7 +51,7 @@ $stats = [];
 
 if ($focustype === 'grades') {
     // 1. Fetch General Grades data.
-    $sql = "SELECT q.id, q.name, qa.grade, q.grade as maxgrade
+    $sql = "SELECT q.id, q.name, qa.sumgrades as grade, q.sumgrades as maxgrade
             FROM {quiz_attempts} qa
             JOIN {quiz} q ON q.id = qa.quiz
             WHERE q.course = :courseid AND qa.userid = :userid AND qa.state = 'finished'";
@@ -99,8 +100,14 @@ if ($focustype === 'grades') {
     }
 }
 
-// Generate AI Comment with the correct focus and custom prompt.
-$comment = local_competency_report_generate_comment($stats, 'student', $customprompt, $focustype);
+// Generate AI Comment with the correct focus and custom prompt, or use POSTed content.
+if (!empty($pdfcontent)) {
+    $comment = $pdfcontent;
+} else {
+    $comment = local_competency_report_generate_comment($stats, 'student', $customprompt, $focustype);
+}
+// Strip any non-BMP unicode characters (emojis) to prevent TCPDF font warnings.
+$comment = preg_replace('/[^\x{0000}-\x{FFFF}]/u', '', $comment);
 
 /* PDF Initialization */
 $pdf = new TCPDF();
@@ -190,5 +197,9 @@ $legend = get_string('redlegend', 'local_competency_report') . " | " .
           get_string('greenlegend', 'local_competency_report');
 $pdf->Cell(0, 5, $legend, 0, 1);
 
+// Clear output buffer to prevent PHP warnings/headers-already-sent errors from corrupting the PDF.
+if (ob_get_length()) {
+    ob_end_clean();
+}
 $pdf->Output("rapor_" . $student->idnumber . ".pdf", "I");
 exit;

@@ -98,7 +98,7 @@ foreach ($rows as $r) {
     }
 }
 
-$student     = $DB->get_record('user', ['id' => $userid], 'firstname, lastname');
+$student     = \core_user::get_user($userid);
 $studentname = fullname($student);
 $course      = $DB->get_record('course', ['id' => $courseid], 'fullname');
 
@@ -164,6 +164,9 @@ STRICT REQUIREMENTS:
 
 // 5. Call AI with study plan system prompt.
 $plan = local_competency_report_generate_study_plan($prompt);
+
+// Convert any markdown tables in the AI response to beautiful HTML tables.
+$plan = local_competency_report_markdown_to_html_table($plan);
 
 header('Content-Type: application/json');
 echo json_encode([

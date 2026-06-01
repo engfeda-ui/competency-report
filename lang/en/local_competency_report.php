@@ -195,5 +195,25 @@ $string['enable_alerts_desc']   = 'When enabled, teachers receive an automatic n
 $string['alert_threshold']      = 'At-Risk Alert Threshold (%)';
 $string['alert_threshold_desc'] = 'Students with competency rates below this percentage (default: 40%) will trigger an alert to enrolled teachers.';
 $string['alert_subject']        = '⚠️ At-Risk Student Alert: {$a}';
-$string['alert_body']           = "Dear Teacher,\n\nThis is an automated alert from the Competency Report system.\n\nStudent \"{$a->student}\" in the course \"{$a->course}\" has 2 or more competencies below the alert threshold:\n\n{$a->weaklist}\nPlease review the student's full report here:\n{$a->url}\n\nThis notification was sent automatically upon quiz submission.";
+$string['alert_body']           = 'Dear Teacher,
+
+This is an automated alert from the Competency Report system.
+
+Student "{$a->student}" in the course "{$a->course}" has 2 or more competencies below the alert threshold:
+
+{$a->weaklist}
+Please review the student\'s full report here:
+{$a->url}
+
+This notification was sent automatically upon quiz submission.';
 $string['messageprovider:studentatrisk'] = 'At-risk student competency alert';
+$string['coursemasterreport'] = 'Unified Course Master Report';
+$string['coursemasterreport_desc'] = 'Comprehensive administrative report aggregating overall course stats, exam grades, competency mastery, and group comparisons.';
+$string['group_comparison_grid'] = 'Group Competency Comparison Grid';
+$string['exam_grades_summary'] = 'Exams & General Grades Summary';
+$string['course_stats'] = 'Overall Course Statistics';
+$string['studentdashboard'] = 'Student Performance Dashboard';
+$string['groupperformance'] = 'Group Performance Analysis';
+$string['tab_by_competency'] = 'By Course Competency';
+$string['tab_by_quiz'] = 'By Exam/Quiz';
+

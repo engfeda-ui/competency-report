@@ -336,3 +336,78 @@ function local_competency_report_structured_comment(array $stats) {
     return $text;
 }
 
+/**
+ * Converts raw Markdown tables in LLM responses to beautiful, styled HTML tables.
+ * Falls back safely if the text does not contain any markdown tables.
+ *
+ * @param string $html The input text/HTML from the AI.
+ * @return string The parsed HTML with styled tables.
+ */
+function local_competency_report_markdown_to_html_table($html) {
+    if (strpos($html, '|') === false) {
+        return $html;
+    }
+
+    $lines = explode("\n", $html);
+    $in_table = false;
+    $table_html = "";
+    $new_lines = [];
+
+    foreach ($lines as $line) {
+        $trimmed = trim($line);
+        // Check if this line is part of a markdown table.
+        if (preg_match('/^\|(.*)\|$/', $trimmed, $matches)) {
+            $cells = array_map('trim', explode('|', trim($matches[1])));
+            
+            // Check if this is a separator line (e.g. |---|---| or |:---:|)
+            $is_separator = true;
+            foreach ($cells as $cell) {
+                if ($cell !== '' && !preg_match('/^:?-+:?$/', $cell)) {
+                    $is_separator = false;
+                    break;
+                }
+            }
+            
+            if ($is_separator) {
+                continue; // Skip separator line.
+            }
+            
+            if (!$in_table) {
+                $in_table = true;
+                $table_html = '<div class="table-responsive"><table class="table table-bordered table-striped table-hover mt-3 mb-3 bg-white" style="border-radius: 8px; overflow: hidden; border-collapse: separate; border-spacing: 0; border: 1px solid #dee2e6; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">';
+                $table_html .= '<thead class="thead-light"><tr>';
+                foreach ($cells as $cell) {
+                    $table_html .= '<th class="font-weight-bold text-center align-middle" style="padding: 12px; background-color: #e9ecef; border-bottom: 2px solid #dee2e6; color: #495057;">' . $cell . '</th>';
+                }
+                $table_html .= '</tr></thead><tbody>';
+            } else {
+                $table_html .= '<tr>';
+                $col_idx = 0;
+                foreach ($cells as $cell) {
+                    // Center align session numbers and times, left align goals/activities.
+                    $align = ($col_idx == 0 || $col_idx == 4) ? 'text-center' : 'text-left';
+                    $bold = ($col_idx == 0) ? 'font-weight-bold text-success' : '';
+                    $table_html .= '<td class="' . $align . ' ' . $bold . ' align-middle" style="padding: 11px; border-top: 1px solid #dee2e6;">' . $cell . '</td>';
+                    $col_idx++;
+                }
+                $table_html .= '</tr>';
+            }
+        } else {
+            if ($in_table) {
+                $in_table = false;
+                $table_html .= '</tbody></table></div>';
+                $new_lines[] = $table_html;
+                $table_html = "";
+            }
+            $new_lines[] = $line;
+        }
+    }
+
+    if ($in_table) {
+        $table_html .= '</tbody></table></div>';
+        $new_lines[] = $table_html;
+    }
+
+    return implode("\n", $new_lines);
+}
+

@@ -34,13 +34,26 @@
  * @return void
  */
 function local_competency_report_extend_navigation_course($navigation, $course, $context) {
-    // 1. Teacher Reports Section.
+    // 1. Teacher & Administrator Section.
     if (has_capability('mod/quiz:viewreports', $context)) {
-        // General class report.
+        // Unified Course Master Report.
+        if (!$navigation->find('coursemasterreport', navigation_node::TYPE_SETTING)) {
+            $url = new moodle_url('/local/competency_report/course_master_report.php', ['courseid' => $course->id]);
+            $navigation->add(
+                get_string('coursemasterreport', 'local_competency_report'),
+                $url,
+                navigation_node::TYPE_SETTING,
+                null,
+                'coursemasterreport',
+                new pix_icon('i/stats', '')
+            );
+        }
+
+        // Student Performance Dashboard (consolidated class report).
         if (!$navigation->find('competency_report_teacher', navigation_node::TYPE_SETTING)) {
             $url = new moodle_url('/local/competency_report/class_report.php', ['courseid' => $course->id]);
             $navigation->add(
-                get_string('classreport', 'local_competency_report'),
+                get_string('studentdashboard', 'local_competency_report'),
                 $url,
                 navigation_node::TYPE_SETTING,
                 null,
@@ -49,134 +62,35 @@ function local_competency_report_extend_navigation_course($navigation, $course, 
             );
         }
 
-        // Student analysis (General).
-        if (!$navigation->find('competency_report_teacher_student', navigation_node::TYPE_SETTING)) {
-            $url = new moodle_url('/local/competency_report/teacher_student_competency.php', ['courseid' => $course->id]);
-            $navigation->add(
-                get_string('studentanalysis', 'local_competency_report'),
-                $url,
-                navigation_node::TYPE_SETTING,
-                null,
-                'competency_report_teacher_student',
-                new pix_icon('i/users', '')
-            );
-        }
-
-        // Student exam analysis (Newly added).
-        if (!$navigation->find('competency_report_teacher_student_exam', navigation_node::TYPE_SETTING)) {
-            $url = new moodle_url('/local/competency_report/teacher_student_exam.php', ['courseid' => $course->id]);
-            $navigation->add(
-                get_string('studentexamanalysis', 'local_competency_report'),
-                $url,
-                navigation_node::TYPE_SETTING,
-                null,
-                'competency_report_teacher_student_exam',
-                new pix_icon('i/search', '')
-            );
+        // Group Performance Analysis (consolidated group report).
+        if (has_capability('moodle/course:update', $context)) {
+            if (!$navigation->find('groupcompetency', navigation_node::TYPE_SETTING)) {
+                $url = new moodle_url('/local/competency_report/group_competency.php', ['courseid' => $course->id]);
+                $navigation->add(
+                    get_string('groupperformance', 'local_competency_report'),
+                    $url,
+                    navigation_node::TYPE_SETTING,
+                    null,
+                    'groupcompetency',
+                    new pix_icon('i/group', '')
+                );
+            }
         }
     }
 
-    // 2. Group & Course Management Analysis.
-    if (has_capability('moodle/course:update', $context)) {
-        if (!$navigation->find('groupcompetency', navigation_node::TYPE_SETTING)) {
-            $url = new moodle_url('/local/competency_report/group_competency.php', ['courseid' => $course->id]);
+    // 2. Student Specific Menus.
+    if (isloggedin() && !isguestuser() && !has_capability('mod/quiz:viewreports', $context)) {
+        if (!$navigation->find('competency_report_student_parent', navigation_node::TYPE_CUSTOM)) {
+            $url = new moodle_url('/local/competency_report/student_report.php', ['courseid' => $course->id]);
             $navigation->add(
-                get_string('groupcompetency', 'local_competency_report'),
-                $url,
-                navigation_node::TYPE_SETTING,
-                null,
-                'groupcompetency',
-                new pix_icon('i/group', '')
-            );
-        }
-
-        if (!$navigation->find('groupquizcompetency', navigation_node::TYPE_SETTING)) {
-            $url = new moodle_url('/local/competency_report/group_quiz_competency.php', ['courseid' => $course->id]);
-            $navigation->add(
-                get_string('groupquizcompetency', 'local_competency_report'),
-                $url,
-                navigation_node::TYPE_SETTING,
-                null,
-                'groupquizcompetency',
-                new pix_icon('i/quiz', '')
-            );
-        }
-    }
-
-    // 3. Admin Only: Background Tasks.
-    if (has_capability('moodle/site:config', context_system::instance())) {
-        if (!$navigation->find('competency_report_admin_process', navigation_node::TYPE_SETTING)) {
-            $url = new moodle_url('/local/competency_report/add_success_to_evidence.php', ['courseid' => $course->id]);
-            $navigation->add(
-                get_string('process_success_title', 'local_competency_report'),
-                $url,
-                navigation_node::TYPE_SETTING,
-                null,
-                'competency_report_admin_process',
-                new pix_icon('i/settings', '')
-            );
-        }
-    }
-
-    // 4. Student Specific Menus.
-    if (isloggedin() && !isguestuser()) {
-        $studentnode = $navigation->find('competency_report_student_parent', navigation_node::TYPE_CUSTOM);
-        if (!$studentnode) {
-            $studentnode = $navigation->add(
                 get_string('mycompetencies', 'local_competency_report'),
-                null,
+                $url,
                 navigation_node::TYPE_CUSTOM,
                 null,
                 'competency_report_student_parent',
                 new pix_icon('i/stats', '')
             );
         }
-
-        // Student report (Karnem).
-        $studentnode->add(
-            get_string('myreportcard', 'local_competency_report'),
-            new moodle_url('/local/competency_report/student_report.php', ['courseid' => $course->id]),
-            navigation_node::TYPE_CUSTOM,
-            null,
-            'competency_report_student'
-        );
-
-        // Exam analysis (SÄ±nav KazanÄ±m Analizim).
-        $studentnode->add(
-            get_string('myexamanalysis', 'local_competency_report'),
-            new moodle_url('/local/competency_report/student_exam.php', ['courseid' => $course->id]),
-            navigation_node::TYPE_CUSTOM,
-            null,
-            'competency_report_student_exam'
-        );
-
-        // Competency based exams (Competency Report BazlÄ± SÄ±navlarÄ±m).
-        $studentnode->add(
-            get_string('mycompetencyexams', 'local_competency_report'),
-            new moodle_url('/local/competency_report/student_competency_exams.php', ['courseid' => $course->id]),
-            navigation_node::TYPE_CUSTOM,
-            null,
-            'competency_report_student_competency'
-        );
-
-        // Competency state (Competency Report Durumu).
-        $studentnode->add(
-            get_string('mycompetencystate', 'local_competency_report'),
-            new moodle_url('/local/competency_report/student_class.php', ['courseid' => $course->id]),
-            navigation_node::TYPE_CUSTOM,
-            null,
-            'competency_report_student_state'
-        );
-
-        // Timeline.
-        $studentnode->add(
-            get_string('timeline', 'local_competency_report'),
-            new moodle_url('/local/competency_report/timeline.php', ['courseid' => $course->id]),
-            navigation_node::TYPE_CUSTOM,
-            null,
-            'competency_report_timeline',
-            new pix_icon('i/calendar', '')
-        );
     }
 }
 

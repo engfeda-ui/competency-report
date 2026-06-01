@@ -7,6 +7,22 @@
     * quizid (optional)
     * context_type (student, school, group, quiz)
 }}
+<style>
+.ai-content-html[contenteditable="true"]:hover,
+.studyplan-content[contenteditable="true"]:hover {
+    border: 1px dashed #17a2b8 !important;
+    background-color: #f8f9fa !important;
+    cursor: text;
+}
+.ai-content-html[contenteditable="true"]:focus,
+.studyplan-content[contenteditable="true"]:focus {
+    border: 1px dashed #28a745 !important;
+    background-color: #fff !important;
+    outline: none !important;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25) !important;
+}
+</style>
+
 <div class="ai-commentary mt-4 mb-4" id="ai-report-container-{{context_type}}">
     <div class="card border-info shadow-sm bg-light">
         <div class="card-body">
@@ -62,13 +78,14 @@
                     <h5 class="text-info font-weight-bold mb-0">
                         <i class="fa fa-magic mr-1"></i> AI Feedback Report
                     </h5>
-                    <a href="#" id="btn-export-pdf-{{context_type}}" class="btn btn-outline-danger btn-sm font-weight-bold shadow-sm" target="_blank" style="border-radius: 6px; transition: all 0.2s ease;">
+                    <button type="button" id="btn-export-pdf-{{context_type}}" class="btn btn-outline-danger btn-sm font-weight-bold shadow-sm" style="border-radius: 6px; transition: all 0.2s ease;">
                         <i class="fa fa-file-pdf-o mr-1"></i> {{#str}}exportpdf, local_competency_report{{/str}}
-                    </a>
+                    </button>
                 </div>
-                <div class="ai-content-html text-dark leading-relaxed" style="font-size: 1.05rem; line-height: 1.6;">
+                <div class="ai-content-html text-dark leading-relaxed p-2" contenteditable="true" style="font-size: 1.05rem; line-height: 1.6; border: 1px dashed transparent; border-radius: 8px; transition: all 0.2s;" title="💡 Click anywhere inside to edit this report before printing.">
                     <!-- AI response will be injected here as formatted HTML -->
                 </div>
+                <small class="text-muted d-block mt-2"><i class="fa fa-info-circle mr-1"></i>💡 You can click anywhere inside the report text above to edit it manually before exporting!</small>
             </div>
         </div>
     </div>
@@ -87,49 +104,49 @@
             </p>
 
             {{! Controls Row: Language + Sessions + Button }}
-            <div class="d-flex flex-wrap align-items-end mb-3" style="gap: 16px;">
-
+            <div class="row align-items-end mb-2">
                 {{! Language Selector }}
-                <div class="form-group mb-0" style="min-width: 170px;">
+                <div class="col-md-3 col-sm-6 mb-3 mb-md-0">
                     <label for="studyplan-lang-{{userid}}" class="font-weight-bold text-muted small d-block mb-1">
                         <i class="fa fa-language mr-1"></i> {{#str}}studyplan_language, local_competency_report{{/str}}
                     </label>
-                    <select id="studyplan-lang-{{userid}}" class="form-control form-control-sm">
+                    <select id="studyplan-lang-{{userid}}" class="form-control form-control-sm bg-white" style="border-radius: 6px; height: 36px; border: 1px solid #ced4da;">
                         <option value="English">🇬🇧 English</option>
                         <option value="Arabic">🇸🇦 العربية</option>
                     </select>
                 </div>
 
                 {{! Sessions Input }}
-                <div class="form-group mb-0" style="min-width: 180px;">
+                <div class="col-md-3 col-sm-6 mb-3 mb-md-0">
                     <label for="studyplan-sessions-{{userid}}" class="font-weight-bold text-muted small d-block mb-1">
                         <i class="fa fa-clock-o mr-1"></i> {{#str}}studyplan_sessions_label, local_competency_report{{/str}}
                     </label>
                     <div class="input-group input-group-sm">
                         <input type="number"
                                id="studyplan-sessions-{{userid}}"
-                               class="form-control form-control-sm"
+                               class="form-control"
                                value="10"
                                min="1"
                                max="60"
-                               style="max-width: 80px; text-align: center; font-weight: bold;"
+                               style="max-width: 80px; text-align: center; font-weight: bold; height: 36px; border-radius: 6px 0 0 6px;"
                         />
                         <div class="input-group-append">
-                            <span class="input-group-text small">{{#str}}studyplan_sessions_unit, local_competency_report{{/str}}</span>
+                            <span class="input-group-text small" style="border-radius: 0 6px 6px 0; height: 36px; display: flex; align-items: center;">{{#str}}studyplan_sessions_unit, local_competency_report{{/str}}</span>
                         </div>
                     </div>
-                    <small class="text-muted" style="font-size: 0.75rem;">
-                        <i class="fa fa-info-circle mr-1"></i>{{#str}}studyplan_session_hint, local_competency_report{{/str}}
-                    </small>
                 </div>
 
                 {{! Generate Button }}
-                <div class="form-group mb-0 align-self-end">
-                    <button id="btn-studyplan-{{userid}}" class="btn btn-success px-4 font-weight-bold shadow-sm" style="border-radius: 8px; height: 38px;">
+                <div class="col-md-6 col-sm-12 text-md-right align-self-end">
+                    <button id="btn-studyplan-{{userid}}" class="btn btn-success px-4 font-weight-bold shadow-sm w-100 w-md-auto" style="border-radius: 8px; height: 38px; min-width: 240px; transition: all 0.2s ease;">
                         <i class="fa fa-graduation-cap mr-2"></i> {{#str}}btn_studyplan, local_competency_report{{/str}}
                     </button>
                 </div>
+            </div>
 
+            {{! Helper Text Div (outside the row to keep inputs perfectly aligned) }}
+            <div class="text-muted small mb-3 mt-2">
+                <i class="fa fa-info-circle mr-1"></i>{{#str}}studyplan_session_hint, local_competency_report{{/str}}
             </div>
 
             {{! Loading Spinner }}
@@ -147,15 +164,15 @@
                         <i class="fa fa-check-circle mr-2"></i> {{#str}}studyplan_title, local_competency_report{{/str}}
                     </h5>
                     {{! PDF Export Button — appears after plan is generated }}
-                    <a id="btn-studyplan-pdf-{{userid}}"
-                       href="#"
+                    <button type="button"
+                       id="btn-studyplan-pdf-{{userid}}"
                        class="btn btn-outline-danger btn-sm font-weight-bold shadow-sm"
-                       target="_blank"
                        style="border-radius: 6px; transition: all 0.2s ease;">
                         <i class="fa fa-file-pdf-o mr-1"></i> {{#str}}btn_studyplan_pdf, local_competency_report{{/str}}
-                    </a>
+                    </button>
                 </div>
-                <div class="studyplan-content text-dark" style="font-size: 1rem; line-height: 1.7;"></div>
+                <div class="studyplan-content text-dark p-2" contenteditable="true" style="font-size: 1rem; line-height: 1.7; border: 1px dashed transparent; border-radius: 8px; transition: all 0.2s;" title="💡 Click anywhere inside to edit this plan before printing."></div>
+                <small class="text-muted d-block mt-2"><i class="fa fa-info-circle mr-1"></i>💡 You can click anywhere inside the study plan table or text above to edit it manually before exporting!</small>
             </div>
         </div>
     </div>
@@ -175,28 +192,57 @@ require(['jquery'], function($) {
     var focusType = 'competency';
 
     function updatePdfUrl() {
-        var customPrompt = $('#custom-prompt-input-' + context).val();
-        var pdfBtn = $('#btn-export-pdf-' + context);
-        var baseUrl = '';
+        // Obsolete: We now use POST form submission to preserve manual edits.
+    }
+
+    // When PDF export is clicked, submit a POST form with the edited content.
+    $('#btn-export-pdf-' + context).on('click', function(e) {
+        e.preventDefault();
+        var editedHtml = contentHtml.html();
+        var targetUrl = M.cfg.wwwroot + '/local/competency_report/school_pdf.php';
+        if (context === 'student') {
+            targetUrl = M.cfg.wwwroot + '/local/competency_report/parent_pdf.php';
+        } else if (context === 'group') {
+            targetUrl = M.cfg.wwwroot + '/local/competency_report/group_competency_pdf.php';
+        } else if (context === 'quiz') {
+            targetUrl = M.cfg.wwwroot + '/local/competency_report/group_quiz_competency_pdf.php';
+        } else if (context === 'course_master') {
+            targetUrl = M.cfg.wwwroot + '/local/competency_report/course_master_report_pdf.php';
+        }
+
+        var form = $('<form>', {
+            action: targetUrl,
+            method: 'POST',
+            target: '_blank'
+        });
+
         var params = {
             courseid: "{{courseid}}",
             focus_type: focusType,
-            custom_prompt: customPrompt
+            custom_prompt: $('#custom-prompt-input-' + context).val(),
+            pdf_content: editedHtml
         };
-
         if (context === 'student') {
-            baseUrl = M.cfg.wwwroot + '/local/competency_report/parent_pdf.php';
             params.userid = "{{userid}}";
-        } else {
-            baseUrl = M.cfg.wwwroot + '/local/competency_report/school_pdf.php';
-            if (context === 'group') {
-                params.groupid = "{{groupid}}";
-            }
+        } else if (context === 'group') {
+            params.groupid = "{{groupid}}";
+        } else if (context === 'quiz') {
+            params.groupid = "{{groupid}}";
+            params.quizid = "{{quizid}}";
         }
 
-        var queryString = $.param(params);
-        pdfBtn.attr('href', baseUrl + '?' + queryString);
-    }
+        $.each(params, function(key, val) {
+            form.append($('<input>', {
+                type: 'hidden',
+                name: key,
+                value: val
+            }));
+        });
+
+        $('body').append(form);
+        form.submit();
+        form.remove();
+    });
 
     btnComp.on('click', function(e) {
         e.preventDefault();
@@ -306,17 +352,36 @@ require(['jquery'], function($) {
                     contentPlan.html(data.html);
                     resultPlan.removeClass('d-none');
 
-                    // Update PDF export button URL with same params.
-                    var pdfParams = $.param({
-                        courseid: '{{courseid}}',
-                        userid: uid,
-                        language: selectedLang,
-                        sessions: selectedSessions
+                    // Bind PDF export button click handler to submit form with edited content.
+                    $('#btn-studyplan-pdf-' + uid).off('click').on('click', function(e) {
+                        e.preventDefault();
+                        var editedHtml = contentPlan.html();
+                        var form = $('<form>', {
+                            action: M.cfg.wwwroot + '/local/competency_report/studyplan_pdf.php',
+                            method: 'POST',
+                            target: '_blank'
+                        });
+
+                        var params = {
+                            courseid: '{{courseid}}',
+                            userid: uid,
+                            language: selectedLang,
+                            sessions: selectedSessions,
+                            pdf_content: editedHtml
+                        };
+
+                        $.each(params, function(key, val) {
+                            form.append($('<input>', {
+                                type: 'hidden',
+                                name: key,
+                                value: val
+                            }));
+                        });
+
+                        $('body').append(form);
+                        form.submit();
+                        form.remove();
                     });
-                    $('#btn-studyplan-pdf-' + uid).attr(
-                        'href',
-                        M.cfg.wwwroot + '/local/competency_report/studyplan_pdf.php?' + pdfParams
-                    );
                 } else {
                     contentPlan.html('<div class="text-danger"><i class="fa fa-exclamation-circle mr-1"></i>' + (data.error || 'Error generating study plan.') + '</div>');
                     resultPlan.removeClass('d-none');
