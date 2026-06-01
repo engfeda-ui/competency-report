@@ -33,6 +33,7 @@ $courseid     = required_param('courseid', PARAM_INT);
 $groupid      = optional_param('groupid', 0, PARAM_INT);
 $focustype    = optional_param('focus_type', 'competency', PARAM_ALPHA); // 'competency' or 'grades'
 $customprompt = optional_param('custom_prompt', '', PARAM_RAW);
+$pdfcontent   = optional_param('pdf_content', '', PARAM_RAW);
 
 // 2. Authentication & Capability Checks.
 require_login($courseid);
@@ -190,7 +191,14 @@ if ($focustype === 'grades') {
 }
 
 // 5. Generate AI comment using exact parameters.
-$comment = local_competency_report_generate_comment($rates, $contexttype, $customprompt, $focustype);
+// Generate AI Comment with the correct focus and custom prompt, or use POSTed content.
+if (!empty($pdfcontent)) {
+    $comment = $pdfcontent;
+} else {
+    $comment = local_competency_report_generate_comment($rates, $contexttype, $customprompt, $focustype);
+}
+// Strip any non-BMP unicode characters (emojis) to prevent TCPDF font warnings.
+$comment = preg_replace('/[^\x{0000}-\x{FFFF}]/u', '', $comment);
 
 // 6. PDF Generation (TCPDF).
 $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
@@ -248,5 +256,9 @@ $pdf->Cell(0, 5, $legend, 0, 1);
 
 // Final PDF output.
 $filename = "report_" . clean_filename($reporttitle) . ".pdf";
+// Clear output buffer to prevent PHP warnings/headers-already-sent errors from corrupting the PDF.
+if (ob_get_length()) {
+    ob_end_clean();
+}
 $pdf->Output($filename, "I");
 exit;
