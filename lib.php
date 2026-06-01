@@ -113,7 +113,7 @@ function local_competency_report_check_and_notify($userid, $courseid, array $rat
         return;
     }
 
-    $weakcompetencies = array_filter($rates, function($r) use ($threshold) {
+    $weakcompetencies = array_filter($rates, function ($r) use ($threshold) {
         return $r < $threshold;
     });
 
@@ -170,4 +170,3 @@ function local_competency_report_check_and_notify($userid, $courseid, array $rat
         message_send($message);
     }
 }
-

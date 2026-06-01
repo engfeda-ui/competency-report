@@ -121,7 +121,6 @@ if ($focustype === 'grades') {
             </tr>';
     }
     $tablehtml .= '</tbody></table>';
-
 } else {
     // COMPETENCY ACHIEVEMENTS MODE.
     if ($groupid) {

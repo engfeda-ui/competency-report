@@ -215,4 +215,3 @@ $string['studentdashboard'] = 'لوحة تحكم أداء الطلاب';
 $string['groupperformance'] = 'تحليل أداء المجموعات';
 $string['tab_by_competency'] = 'حسب الكفايات العامة';
 $string['tab_by_quiz'] = 'حسب كفايات الاختبارات';
-

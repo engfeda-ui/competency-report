@@ -32,6 +32,6 @@ $tasks = [
         'hour' => '1', // Every night at 1:00 AM
         'day' => '*',
         'dayofweek' => '*',
-        'month' => '*'
-    ]
+        'month' => '*',
+    ],
 ];
