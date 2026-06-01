@@ -24,7 +24,7 @@ A professional Moodle reporting engine that calculates and visualises student co
 - **Background Evidence Processing:** An adhoc task calculates competency success rates and writes them as Moodle competency evidence — now scoped to enrolled course students only (performance improvement).
 - **Enterprise PDF Exports:** Students and educators can download structured PDF reports.
 - **Responsive Web UI:** Built with Mustache templates, Bootstrap, and Chart.js.
-- **Localization Support:** English and Turkish language packs included.
+- **Localization Support:** English and Arabic language packs included (with RTL support).
 
 ---
 
@@ -81,6 +81,10 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 ---
 
 ## 📋 Changelog
+
+### v3.2.0 — 2026-05-31
+- **New:** Complete Arabic (`ar`) language pack — all 50+ UI strings, AI commentary widget, radar chart, study plan, and at-risk alert strings are now fully translated into Arabic (RTL support).
+- **Improvement:** Study plan language selector — the AI Personalized Study Plan section now includes a language dropdown (🇬🇧 English / 🇸🇦 العربية) so students can request their study plan in their preferred language instead of always defaulting to English.
 
 ### v3.1.0 — 2026-05-25
 - **New:** Local LLM API integration support — choose between official OpenAI cloud services or locally hosted, privacy-compliant LLMs (e.g. Ollama or vLLM running Llama 3.1 / Qwen 2.5) via standard OpenAI-compatible API endpoints.

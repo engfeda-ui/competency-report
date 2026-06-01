@@ -83,23 +83,78 @@
                 <i class="fa fa-list-alt mr-2"></i> AI Personalized Study Plan
             </h5>
             <p class="text-muted small mb-3">
-                AI analyzes your weak competencies and builds a structured 2-week personalized remedial plan just for you.
+                {{#str}}studyplan_desc, local_competency_report{{/str}}
             </p>
-            <button id="btn-studyplan-{{userid}}" class="btn btn-success px-4 font-weight-bold shadow-sm" style="border-radius: 8px;">
-                <i class="fa fa-graduation-cap mr-2"></i> {{#str}}btn_studyplan, local_competency_report{{/str}}
-            </button>
 
-            <div id="studyplan-loading-{{userid}}" class="d-none align-items-center text-success p-3 bg-white rounded border mt-3 shadow-inner">
+            {{! Controls Row: Language + Sessions + Button }}
+            <div class="d-flex flex-wrap align-items-end mb-3" style="gap: 16px;">
+
+                {{! Language Selector }}
+                <div class="form-group mb-0" style="min-width: 170px;">
+                    <label for="studyplan-lang-{{userid}}" class="font-weight-bold text-muted small d-block mb-1">
+                        <i class="fa fa-language mr-1"></i> {{#str}}studyplan_language, local_competency_report{{/str}}
+                    </label>
+                    <select id="studyplan-lang-{{userid}}" class="form-control form-control-sm">
+                        <option value="English">🇬🇧 English</option>
+                        <option value="Arabic">🇸🇦 العربية</option>
+                    </select>
+                </div>
+
+                {{! Sessions Input }}
+                <div class="form-group mb-0" style="min-width: 180px;">
+                    <label for="studyplan-sessions-{{userid}}" class="font-weight-bold text-muted small d-block mb-1">
+                        <i class="fa fa-clock-o mr-1"></i> {{#str}}studyplan_sessions_label, local_competency_report{{/str}}
+                    </label>
+                    <div class="input-group input-group-sm">
+                        <input type="number"
+                               id="studyplan-sessions-{{userid}}"
+                               class="form-control form-control-sm"
+                               value="10"
+                               min="1"
+                               max="60"
+                               style="max-width: 80px; text-align: center; font-weight: bold;"
+                        />
+                        <div class="input-group-append">
+                            <span class="input-group-text small">{{#str}}studyplan_sessions_unit, local_competency_report{{/str}}</span>
+                        </div>
+                    </div>
+                    <small class="text-muted" style="font-size: 0.75rem;">
+                        <i class="fa fa-info-circle mr-1"></i>{{#str}}studyplan_session_hint, local_competency_report{{/str}}
+                    </small>
+                </div>
+
+                {{! Generate Button }}
+                <div class="form-group mb-0 align-self-end">
+                    <button id="btn-studyplan-{{userid}}" class="btn btn-success px-4 font-weight-bold shadow-sm" style="border-radius: 8px; height: 38px;">
+                        <i class="fa fa-graduation-cap mr-2"></i> {{#str}}btn_studyplan, local_competency_report{{/str}}
+                    </button>
+                </div>
+
+            </div>
+
+            {{! Loading Spinner }}
+            <div id="studyplan-loading-{{userid}}" class="d-none align-items-center text-success p-3 bg-white rounded border mt-2 shadow-inner">
                 <div class="spinner-border mr-3 text-success" role="status" style="width: 1.8rem; height: 1.8rem;">
                     <span class="sr-only">Loading...</span>
                 </div>
                 <strong class="d-block text-dark">{{#str}}studyplan_generating, local_competency_report{{/str}}</strong>
             </div>
 
+            {{! Result Box (hidden until generated) }}
             <div id="studyplan-result-{{userid}}" class="d-none mt-3 p-4 bg-white rounded border shadow-inner" style="border-left: 5px solid #28a745;">
-                <h5 class="font-weight-bold mb-3" style="color:#28a745;">
-                    <i class="fa fa-check-circle mr-2"></i> {{#str}}studyplan_title, local_competency_report{{/str}}
-                </h5>
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+                    <h5 class="font-weight-bold mb-0" style="color:#28a745;">
+                        <i class="fa fa-check-circle mr-2"></i> {{#str}}studyplan_title, local_competency_report{{/str}}
+                    </h5>
+                    {{! PDF Export Button — appears after plan is generated }}
+                    <a id="btn-studyplan-pdf-{{userid}}"
+                       href="#"
+                       class="btn btn-outline-danger btn-sm font-weight-bold shadow-sm"
+                       target="_blank"
+                       style="border-radius: 6px; transition: all 0.2s ease;">
+                        <i class="fa fa-file-pdf-o mr-1"></i> {{#str}}btn_studyplan_pdf, local_competency_report{{/str}}
+                    </a>
+                </div>
                 <div class="studyplan-content text-dark" style="font-size: 1rem; line-height: 1.7;"></div>
             </div>
         </div>
@@ -229,6 +284,11 @@ require(['jquery'], function($) {
         resultPlan.addClass('d-none');
         btnPlan.prop('disabled', true);
 
+        var selectedLang     = $('#studyplan-lang-' + uid).val() || 'English';
+        var selectedSessions = parseInt($('#studyplan-sessions-' + uid).val()) || 10;
+        // Clamp between 1 and 60.
+        selectedSessions = Math.max(1, Math.min(60, selectedSessions));
+
         $.ajax({
             url: M.cfg.wwwroot + '/local/competency_report/ajax_studyplan.php',
             type: 'POST',
@@ -236,7 +296,8 @@ require(['jquery'], function($) {
             data: {
                 courseid: '{{courseid}}',
                 userid: uid,
-                language: 'English'
+                language: selectedLang,
+                sessions: selectedSessions
             },
             success: function(data) {
                 loadingPlan.removeClass('d-flex').addClass('d-none');
@@ -244,6 +305,18 @@ require(['jquery'], function($) {
                 if (data.success) {
                     contentPlan.html(data.html);
                     resultPlan.removeClass('d-none');
+
+                    // Update PDF export button URL with same params.
+                    var pdfParams = $.param({
+                        courseid: '{{courseid}}',
+                        userid: uid,
+                        language: selectedLang,
+                        sessions: selectedSessions
+                    });
+                    $('#btn-studyplan-pdf-' + uid).attr(
+                        'href',
+                        M.cfg.wwwroot + '/local/competency_report/studyplan_pdf.php?' + pdfParams
+                    );
                 } else {
                     contentPlan.html('<div class="text-danger"><i class="fa fa-exclamation-circle mr-1"></i>' + (data.error || 'Error generating study plan.') + '</div>');
                     resultPlan.removeClass('d-none');
