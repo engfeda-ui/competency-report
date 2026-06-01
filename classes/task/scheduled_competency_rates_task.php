@@ -94,7 +94,8 @@ class scheduled_competency_rates_task extends \core\task\scheduled_task {
                     // Insert user evidence.
                     $evidence = new \stdClass();
                     $evidence->userid = $student->id;
-                    $evidence->name = get_string('process_success_title', 'local_competency_report') . " (Auto Sync " . date('d.m.Y') . ")";
+                    $evidence->name = get_string('process_success_title', 'local_competency_report')
+                        . " (Auto Sync " . date('d.m.Y') . ")";
                     $evidence->description = get_string('evidence_description', 'local_competency_report', $a);
                     $evidence->descriptionformat = FORMAT_HTML;
                     $evidence->url = '';

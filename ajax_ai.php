@@ -33,8 +33,8 @@ $groupid      = optional_param('groupid', 0, PARAM_INT);
 $quizid       = optional_param('quizid', 0, PARAM_INT);
 $customprompt = optional_param('custom_prompt', '', PARAM_TEXT);
 
-$contexttype  = optional_param('context_type', 'student', PARAM_TEXT); // 'student', 'school', 'group', 'quiz', 'course_master'
-$focustype    = optional_param('focus_type', 'competency', PARAM_ALPHA); // 'competency', 'grades'
+$contexttype  = optional_param('context_type', 'student', PARAM_TEXT); // Context type: student, school, group, quiz, course_master.
+$focustype    = optional_param('focus_type', 'competency', PARAM_ALPHA); // Focus type: competency, grades.
 
 // 2. Authentication & Access Controls.
 require_login();
@@ -167,7 +167,7 @@ if ($focustype === 'grades') {
             }
         }
     } else {
-        // student context.
+        // Student context.
         $sql = "SELECT q.id, q.name, qa.sumgrades as grade, q.sumgrades as maxgrade
                 FROM {quiz_attempts} qa
                 JOIN {quiz} q ON q.id = qa.quiz
@@ -295,7 +295,7 @@ if ($focustype === 'grades') {
             $rates[$r->shortname] = $r->attempts ? ($r->correct / $r->attempts) * 100 : 0;
         }
     } else {
-        // student competency stats.
+        // Student competency stats.
         $sql = "SELECT c.id, c.shortname,
                        CAST(SUM(qa.maxfraction) AS DECIMAL(12, 1)) AS attempts,
                        CAST(SUM(qas.fraction) AS DECIMAL(12, 1)) AS correct

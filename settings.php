@@ -97,7 +97,7 @@ if ($hassiteconfig) {
         ));
     }
 
-    // --- At-Risk Student Alert Settings ---
+    // At-Risk Student Alert Settings.
     if ($ADMIN->fulltree) {
         $settings->add(new admin_setting_heading(
             'local_competency_report/alerts_heading',

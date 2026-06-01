@@ -109,16 +109,14 @@ $sessionspercomp = ($weakcount > 0) ? (int)ceil($sessions / $weakcount) : $sessi
 $midpoint = (int)round($sessions / 2);
 
 // 4. Build the session-based study-plan prompt.
-$prompt = "You are an expert educational psychologist and pedagogical coach.
-Create a highly structured, actionable, personalized remedial study plan for the student \"{$studentname}\" enrolled in the course \"{$course->fullname}\".
-
-PLAN PARAMETERS:
-- Total sessions available: {$sessions} sessions
-- Duration per session: 1 hour (60 minutes)
-- Each session is an independent 1-hour block to be scheduled by the teacher/student
-
-STUDENT PERFORMANCE DATA:
-";
+$prompt = "You are an expert educational psychologist and pedagogical coach.\n"
+    . "Create a highly structured, actionable, personalized remedial study plan for the student "
+    . "\"{$studentname}\" enrolled in the course \"{$course->fullname}\".\n\n"
+    . "PLAN PARAMETERS:\n"
+    . "- Total sessions available: {$sessions} sessions\n"
+    . "- Duration per session: 1 hour (60 minutes)\n"
+    . "- Each session is an independent 1-hour block to be scheduled by the teacher/student\n\n"
+    . "STUDENT PERFORMANCE DATA:\n";
 
 if (!empty($weak)) {
     $prompt .= "\nCOMPETENCIES NEEDING INTENSIVE REMEDIATION (below 60% mastery):\n";

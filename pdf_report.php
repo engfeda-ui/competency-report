@@ -23,4 +23,6 @@
  */
 
 require_once(__DIR__ . '/../../config.php');
+$courseid = required_param('courseid', PARAM_INT);
+require_login($courseid);
 require_once(__DIR__ . '/school_pdf.php');

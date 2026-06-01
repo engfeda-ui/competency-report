@@ -61,7 +61,7 @@ $competencies = (array) $DB->get_records_sql("
 ", ['courseid' => $courseid]);
 
 if (empty($competencies)) {
-    print_error('nocompetencies', 'local_competency_report');
+    throw new moodle_exception('nocompetencies', 'local_competency_report');
 }
 
 // 3. Performance data query.
@@ -98,15 +98,16 @@ foreach ($rawscores as $rs) {
 // Landscape page printable width is approx 265mm.
 // We dedicate 65mm for Student name, and divide the remaining 200mm among competencies.
 $compcount = count($competencies);
-$studentwidth = 24; // %
-$compwidth = 76 / max(1, $compcount); // %
+$studentwidth = 24; // Width in percentage.
+$compwidth = 76 / max(1, $compcount); // Width in percentage.
 
 // 5. Build HTML Table.
 $tablehtml = '<table border="1" cellpadding="6" style="border-collapse: collapse; font-size: 8.5pt;">';
 
 // Header Row.
 $tablehtml .= '<thead><tr bgcolor="#f2f2f2" style="font-weight: bold;">';
-$tablehtml .= '  <th width="' . $studentwidth . '%" align="left"><b>' . get_string('student', 'local_competency_report') . '</b></th>';
+$tablehtml .= '  <th width="' . $studentwidth . '%" align="left"><b>'
+    . get_string('student', 'local_competency_report') . '</b></th>';
 foreach ($competencies as $c) {
     $tablehtml .= '  <th width="' . $compwidth . '%" align="center"><b>' . s($c->shortname) . '</b></th>';
 }
@@ -133,13 +134,13 @@ foreach ($students as $s) {
 
                 // Premium HSL-tailored colors.
                 if ($rate >= 80) {
-                    $bgcolor = '#e6ffec'; // green
+                    $bgcolor = '#e6ffec'; // Green.
                 } else if ($rate >= 60) {
-                    $bgcolor = '#e6f2ff'; // blue
+                    $bgcolor = '#e6f2ff'; // Blue.
                 } else if ($rate >= 40) {
-                    $bgcolor = '#fff9e6'; // orange
+                    $bgcolor = '#fff9e6'; // Orange.
                 } else {
-                    $bgcolor = '#ffe6e6'; // red
+                    $bgcolor = '#ffe6e6'; // Red.
                 }
 
                 $grouptotals[$c->id]['att'] = ($grouptotals[$c->id]['att'] ?? 0) + $att;
@@ -147,7 +148,8 @@ foreach ($students as $s) {
             }
         }
 
-        $tablehtml .= '  <td width="' . $compwidth . '%" align="center" bgcolor="' . $bgcolor . '" style="font-weight: bold;">' . $celltext . '</td>';
+        $tablehtml .= '  <td width="' . $compwidth . '%" align="center" bgcolor="' . $bgcolor . '" style="font-weight: bold;">'
+            . $celltext . '</td>';
     }
     $tablehtml .= '</tr>';
 }
@@ -227,7 +229,7 @@ $pdf->Cell(0, 5, $legend, 0, 1);
 
 // Render AI Commentary Section if provided.
 if (!empty($pdfcontent)) {
-    // Strip non-BMP characters
+    // Strip non-BMP characters.
     $pdfcontent = preg_replace('/[^\x{0000}-\x{FFFF}]/u', '', $pdfcontent);
     $pdf->AddPage();
     $pdf->SetFont('freeserif', 'B', 13);

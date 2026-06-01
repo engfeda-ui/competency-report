@@ -52,7 +52,9 @@ class local_competency_report_selector_form extends moodleform {
 
         // 1. Student Selection (Always visible).
         $users = [0 => get_string('selectuser', 'local_competency_report')];
-        $enrolled = get_enrolled_users($context, '', 0, 'u.id, u.firstname, u.lastname, u.firstnamephonetic, u.lastnamephonetic, u.middlename, u.alternatename, u.department');
+        $fields = 'u.id, u.firstname, u.lastname, u.firstnamephonetic, u.lastnamephonetic, '
+            . 'u.middlename, u.alternatename, u.department';
+        $enrolled = get_enrolled_users($context, '', 0, $fields);
 
         if (!empty($enrolled)) {
             foreach ($enrolled as $u) {

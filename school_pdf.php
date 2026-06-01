@@ -31,7 +31,7 @@ global $DB, $USER;
 // 1. Parameter Validation.
 $courseid     = required_param('courseid', PARAM_INT);
 $groupid      = optional_param('groupid', 0, PARAM_INT);
-$focustype    = optional_param('focus_type', 'competency', PARAM_ALPHA); // 'competency' or 'grades'
+$focustype    = optional_param('focus_type', 'competency', PARAM_ALPHA); // Focus type: competency or grades.
 $customprompt = optional_param('custom_prompt', '', PARAM_RAW);
 $pdfcontent   = optional_param('pdf_content', '', PARAM_RAW);
 
@@ -124,7 +124,8 @@ if ($focustype === 'grades') {
 } else {
     // COMPETENCY ACHIEVEMENTS MODE.
     if ($groupid) {
-        $wheresql = "WHERE quiz.course = :courseid AND quiza.state = 'finished' AND quiza.userid IN (SELECT userid FROM {groups_members} WHERE groupid = :groupid)";
+        $wheresql = "WHERE quiz.course = :courseid AND quiza.state = 'finished' "
+            . "AND quiza.userid IN (SELECT userid FROM {groups_members} WHERE groupid = :groupid)";
         $params = ['courseid' => $courseid, 'groupid' => $groupid];
     } else {
         $wheresql = "WHERE quiz.course = :courseid AND quiza.state = 'finished'";

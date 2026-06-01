@@ -174,7 +174,7 @@ $string['radar_chart_desc']    = 'المنطقة الزرقاء تُمثّل م�
 $string['radar_legend_student'] = 'أداؤك';
 $string['radar_legend_class']   = 'متوسط الفصل';
 
-// نصوص خطة الدراسة الشخصية بالذكاء الاصطناعي.
+// AI Personal Study Plan strings.
 $string['btn_studyplan']            = '📋 توليد خطة الدراسة الشخصية';
 $string['studyplan_title']          = '🎯 خطة الدراسة العلاجية الشخصية';
 $string['studyplan_generating']     = 'جارٍ توليد خطة دراستك الشخصية، يرجى الانتظار…';

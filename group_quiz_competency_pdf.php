@@ -64,7 +64,7 @@ $competencies = (array)$DB->get_records_sql("
     ORDER BY c.shortname", ['quizid' => $quizid]);
 
 if (empty($competencies)) {
-    print_error('noexamdata', 'local_competency_report');
+    throw new moodle_exception('noexamdata', 'local_competency_report');
 }
 
 // 3. Performance data query filtered by quiz.
@@ -96,15 +96,16 @@ foreach ($rawscores as $rs) {
 
 // 4. Calculate Column Widths dynamically.
 $compcount = count($competencies);
-$studentwidth = 24; // %
-$compwidth = 76 / max(1, $compcount); // %
+$studentwidth = 24; // Width in percentage.
+$compwidth = 76 / max(1, $compcount); // Width in percentage.
 
 // 5. Build HTML Table.
 $tablehtml = '<table border="1" cellpadding="6" style="border-collapse: collapse; font-size: 8.5pt;">';
 
 // Header Row.
 $tablehtml .= '<thead><tr bgcolor="#f2f2f2" style="font-weight: bold;">';
-$tablehtml .= '  <th width="' . $studentwidth . '%" align="left"><b>' . get_string('student', 'local_competency_report') . '</b></th>';
+$tablehtml .= '  <th width="' . $studentwidth . '%" align="left"><b>'
+    . get_string('student', 'local_competency_report') . '</b></th>';
 foreach ($competencies as $c) {
     $tablehtml .= '  <th width="' . $compwidth . '%" align="center"><b>' . s($c->shortname) . '</b></th>';
 }
@@ -130,13 +131,13 @@ foreach ($students as $s) {
                 $celltext = '%' . number_format($rate, 1);
 
                 if ($rate >= 80) {
-                    $bgcolor = '#e6ffec'; // green
+                    $bgcolor = '#e6ffec'; // Green.
                 } else if ($rate >= 60) {
-                    $bgcolor = '#e6f2ff'; // blue
+                    $bgcolor = '#e6f2ff'; // Blue.
                 } else if ($rate >= 40) {
-                    $bgcolor = '#fff9e6'; // orange
+                    $bgcolor = '#fff9e6'; // Orange.
                 } else {
-                    $bgcolor = '#ffe6e6'; // red
+                    $bgcolor = '#ffe6e6'; // Red.
                 }
 
                 $grouptotals[$c->id]['att'] = ($grouptotals[$c->id]['att'] ?? 0) + $att;
@@ -144,7 +145,8 @@ foreach ($students as $s) {
             }
         }
 
-        $tablehtml .= '  <td width="' . $compwidth . '%" align="center" bgcolor="' . $bgcolor . '" style="font-weight: bold;">' . $celltext . '</td>';
+        $tablehtml .= '  <td width="' . $compwidth . '%" align="center" bgcolor="' . $bgcolor . '" style="font-weight: bold;">'
+            . $celltext . '</td>';
     }
     $tablehtml .= '</tr>';
 }
@@ -178,7 +180,7 @@ foreach ($competencies as $c) {
 $tablehtml .= '</tr></tfoot>';
 $tablehtml .= '</table>';
 
-// Clean emojis
+// Clean emojis.
 $tablehtml = preg_replace('/[^\x{0000}-\x{FFFF}]/u', '', $tablehtml);
 
 // 6. PDF Generation (TCPDF).

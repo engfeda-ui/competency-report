@@ -28,7 +28,7 @@ require_once(__DIR__ . '/ai.php');
 
 $courseid     = required_param('courseid', PARAM_INT);
 $userid       = optional_param('userid', $USER->id, PARAM_INT);
-$focustype    = optional_param('focus_type', 'competency', PARAM_ALPHA); // 'competency' or 'grades'
+$focustype    = optional_param('focus_type', 'competency', PARAM_ALPHA); // Focus type: competency or grades.
 $customprompt = optional_param('custom_prompt', '', PARAM_RAW);
 $pdfcontent   = optional_param('pdf_content', '', PARAM_RAW);
 
@@ -125,7 +125,9 @@ $pdf->Cell(0, 10, fullname($student), 0, 1, 'L');
 $pdf->SetFont('freeserif', '', 11);
 $pdf->Cell(0, 7, $course->fullname, 0, 1, 'L');
 
-$titletext = ($focustype === 'grades') ? "General Grades and Academic Performance Card" : get_string('studentpdfreport', 'local_competency_report');
+$titletext = ($focustype === 'grades') ?
+    "General Grades and Academic Performance Card" :
+    get_string('studentpdfreport', 'local_competency_report');
 $pdf->Cell(0, 7, $titletext, 0, 1, 'L');
 $pdf->Ln(5);
 

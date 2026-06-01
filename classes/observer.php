@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
-// Event observer for quiz attempts inside local_competency_report.
+ * Event observer for quiz attempts inside local_competency_report.
  *
  * @package    local_competency_report
  * @copyright  2026 Mahmoud Salem
@@ -23,8 +23,6 @@
  */
 
 namespace local_competency_report;
-
-defined('MOODLE_INTERNAL') || die();
 
 /**
  * Class observer

@@ -162,7 +162,9 @@ $groupcompraw = $DB->get_records_sql("
         GROUP BY questionattemptid
     ) qas ON qas.questionattemptid = qa.id
     WHERE quiza.state = 'finished'
-      AND quiza.userid IN (SELECT userid FROM {groups_members} WHERE groupid IN (SELECT id FROM {groups} WHERE courseid = :courseid))
+      AND quiza.userid IN (
+          SELECT userid FROM {groups_members} WHERE groupid IN (SELECT id FROM {groups} WHERE courseid = :courseid)
+      )
     GROUP BY gm.groupid, m.competencyid
 ", ['courseid' => $courseid]);
 

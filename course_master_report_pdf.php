@@ -119,7 +119,9 @@ $groupcompraw = $DB->get_records_sql("
         GROUP BY questionattemptid
     ) qas ON qas.questionattemptid = qa.id
     WHERE quiza.state = 'finished'
-      AND quiza.userid IN (SELECT userid FROM {groups_members} WHERE groupid IN (SELECT id FROM {groups} WHERE courseid = :courseid))
+      AND quiza.userid IN (
+          SELECT userid FROM {groups_members} WHERE groupid IN (SELECT id FROM {groups} WHERE courseid = :courseid)
+      )
     GROUP BY gm.groupid, m.competencyid
 ", ['courseid' => $courseid]);
 
@@ -132,9 +134,9 @@ foreach ($groupcompraw as $gr) {
 }
 
 // -------------------------------------------------------------
-// Build HTML Output sections for PDF
+// Build HTML Output sections for PDF.
 
-// Stats Grid Table
+// Stats Grid Table.
 $statshtml = '
 <table border="1" cellpadding="6" style="border-collapse: collapse; background-color: #f8f9fa;">
     <tr bgcolor="#17a2b8" style="color: #ffffff; font-weight: bold; font-size: 11pt;">
@@ -151,7 +153,7 @@ $statshtml = '
     </tr>
 </table>';
 
-// Quizzes Grades Table
+// Quizzes Grades Table.
 $quizzeshtml = '
 <table border="1" cellpadding="5" style="border-collapse: collapse; font-size: 9pt;">
     <thead>
@@ -175,13 +177,15 @@ foreach ($rawquizzes as $q) {
         <tr bgcolor="' . $bgcolor . '">
             <td><b>' . s($q->name) . '</b></td>
             <td align="center">' . $q->attempts . '</td>
-            <td align="center">' . ($q->attempts > 0 ? number_format($q->avggrade, 1) . ' / ' . number_format($q->maxgrade, 1) : '-') . '</td>
+            <td align="center">'
+                . ($q->attempts > 0 ? number_format($q->avggrade, 1) . ' / ' . number_format($q->maxgrade, 1) : '-')
+                . '</td>
             <td align="center" style="font-weight: bold;">' . $celltext . '</td>
         </tr>';
 }
 $quizzeshtml .= '</tbody></table>';
 
-// Competencies Summary Table
+// Competencies Summary Table.
 $compshtml = '
 <table border="1" cellpadding="5" style="border-collapse: collapse; font-size: 9pt;">
     <thead>
@@ -211,12 +215,12 @@ foreach ($rawcomps as $rc) {
 }
 $compshtml .= '</tbody></table>';
 
-// Matrix Column Widths dynamically
+// Matrix Column Widths dynamically.
 $colcount = count($compslist);
-$groupcolwidth = 24; // %
-$compcolwidth = 76 / max(1, $colcount); // %
+$groupcolwidth = 24; // Width in percentage.
+$compcolwidth = 76 / max(1, $colcount); // Width in percentage.
 
-// Group Comparison Grid Table
+// Group Comparison Grid Table.
 $matrixhtml = '
 <table border="1" cellpadding="5" style="border-collapse: collapse; font-size: 8.5pt;">
     <thead>
@@ -242,18 +246,19 @@ foreach ($groups as $g) {
                 $bgcolor = $rate >= 80 ? '#e6ffec' : ($rate >= 60 ? '#e6f2ff' : ($rate >= 40 ? '#fff9e6' : '#ffe6e6'));
             }
         }
-        $matrixhtml .= '<td width="' . $compcolwidth . '%" align="center" bgcolor="' . $bgcolor . '" style="font-weight: bold;">' . $celltext . '</td>';
+        $matrixhtml .= '<td width="' . $compcolwidth . '%" align="center" bgcolor="' . $bgcolor . '" style="font-weight: bold;">'
+            . $celltext . '</td>';
     }
     $matrixhtml .= '</tr>';
 }
 $matrixhtml .= '</tbody></table>';
 
-// AI Commentary processing
+// AI Commentary processing.
 $comment = '';
 if (!empty($pdfcontent)) {
     $comment = $pdfcontent;
 } else {
-    // Compile rates array for LLM fallback
+    // Compile rates array for LLM fallback.
     $rates = [];
     foreach ($rawcomps as $rc) {
         $rates[$rc->shortname] = $rc->attempts ? ($rc->correct / $rc->attempts) * 100 : 0;
@@ -263,7 +268,7 @@ if (!empty($pdfcontent)) {
     }
 }
 
-// Strip non-BMP emojis
+// Strip non-BMP emojis.
 $statshtml  = preg_replace('/[^\x{0000}-\x{FFFF}]/u', '', $statshtml);
 $quizzeshtml = preg_replace('/[^\x{0000}-\x{FFFF}]/u', '', $quizzeshtml);
 $compshtml   = preg_replace('/[^\x{0000}-\x{FFFF}]/u', '', $compshtml);
@@ -271,7 +276,7 @@ $matrixhtml  = preg_replace('/[^\x{0000}-\x{FFFF}]/u', '', $matrixhtml);
 $comment     = preg_replace('/[^\x{0000}-\x{FFFF}]/u', '', $comment);
 
 // -------------------------------------------------------------
-// PDF Generation (Landscape)
+// PDF Generation (Landscape).
 $pdf = new TCPDF('L', PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
 $pdf->SetCreator('Moodle');
 $pdf->SetTitle($reporttitle);
@@ -310,7 +315,7 @@ $pdf->Ln(2);
 $pdf->SetFont('freeserif', '', 9);
 $pdf->writeHTML($quizzeshtml, true, false, true, false, '');
 
-// Force new page for the heavy grid sections
+// Force new page for the heavy grid sections.
 $pdf->AddPage();
 
 // Section 3: Competencies Achievements.
@@ -328,7 +333,7 @@ $pdf->Ln(2);
 $pdf->SetFont('freeserif', '', 9);
 $pdf->writeHTML($matrixhtml, true, false, true, false, '');
 
-// Section 5: AI Commentary
+// Section 5: AI Commentary.
 if (!empty($comment)) {
     $pdf->AddPage();
     $pdf->SetFont('freeserif', 'B', 13);
@@ -340,7 +345,7 @@ if (!empty($comment)) {
     $pdf->writeHTML($comment, true, false, true, false, '');
 }
 
-// Final output
+// Final output.
 $reportfilename = "Course_Master_Report_" . clean_filename($course->shortname);
 $filename = $reportfilename . ".pdf";
 

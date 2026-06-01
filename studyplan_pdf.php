@@ -52,7 +52,7 @@ if ($userid != $USER->id) {
 
 // 3. Check AI is enabled.
 if (!get_config('local_competency_report', 'enable_ai')) {
-    print_error('ai_not_configured', 'local_competency_report');
+    throw new moodle_exception('ai_not_configured', 'local_competency_report');
 }
 
 // 4. Fetch competency data.
@@ -76,7 +76,7 @@ $sql = "SELECT c.id, c.shortname, c.description,
 $rows = $DB->get_records_sql($sql, ['courseid' => $courseid, 'userid' => $userid]);
 
 if (empty($rows)) {
-    print_error('nodatafound', 'local_competency_report');
+    throw new moodle_exception('nodatafound', 'local_competency_report');
 }
 
 // 5. Separate weak vs strong.
@@ -97,16 +97,14 @@ $studentname = fullname($student);
 $course      = $DB->get_record('course', ['id' => $courseid], 'fullname');
 
 // 6. Build session-based prompt (identical to ajax_studyplan.php).
-$prompt = "You are an expert educational psychologist and pedagogical coach.
-Create a highly structured, actionable, personalized remedial study plan for the student \"{$studentname}\" enrolled in the course \"{$course->fullname}\".
-
-PLAN PARAMETERS:
-- Total sessions available: {$sessions} sessions
-- Duration per session: 1 hour (60 minutes)
-- Each session is an independent 1-hour block to be scheduled by the teacher/student
-
-STUDENT PERFORMANCE DATA:
-";
+$prompt = "You are an expert educational psychologist and pedagogical coach.\n"
+    . "Create a highly structured, actionable, personalized remedial study plan for the student "
+    . "\"{$studentname}\" enrolled in the course \"{$course->fullname}\".\n\n"
+    . "PLAN PARAMETERS:\n"
+    . "- Total sessions available: {$sessions} sessions\n"
+    . "- Duration per session: 1 hour (60 minutes)\n"
+    . "- Each session is an independent 1-hour block to be scheduled by the teacher/student\n\n"
+    . "STUDENT PERFORMANCE DATA:\n";
 
 if (!empty($weak)) {
     $prompt .= "\nCOMPETENCIES NEEDING INTENSIVE REMEDIATION (below 60% mastery):\n";
@@ -172,7 +170,7 @@ $pdf->SetAutoPageBreak(true, 15);
 $pdf->AddPage();
 $pdf->SetFont('freeserif', '', 12);
 
-// --- Branded Header ---
+// Branded Header.
 $pdf->SetFillColor(0, 90, 160);
 $pdf->Rect(0, 0, 210, 22, 'F');
 $pdf->SetTextColor(255, 255, 255);
@@ -182,7 +180,7 @@ $pdf->Cell(0, 12, get_string('studyplan_pdf_title', 'local_competency_report'), 
 $pdf->SetTextColor(0, 0, 0);
 $pdf->Ln(8);
 
-// --- Student / Course Info Block ---
+// Student and Course info block.
 $pdf->SetFillColor(240, 248, 255);
 $pdf->SetFont('freeserif', 'B', 12);
 $pdf->Cell(0, 8, $studentname, 0, 1, 'C', false);
@@ -206,11 +204,12 @@ $pdf->SetLineWidth(0.6);
 $pdf->Line(10, $pdf->GetY(), 200, $pdf->GetY());
 $pdf->Ln(5);
 
-// --- Weak Competency Summary Table ---
+// Weak Competency Summary Table.
 if (!empty($weak)) {
     $pdf->SetFont('freeserif', 'B', 10);
     $pdf->SetFillColor(220, 235, 255);
-    $pdf->Cell(0, 8, '(!)  ' . ($language === 'Arabic' ? 'الكفايات التي تحتاج علاجاً' : 'Competencies Requiring Remediation'), 1, 1, 'L', true);
+    $title = '(!)  ' . ($language === 'Arabic' ? 'الكفايات التي تحتاج علاجاً' : 'Competencies Requiring Remediation');
+    $pdf->Cell(0, 8, $title, 1, 1, 'L', true);
 
     $pdf->SetFont('freeserif', 'B', 9);
     $pdf->SetFillColor(200, 218, 255);
@@ -250,7 +249,7 @@ if (!empty($weak)) {
     $pdf->Ln(5);
 }
 
-// --- AI Study Plan Content ---
+// AI Study Plan Content.
 $pdf->SetFillColor(235, 255, 240);
 $pdf->SetFont('freeserif', 'B', 11);
 $pdf->Cell(0, 9, '[*] ' . get_string('studyplan_pdf_title', 'local_competency_report'), 1, 1, 'L', true);
@@ -258,7 +257,7 @@ $pdf->Ln(2);
 $pdf->SetFont('freeserif', '', 10);
 $pdf->writeHTML($planhtml, true, false, true, false, $isrtl ? 'R' : '');
 
-// --- Footer ---
+// Footer.
 $pdf->Ln(8);
 $pdf->SetDrawColor(180, 180, 180);
 $pdf->SetLineWidth(0.3);
