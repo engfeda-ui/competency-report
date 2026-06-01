@@ -77,6 +77,7 @@ class group_quiz_competency_page implements renderable, templatable {
         $export->courseid = $this->courseid;
         $export->groupid = $this->groupid;
         $export->quizid = $this->quizid;
+        $export->context_type = 'quiz';
         $export->has_data = ($this->groupid > 0 && $this->quizid > 0);
 
         $export->groups = !empty($this->data->groups) ? array_values((array)$this->data->groups) : [];

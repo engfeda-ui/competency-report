@@ -1,0 +1,315 @@
+{{!
+    Unified Course Master Report Page Template
+}}
+<style>
+.master-stat-card {
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    border: none !important;
+}
+.master-stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important;
+}
+.matrix-cell-green {
+    background-color: #e6ffec !important;
+    color: #155724 !important;
+    font-weight: bold;
+}
+.matrix-cell-blue {
+    background-color: #e6f2ff !important;
+    color: #004085 !important;
+    font-weight: bold;
+}
+.matrix-cell-orange {
+    background-color: #fff9e6 !important;
+    color: #856404 !important;
+    font-weight: bold;
+}
+.matrix-cell-red {
+    background-color: #ffe6e6 !important;
+    color: #721c24 !important;
+    font-weight: bold;
+}
+.matrix-cell-muted {
+    background-color: #f8f9fa !important;
+    color: #6c757d !important;
+}
+</style>
+
+<div class="local_competency_report_master_report container-fluid py-4">
+    <!-- Banner Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center bg-white p-4 mb-4 rounded shadow-sm" style="border-left: 6px solid #17a2b8;">
+        <div>
+            <h2 class="font-weight-bold text-dark mb-1">
+                <i class="fa fa-university text-info mr-2"></i> {{#str}}coursemasterreport, local_competency_report{{/str}}
+            </h2>
+            <p class="text-muted mb-0 leading-relaxed">
+                {{#str}}coursemasterreport_desc, local_competency_report{{/str}}
+            </p>
+        </div>
+        <div class="mt-3 mt-md-0">
+            <button id="btn-export-master-pdf-top" class="btn btn-outline-danger btn-lg font-weight-bold shadow-sm" style="border-radius: 8px;">
+                <i class="fa fa-file-pdf-o mr-2"></i> {{#str}}exportpdf, local_competency_report{{/str}}
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats Cards Row -->
+    <div class="row mb-4">
+        <!-- Students Enrolled -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card master-stat-card shadow-sm bg-white" style="border-left: 5px solid #007bff !important;">
+                <div class="card-body py-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted font-weight-bold text-uppercase small d-block mb-1">{{#str}}allusers, local_competency_report{{/str}}</span>
+                            <h2 class="font-weight-bold text-dark mb-0">{{stats.students}}</h2>
+                        </div>
+                        <div class="bg-primary text-white rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                            <i class="fa fa-users fa-lg"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Groups -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card master-stat-card shadow-sm bg-white" style="border-left: 5px solid #28a745 !important;">
+                <div class="card-body py-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted font-weight-bold text-uppercase small d-block mb-1">{{#str}}selectgroup, local_competency_report{{/str}}</span>
+                            <h2 class="font-weight-bold text-dark mb-0">{{stats.groups}}</h2>
+                        </div>
+                        <div class="bg-success text-white rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                            <i class="fa fa-users fa-lg"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mapped Competencies -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card master-stat-card shadow-sm bg-white" style="border-left: 5px solid #fd7e14 !important;">
+                <div class="card-body py-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted font-weight-bold text-uppercase small d-block mb-1">{{#str}}allcompetencies, local_competency_report{{/str}}</span>
+                            <h2 class="font-weight-bold text-dark mb-0">{{stats.competencies}}</h2>
+                        </div>
+                        <div class="bg-warning text-white rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                            <i class="fa fa-list-alt fa-lg"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Quizzes -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card master-stat-card shadow-sm bg-white" style="border-left: 5px solid #17a2b8 !important;">
+                <div class="card-body py-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted font-weight-bold text-uppercase small d-block mb-1">{{#str}}searchquiz, local_competency_report{{/str}}</span>
+                            <h2 class="font-weight-bold text-dark mb-0">{{stats.quizzes}}</h2>
+                        </div>
+                        <div class="bg-info text-white rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                            <i class="fa fa-pencil-square-o fa-lg"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Tables Row -->
+    <div class="row">
+        <!-- Left: Exams & General Grades Table -->
+        <div class="col-lg-6 col-md-12 mb-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 border-bottom d-flex align-items-center">
+                    <h5 class="mb-0 font-weight-bold text-dark">
+                        <i class="fa fa-bar-chart text-primary mr-2"></i> {{#str}}exam_grades_summary, local_competency_report{{/str}}
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped mb-0">
+                            <thead>
+                                <tr bgcolor="#f8f9fa">
+                                    <th>{{#str}}searchquiz, local_competency_report{{/str}}</th>
+                                    <th class="text-center">{{#str}}questioncount, local_competency_report{{/str}}</th>
+                                    <th class="text-center">{{#str}}correctcount, local_competency_report{{/str}}</th>
+                                    <th class="text-center">{{#str}}successrate, local_competency_report{{/str}}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{#quizzes}}
+                                    <tr>
+                                        <td><b>{{name}}</b></td>
+                                        <td class="text-center">{{attempts}}</td>
+                                        <td class="text-center">{{score}}</td>
+                                        <td class="text-center">
+                                            {{#rate}}
+                                                <span class="badge badge-pill font-weight-bold py-2 px-3 badge-{{color}}" style="font-size: 0.9rem; min-width: 70px;">
+                                                    %{{rate}}
+                                                </span>
+                                            {{/rate}}
+                                            {{^rate}}
+                                                <span class="text-muted font-weight-bold">-</span>
+                                            {{/rate}}
+                                        </td>
+                                    </tr>
+                                {{/quizzes}}
+                                {{^quizzes}}
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted py-4">{{#str}}nodatafound, local_competency_report{{/str}}</td>
+                                    </tr>
+                                {{/quizzes}}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Course-Wide Competency Summary Table -->
+        <div class="col-lg-6 col-md-12 mb-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 border-bottom d-flex align-items-center">
+                    <h5 class="mb-0 font-weight-bold text-dark">
+                        <i class="fa fa-check-circle text-success mr-2"></i> {{#str}}summaryreport, local_competency_report{{/str}}
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped mb-0">
+                            <thead>
+                                <tr bgcolor="#f8f9fa">
+                                    <th>{{#str}}competencyname, local_competency_report{{/str}}</th>
+                                    <th class="text-center">{{#str}}questioncount, local_competency_report{{/str}}</th>
+                                    <th class="text-center">{{#str}}correctcount, local_competency_report{{/str}}</th>
+                                    <th class="text-center">{{#str}}successrate, local_competency_report{{/str}}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{#competencies}}
+                                    <tr>
+                                        <td><b>{{shortname}}</b></td>
+                                        <td class="text-center">{{attempts}}</td>
+                                        <td class="text-center">{{correct}}</td>
+                                        <td class="text-center">
+                                            {{#rate}}
+                                                <span class="badge badge-pill font-weight-bold py-2 px-3 badge-{{color}}" style="font-size: 0.9rem; min-width: 70px;">
+                                                    %{{rate}}
+                                                </span>
+                                            {{/rate}}
+                                            {{^rate}}
+                                                <span class="text-muted font-weight-bold">-</span>
+                                            {{/rate}}
+                                        </td>
+                                    </tr>
+                                {{/competencies}}
+                                {{^competencies}}
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted py-4">{{#str}}nocompetencies, local_competency_report{{/str}}</td>
+                                    </tr>
+                                {{/competencies}}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Matrix Row: Group Competency Comparison Grid -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 border-bottom d-flex align-items-center">
+                    <h5 class="mb-0 font-weight-bold text-dark">
+                        <i class="fa fa-th-large text-warning mr-2"></i> {{#str}}group_comparison_grid, local_competency_report{{/str}}
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped mb-0">
+                            <thead>
+                                <tr bgcolor="#f8f9fa">
+                                    <th>{{#str}}selectgroup, local_competency_report{{/str}}</th>
+                                    {{#matrix_headers}}
+                                        <th class="text-center" style="font-size: 0.85rem; max-width: 150px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;" title="{{shortname}}">
+                                            {{shortname}}
+                                        </th>
+                                    {{/matrix_headers}}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{#matrix_rows}}
+                                    <tr>
+                                        <td><b>{{groupname}}</b></td>
+                                        {{#scores}}
+                                            <td class="text-center matrix-cell-{{color}}" style="vertical-align: middle;">
+                                                {{#rate}}%{{rate}}{{/rate}}
+                                                {{^rate}}-{{/rate}}
+                                            </td>
+                                        {{/scores}}
+                                    </tr>
+                                {{/matrix_rows}}
+                                {{^matrix_rows}}
+                                    <tr>
+                                        <td colspan="{{#matrix_headers}}2{{/matrix_headers}}{{^matrix_headers}}1{{/matrix_headers}}" class="text-center text-muted py-4">No groups or competencies mapped.</td>
+                                    </tr>
+                                {{/matrix_rows}}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Commentary widget row -->
+    {{> local_competency_report/ai_commentary_widget }}
+</div>
+
+{{#js}}
+require(['jquery'], function($) {
+    $('#btn-export-master-pdf-top').on('click', function(e) {
+        e.preventDefault();
+        var editedHtml = '';
+        var aiContent = $('.ai-content-html');
+        if (aiContent.length && aiContent.html().trim() !== '') {
+            editedHtml = aiContent.html();
+        }
+        
+        var form = $('<form>', {
+            action: M.cfg.wwwroot + '/local/competency_report/course_master_report_pdf.php',
+            method: 'POST',
+            target: '_blank'
+        });
+
+        var params = {
+            courseid: "{{courseid}}",
+            pdf_content: editedHtml
+        };
+
+        $.each(params, function(key, val) {
+            form.append($('<input>', {
+                type: 'hidden',
+                name: key,
+                value: val
+            }));
+        });
+
+        $('body').append(form);
+        form.submit();
+        form.remove();
+    });
+});
+{{/js}}

@@ -41,7 +41,17 @@
     }
 }}
 <div class="local_competency_report_group_report">
-    <form method="get" class="mb-3 d-flex align-items-center">
+    <!-- Consolidated Tab Navigation -->
+    <ul class="nav nav-tabs mb-4">
+        <li class="nav-item">
+            <a class="nav-link active font-weight-bold" href="#"><i class="fa fa-list-alt mr-1"></i> {{#str}}tab_by_competency, local_competency_report{{/str}}</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link font-weight-bold text-muted" href="group_quiz_competency.php?courseid={{courseid}}"><i class="fa fa-pencil-square-o mr-1"></i> {{#str}}tab_by_quiz, local_competency_report{{/str}}</a>
+        </li>
+    </ul>
+
+    <form method="get" class="mb-3 d-flex align-items-center flex-wrap">
         <input type="hidden" name="courseid" value="{{courseid}}">
         <select name="groupid" class="custom-select w-auto mr-2">
             <option value="0">{{#str}}selectgroup, local_competency_report{{/str}}</option>
@@ -49,7 +59,14 @@
                 <option value="{{id}}" {{#selected}}selected{{/selected}}>{{name}}</option>
             {{/groups}}
         </select>
-        <button type="submit" class="btn btn-primary">{{#str}}show, local_competency_report{{/str}}</button>
+        <button type="submit" class="btn btn-primary mr-2">{{#str}}show, local_competency_report{{/str}}</button>
+        {{#has_group}}
+            {{#competencies.0}}
+                <button id="btn-export-group-pdf-top" class="btn btn-outline-danger font-weight-bold shadow-sm">
+                    <i class="fa fa-file-pdf-o mr-1"></i> {{#str}}exportpdf, local_competency_report{{/str}}
+                </button>
+            {{/competencies.0}}
+        {{/has_group}}
     </form>
 
     {{#has_group}}
@@ -96,3 +113,40 @@
         {{> local_competency_report/ai_commentary_widget }}
     {{/has_group}}
 </div>
+
+{{#js}}
+require(['jquery'], function($) {
+    $('#btn-export-group-pdf-top').on('click', function(e) {
+        e.preventDefault();
+        var editedHtml = '';
+        var aiContent = $('.ai-content-html');
+        if (aiContent.length && aiContent.html().trim() !== '') {
+            editedHtml = aiContent.html();
+        }
+        
+        var form = $('<form>', {
+            action: M.cfg.wwwroot + '/local/competency_report/group_competency_pdf.php',
+            method: 'POST',
+            target: '_blank'
+        });
+
+        var params = {
+            courseid: "{{courseid}}",
+            groupid: "{{groupid}}",
+            pdf_content: editedHtml
+        };
+
+        $.each(params, function(key, val) {
+            form.append($('<input>', {
+                type: 'hidden',
+                name: key,
+                value: val
+            }));
+        });
+
+        $('body').append(form);
+        form.submit();
+        form.remove();
+    });
+});
+{{/js}}

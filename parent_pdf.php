@@ -51,7 +51,7 @@ $stats = [];
 
 if ($focustype === 'grades') {
     // 1. Fetch General Grades data.
-    $sql = "SELECT q.id, q.name, qa.grade, q.grade as maxgrade
+    $sql = "SELECT q.id, q.name, qa.sumgrades as grade, q.sumgrades as maxgrade
             FROM {quiz_attempts} qa
             JOIN {quiz} q ON q.id = qa.quiz
             WHERE q.course = :courseid AND qa.userid = :userid AND qa.state = 'finished'";

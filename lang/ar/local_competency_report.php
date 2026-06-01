@@ -206,3 +206,13 @@ $string['alert_body']           = 'عزيزي المعلم،
 
 تم إرسال هذا الإشعار تلقائياً عند تسليم الاختبار.';
 $string['messageprovider:studentatrisk'] = 'تنبيه كفايات الطالب في خطر';
+$string['coursemasterreport'] = 'تقرير المقرر الشامل والموحد';
+$string['coursemasterreport_desc'] = 'تقرير إداري متكامل يجمع إحصائيات المقرر العامة، درجات الاختبارات، إنجاز الكفاءات، ومقارنة المجموعات.';
+$string['group_comparison_grid'] = 'شبكة مقارنة كفايات المجموعات';
+$string['exam_grades_summary'] = 'ملخص الدرجات العامة والاختبارات';
+$string['course_stats'] = 'الإحصائيات العامة للمقرر';
+$string['studentdashboard'] = 'لوحة تحكم أداء الطلاب';
+$string['groupperformance'] = 'تحليل أداء المجموعات';
+$string['tab_by_competency'] = 'حسب الكفايات العامة';
+$string['tab_by_quiz'] = 'حسب كفايات الاختبارات';
+

@@ -199,9 +199,16 @@ require(['jquery'], function($) {
     $('#btn-export-pdf-' + context).on('click', function(e) {
         e.preventDefault();
         var editedHtml = contentHtml.html();
-        var targetUrl = (context === 'student') 
-            ? M.cfg.wwwroot + '/local/competency_report/parent_pdf.php' 
-            : M.cfg.wwwroot + '/local/competency_report/school_pdf.php';
+        var targetUrl = M.cfg.wwwroot + '/local/competency_report/school_pdf.php';
+        if (context === 'student') {
+            targetUrl = M.cfg.wwwroot + '/local/competency_report/parent_pdf.php';
+        } else if (context === 'group') {
+            targetUrl = M.cfg.wwwroot + '/local/competency_report/group_competency_pdf.php';
+        } else if (context === 'quiz') {
+            targetUrl = M.cfg.wwwroot + '/local/competency_report/group_quiz_competency_pdf.php';
+        } else if (context === 'course_master') {
+            targetUrl = M.cfg.wwwroot + '/local/competency_report/course_master_report_pdf.php';
+        }
 
         var form = $('<form>', {
             action: targetUrl,
@@ -219,6 +226,9 @@ require(['jquery'], function($) {
             params.userid = "{{userid}}";
         } else if (context === 'group') {
             params.groupid = "{{groupid}}";
+        } else if (context === 'quiz') {
+            params.groupid = "{{groupid}}";
+            params.quizid = "{{quizid}}";
         }
 
         $.each(params, function(key, val) {

@@ -31,6 +31,24 @@
     }
 }}
 <div class="local_competency_report_student_report">
+    <!-- Consolidated Student Tab Navigation -->
+    <ul class="nav nav-tabs mb-4">
+        <li class="nav-item">
+            <a class="nav-link {{#active_reportcard}}active font-weight-bold{{/active_reportcard}}{{^active_reportcard}}text-muted{{/active_reportcard}}" href="student_report.php?courseid={{courseid}}"><i class="fa fa-vcard-o mr-1"></i> {{#str}}myreportcard, local_competency_report{{/str}}</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{#active_examanalysis}}active font-weight-bold{{/active_examanalysis}}{{^active_examanalysis}}text-muted{{/active_examanalysis}}" href="student_exam.php?courseid={{courseid}}"><i class="fa fa-bar-chart mr-1"></i> {{#str}}myexamanalysis, local_competency_report{{/str}}</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{#active_competencyexams}}active font-weight-bold{{/active_competencyexams}}{{^active_competencyexams}}text-muted{{/active_competencyexams}}" href="student_competency_exams.php?courseid={{courseid}}"><i class="fa fa-list-alt mr-1"></i> {{#str}}mycompetencyexams, local_competency_report{{/str}}</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{#active_competencystate}}active font-weight-bold{{/active_competencystate}}{{^active_competencystate}}text-muted{{/active_competencystate}}" href="student_class.php?courseid={{courseid}}"><i class="fa fa-graduation-cap mr-1"></i> {{#str}}mycompetencystate, local_competency_report{{/str}}</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{#active_timeline}}active font-weight-bold{{/active_timeline}}{{^active_timeline}}text-muted{{/active_timeline}}" href="timeline.php?courseid={{courseid}}"><i class="fa fa-calendar mr-1"></i> {{#str}}timeline, local_competency_report{{/str}}</a>
+        </li>
+    </ul>
     {{#has_data}}
         <!-- Student Premium View Header Banner -->
         <div class="alert alert-info d-flex align-items-center shadow-sm border-0 rounded-lg p-3 mb-4 bg-light text-dark border-left border-info" style="border-left-width: 5px !important;">
@@ -73,9 +91,9 @@
 
         {{! PDF Report Export Button }}
         <div class="mt-4">
-            <a href="{{pdf_url}}" class="btn btn-secondary shadow-sm" target="_blank">
+            <button id="btn-export-student-pdf-top" class="btn btn-secondary shadow-sm">
                 <i class="fa fa-file-pdf-o"></i> {{#str}}pdfmystudent, local_competency_report{{/str}}
-            </a>
+            </button>
         </div>
 
         {{#has_radar}}
@@ -106,7 +124,7 @@
         {{> local_competency_report/ai_commentary_widget }}
 
 {{#js}}
-require(['core/chartjs'], function(Chart) {
+require(['core/chartjs', 'jquery'], function(Chart, $) {
     var rawData = {{{chart_data}}};
     if (!rawData || !rawData.labels || rawData.labels.length < 2) { return; }
 
@@ -163,6 +181,39 @@ require(['core/chartjs'], function(Chart) {
                 }
             }
         }
+    });
+
+    $('#btn-export-student-pdf-top').on('click', function(e) {
+        e.preventDefault();
+        var editedHtml = '';
+        var aiContent = $('.ai-content-html');
+        if (aiContent.length && aiContent.html().trim() !== '') {
+            editedHtml = aiContent.html();
+        }
+        
+        var form = $('<form>', {
+            action: M.cfg.wwwroot + '/local/competency_report/parent_pdf.php',
+            method: 'POST',
+            target: '_blank'
+        });
+
+        var params = {
+            courseid: "{{courseid}}",
+            userid: "{{userid}}",
+            pdf_content: editedHtml
+        };
+
+        $.each(params, function(key, val) {
+            form.append($('<input>', {
+                type: 'hidden',
+                name: key,
+                value: val
+            }));
+        });
+
+        $('body').append(form);
+        form.submit();
+        form.remove();
     });
 });
 {{/js}}

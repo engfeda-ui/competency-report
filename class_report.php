@@ -55,6 +55,7 @@ $mform->set_data(['userid' => $userid, 'competencyid' => $competency]);
 // 2. Data Preparation.
 $renderdata = new stdClass();
 $renderdata->courseid = $courseid;
+$renderdata->userid = $userid;
 $renderdata->rows = [];
 
 // Course General SQL.

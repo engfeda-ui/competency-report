@@ -67,6 +67,7 @@ $coursesql = "SELECT c.id, c.shortname,
 $coursedata = $DB->get_records_sql($coursesql, ['courseid' => $courseid]);
 
 $renderdata = new stdClass();
+$renderdata->courseid = $courseid;
 $renderdata->coursedata = $coursedata;
 $renderdata->classdata = [];
 $renderdata->studentdata = [];

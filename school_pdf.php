@@ -71,20 +71,20 @@ $tablehtml = '';
 if ($focustype === 'grades') {
     // GENERAL GRADES MODE.
     if ($groupid) {
-        $sql = "SELECT q.id, q.name, AVG(qa.grade) as avggrade, q.grade as maxgrade, COUNT(qa.id) as attempts
+        $sql = "SELECT q.id, q.name, AVG(qa.sumgrades) as avggrade, q.sumgrades as maxgrade, COUNT(qa.id) as attempts
                 FROM {quiz_attempts} qa
                 JOIN {quiz} q ON q.id = qa.quiz
                 JOIN {groups_members} gm ON gm.userid = qa.userid
                 WHERE q.course = :courseid AND gm.groupid = :groupid AND qa.state = 'finished'
-                GROUP BY q.id, q.name, q.grade
+                GROUP BY q.id, q.name, q.sumgrades
                 ORDER BY q.name ASC";
         $rows = $DB->get_records_sql($sql, ['courseid' => $courseid, 'groupid' => $groupid]);
     } else {
-        $sql = "SELECT q.id, q.name, AVG(qa.grade) as avggrade, q.grade as maxgrade, COUNT(qa.id) as attempts
+        $sql = "SELECT q.id, q.name, AVG(qa.sumgrades) as avggrade, q.sumgrades as maxgrade, COUNT(qa.id) as attempts
                 FROM {quiz_attempts} qa
                 JOIN {quiz} q ON q.id = qa.quiz
                 WHERE q.course = :courseid AND qa.state = 'finished'
-                GROUP BY q.id, q.name, q.grade
+                GROUP BY q.id, q.name, q.sumgrades
                 ORDER BY q.name ASC";
         $rows = $DB->get_records_sql($sql, ['courseid' => $courseid]);
     }
