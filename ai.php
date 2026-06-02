@@ -43,7 +43,8 @@ function local_competency_report_generate_comment(
     // Generate unique cache key for the student grades, custom prompts and focus type.
     $statskeys = $stats;
     ksort($statskeys);
-    $cachekey = md5(json_encode($statskeys) . '_' . $context . '_' . md5($customprompt) . '_' . $focustype);
+    // Updated cache key version suffix to bypass old cached failures.
+    $cachekey = md5(json_encode($statskeys) . '_' . $context . '_' . md5($customprompt) . '_' . $focustype . '_v7');
 
     try {
         $cache = \cache::make('local_competency_report', 'ai_feedback');
@@ -58,10 +59,13 @@ function local_competency_report_generate_comment(
     // Call AI comment function.
     $comment = local_competency_report_ai_comment($stats, $context, $customprompt, $focustype);
 
-    // Save in cache if successful.
+    // Save in cache if successful (not a failure and not unconfigured).
+    $aifailedstr = get_string('ai_failed', 'local_competency_report');
+    $ainotconfigstr = get_string('ai_not_configured', 'local_competency_report');
+    
     if (
-        $comment !== get_string('ai_failed', 'local_competency_report') &&
-        $comment !== get_string('ai_not_configured', 'local_competency_report')
+        strpos($comment, $aifailedstr) === false &&
+        strpos($comment, $ainotconfigstr) === false
     ) {
         try {
             if (isset($cache)) {
@@ -160,12 +164,12 @@ function local_competency_report_ai_comment(array $stats, $context = 'student', 
             . "Follow these rules strictly:\n"
             . "1. Output format: Write directly in HTML. Use clean paragraphs, strong bold headers, "
             . "and bulleted lists.\n"
+            . "   - For each subject/quiz analyzed, you MUST append a progress bar placeholder using this format: `[PROGRESSBAR: Subject Name | Score%]` (e.g. `[PROGRESSBAR: Quiz 1 | 85%]`).\n"
             . "2. Tone: Extremely professional, encouraging, and direct.\n"
-            . "3. Length: Keep it short, concise, and focused. Avoid verbose introduction/conclusion "
-            . "fluff. Maximum 180 words.\n"
+            . "3. Length: Keep it short, concise, and focused. Maximum 200 words.\n"
             . "4. Language: Write in English unless the custom instruction explicitly requests another language.\n"
             . "5. Structure:\n"
-            . "   - <h4><strong>Exam Performance Summary</strong></h4> followed by a very brief summary.\n"
+            . "   - <h4><strong>Exam Performance Summary</strong></h4> followed by a very brief summary and the progress bar placeholders.\n"
             . "   - <h4><strong>Strengths & Progress</strong></h4> followed by bullet points.\n"
             . "   - <h4><strong>Recommendations & Next Steps</strong></h4> followed by bullet points.";
 
@@ -177,12 +181,12 @@ function local_competency_report_ai_comment(array $stats, $context = 'student', 
             . "Follow these rules strictly:\n"
             . "1. Output format: Write directly in HTML. Use clean paragraphs, strong bold headers, "
             . "and bulleted lists.\n"
+            . "   - For each competency analyzed, you MUST append a progress bar placeholder using this format: `[PROGRESSBAR: Competency Name | Score%]` (e.g. `[PROGRESSBAR: Communication | 85%]`).\n"
             . "2. Tone: Extremely professional, encouraging, and direct.\n"
-            . "3. Length: Keep it short, concise, and focused. Avoid verbose introduction/conclusion "
-            . "fluff. Maximum 180 words.\n"
+            . "3. Length: Keep it short, concise, and focused. Maximum 200 words.\n"
             . "4. Language: Write in English unless the custom instruction explicitly requests another language.\n"
             . "5. structure:\n"
-            . "   - <h4><strong>Performance Overview</strong></h4> followed by a very brief summary.\n"
+            . "   - <h4><strong>Performance Overview</strong></h4> followed by a very brief summary and the progress bar placeholders.\n"
             . "   - <h4><strong>Key Strengths</strong></h4> followed by bullet points.\n"
             . "   - <h4><strong>Areas for Development & Next Steps</strong></h4> followed by bullet points "
             . "with actionable next steps.";
@@ -214,11 +218,21 @@ function local_competency_report_ai_comment(array $stats, $context = 'student', 
     if (!empty($apikey)) {
         $headers[] = "Authorization: Bearer {$apikey}";
     }
+    $curl->setHeader($headers);
 
     if ($provider === 'local') {
         $endpoint = get_config('local_competency_report', 'local_endpoint');
         if (empty($endpoint)) {
             $endpoint = 'http://localhost:11434/v1';
+        }
+        if (strpos($endpoint, 'localhost') !== false || strpos($endpoint, 'host.docker.internal') !== false) {
+            $ipfile = __DIR__ . '/host_ip.txt';
+            if (file_exists($ipfile) && is_readable($ipfile)) {
+                $dynamicip = trim(file_get_contents($ipfile));
+                if (!empty($dynamicip) && filter_var($dynamicip, FILTER_VALIDATE_IP)) {
+                    $endpoint = str_replace(['localhost', 'host.docker.internal'], $dynamicip, $endpoint);
+                }
+            }
         }
         $endpoint = rtrim($endpoint, '/');
         if (strpos($endpoint, '/chat/completions') === false) {
@@ -243,18 +257,49 @@ function local_competency_report_ai_comment(array $stats, $context = 'student', 
     ]);
 
     $options = [
-        'httpheader' => $headers,
-        'timeout'    => 30,
+        'timeout'    => 120,
+        'ipresolve'  => 1, // Force IPv4 to bypass Docker Desktop IPv6 404 proxy issues on Windows.
     ];
 
+    \core_php_time_limit::raise(120);
     $response = $curl->post($endpoint, $postdata, $options);
+
+    // Diagnose connection-level failures first.
+    $curlinfo = $curl->get_info();
+    $httpcode = isset($curlinfo['http_code']) ? (int)$curlinfo['http_code'] : 0;
+    $curlerror = $curl->get_errno() ? $curl->error : '';
+
+    if ($httpcode === 0 || !empty($curlerror)) {
+        $detail = !empty($curlerror) ? $curlerror : 'No response from server';
+        debugging("[local_competency_report] AI cURL error: {$detail} (endpoint: {$endpoint})", DEBUG_DEVELOPER);
+        return get_string('ai_failed', 'local_competency_report')
+            . ' <small class="text-muted">(Connection error: ' . s($detail) . ' | Endpoint: ' . s($endpoint) . ')</small>';
+    }
+
     $data = json_decode($response, true);
 
     if (json_last_error() === JSON_ERROR_NONE && !empty($data['choices'][0]['message']['content'])) {
-        return $data['choices'][0]['message']['content'];
+        $content = $data['choices'][0]['message']['content'];
+        @file_put_contents(__DIR__ . '/ai_raw_response.txt', $content);
+        return local_competency_report_parse_progress_bars($content);
     }
 
-    return get_string('ai_failed', 'local_competency_report');
+    // Build a human-readable diagnostic from the API error response.
+    $errormsg = '';
+    if (is_array($data) && !empty($data['error']['message'])) {
+        $errormsg = $data['error']['message'];
+    } else if (is_array($data) && !empty($data['error'])) {
+        $errormsg = is_string($data['error']) ? $data['error'] : json_encode($data['error']);
+    } else if (!is_array($data)) {
+        $errormsg = 'Invalid JSON response from AI provider';
+    } else {
+        $errormsg = 'Empty or unexpected response structure';
+    }
+
+    debugging("[local_competency_report] AI HTTP {$httpcode}: {$errormsg} (endpoint: {$endpoint})", DEBUG_DEVELOPER);
+
+    return get_string('ai_failed', 'local_competency_report')
+        . ' <small class="text-muted">(HTTP ' . $httpcode . ': ' . s($errormsg) . ' | Endpoint: ' . s($endpoint) . ')</small>';
 }
 
 /**
@@ -285,9 +330,20 @@ function local_competency_report_generate_study_plan($fullprompt) {
     if (!empty($apikey)) {
         $headers[] = "Authorization: Bearer {$apikey}";
     }
+    $curl->setHeader($headers);
 
     if ($provider === 'local') {
-        $endpoint = rtrim(get_config('local_competency_report', 'local_endpoint') ?: 'http://localhost:11434/v1', '/');
+        $endpoint = get_config('local_competency_report', 'local_endpoint') ?: 'http://localhost:11434/v1';
+        if (strpos($endpoint, 'localhost') !== false || strpos($endpoint, 'host.docker.internal') !== false) {
+            $ipfile = __DIR__ . '/host_ip.txt';
+            if (file_exists($ipfile) && is_readable($ipfile)) {
+                $dynamicip = trim(file_get_contents($ipfile));
+                if (!empty($dynamicip) && filter_var($dynamicip, FILTER_VALIDATE_IP)) {
+                    $endpoint = str_replace(['localhost', 'host.docker.internal'], $dynamicip, $endpoint);
+                }
+            }
+        }
+        $endpoint = rtrim($endpoint, '/');
         if (strpos($endpoint, '/chat/completions') === false) {
             $endpoint .= '/chat/completions';
         }
@@ -307,14 +363,48 @@ function local_competency_report_generate_study_plan($fullprompt) {
         ],
     ]);
 
-    $response = $curl->post($endpoint, $postdata, ['httpheader' => $headers, 'timeout' => 60]);
+    \core_php_time_limit::raise(180);
+    $response = $curl->post($endpoint, $postdata, [
+        'timeout'   => 180,
+        'ipresolve' => 1, // Force IPv4 to bypass Docker Desktop IPv6 404 proxy issues on Windows.
+    ]);
+
+    // Diagnose connection-level failures first.
+    $curlinfo = $curl->get_info();
+    $httpcode = isset($curlinfo['http_code']) ? (int)$curlinfo['http_code'] : 0;
+    $curlerror = $curl->get_errno() ? $curl->error : '';
+
+    if ($httpcode === 0 || !empty($curlerror)) {
+        $detail = !empty($curlerror) ? $curlerror : 'No response from server';
+        debugging("[local_competency_report] Study plan cURL error: {$detail}", DEBUG_DEVELOPER);
+        return get_string('ai_failed', 'local_competency_report')
+            . ' <small class="text-muted">(Connection error: ' . s($detail) . ')</small>';
+    }
+
     $data = json_decode($response, true);
 
     if (json_last_error() === JSON_ERROR_NONE && !empty($data['choices'][0]['message']['content'])) {
-        return $data['choices'][0]['message']['content'];
+        $content = $data['choices'][0]['message']['content'];
+        @file_put_contents(__DIR__ . '/studyplan_raw_response.txt', $content);
+        return local_competency_report_parse_progress_bars($content);
     }
 
-    return get_string('ai_failed', 'local_competency_report');
+    // Build a human-readable diagnostic from the API error response.
+    $errormsg = '';
+    if (is_array($data) && !empty($data['error']['message'])) {
+        $errormsg = $data['error']['message'];
+    } else if (is_array($data) && !empty($data['error'])) {
+        $errormsg = is_string($data['error']) ? $data['error'] : json_encode($data['error']);
+    } else if (!is_array($data)) {
+        $errormsg = 'Invalid JSON response from AI provider';
+    } else {
+        $errormsg = 'Empty or unexpected response structure';
+    }
+
+    debugging("[local_competency_report] Study plan HTTP {$httpcode}: {$errormsg}", DEBUG_DEVELOPER);
+
+    return get_string('ai_failed', 'local_competency_report')
+        . ' <small class="text-muted">(HTTP ' . $httpcode . ': ' . s($errormsg) . ')</small>';
 }
 
 
@@ -432,3 +522,56 @@ function local_competency_report_markdown_to_html_table($html) {
 
     return implode("\n", $newlines);
 }
+
+/**
+ * Replaces [PROGRESSBAR: Name | Percent] placeholders in the AI response
+ * with beautifully styled HTML progress tables.
+ *
+ * @param string $html
+ * @return string
+ */
+function local_competency_report_parse_progress_bars($html) {
+    // Regex matches [PROGRESSBAR: Name | Percent%] or [PROGRESSBAR: Name | Percent] including floats
+    $pattern = '/\[PROGRESSBAR:\s*([^|\]]+)\s*\|\s*(\d+(?:\.\d+)?)%?\s*\]/i';
+
+    return preg_replace_callback($pattern, function($matches) {
+        $name = trim($matches[1]);
+        $percent = (float)$matches[2];
+        if ($percent < 0) {
+            $percent = 0.0;
+        }
+        if ($percent > 100) {
+            $percent = 100.0;
+        }
+        $width_percent = (int)round($percent);
+        $remaining = 100 - $width_percent;
+
+        // Color coding
+        if ($percent >= 80.0) {
+            $color = '#28a745'; // Green
+        } else if ($percent >= 60.0) {
+            $color = '#007bff'; // Blue
+        } else if ($percent >= 40.0) {
+            $color = '#ffc107'; // Yellow/Orange
+        } else {
+            $color = '#dc3545'; // Red
+        }
+
+        $output = '<div class="ai-progress-item" style="margin-top: 5px; margin-bottom: 8px;">';
+        $output .= '<strong>' . s($name) . ' (' . $percent . '%)</strong>';
+        $output .= '<table border="0" cellspacing="0" cellpadding="0" width="150" height="8" style="border: 1px solid #dee2e6; margin-top: 2px;">';
+        $output .= '<tr>';
+        if ($width_percent > 0) {
+            $output .= '<td bgcolor="' . $color . '" width="' . $width_percent . '%">&nbsp;</td>';
+        }
+        if ($remaining > 0) {
+            $output .= '<td bgcolor="#e9ecef" width="' . $remaining . '%">&nbsp;</td>';
+        }
+        $output .= '</tr>';
+        $output .= '</table>';
+        $output .= '</div>';
+
+        return $output;
+    }, $html);
+}
+
