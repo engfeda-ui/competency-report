@@ -14,17 +14,21 @@ A professional Moodle reporting engine that calculates and visualises student co
 
 - **Automated Performance Analysis:** Evaluates student responses to competency-linked quiz questions across all attempts.
 - **Skill-Based Progress Tracking:** Computes exact competency mastery percentages dynamically per student, class, and course.
-- **AI-Powered Feedback Engine (Optional):** Generates personalised pedagogical comments via OpenAI (or compatible API). Falls back to rule-based colour-coded comments when AI is disabled.
-- **Configurable Success Threshold (NEW in v3.0.8):** A global `success_threshold` setting (default 60%) is now exposed in the admin settings page. This value is used by colour-coding, `quizaccess_failgrade` competency mode, and the background evidence task.
+- **AI-Powered Feedback Engine:** Generates personalised pedagogical comments via OpenAI or local LLM providers (e.g., Ollama, vLLM). Falls back to rule-based colour-coded comments when AI is disabled.
+- **AI Personalized Study Plan (NEW in v3.2.0):** Generates structured remedial study schedules (with session count and language options like English/Arabic) and exports to PDF.
+- **Radar Gap Analysis Chart (NEW in v3.2.0):** Visualizes the gap between the student's mastery profile and the class average to easily identify areas for development.
+- **Automated At-Risk Alerts (NEW in v3.2.0):** Real-time monitoring of quiz submissions. Automatically notifies course teachers via Moodle's Message API when a student falls below the `alert_threshold` in 2 or more competencies.
+- **Unified Course Master Report:** A comprehensive course-wide analytics dashboard for teachers aggregating overall statistics, exam grade summaries, group comparisons, and competency grids.
+- **Configurable Success Threshold:** A global `success_threshold` setting (default 60%) is used for color-coding, `quizaccess_failgrade` competency mode, and the background evidence task.
 - **Multiple Report Views:**
-  - Student report card, exam analysis, competency state, timeline
-  - Teacher class report, student comparison, exam analysis
-  - Group competency and group quiz competency analysis
-  - School-wide report and PDF export
-- **Background Evidence Processing:** An adhoc task calculates competency success rates and writes them as Moodle competency evidence — now scoped to enrolled course students only (performance improvement).
+  - Student report card, exam analysis, competency state, timeline, and radar gap chart.
+  - Teacher class report (Student Performance Dashboard), student comparison, exam analysis, and Unified Course Master Report.
+  - Group competency and group quiz competency analysis.
+  - School-wide report and PDF export.
+- **Background Evidence Processing:** An adhoc task calculates competency success rates and writes them as Moodle competency evidence, scoped to enrolled course students only for improved performance.
 - **Enterprise PDF Exports:** Students and educators can download structured PDF reports.
 - **Responsive Web UI:** Built with Mustache templates, Bootstrap, and Chart.js.
-- **Localization Support:** English and Arabic language packs included (with RTL support).
+- **Localization Support:** Full English and Arabic language packs included (with RTL support).
 
 ---
 
@@ -59,11 +63,15 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 
 | Setting | Description | Default |
 | :--- | :--- | :--- |
-| **Enable AI integration** | Toggle AI-powered feedback on/off | Off |
+| **Enable AI integration** | Toggle AI-powered feedback and study plans on/off | Off |
+| **AI Provider** | Choose between OpenAI Cloud API or a Local LLM (OpenAI-compatible) | `openai` |
+| **Local LLM Endpoint URL**| Endpoint URL of your locally running LLM server (e.g. `http://localhost:11434/v1`) | `http://localhost:11434/v1` |
 | **API Key** | OpenAI (or compatible) API key | — |
-| **Model** | Model name (e.g., `gpt-4`, `gpt-4o`) | `gpt-4` |
+| **Model** | Model name (e.g., `gpt-4`, `gpt-4o`, `llama3`) | `gpt-4` |
 | **Maximum rows** | Max rows shown in report tables | 100 |
 | **Success threshold** | Minimum % for competency mastery (used by colour-coding and `quizaccess_failgrade`) | 60 |
+| **Enable At-Risk Student Alerts** | Toggle automated notifications to teachers when a student falls behind | Off |
+| **At-Risk Alert Threshold (%)** | Threshold % below which a competency is marked as weak (triggers alert if ≥ 2 competencies match) | 40 |
 
 ---
 
@@ -72,8 +80,8 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 1. **Map questions to competencies** using `qbank_competency`.
 2. **Deliver quizzes** — students attempt quizzes as normal.
 3. **Access reports:**
-   - **Teachers:** Course navigation → *Class Report*, *Student Analysis*, *Student Exam Analysis*, *Group Competency Analysis*.
-   - **Students:** Course navigation → *My Competency Reports* → choose from report card, exam analysis, competency state, or timeline.
+   - **Teachers/Admins:** Course navigation → *Unified Course Master Report*, *Student Performance Dashboard* (Class Report), *Group Performance Analysis*.
+   - **Students:** Course navigation → *My Competency Reports* → choose from report card, exam analysis, competency state, timeline, or radar gap analysis.
    - **Admins:** Site administration → Reports → *School General Report* / *School PDF Report*.
 4. **Export PDF:** Click the PDF button on any report page.
 5. **Process evidence:** Use the *Process Success Rates* page (admin only) to queue a background task that writes competency evidence for all enrolled students.
