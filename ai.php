@@ -62,7 +62,7 @@ function local_competency_report_generate_comment(
     // Save in cache if successful (not a failure and not unconfigured).
     $aifailedstr = get_string('ai_failed', 'local_competency_report');
     $ainotconfigstr = get_string('ai_not_configured', 'local_competency_report');
-    
+
     if (
         strpos($comment, $aifailedstr) === false &&
         strpos($comment, $ainotconfigstr) === false
@@ -164,12 +164,14 @@ function local_competency_report_ai_comment(array $stats, $context = 'student', 
             . "Follow these rules strictly:\n"
             . "1. Output format: Write directly in HTML. Use clean paragraphs, strong bold headers, "
             . "and bulleted lists.\n"
-            . "   - For each subject/quiz analyzed, you MUST append a progress bar placeholder using this format: `[PROGRESSBAR: Subject Name | Score%]` (e.g. `[PROGRESSBAR: Quiz 1 | 85%]`).\n"
+            . "   - For each subject/quiz analyzed, you MUST append a progress bar placeholder using this format: "
+            . "'[PROGRESSBAR: Subject Name | Score%]' (e.g. '[PROGRESSBAR: Quiz 1 | 85%]').\n"
             . "2. Tone: Extremely professional, encouraging, and direct.\n"
             . "3. Length: Keep it short, concise, and focused. Maximum 200 words.\n"
             . "4. Language: Write in English unless the custom instruction explicitly requests another language.\n"
             . "5. Structure:\n"
-            . "   - <h4><strong>Exam Performance Summary</strong></h4> followed by a very brief summary and the progress bar placeholders.\n"
+            . "   - <h4><strong>Exam Performance Summary</strong></h4> followed by a "
+            . "very brief summary and the progress bar placeholders.\n"
             . "   - <h4><strong>Strengths & Progress</strong></h4> followed by bullet points.\n"
             . "   - <h4><strong>Recommendations & Next Steps</strong></h4> followed by bullet points.";
 
@@ -181,12 +183,14 @@ function local_competency_report_ai_comment(array $stats, $context = 'student', 
             . "Follow these rules strictly:\n"
             . "1. Output format: Write directly in HTML. Use clean paragraphs, strong bold headers, "
             . "and bulleted lists.\n"
-            . "   - For each competency analyzed, you MUST append a progress bar placeholder using this format: `[PROGRESSBAR: Competency Name | Score%]` (e.g. `[PROGRESSBAR: Communication | 85%]`).\n"
+            . "   - For each competency analyzed, you MUST append a progress bar placeholder using this format: "
+            . "'[PROGRESSBAR: Competency Name | Score%]' (e.g. '[PROGRESSBAR: Communication | 85%]').\n"
             . "2. Tone: Extremely professional, encouraging, and direct.\n"
             . "3. Length: Keep it short, concise, and focused. Maximum 200 words.\n"
             . "4. Language: Write in English unless the custom instruction explicitly requests another language.\n"
             . "5. structure:\n"
-            . "   - <h4><strong>Performance Overview</strong></h4> followed by a very brief summary and the progress bar placeholders.\n"
+            . "   - <h4><strong>Performance Overview</strong></h4> followed by a "
+            . "very brief summary and the progress bar placeholders.\n"
             . "   - <h4><strong>Key Strengths</strong></h4> followed by bullet points.\n"
             . "   - <h4><strong>Areas for Development & Next Steps</strong></h4> followed by bullet points "
             . "with actionable next steps.";
@@ -531,10 +535,10 @@ function local_competency_report_markdown_to_html_table($html) {
  * @return string
  */
 function local_competency_report_parse_progress_bars($html) {
-    // Regex matches [PROGRESSBAR: Name | Percent%] or [PROGRESSBAR: Name | Percent] including floats
+    // Regex matches [PROGRESSBAR: Name | Percent%] or [PROGRESSBAR: Name | Percent] including floats.
     $pattern = '/\[PROGRESSBAR:\s*([^|\]]+)\s*\|\s*(\d+(?:\.\d+)?)%?\s*\]/i';
 
-    return preg_replace_callback($pattern, function($matches) {
+    return preg_replace_callback($pattern, function ($matches) {
         $name = trim($matches[1]);
         $percent = (float)$matches[2];
         if ($percent < 0) {
@@ -543,26 +547,27 @@ function local_competency_report_parse_progress_bars($html) {
         if ($percent > 100) {
             $percent = 100.0;
         }
-        $width_percent = (int)round($percent);
-        $remaining = 100 - $width_percent;
+        $widthpercent = (int)round($percent);
+        $remaining = 100 - $widthpercent;
 
-        // Color coding
+        // Color coding.
         if ($percent >= 80.0) {
-            $color = '#28a745'; // Green
+            $color = '#28a745'; // Green.
         } else if ($percent >= 60.0) {
-            $color = '#007bff'; // Blue
+            $color = '#007bff'; // Blue.
         } else if ($percent >= 40.0) {
-            $color = '#ffc107'; // Yellow/Orange
+            $color = '#ffc107'; // Yellow/Orange.
         } else {
-            $color = '#dc3545'; // Red
+            $color = '#dc3545'; // Red.
         }
 
         $output = '<div class="ai-progress-item" style="margin-top: 5px; margin-bottom: 8px;">';
         $output .= '<strong>' . s($name) . ' (' . $percent . '%)</strong>';
-        $output .= '<table border="0" cellspacing="0" cellpadding="0" width="150" height="8" style="border: 1px solid #dee2e6; margin-top: 2px;">';
+        $output .= '<table border="0" cellspacing="0" cellpadding="0" width="150" height="8" '
+            . 'style="border: 1px solid #dee2e6; margin-top: 2px;">';
         $output .= '<tr>';
-        if ($width_percent > 0) {
-            $output .= '<td bgcolor="' . $color . '" width="' . $width_percent . '%">&nbsp;</td>';
+        if ($widthpercent > 0) {
+            $output .= '<td bgcolor="' . $color . '" width="' . $widthpercent . '%">&nbsp;</td>';
         }
         if ($remaining > 0) {
             $output .= '<td bgcolor="#e9ecef" width="' . $remaining . '%">&nbsp;</td>';
@@ -574,4 +579,3 @@ function local_competency_report_parse_progress_bars($html) {
         return $output;
     }, $html);
 }
-
