@@ -70,13 +70,15 @@ if ($courseid == 0) {
     }
 
     echo $OUTPUT->box_start('generalbox boxaligncenter', 'course-selector-box', [
-        'style' => 'max-width: 600px; margin: 40px auto; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e9ecef; background: #fff;'
+        'style' => 'max-width: 600px; margin: 40px auto; padding: 25px; '
+            . 'border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); '
+            . 'border: 1px solid #e9ecef; background: #fff;',
     ]);
-    
+
     echo html_writer::tag('h3', get_string('select_course_process', 'local_competency_report'), [
-        'class' => 'text-center mb-4 font-weight-bold text-primary'
+        'class' => 'text-center mb-4 font-weight-bold text-primary',
     ]);
-    
+
     $options = [0 => get_string('select_course_option', 'local_competency_report')];
     foreach ($courses as $c) {
         if ($c->id == SITEID) {
@@ -84,28 +86,28 @@ if ($courseid == 0) {
         }
         $options[$c->id] = format_string($c->fullname);
     }
-    
+
     // Output a simple form.
     echo html_writer::start_tag('form', [
         'action' => new moodle_url('/local/competency_report/add_success_to_evidence.php'),
         'method' => 'GET',
-        'class' => 'form-inline justify-content-center'
+        'class' => 'form-inline justify-content-center',
     ]);
-    
+
     echo html_writer::select($options, 'courseid', 0, false, [
         'class' => 'form-control mr-2 shadow-sm',
         'id' => 'select-course-id',
-        'style' => 'min-width: 350px; height: 38px;'
+        'style' => 'min-width: 350px; height: 38px;',
     ]);
-    
+
     echo html_writer::empty_tag('input', [
         'type' => 'submit',
         'value' => get_string('btn_select', 'local_competency_report'),
-        'class' => 'btn btn-primary shadow-sm font-weight-bold'
+        'class' => 'btn btn-primary shadow-sm font-weight-bold',
     ]);
-    
+
     echo html_writer::end_tag('form');
-    
+
     echo $OUTPUT->box_end();
     echo $OUTPUT->footer();
     exit;
