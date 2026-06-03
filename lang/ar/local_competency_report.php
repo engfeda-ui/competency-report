@@ -102,6 +102,11 @@ $string['process_queued'] = 'مهمة حساب نسب النجاح أُضيفت 
 $string['process_success_desc'] = 'تحسب هذه العملية نسب نجاح الطلاب في أسئلة الاختبار وتضيفها كأدلة للكفايات.';
 $string['process_success_heading'] = 'نقل نسب النجاح إلى الأدلة';
 $string['process_success_title'] = 'معالجة نسب النجاح في الخلفية';
+$string['manual_process_heading'] = 'مزامنة الكفايات يدوياً';
+$string['manual_process_desc'] = 'رغم أن نسب نجاح الكفايات تتم مزامنتها تلقائياً، يمكنك بدء مزامنة يدوية لأي مقرر دراسي. اضغط <a href="{$a->url}">هنا لاختيار مقرر وتشغيل المزامنة الآن</a>.';
+$string['select_course_process'] = 'اختر المقرر الدراسي لبدء المعالجة';
+$string['select_course_option'] = 'اختر مقرراً دراسياً...';
+$string['btn_select'] = 'اختر';
 $string['question'] = 'سؤال';
 $string['questioncount'] = 'عدد الأسئلة';
 $string['questionlinks'] = 'تفاصيل الأسئلة المرتبطة';

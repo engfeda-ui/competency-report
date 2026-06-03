@@ -119,6 +119,14 @@ if ($hassiteconfig) {
             40,
             PARAM_INT
         ));
+
+        // Manual Competency Sync heading and link.
+        $url = new moodle_url('/local/competency_report/add_success_to_evidence.php');
+        $settings->add(new admin_setting_heading(
+            'local_competency_report/manual_process_heading',
+            get_string('manual_process_heading', 'local_competency_report'),
+            get_string('manual_process_desc', 'local_competency_report', ['url' => $url->out()])
+        ));
     }
 
     // 2. Add the Settings Page under "Local Plugins".

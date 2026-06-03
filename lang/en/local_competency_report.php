@@ -103,6 +103,11 @@ $string['process_queued'] = 'The success rate calculation task has been queued. 
 $string['process_success_desc'] = 'This process calculates students\' success percentages in quiz questions and adds them as competency evidence.';
 $string['process_success_heading'] = 'Transfer Percentage Success to Evidence';
 $string['process_success_title'] = 'Process Success Rates in Background';
+$string['manual_process_heading'] = 'Manual Competency Sync';
+$string['manual_process_desc'] = 'Although competency success rates are synchronized automatically, you can trigger a manual sync for any course. Click <a href="{$a->url}">here to select a course and run the sync now</a>.';
+$string['select_course_process'] = 'Select Course to Process';
+$string['select_course_option'] = 'Choose a course...';
+$string['btn_select'] = 'Select';
 $string['question'] = 'Question';
 $string['questioncount'] = 'Number of Questions';
 $string['questionlinks'] = 'Related Question Details';
