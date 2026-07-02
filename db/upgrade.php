@@ -86,5 +86,16 @@ function xmldb_local_competency_report_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026070100, 'local', 'competency_report');
     }
 
+    if ($oldversion < 2026070302) {
+        $table = new xmldb_table('local_competency_report_asmt');
+        $field = new xmldb_field('assignid', XMLDB_TYPE_INTEGER, '10', null, null, null, null, 'quizid');
+
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        upgrade_plugin_savepoint(true, 2026070302, 'local', 'competency_report');
+    }
+
     return true;
 }

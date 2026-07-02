@@ -45,10 +45,11 @@ $PAGE->set_heading($course->fullname . ' — ' . get_string('assessmentsetup', '
 $action = optional_param('action', '', PARAM_ALPHA);
 
 if ($action === 'add' && confirm_sesskey()) {
-    $type   = optional_param('assessment_type', 'quiz', PARAM_ALPHA);
-    $name   = trim(optional_param('assessment_name', '', PARAM_TEXT));
-    $quizid = optional_param('assessment_quizid', null, PARAM_INT);
-    $weight = optional_param('assessment_weight', 0.0, PARAM_FLOAT);
+    $type     = optional_param('assessment_type', 'quiz', PARAM_ALPHA);
+    $name     = trim(optional_param('assessment_name', '', PARAM_TEXT));
+    $quizid   = optional_param('assessment_quizid', null, PARAM_INT);
+    $assignid = optional_param('assessment_assignid', null, PARAM_INT);
+    $weight   = optional_param('assessment_weight', 0.0, PARAM_FLOAT);
 
     if ($name === '' || $weight < 0) {
         redirect(
@@ -62,6 +63,7 @@ if ($action === 'add' && confirm_sesskey()) {
     $record = new stdClass();
     $record->courseid     = $courseid;
     $record->quizid       = ($type === 'quiz' && $quizid > 0) ? $quizid : null;
+    $record->assignid     = ($type === 'practical' && $assignid > 0) ? $assignid : null;
     $record->name         = $name;
     $record->type         = ($type === 'practical') ? 'practical' : 'quiz';
     $record->weight       = $weight;
@@ -131,6 +133,9 @@ $totalweight = array_sum(array_column($assessments, 'weight'));
 // All quizzes in this course (for the quiz selector dropdown).
 $quizzes = $DB->get_records('quiz', ['course' => $courseid], 'name ASC', 'id, name');
 
+// All assignments in this course (for the assign selector dropdown).
+$assignments = $DB->get_records('assign', ['course' => $courseid], 'name ASC', 'id, name');
+
 // -----------------------------------------------------------------------
 // Output.
 // -----------------------------------------------------------------------
@@ -149,6 +154,7 @@ $renderdata->courseid     = $courseid;
 $renderdata->assessments  = $assessments;
 $renderdata->totalweight  = round($totalweight, 1);
 $renderdata->quizzes      = array_values($quizzes);
+$renderdata->assignments  = array_values($assignments);
 $renderdata->sesskey      = sesskey();
 
 $page = new \local_competency_report\output\assessment_setup_page($renderdata);

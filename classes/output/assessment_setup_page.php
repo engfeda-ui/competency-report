@@ -73,6 +73,19 @@ class assessment_setup_page implements renderable, templatable {
                 : get_string('typequiz', 'local_competency_report');
             $row->weight      = $a->weight;
             $row->quizid      = $a->quizid;
+            $row->assignid    = $a->assignid;
+
+            global $DB;
+            if ($a->type === 'quiz' && $a->quizid) {
+                $quiz = $DB->get_record('quiz', ['id' => $a->quizid], 'name');
+                $row->associatedactivity = $quiz ? $quiz->name : 'Unknown Quiz';
+            } else if ($a->type === 'practical' && $a->assignid) {
+                $assign = $DB->get_record('assign', ['id' => $a->assignid], 'name');
+                $row->associatedactivity = $assign ? $assign->name : 'Unknown Assignment';
+            } else {
+                $row->associatedactivity = '—';
+            }
+
             $row->deleteurl   = (new \moodle_url('/local/competency_report/assessment_setup.php', [
                 'courseid' => $this->data->courseid,
                 'action'   => 'delete',
@@ -92,6 +105,18 @@ class assessment_setup_page implements renderable, templatable {
             $d->quizzes[] = $item;
         }
         $d->hasquizzes = !empty($d->quizzes);
+
+        // Assignment list.
+        $d->assignments = [];
+        if (!empty($this->data->assignments)) {
+            foreach ($this->data->assignments as $as) {
+                $item        = new stdClass();
+                $item->id    = $as->id;
+                $item->name  = $as->name;
+                $d->assignments[] = $item;
+            }
+        }
+        $d->hasassignments = !empty($d->assignments);
 
         // Setup form action URL.
         $d->formaction = (new \moodle_url('/local/competency_report/assessment_setup.php', [

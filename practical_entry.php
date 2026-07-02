@@ -89,6 +89,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
         }
     }
 
+    // ─── Sync with Moodle Assignment Gradebook ───
+    $asmt = $DB->get_record('local_competency_report_asmt', ['id' => $postassid]);
+    if ($asmt && $asmt->type === 'practical' && !empty($asmt->assignid)) {
+        require_once($CFG->dirroot . '/mod/assign/locallib.php');
+        $cm = get_coursemodule_from_instance('assign', $asmt->assignid, $courseid, false);
+        if ($cm) {
+            $context = context_module::instance($cm->id);
+            $assign = new assign($context, $cm, $course);
+            $maxgrade = (float)$assign->get_instance()->grade;
+
+            foreach ($studentids as $sid) {
+                // Fetch all competency grades for this student and this practical assessment.
+                $competencygrades = $DB->get_records('local_competency_report_prac', [
+                    'assessmentid' => $postassid,
+                    'studentid'    => $sid
+                ], '', 'competency_percent');
+
+                if (!empty($competencygrades)) {
+                    $sum = 0.0;
+                    foreach ($competencygrades as $cg) {
+                        $sum += (float)$cg->competency_percent;
+                    }
+                    $averagepercent = $sum / count($competencygrades);
+
+                    // Scale to Assignment's maximum grade if it is a positive numeric grade.
+                    if ($maxgrade > 0) {
+                        $finalgrade = ($averagepercent / 100.0) * $maxgrade;
+                    } else {
+                        $finalgrade = $averagepercent;
+                    }
+
+                    // Prepare detailed competency breakdown for feedback comments.
+                    $breakdown = [];
+                    $allrows = $DB->get_records_sql("
+                        SELECT c.shortname, p.competency_percent
+                          FROM {local_competency_report_prac} p
+                          JOIN {competency} c ON c.id = p.competencyid
+                         WHERE p.assessmentid = :assessmentid AND p.studentid = :studentid
+                      ORDER BY c.shortname ASC
+                    ", ['assessmentid' => $postassid, 'studentid' => $sid]);
+                    
+                    foreach ($allrows as $row) {
+                        $breakdown[] = "• " . s($row->shortname) . ": " . round($row->competency_percent, 1) . "%";
+                    }
+                    $feedbacktext = "<strong>" . get_string('summaryreport', 'local_competency_report') . ":</strong><br>" . implode("<br>", $breakdown);
+
+                    // Push grade and feedback to Moodle Assignment.
+                    $gradedata = new stdClass();
+                    $gradedata->grade = $finalgrade;
+                    $gradedata->feedbacktext = $feedbacktext;
+                    $gradedata->feedbackformat = FORMAT_HTML;
+
+                    $assign->save_grade($sid, $gradedata);
+                }
+            }
+        }
+    }
+
     redirect(
         new moodle_url('/local/competency_report/practical_entry.php', [
             'courseid'     => $courseid,

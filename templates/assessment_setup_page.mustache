@@ -35,7 +35,7 @@
                             <tr>
                                 <th>{{strname}}</th>
                                 <th>{{strtype}}</th>
-                                <th>{{strquiz}}</th>
+                                <th>{{strquiz}} / {{#str}}pluginname, mod_assign{{/str}}</th>
                                 <th class="text-end" style="max-width: 150px;">{{strweight}} (%)</th>
                                 <th class="text-center" style="width: 80px;">{{strdelete}}</th>
                             </tr>
@@ -53,7 +53,7 @@
                                     </span>
                                     {{/type}}
                                 </td>
-                                <td class="text-muted small">{{#quizid}}ID: {{quizid}}{{/quizid}}{{^quizid}}—{{/quizid}}</td>
+                                <td class="text-muted small"><strong>{{associatedactivity}}</strong></td>
                                 <td class="text-end" style="max-width: 150px;">
                                     <div class="input-group input-group-sm justify-content-end ms-auto" style="max-width: 120px;">
                                         <input type="number" name="weight[{{id}}]" value="{{weight}}" class="form-control text-end text-primary fw-bold" min="0" max="100" step="0.1" required>
@@ -127,6 +127,17 @@
                         </select>
                     </div>
 
+                    {{! Assignment selector (shown only for practical type, initially hidden) }}
+                    <div class="col-md-3" id="assign-selector-wrap" style="display: none;">
+                        <label for="new_assignid" class="form-label fw-bold">{{#str}}pluginname, mod_assign{{/str}}</label>
+                        <select id="new_assignid" name="assessment_assignid" class="form-select" onchange="autoFillName(this)">
+                            <option value="0">— {{#str}}selectpracticalassessment, local_competency_report{{/str}} —</option>
+                            {{#assignments}}
+                            <option value="{{id}}">{{name}}</option>
+                            {{/assignments}}
+                        </select>
+                    </div>
+
                     {{! Weight }}
                     <div class="col-md-2">
                         <label for="new_weight" class="form-label fw-bold">{{strweight}} (%)</label>
@@ -159,14 +170,25 @@
 
 <script>
 function toggleQuizField(sel) {
-    var wrap = document.getElementById('quiz-selector-wrap');
-    wrap.style.display = (sel.value === 'practical') ? 'none' : '';
+    var quizWrap = document.getElementById('quiz-selector-wrap');
+    var assignWrap = document.getElementById('assign-selector-wrap');
+    if (sel.value === 'practical') {
+        quizWrap.style.display = 'none';
+        assignWrap.style.display = '';
+    } else {
+        quizWrap.style.display = '';
+        assignWrap.style.display = 'none';
+    }
 }
 
 function autoFillName(quizSelect) {
     var nameInput = document.getElementById('new_name');
     if (quizSelect.value !== '0' && nameInput.value.trim() === '') {
         var selectedText = quizSelect.options[quizSelect.selectedIndex].text;
+        // Strip out the leading dashes if it is the assignment selector
+        if (selectedText.startsWith('—')) {
+            return;
+        }
         nameInput.value = selectedText;
     }
 }
