@@ -6,7 +6,7 @@
                 <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
                 <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" COMMENT="The ID of the course"/>
                 <FIELD NAME="quizid" TYPE="int" LENGTH="10" NOTNULL="false" COMMENT="The ID of the Moodle quiz activity (null for manual practical exams)"/>
-                <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" DEFAULT="" COMMENT="Display name of the assessment (e.g. Practical Exam - Workshop 1)"/>
+                <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" COMMENT="Display name of the assessment (e.g. Practical Exam - Workshop 1)"/>
                 <FIELD NAME="type" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="quiz" COMMENT="Type of assessment: quiz or practical"/>
                 <FIELD NAME="weight" TYPE="number" LENGTH="5" DECIMALS="2" NOTNULL="true" DEFAULT="0" COMMENT="Percentage weight of this assessment towards overall competency score (0-100)"/>
                 <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"/>
