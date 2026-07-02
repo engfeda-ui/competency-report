@@ -191,3 +191,8 @@ npx grunt amd --files=local/competency_report
 - **Copyright:** © 2026 Mahmoud Salem
 - **Based on work by:** 2026 Hakan Çiğci
 - **License:** [GNU GPL v3](http://www.gnu.org/copyleft/gpl.html) or later.
+
+ # #   V e r s i o n   3 . 4 . 0 
+ -   A d d e d   s u p p o r t   f o r   m u l t i p l e   c o m p e t e n c i e s   m a p p e d   t o   a   s i n g l e   q u e s t i o n . 
+ -   R e n a m e d   d a t a b a s e   t a b l e s   t o   c o m p l y   w i t h   M o o d l e   2 8 - c h a r a c t e r   l i m i t .  
+ 
