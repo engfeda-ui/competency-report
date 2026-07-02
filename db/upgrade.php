@@ -51,7 +51,7 @@ function xmldb_local_competency_report_upgrade($oldversion) {
         $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
         $table->add_key('coursefk', XMLDB_KEY_FOREIGN, ['courseid'], 'course', ['id']);
 
-        $table->add_index('courseid_idx', XMLDB_INDEX_NOTUNIQUE, ['courseid']);
+
         $table->add_index('course_quiz_idx', XMLDB_INDEX_NOTUNIQUE, ['courseid', 'quizid']);
 
         if (!$dbman->table_exists($table)) {
