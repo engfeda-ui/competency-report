@@ -80,7 +80,7 @@ if ($action === 'add' && confirm_sesskey()) {
     );
 }
 
-if ($action === 'update_existing' && confirm_sesskey()) {
+if ($action === 'update' && confirm_sesskey()) {
     $names   = optional_param_array('name', [], PARAM_TEXT);
     $weights = optional_param_array('weight', [], PARAM_FLOAT);
 
