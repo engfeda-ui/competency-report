@@ -169,14 +169,45 @@ $practicalassessments = array_values($DB->get_records(
     'name ASC'
 ));
 
-// Competencies that have question mappings in this course.
-$competencies = array_values($DB->get_records_sql("
-    SELECT DISTINCT c.id, c.shortname
-      FROM {qbank_competency_qmap} m
-      JOIN {competency} c ON c.id = m.competencyid
-     WHERE m.courseid = :courseid
-     ORDER BY c.shortname ASC
-", ['courseid' => $courseid]));
+// If assessment is selected, load competencies linked to it (via Moodle Assignment settings).
+$competencies = [];
+if ($assessmentid) {
+    $asmt = $DB->get_record('local_competency_report_asmt', ['id' => $assessmentid]);
+    if ($asmt && $asmt->type === 'practical' && $asmt->assignid) {
+        $cm = get_coursemodule_from_instance('assign', $asmt->assignid, $courseid, false);
+        if ($cm) {
+            $competencies = array_values($DB->get_records_sql("
+                SELECT DISTINCT c.id, c.shortname
+                  FROM {competency_modulecomp} mc
+                  JOIN {competency} c ON c.id = mc.competencyid
+                 WHERE mc.cmid = :cmid
+                 ORDER BY c.shortname ASC
+            ", ['cmid' => $cm->id]));
+        }
+    }
+}
+
+// Fallback 1: Load all competencies linked to the course.
+if (empty($competencies)) {
+    $competencies = array_values($DB->get_records_sql("
+        SELECT DISTINCT c.id, c.shortname
+          FROM {competency_coursecomp} cc
+          JOIN {competency} c ON c.id = cc.competencyid
+         WHERE cc.courseid = :courseid
+         ORDER BY c.shortname ASC
+    ", ['courseid' => $courseid]));
+}
+
+// Fallback 2: Load competencies that have question mappings in this course.
+if (empty($competencies)) {
+    $competencies = array_values($DB->get_records_sql("
+        SELECT DISTINCT c.id, c.shortname
+          FROM {qbank_competency_qmap} m
+          JOIN {competency} c ON c.id = m.competencyid
+         WHERE m.courseid = :courseid
+         ORDER BY c.shortname ASC
+    ", ['courseid' => $courseid]));
+}
 
 // Students enrolled in the course.
 $students = array_values(get_enrolled_users($context, 'mod/quiz:attempt', 0, 'u.id, u.firstname, u.lastname, u.idnumber', 'u.lastname ASC'));
