@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <XMLDB PATH="local/competency_report/db" VERSION="2026070100" COMMENT="XMLDB file for local_competency_report plugin">
     <TABLES>
-        <TABLE NAME="local_competency_assessment" COMMENT="Defines assessments (quiz or practical) and their weight towards competency scoring">
+        <TABLE NAME="local_competency_report_asmt" COMMENT="Defines assessments (quiz or practical) and their weight towards competency scoring">
             <FIELDS>
                 <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
                 <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" COMMENT="The ID of the course"/>
@@ -22,10 +22,10 @@
             </INDEXES>
         </TABLE>
 
-        <TABLE NAME="local_competency_practical_result" COMMENT="Stores manually entered practical exam results per student per competency">
+        <TABLE NAME="local_competency_report_prac" COMMENT="Stores manually entered practical exam results per student per competency">
             <FIELDS>
                 <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
-                <FIELD NAME="assessmentid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" COMMENT="FK to local_competency_assessment"/>
+                <FIELD NAME="assessmentid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" COMMENT="FK to local_competency_report_asmt"/>
                 <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" COMMENT="The ID of the course"/>
                 <FIELD NAME="competencyid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" COMMENT="The ID of the competency being assessed"/>
                 <FIELD NAME="studentid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" COMMENT="The student user ID"/>
@@ -36,7 +36,7 @@
             </FIELDS>
             <KEYS>
                 <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-                <KEY NAME="assessmentfk" TYPE="foreign" FIELDS="assessmentid" REFTABLE="local_competency_assessment" REFFIELDS="id"/>
+                <KEY NAME="assessmentfk" TYPE="foreign" FIELDS="assessmentid" REFTABLE="local_competency_report_asmt" REFFIELDS="id"/>
                 <KEY NAME="coursefk" TYPE="foreign" FIELDS="courseid" REFTABLE="course" REFFIELDS="id"/>
                 <KEY NAME="studentfk" TYPE="foreign" FIELDS="studentid" REFTABLE="user" REFFIELDS="id"/>
             </KEYS>

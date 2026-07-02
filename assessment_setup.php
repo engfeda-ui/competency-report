@@ -55,7 +55,7 @@ if ($action === 'save' && confirm_sesskey()) {
     $now = time();
 
     // Delete all existing assessments for this course and rebuild.
-    $DB->delete_records('local_competency_assessment', ['courseid' => $courseid]);
+    $DB->delete_records('local_competency_report_asmt', ['courseid' => $courseid]);
 
     foreach ($ids as $idx => $existingid) {
         $name   = trim($names[$idx]  ?? '');
@@ -76,7 +76,7 @@ if ($action === 'save' && confirm_sesskey()) {
         $record->timecreated  = $now;
         $record->timemodified = $now;
 
-        $DB->insert_record('local_competency_assessment', $record);
+        $DB->insert_record('local_competency_report_asmt', $record);
     }
 
     redirect(
@@ -89,7 +89,7 @@ if ($action === 'save' && confirm_sesskey()) {
 
 if ($action === 'delete' && confirm_sesskey()) {
     $deleteid = required_param('deleteid', PARAM_INT);
-    $DB->delete_records('local_competency_assessment', ['id' => $deleteid, 'courseid' => $courseid]);
+    $DB->delete_records('local_competency_report_asmt', ['id' => $deleteid, 'courseid' => $courseid]);
     redirect(
         new moodle_url('/local/competency_report/assessment_setup.php', ['courseid' => $courseid]),
         get_string('assessmentdeleted', 'local_competency_report'),
@@ -103,7 +103,7 @@ if ($action === 'delete' && confirm_sesskey()) {
 // -----------------------------------------------------------------------
 // Existing configured assessments.
 $assessments = array_values($DB->get_records(
-    'local_competency_assessment',
+    'local_competency_report_asmt',
     ['courseid' => $courseid],
     'id ASC'
 ));

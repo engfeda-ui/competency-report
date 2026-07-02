@@ -73,7 +73,7 @@ class competency_calculator {
         global $DB;
         if ($this->assessments === null) {
             $this->assessments = $DB->get_records(
-                'local_competency_assessment',
+                'local_competency_report_asmt',
                 ['courseid' => $this->courseid],
                 'id ASC'
             );
@@ -137,7 +137,7 @@ class competency_calculator {
         foreach ($assessments as $assessment) {
             if ($assessment->type === 'practical') {
                 $practicals = $DB->get_records(
-                    'local_competency_practical_result',
+                    'local_competency_report_prac',
                     ['assessmentid' => $assessment->id, 'courseid' => $this->courseid],
                     '',
                     'DISTINCT competencyid'

@@ -49,7 +49,7 @@ class competency_calculator_test extends advanced_testcase {
     // -----------------------------------------------------------------------
 
     /**
-     * Create a minimal assessment record in local_competency_assessment.
+     * Create a minimal assessment record in local_competency_report_asmt.
      *
      * @param int    $courseid
      * @param int|null $quizid
@@ -61,7 +61,7 @@ class competency_calculator_test extends advanced_testcase {
     private function create_assessment(int $courseid, ?int $quizid, string $type, float $weight, string $name = ''): int {
         global $DB;
         $now = time();
-        return $DB->insert_record('local_competency_assessment', (object)[
+        return $DB->insert_record('local_competency_report_asmt', (object)[
             'courseid'     => $courseid,
             'quizid'       => $quizid,
             'name'         => $name ?: "{$type}-{$weight}",
@@ -106,7 +106,7 @@ class competency_calculator_test extends advanced_testcase {
     private function add_practical_result(int $assessmentid, int $courseid, int $competencyid, int $studentid, float $percent): void {
         global $DB;
         $now = time();
-        $DB->insert_record('local_competency_practical_result', (object)[
+        $DB->insert_record('local_competency_report_prac', (object)[
             'assessmentid'       => $assessmentid,
             'courseid'           => $courseid,
             'competencyid'       => $competencyid,

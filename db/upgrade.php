@@ -36,8 +36,8 @@ function xmldb_local_competency_report_upgrade($oldversion) {
 
     if ($oldversion < 2026070100) {
 
-        // 1. Create local_competency_assessment table.
-        $table = new xmldb_table('local_competency_assessment');
+        // 1. Create local_competency_report_asmt table.
+        $table = new xmldb_table('local_competency_report_asmt');
 
         $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
         $table->add_field('courseid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
@@ -58,8 +58,8 @@ function xmldb_local_competency_report_upgrade($oldversion) {
             $dbman->create_table($table);
         }
 
-        // 2. Create local_competency_practical_result table.
-        $table2 = new xmldb_table('local_competency_practical_result');
+        // 2. Create local_competency_report_prac table.
+        $table2 = new xmldb_table('local_competency_report_prac');
 
         $table2->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
         $table2->add_field('assessmentid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
@@ -72,7 +72,7 @@ function xmldb_local_competency_report_upgrade($oldversion) {
         $table2->add_field('timemodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
 
         $table2->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
-        $table2->add_key('assessmentfk', XMLDB_KEY_FOREIGN, ['assessmentid'], 'local_competency_assessment', ['id']);
+        $table2->add_key('assessmentfk', XMLDB_KEY_FOREIGN, ['assessmentid'], 'local_competency_report_asmt', ['id']);
         $table2->add_key('coursefk', XMLDB_KEY_FOREIGN, ['courseid'], 'course', ['id']);
         $table2->add_key('studentfk', XMLDB_KEY_FOREIGN, ['studentid'], 'user', ['id']);
 

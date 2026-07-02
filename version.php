@@ -27,7 +27,7 @@ defined('MOODLE_INTERNAL') || die();
 
 /** @var stdClass $plugin */
 $plugin->component = 'local_competency_report';       // Full name of the plugin (category_name).
-$plugin->version   = 2026070300;              // The current module version (YYYYMMDDXX).
+$plugin->version   = 2026070301; // The current plugin version (Date: YYYYMMDDXX).
 $plugin->requires  = 2024042210;              // Requires Moodle 4.5 or later.
 $plugin->maturity  = MATURITY_STABLE;          // Stable release.
 $plugin->release   = '3.4.0';                 // Human-readable version name.

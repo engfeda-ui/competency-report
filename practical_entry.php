@@ -63,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
             continue;
         }
 
-        $existing = $DB->get_record('local_competency_practical_result', [
+        $existing = $DB->get_record('local_competency_report_prac', [
             'assessmentid' => $postassid,
             'courseid'     => $courseid,
             'competencyid' => $postcompid,
@@ -74,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
             $existing->competency_percent = $pct;
             $existing->trainerid          = $USER->id;
             $existing->timemodified       = $now;
-            $DB->update_record('local_competency_practical_result', $existing);
+            $DB->update_record('local_competency_report_prac', $existing);
         } else {
             $record                   = new stdClass();
             $record->assessmentid     = $postassid;
@@ -85,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
             $record->competency_percent = $pct;
             $record->timecreated      = $now;
             $record->timemodified     = $now;
-            $DB->insert_record('local_competency_practical_result', $record);
+            $DB->insert_record('local_competency_report_prac', $record);
         }
     }
 
@@ -106,7 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
 // -----------------------------------------------------------------------
 // All practical assessments configured for this course.
 $practicalassessments = array_values($DB->get_records(
-    'local_competency_assessment',
+    'local_competency_report_asmt',
     ['courseid' => $courseid, 'type' => 'practical'],
     'name ASC'
 ));
@@ -126,7 +126,7 @@ $students = array_values(get_enrolled_users($context, 'mod/quiz:attempt', 0, 'u.
 // If assessment and competency are selected, load existing results.
 $existingresults = [];
 if ($assessmentid && $competencyid) {
-    $rows = $DB->get_records('local_competency_practical_result', [
+    $rows = $DB->get_records('local_competency_report_prac', [
         'assessmentid' => $assessmentid,
         'courseid'     => $courseid,
         'competencyid' => $competencyid,
