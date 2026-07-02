@@ -206,7 +206,7 @@ class competency_calculator_test extends advanced_testcase {
         // Create a framework + competency.
         $framework  = $gen->get_plugin_generator('core_competency')->create_framework();
         $competency = $gen->get_plugin_generator('core_competency')->create_competency([
-            'competencyframeworkid' => $framework->id,
+            'competencyframeworkid' => $framework->get('id'),
         ]);
 
         // Practical assessment at 100% weight.
@@ -249,7 +249,7 @@ class competency_calculator_test extends advanced_testcase {
 
         $framework  = $gen->get_plugin_generator('core_competency')->create_framework();
         $competency = $gen->get_plugin_generator('core_competency')->create_competency([
-            'competencyframeworkid' => $framework->id,
+            'competencyframeworkid' => $framework->get('id'),
         ]);
 
         // Simulate two practical assessments: 40% + 60% weight.
@@ -285,7 +285,7 @@ class competency_calculator_test extends advanced_testcase {
 
         $framework  = $gen->get_plugin_generator('core_competency')->create_framework();
         $competency = $gen->get_plugin_generator('core_competency')->create_competency([
-            'competencyframeworkid' => $framework->id,
+            'competencyframeworkid' => $framework->get('id'),
         ]);
 
         $assid_theory    = $this->create_assessment($course->id, null, 'practical', 40, 'Theory (simulated)');
@@ -324,7 +324,7 @@ class competency_calculator_test extends advanced_testcase {
 
         $framework  = $gen->get_plugin_generator('core_competency')->create_framework();
         $competency = $gen->get_plugin_generator('core_competency')->create_competency([
-            'competencyframeworkid' => $framework->id,
+            'competencyframeworkid' => $framework->get('id'),
         ]);
 
         // Two assessments configured: 40 + 60 = 100.
@@ -366,10 +366,10 @@ class competency_calculator_test extends advanced_testcase {
 
         $framework   = $gen->get_plugin_generator('core_competency')->create_framework();
         $competencyA = $gen->get_plugin_generator('core_competency')->create_competency([
-            'competencyframeworkid' => $framework->id,
+            'competencyframeworkid' => $framework->get('id'),
         ]);
         $competencyB = $gen->get_plugin_generator('core_competency')->create_competency([
-            'competencyframeworkid' => $framework->id,
+            'competencyframeworkid' => $framework->get('id'),
         ]);
 
         // One practical assessment at 100% weight.
@@ -408,8 +408,8 @@ class competency_calculator_test extends advanced_testcase {
         $gen        = $this->getDataGenerator();
         $course     = $gen->create_course();
         $framework  = $gen->get_plugin_generator('core_competency')->create_framework();
-        $compA      = $gen->get_plugin_generator('core_competency')->create_competency(['competencyframeworkid' => $framework->id]);
-        $compB      = $gen->get_plugin_generator('core_competency')->create_competency(['competencyframeworkid' => $framework->id]);
+        $compA      = $gen->get_plugin_generator('core_competency')->create_competency(['competencyframeworkid' => $framework->get('id')]);
+        $compB      = $gen->get_plugin_generator('core_competency')->create_competency(['competencyframeworkid' => $framework->get('id')]);
 
         $questionid = 999; // Fake question ID (no FK enforced in unit tests).
         $now = time();
@@ -448,9 +448,9 @@ class competency_calculator_test extends advanced_testcase {
         $gen       = $this->getDataGenerator();
         $course    = $gen->create_course();
         $framework = $gen->get_plugin_generator('core_competency')->create_framework();
-        $compA     = $gen->get_plugin_generator('core_competency')->create_competency(['competencyframeworkid' => $framework->id]);
-        $compB     = $gen->get_plugin_generator('core_competency')->create_competency(['competencyframeworkid' => $framework->id]);
-        $compC     = $gen->get_plugin_generator('core_competency')->create_competency(['competencyframeworkid' => $framework->id]);
+        $compA     = $gen->get_plugin_generator('core_competency')->create_competency(['competencyframeworkid' => $framework->get('id')]);
+        $compB     = $gen->get_plugin_generator('core_competency')->create_competency(['competencyframeworkid' => $framework->get('id')]);
+        $compC     = $gen->get_plugin_generator('core_competency')->create_competency(['competencyframeworkid' => $framework->get('id')]);
 
         $questionid = 888;
         $now = time();

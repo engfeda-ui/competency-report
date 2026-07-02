@@ -170,7 +170,7 @@ class competency_calculator {
                 } else if ($assessment->type === 'practical') {
                     // Get latest manual practical result.
                     $record = $DB->get_record(
-                        'local_competency_practical_result',
+                        'local_competency_report_prac',
                         [
                             'assessmentid' => $assessment->id,
                             'studentid'    => $userid,

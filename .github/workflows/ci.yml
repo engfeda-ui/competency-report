@@ -58,6 +58,13 @@ jobs:
           echo "$(cd ci/bin; pwd)" >> $GITHUB_PATH
           echo "$(cd ci/vendor/bin; pwd)" >> $GITHUB_PATH
 
+      - name: Checkout qbank_competency
+        uses: actions/checkout@v4
+        with:
+          repository: engfeda-ui/competency
+          path: question/bank/competency
+
+
       - name: Install Moodle
         run: moodle-plugin-ci install --plugin local/competency_report --db-host=127.0.0.1 --db-user=postgres --db-name=moodle_ci_db --db-pass="" --db-type=pgsql
         env:
