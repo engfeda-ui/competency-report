@@ -221,3 +221,41 @@ $string['studentdashboard'] = 'Student Performance Dashboard';
 $string['groupperformance'] = 'Group Performance Analysis';
 $string['tab_by_competency'] = 'By Course Competency';
 $string['tab_by_quiz'] = 'By Exam/Quiz';
+
+// ── Weighted Assessment System ──────────────────────────────────────────────
+$string['assessmentsetup']             = 'Assessment Weight Setup';
+$string['assessmentsaved']             = 'Assessment configuration saved successfully.';
+$string['assessmentdeleted']           = 'Assessment deleted.';
+$string['configuredassessments']       = 'Configured Assessments';
+$string['addnewassessment']            = 'Add New Assessment';
+$string['addquizassessment']           = 'Add Quiz Assessment';
+$string['addpracticalassessment']      = 'Add Practical Assessment';
+$string['assessmentname']              = 'Assessment Name';
+$string['assessmentnamepholder']       = 'e.g. Theory Exam 1, Workshop Practical';
+$string['assessmenttype']              = 'Type';
+$string['typequiz']                    = 'Quiz (Auto)';
+$string['typepractical']               = 'Practical (Manual)';
+$string['weight']                      = 'Weight';
+$string['totalweight']                 = 'Total Weight';
+$string['totalweightlabel']            = 'Total Weight';
+$string['weighttotal_ok']              = '✅ Total weight is 100% — configuration is correct.';
+$string['weightwarning']               = '⚠️ Total assessment weight is {$a}%. It must equal 100% for correct scoring.';
+$string['assessmentweighthint']        = 'The total weight of all assessments must add up to 100%. Each quiz or practical assessment contributes its percentage to the final competency score.';
+$string['noassessments']               = 'No assessments configured yet. Add a quiz or practical assessment below.';
+$string['confirmdelete']               = 'Are you sure you want to delete this assessment? All practical results linked to it will also be removed.';
+
+// Practical Entry.
+$string['practicalentry']              = 'Practical Exam Entry';
+$string['practicalsaved']              = 'Practical results saved successfully.';
+$string['selectpracticalassessment']   = 'Select Practical Assessment';
+$string['competencypercent']           = 'Competency Achievement (%)';
+$string['showstudents']                = 'Show Students';
+$string['enterstudentresults']         = 'Enter Student Results';
+$string['nostudentsenrolled']          = 'No students found for this course.';
+$string['nopracticalassessments']      = 'No practical assessments have been configured for this course yet.';
+$string['goassessmentsetup']           = 'Go to Assessment Setup';
+$string['practicalentryhintsave']      = 'Leave blank to skip a student. Saving will overwrite any previous result for that student.';
+
+// Capability strings.
+$string['competency_report:manageassessments'] = 'Configure assessment weights for competency scoring';
+$string['competency_report:enterpractical']    = 'Enter practical exam results for students';

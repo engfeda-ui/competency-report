@@ -19,7 +19,7 @@
  *
  * @package    local_competency_report
  * @copyright  2026 Mahmoud Salem
- * @copyright  based on work by 2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
+ * @copyright  based on work by 2026 Hakan Çiğci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -75,6 +75,36 @@ function local_competency_report_extend_navigation_course($navigation, $course, 
                     new pix_icon('i/group', '')
                 );
             }
+        }
+    }
+
+    // Assessment weight configuration (editing teachers / managers).
+    if (has_capability('local/competency_report:manageassessments', $context)) {
+        if (!$navigation->find('competency_assessment_setup', navigation_node::TYPE_SETTING)) {
+            $url = new moodle_url('/local/competency_report/assessment_setup.php', ['courseid' => $course->id]);
+            $navigation->add(
+                get_string('assessmentsetup', 'local_competency_report'),
+                $url,
+                navigation_node::TYPE_SETTING,
+                null,
+                'competency_assessment_setup',
+                new pix_icon('i/settings', '')
+            );
+        }
+    }
+
+    // Practical exam result entry (teachers / trainers).
+    if (has_capability('local/competency_report:enterpractical', $context)) {
+        if (!$navigation->find('competency_practical_entry', navigation_node::TYPE_SETTING)) {
+            $url = new moodle_url('/local/competency_report/practical_entry.php', ['courseid' => $course->id]);
+            $navigation->add(
+                get_string('practicalentry', 'local_competency_report'),
+                $url,
+                navigation_node::TYPE_SETTING,
+                null,
+                'competency_practical_entry',
+                new pix_icon('i/edit', '')
+            );
         }
     }
 

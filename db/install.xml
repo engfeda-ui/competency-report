@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="local/competency_report/db" VERSION="2026070100" COMMENT="XMLDB file for local_competency_report plugin">
+    <TABLES>
+        <TABLE NAME="local_competency_assessment" COMMENT="Defines assessments (quiz or practical) and their weight towards competency scoring">
+            <FIELDS>
+                <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+                <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" COMMENT="The ID of the course"/>
+                <FIELD NAME="quizid" TYPE="int" LENGTH="10" NOTNULL="false" COMMENT="The ID of the Moodle quiz activity (null for manual practical exams)"/>
+                <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" DEFAULT="" COMMENT="Display name of the assessment (e.g. Practical Exam - Workshop 1)"/>
+                <FIELD NAME="type" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="quiz" COMMENT="Type of assessment: quiz or practical"/>
+                <FIELD NAME="weight" TYPE="number" LENGTH="5" DECIMALS="2" NOTNULL="true" DEFAULT="0" COMMENT="Percentage weight of this assessment towards overall competency score (0-100)"/>
+                <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"/>
+                <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"/>
+            </FIELDS>
+            <KEYS>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+                <KEY NAME="coursefk" TYPE="foreign" FIELDS="courseid" REFTABLE="course" REFFIELDS="id"/>
+            </KEYS>
+            <INDEXES>
+                <INDEX NAME="courseid_idx" UNIQUE="false" FIELDS="courseid"/>
+                <INDEX NAME="course_quiz_idx" UNIQUE="false" FIELDS="courseid, quizid"/>
+            </INDEXES>
+        </TABLE>
+
+        <TABLE NAME="local_competency_practical_result" COMMENT="Stores manually entered practical exam results per student per competency">
+            <FIELDS>
+                <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+                <FIELD NAME="assessmentid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" COMMENT="FK to local_competency_assessment"/>
+                <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" COMMENT="The ID of the course"/>
+                <FIELD NAME="competencyid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" COMMENT="The ID of the competency being assessed"/>
+                <FIELD NAME="studentid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" COMMENT="The student user ID"/>
+                <FIELD NAME="trainerid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" COMMENT="The trainer/teacher who entered the result"/>
+                <FIELD NAME="competency_percent" TYPE="number" LENGTH="5" DECIMALS="2" NOTNULL="true" DEFAULT="0" COMMENT="Competency achievement percentage 0-100"/>
+                <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"/>
+                <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"/>
+            </FIELDS>
+            <KEYS>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+                <KEY NAME="assessmentfk" TYPE="foreign" FIELDS="assessmentid" REFTABLE="local_competency_assessment" REFFIELDS="id"/>
+                <KEY NAME="coursefk" TYPE="foreign" FIELDS="courseid" REFTABLE="course" REFFIELDS="id"/>
+                <KEY NAME="studentfk" TYPE="foreign" FIELDS="studentid" REFTABLE="user" REFFIELDS="id"/>
+            </KEYS>
+            <INDEXES>
+                <INDEX NAME="assessment_student_comp_idx" UNIQUE="false" FIELDS="assessmentid, studentid, competencyid" COMMENT="Speed up lookup of a student result for a specific assessment and competency"/>
+                <INDEX NAME="course_student_idx" UNIQUE="false" FIELDS="courseid, studentid"/>
+            </INDEXES>
+        </TABLE>
+    </TABLES>
+</XMLDB>

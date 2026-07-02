@@ -1,0 +1,154 @@
+{{!
+    Assessment Setup Page — configure quiz/practical assessments and their weights.
+    @package local_competency_report
+}}
+<div class="local-competency-assessment-setup">
+
+    {{#strweightwarning}}
+    <div class="alert alert-warning d-flex align-items-center gap-2 mb-4">
+        <i class="fa fa-exclamation-triangle"></i>
+        <span>{{strweightwarning}}</span>
+    </div>
+    {{/strweightwarning}}
+
+    {{#weightok}}
+    <div class="alert alert-success d-flex align-items-center gap-2 mb-4">
+        <i class="fa fa-check-circle"></i>
+        <span>{{#str}}weighttotal_ok, local_competency_report{{/str}}</span>
+    </div>
+    {{/weightok}}
+
+    {{! ─── Saved Assessments Table ─── }}
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fa fa-list-check me-2"></i>{{#str}}configuredassessments, local_competency_report{{/str}}</h5>
+            <span class="badge bg-light text-dark">{{#str}}totalweightlabel, local_competency_report{{/str}}: {{totalweight}}%</span>
+        </div>
+        <div class="card-body p-0">
+            {{#hasassessments}}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>{{strname}}</th>
+                            <th>{{strtype}}</th>
+                            <th>{{strquiz}}</th>
+                            <th class="text-end">{{strweight}} (%)</th>
+                            <th class="text-center">{{strdelete}}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{#assessments}}
+                        <tr>
+                            <td><strong>{{name}}</strong></td>
+                            <td>
+                                {{#type}}
+                                <span class="badge {{#type}}{{.}}{{/type}}-badge">
+                                    {{typelabel}}
+                                </span>
+                                {{/type}}
+                            </td>
+                            <td class="text-muted small">{{#quizid}}ID: {{quizid}}{{/quizid}}{{^quizid}}—{{/quizid}}</td>
+                            <td class="text-end">
+                                <strong class="text-primary">{{weight}}%</strong>
+                            </td>
+                            <td class="text-center">
+                                <a href="{{deleteurl}}"
+                                   class="btn btn-sm btn-outline-danger"
+                                   onclick="return confirm('{{#str}}confirmdelete, local_competency_report{{/str}}');">
+                                    <i class="fa fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {{/assessments}}
+                    </tbody>
+                </table>
+            </div>
+            {{/hasassessments}}
+            {{^hasassessments}}
+            <div class="text-center py-5 text-muted">
+                <i class="fa fa-inbox fa-3x mb-3 d-block opacity-50"></i>
+                <p>{{#str}}noassessments, local_competency_report{{/str}}</p>
+            </div>
+            {{/hasassessments}}
+        </div>
+    </div>
+
+    {{! ─── Add New Assessment Form ─── }}
+    <div class="card shadow-sm">
+        <div class="card-header bg-secondary text-white">
+            <h5 class="mb-0"><i class="fa fa-plus-circle me-2"></i>{{#str}}addnewassessment, local_competency_report{{/str}}</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" action="{{formaction}}" id="assessment-add-form">
+                <input type="hidden" name="action" value="save">
+                <input type="hidden" name="sesskey" value="{{sesskey}}">
+
+                <div class="row g-3 align-items-end mb-3">
+                    {{! Type selector }}
+                    <div class="col-md-2">
+                        <label for="new_type" class="form-label fw-bold">{{strtype}}</label>
+                        <select id="new_type" name="assessment_type[]" class="form-select" onchange="toggleQuizField(this)">
+                            <option value="quiz">{{#str}}typequiz, local_competency_report{{/str}}</option>
+                            <option value="practical">{{#str}}typepractical, local_competency_report{{/str}}</option>
+                        </select>
+                    </div>
+
+                    {{! Name }}
+                    <div class="col-md-3">
+                        <label for="new_name" class="form-label fw-bold">{{strname}}</label>
+                        <input type="text" id="new_name" name="assessment_name[]"
+                               class="form-control"
+                               placeholder="{{#str}}assessmentnamepholder, local_competency_report{{/str}}">
+                    </div>
+
+                    {{! Quiz selector (shown only for quiz type) }}
+                    <div class="col-md-3" id="quiz-selector-wrap">
+                        <label for="new_quizid" class="form-label fw-bold">{{strquiz}}</label>
+                        <select id="new_quizid" name="assessment_quizid[]" class="form-select">
+                            <option value="0">— {{#str}}selectquiz, local_competency_report{{/str}} —</option>
+                            {{#quizzes}}
+                            <option value="{{id}}">{{name}}</option>
+                            {{/quizzes}}
+                        </select>
+                    </div>
+
+                    {{! Weight }}
+                    <div class="col-md-2">
+                        <label for="new_weight" class="form-label fw-bold">{{strweight}} (%)</label>
+                        <input type="number" id="new_weight" name="assessment_weight[]"
+                               class="form-control" min="1" max="100" step="0.5"
+                               placeholder="e.g. 40">
+                    </div>
+
+                    {{! Hidden id for new rows = 0 }}
+                    <input type="hidden" name="assessment_id[]" value="0">
+
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fa fa-save me-1"></i> {{strsave}}
+                        </button>
+                    </div>
+                </div>
+
+                <div class="alert alert-info small mb-0">
+                    <i class="fa fa-info-circle me-1"></i>
+                    {{#str}}assessmentweighthint, local_competency_report{{/str}}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.quiz-badge    { background-color: #0d6efd; color: #fff; }
+.practical-badge { background-color: #198754; color: #fff; }
+.local-competency-assessment-setup .card { border-radius: 0.75rem; overflow: hidden; }
+</style>
+
+<script>
+function toggleQuizField(sel) {
+    var wrap = document.getElementById('quiz-selector-wrap');
+    wrap.style.display = (sel.value === 'practical') ? 'none' : '';
+}
+</script>

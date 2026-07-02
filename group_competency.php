@@ -25,6 +25,8 @@
 
 require_once(__DIR__ . '/../../config.php');
 
+use local_competency_report\competency_calculator;
+
 $courseid = required_param('courseid', PARAM_INT);
 $groupid = optional_param('groupid', 0, PARAM_INT);
 
@@ -53,7 +55,7 @@ foreach ($renderdata->groups as $g) {
 if ($groupid) {
     global $DB;
 
-    // 2. Retrieve student list (Filtered by the selected group and student role).
+    // 2. Retrieve student list (filtered by the selected group and student role).
     $students = (array) $DB->get_records_sql("
         SELECT u.*
         FROM {groups_members} gm
@@ -66,7 +68,12 @@ if ($groupid) {
         ORDER BY u.idnumber ASC
     ", ['groupid' => $groupid, 'courseid' => $courseid]);
 
-    // 3. Fetch mapped competencies list — scoped to this course.
+    // 3. Use the weighted calculator to get per-student scores.
+    $calculator = new competency_calculator($courseid);
+    $userids    = array_keys($students);
+    $groupscores = $calculator->get_group_scores($userids); // [userid][compid] = pct
+
+    // 4. Collect competency list from all student scores + question mappings.
     $competencies = (array) $DB->get_records_sql("
         SELECT DISTINCT c.id, c.shortname
         FROM {qbank_competency_qmap} m
@@ -76,40 +83,9 @@ if ($groupid) {
     ", ['courseid' => $courseid]);
     $renderdata->competencies = array_values($competencies);
 
-    // 4. Performance data query optimized with unique key for easier mapping.
-    $scoremap = [];
-    $rawscores = (array) $DB->get_records_sql("
-        SELECT
-            CONCAT(quiza.userid, '_', m.competencyid) as unique_key,
-            quiza.userid,
-            m.competencyid,
-            SUM(qa.maxfraction) AS total_max,
-            SUM(qas.fraction) AS total_fraction
-        FROM {quiz_attempts} quiza
-        JOIN {question_usages} qu ON qu.id = quiza.uniqueid
-        JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-        JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
-        JOIN (
-            SELECT questionattemptid, MAX(fraction) AS fraction
-            FROM {question_attempt_steps}
-            GROUP BY questionattemptid
-        ) qas ON qas.questionattemptid = qa.id
-        WHERE quiza.state = 'finished'
-          AND quiza.userid IN (SELECT userid FROM {groups_members} WHERE groupid = :groupid)
-        GROUP BY quiza.userid, m.competencyid
-    ", ['groupid' => $groupid]);
-
-    // Construct the score map: $scoremap[userid][competencyid].
-    foreach ($rawscores as $rs) {
-        $scoremap[$rs->userid][$rs->competencyid] = [
-            'att' => (float)$rs->total_max,
-            'cor' => (float)$rs->total_fraction,
-        ];
-    }
-
-    // 5. Prepare student rows and calculate group competency rates for the template.
+    // 5. Build student rows using weighted scores.
     $renderdata->students = [];
-    $grouptotals = [];
+    $grouptotals = []; // [compid] => [sum, count]
 
     foreach ($students as $s) {
         $row = new stdClass();
@@ -127,52 +103,33 @@ if ($groupid) {
         foreach ($renderdata->competencies as $c) {
             $scoreobj = new stdClass();
 
-            if (isset($scoremap[$s->id][$c->id])) {
-                $att = $scoremap[$s->id][$c->id]['att'];
-                $cor = $scoremap[$s->id][$c->id]['cor'];
+            if (isset($groupscores[$s->id][$c->id])) {
+                $rate = (float)$groupscores[$s->id][$c->id];
+                $scoreobj->rate  = number_format($rate, 1);
+                $scoreobj->color = competency_calculator::rate_color($rate);
 
-                if ($att > 0) {
-                    $rate = number_format(($cor / $att) * 100, 1);
-                    $scoreobj->rate = $rate;
-
-                    // Logic for visual indicator colors based on performance.
-                    if ($rate >= 80) {
-                        $scoreobj->color = 'green';
-                    } else if ($rate >= 60) {
-                        $scoreobj->color = 'blue';
-                    } else if ($rate >= 40) {
-                        $scoreobj->color = 'orange';
-                    } else {
-                        $scoreobj->color = 'red';
-                    }
-
-                    // Aggregate totals for the group average.
-                    $grouptotals[$c->id]['att'] = ($grouptotals[$c->id]['att'] ?? 0) + $att;
-                    $grouptotals[$c->id]['cor'] = ($grouptotals[$c->id]['cor'] ?? 0) + $cor;
-                } else {
-                    $scoreobj->rate = null;
-                }
+                $grouptotals[$c->id]['sum']   = ($grouptotals[$c->id]['sum']   ?? 0) + $rate;
+                $grouptotals[$c->id]['count'] = ($grouptotals[$c->id]['count'] ?? 0) + 1;
             } else {
-                $scoreobj->rate = null; // No attempts recorded for this competency.
+                $scoreobj->rate  = null;
+                $scoreobj->color = 'muted';
             }
             $row->scores[] = $scoreobj;
         }
         $renderdata->students[] = $row;
     }
 
-    // 6. Calculate average totals for the report footer.
+    // 6. Calculate group averages for the report footer.
     $renderdata->totals = [];
     foreach ($renderdata->competencies as $c) {
         $total = new stdClass();
-        $tatt = $grouptotals[$c->id]['att'] ?? 0;
-        $tcor = $grouptotals[$c->id]['cor'] ?? 0;
-
-        if ($tatt > 0) {
-            $trate = number_format(($tcor / $tatt) * 100, 1);
-            $total->rate = $trate;
-            $total->color = ($trate >= 80) ? 'green' : (($trate >= 60) ? 'blue' : (($trate >= 40) ? 'orange' : 'red'));
+        if (!empty($grouptotals[$c->id]['count'])) {
+            $trate = $grouptotals[$c->id]['sum'] / $grouptotals[$c->id]['count'];
+            $total->rate  = number_format($trate, 1);
+            $total->color = competency_calculator::rate_color($trate);
         } else {
-            $total->rate = null;
+            $total->rate  = null;
+            $total->color = 'muted';
         }
         $renderdata->totals[] = $total;
     }
