@@ -26,44 +26,58 @@
         </div>
         <div class="card-body p-0">
             {{#hasassessments}}
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>{{strname}}</th>
-                            <th>{{strtype}}</th>
-                            <th>{{strquiz}}</th>
-                            <th class="text-end">{{strweight}} (%)</th>
-                            <th class="text-center">{{strdelete}}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {{#assessments}}
-                        <tr>
-                            <td><strong>{{name}}</strong></td>
-                            <td>
-                                {{#type}}
-                                <span class="badge {{#type}}{{.}}{{/type}}-badge">
-                                    {{typelabel}}
-                                </span>
-                                {{/type}}
-                            </td>
-                            <td class="text-muted small">{{#quizid}}ID: {{quizid}}{{/quizid}}{{^quizid}}—{{/quizid}}</td>
-                            <td class="text-end">
-                                <strong class="text-primary">{{weight}}%</strong>
-                            </td>
-                            <td class="text-center">
-                                <a href="{{deleteurl}}"
-                                   class="btn btn-sm btn-outline-danger"
-                                   onclick="return confirm('{{#str}}confirmdelete, local_competency_report{{/str}}');">
-                                    <i class="fa fa-trash"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        {{/assessments}}
-                    </tbody>
-                </table>
-            </div>
+            <form method="post" action="{{formaction}}">
+                <input type="hidden" name="action" value="update_existing">
+                <input type="hidden" name="sesskey" value="{{sesskey}}">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>{{strname}}</th>
+                                <th>{{strtype}}</th>
+                                <th>{{strquiz}}</th>
+                                <th class="text-end" style="max-width: 150px;">{{strweight}} (%)</th>
+                                <th class="text-center" style="width: 80px;">{{strdelete}}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{#assessments}}
+                            <tr>
+                                <td>
+                                    <input type="text" name="name[{{id}}]" value="{{name}}" class="form-control form-control-sm fw-bold" required>
+                                </td>
+                                <td>
+                                    {{#type}}
+                                    <span class="badge {{#type}}{{.}}{{/type}}-badge">
+                                        {{typelabel}}
+                                    </span>
+                                    {{/type}}
+                                </td>
+                                <td class="text-muted small">{{#quizid}}ID: {{quizid}}{{/quizid}}{{^quizid}}—{{/quizid}}</td>
+                                <td class="text-end" style="max-width: 150px;">
+                                    <div class="input-group input-group-sm justify-content-end ms-auto" style="max-width: 120px;">
+                                        <input type="number" name="weight[{{id}}]" value="{{weight}}" class="form-control text-end text-primary fw-bold" min="0" max="100" step="0.1" required>
+                                        <span class="input-group-text">%</span>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <a href="{{deleteurl}}"
+                                       class="btn btn-sm btn-outline-danger"
+                                       onclick="return confirm('{{#str}}confirmdelete, local_competency_report{{/str}}');">
+                                        <i class="fa fa-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {{/assessments}}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer bg-light text-end p-3">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa fa-save me-1"></i> {{#str}}updateassessments, local_competency_report{{/str}}
+                    </button>
+                </div>
+            </form>
             {{/hasassessments}}
             {{^hasassessments}}
             <div class="text-center py-5 text-muted">
@@ -81,14 +95,14 @@
         </div>
         <div class="card-body">
             <form method="post" action="{{formaction}}" id="assessment-add-form">
-                <input type="hidden" name="action" value="save">
+                <input type="hidden" name="action" value="add">
                 <input type="hidden" name="sesskey" value="{{sesskey}}">
 
                 <div class="row g-3 align-items-end mb-3">
                     {{! Type selector }}
                     <div class="col-md-2">
                         <label for="new_type" class="form-label fw-bold">{{strtype}}</label>
-                        <select id="new_type" name="assessment_type[]" class="form-select" onchange="toggleQuizField(this)">
+                        <select id="new_type" name="assessment_type" class="form-select" onchange="toggleQuizField(this)">
                             <option value="quiz">{{#str}}typequiz, local_competency_report{{/str}}</option>
                             <option value="practical">{{#str}}typepractical, local_competency_report{{/str}}</option>
                         </select>
@@ -97,7 +111,7 @@
                     {{! Name }}
                     <div class="col-md-3">
                         <label for="new_name" class="form-label fw-bold">{{strname}}</label>
-                        <input type="text" id="new_name" name="assessment_name[]"
+                        <input type="text" id="new_name" name="assessment_name"
                                class="form-control"
                                placeholder="{{#str}}assessmentnamepholder, local_competency_report{{/str}}">
                     </div>
@@ -105,7 +119,7 @@
                     {{! Quiz selector (shown only for quiz type) }}
                     <div class="col-md-3" id="quiz-selector-wrap">
                         <label for="new_quizid" class="form-label fw-bold">{{strquiz}}</label>
-                        <select id="new_quizid" name="assessment_quizid[]" class="form-select">
+                        <select id="new_quizid" name="assessment_quizid" class="form-select" onchange="autoFillName(this)">
                             <option value="0">— {{#str}}selectquiz, local_competency_report{{/str}} —</option>
                             {{#quizzes}}
                             <option value="{{id}}">{{name}}</option>
@@ -116,17 +130,14 @@
                     {{! Weight }}
                     <div class="col-md-2">
                         <label for="new_weight" class="form-label fw-bold">{{strweight}} (%)</label>
-                        <input type="number" id="new_weight" name="assessment_weight[]"
-                               class="form-control" min="1" max="100" step="0.5"
+                        <input type="number" id="new_weight" name="assessment_weight"
+                               class="form-control" min="0" max="100" step="0.5"
                                placeholder="e.g. 40">
                     </div>
 
-                    {{! Hidden id for new rows = 0 }}
-                    <input type="hidden" name="assessment_id[]" value="0">
-
                     <div class="col-md-2">
-                        <button type="submit" class="btn btn-primary w-100">
-                            <i class="fa fa-save me-1"></i> {{strsave}}
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="fa fa-plus-circle me-1"></i> {{#str}}addnewassessment, local_competency_report{{/str}}
                         </button>
                     </div>
                 </div>
@@ -150,5 +161,13 @@
 function toggleQuizField(sel) {
     var wrap = document.getElementById('quiz-selector-wrap');
     wrap.style.display = (sel.value === 'practical') ? 'none' : '';
+}
+
+function autoFillName(quizSelect) {
+    var nameInput = document.getElementById('new_name');
+    if (quizSelect.value !== '0' && nameInput.value.trim() === '') {
+        var selectedText = quizSelect.options[quizSelect.selectedIndex].text;
+        nameInput.value = selectedText;
+    }
 }
 </script>

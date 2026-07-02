@@ -220,3 +220,28 @@ $string['studentdashboard'] = 'لوحة تحكم أداء الطلاب';
 $string['groupperformance'] = 'تحليل أداء المجموعات';
 $string['tab_by_competency'] = 'حسب الكفايات العامة';
 $string['tab_by_quiz'] = 'حسب كفايات الاختبارات';
+
+// ── Weighted Assessment System ──────────────────────────────────────────────
+$string['assessmentsetup']             = 'إعداد أوزان التقييمات';
+$string['assessmentsaved']             = 'تم حفظ إعدادات التقييم بنجاح.';
+$string['assessmentdeleted']           = 'تم حذف التقييم.';
+$string['configuredassessments']       = 'التقييمات المهيأة';
+$string['addnewassessment']            = 'إضافة تقييم جديد';
+$string['addquizassessment']           = 'إضافة تقييم اختبار';
+$string['addpracticalassessment']      = 'إضافة تقييم عملي';
+$string['assessmentname']              = 'اسم التقييم';
+$string['assessmentnamepholder']       = 'مثال: الاختبار النظري 1، التقييم العملي';
+$string['assessmenttype']              = 'النوع';
+$string['typequiz']                    = 'اختبار (تلقائي)';
+$string['typepractical']               = 'عملي (يدوي)';
+$string['weight']                      = 'الوزن';
+$string['totalweight']                 = 'الوزن الإجمالي';
+$string['totalweightlabel']            = 'الوزن الإجمالي';
+$string['weighttotal_ok']              = '✅ الوزن الإجمالي 100% - الإعدادات صحيحة.';
+$string['weightwarning']               = '⚠️ إجمالي وزن التقييمات هو {$a}%. يجب أن يساوي 100% للحساب الصحيح.';
+$string['assessmentweighthint']        = 'يجب أن يساوي مجموع أوزان التقييمات 100%. يساهم كل اختبار أو تقييم عملي بنسبته المحددة في الدرجة النهائية للكفاءة.';
+$string['noassessments']               = 'لم يتم تهيئة أي تقييمات بعد. أضف اختباراً أو تقييماً عملياً أدناه.';
+$string['confirmdelete']               = 'هل أنت متأكد من رغبتك في حذف هذا التقييم؟ سيتم أيضاً حذف جميع الدرجات العملية المرتبطة به.';
+$string['updateassessments']           = 'تحديث الأسماء والأوزان';
+$string['invaliddata']                 = 'البيانات المدخلة غير صالحة.';
+

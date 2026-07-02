@@ -243,6 +243,8 @@ $string['weightwarning']               = '⚠️ Total assessment weight is {$a}
 $string['assessmentweighthint']        = 'The total weight of all assessments must add up to 100%. Each quiz or practical assessment contributes its percentage to the final competency score.';
 $string['noassessments']               = 'No assessments configured yet. Add a quiz or practical assessment below.';
 $string['confirmdelete']               = 'Are you sure you want to delete this assessment? All practical results linked to it will also be removed.';
+$string['updateassessments']           = 'Update Weights & Names';
+$string['invaliddata']                 = 'Invalid data provided.';
 
 // Practical Entry.
 $string['practicalentry']              = 'Practical Exam Entry';

@@ -44,39 +44,56 @@ $PAGE->set_heading($course->fullname . ' — ' . get_string('assessmentsetup', '
 // -----------------------------------------------------------------------
 $action = optional_param('action', '', PARAM_ALPHA);
 
-if ($action === 'save' && confirm_sesskey()) {
-    // Save all assessments submitted from the form.
-    $ids     = optional_param_array('assessment_id',     [], PARAM_INT);
-    $names   = optional_param_array('assessment_name',   [], PARAM_TEXT);
-    $types   = optional_param_array('assessment_type',   [], PARAM_ALPHA);
-    $quizids = optional_param_array('assessment_quizid', [], PARAM_INT);
-    $weights = optional_param_array('assessment_weight', [], PARAM_FLOAT);
+if ($action === 'add' && confirm_sesskey()) {
+    $type   = optional_param('assessment_type', 'quiz', PARAM_ALPHA);
+    $name   = trim(optional_param('assessment_name', '', PARAM_TEXT));
+    $quizid = optional_param('assessment_quizid', null, PARAM_INT);
+    $weight = optional_param('assessment_weight', 0.0, PARAM_FLOAT);
 
-    $now = time();
+    if ($name === '' || $weight < 0) {
+        redirect(
+            new moodle_url('/local/competency_report/assessment_setup.php', ['courseid' => $courseid]),
+            get_string('invaliddata', 'local_competency_report'),
+            null,
+            \core\output\notification::NOTIFY_ERROR
+        );
+    }
 
-    // Delete all existing assessments for this course and rebuild.
-    $DB->delete_records('local_competency_report_asmt', ['courseid' => $courseid]);
+    $record = new stdClass();
+    $record->courseid     = $courseid;
+    $record->quizid       = ($type === 'quiz' && $quizid > 0) ? $quizid : null;
+    $record->name         = $name;
+    $record->type         = ($type === 'practical') ? 'practical' : 'quiz';
+    $record->weight       = $weight;
+    $record->timecreated  = time();
+    $record->timemodified = time();
 
-    foreach ($ids as $idx => $existingid) {
-        $name   = trim($names[$idx]  ?? '');
-        $type   = $types[$idx]   ?? 'quiz';
-        $quizid = $quizids[$idx] ?? null;
-        $weight = (float)($weights[$idx] ?? 0);
+    $DB->insert_record('local_competency_report_asmt', $record);
 
-        if ($name === '' || $weight <= 0) {
-            continue; // Skip empty rows.
+    redirect(
+        new moodle_url('/local/competency_report/assessment_setup.php', ['courseid' => $courseid]),
+        get_string('assessmentsaved', 'local_competency_report'),
+        null,
+        \core\output\notification::NOTIFY_SUCCESS
+    );
+}
+
+if ($action === 'update_existing' && confirm_sesskey()) {
+    $names   = optional_param_array('name', [], PARAM_TEXT);
+    $weights = optional_param_array('weight', [], PARAM_FLOAT);
+
+    foreach ($names as $id => $name) {
+        $name   = trim($name);
+        $weight = isset($weights[$id]) ? (float)$weights[$id] : 0.0;
+
+        if ($name !== '' && $weight >= 0) {
+            $DB->update_record('local_competency_report_asmt', (object)[
+                'id'           => $id,
+                'name'         => $name,
+                'weight'       => $weight,
+                'timemodified' => time()
+            ]);
         }
-
-        $record = new stdClass();
-        $record->courseid     = $courseid;
-        $record->quizid       = ($type === 'quiz' && $quizid > 0) ? $quizid : null;
-        $record->name         = $name;
-        $record->type         = ($type === 'practical') ? 'practical' : 'quiz';
-        $record->weight       = $weight;
-        $record->timecreated  = $now;
-        $record->timemodified = $now;
-
-        $DB->insert_record('local_competency_report_asmt', $record);
     }
 
     redirect(
