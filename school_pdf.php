@@ -99,10 +99,10 @@ if ($focustype === 'grades') {
     <table border="1" cellpadding="6">
         <thead>
             <tr bgcolor="#f2f2f2" style="font-weight: bold;">
-                <th width="45%" align="center">Quiz / Exam Name</th>
-                <th width="15%" align="center">Attempts</th>
-                <th width="24%" align="center">Average Score</th>
-                <th width="16%" align="center">Success Rate</th>
+                <th width="45%" align="center">' . get_string('quiz', 'local_competency_report') . '</th>
+                <th width="15%" align="center">' . get_string('attempts', 'local_competency_report') . '</th>
+                <th width="24%" align="center">' . get_string('averagescore', 'local_competency_report') . '</th>
+                <th width="16%" align="center">' . get_string('successrate', 'local_competency_report') . '</th>
             </tr>
         </thead>
         <tbody>';

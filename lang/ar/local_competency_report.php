@@ -42,6 +42,8 @@ $string['allusers'] = 'جميع الطلاب';
 $string['analysisfor'] = 'تحليل الكفايات: {$a}';
 $string['apikey'] = 'مفتاح API';
 $string['apikey_desc'] = 'أدخل مفتاح OpenAI أو Azure OpenAI API. <a href="https://platform.openai.com/account/api-keys" target="_blank">اضغط هنا للحصول على مفتاح OpenAI</a>.';
+$string['attempts'] = 'عدد المحاولات';
+$string['averagescore'] = 'متوسط الدرجة';
 $string['bluelegend'] = 'أزرق: محقق إلى حد كبير (60–79%)';
 $string['btn_process_now'] = 'معالجة نسب النجاح الآن';
 $string['classavg'] = 'متوسط الفصل';

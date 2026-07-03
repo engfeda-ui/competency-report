@@ -43,6 +43,8 @@ $string['allusers'] = 'All students';
 $string['analysisfor'] = 'Competency Analysis: {$a}';
 $string['apikey'] = 'API Key';
 $string['apikey_desc'] = 'Enter your OpenAI or Azure OpenAI API key. <a href="https://platform.openai.com/account/api-keys" target="_blank">Click here for OpenAI key</a>.';
+$string['attempts'] = 'Attempts';
+$string['averagescore'] = 'Average Score';
 $string['bluelegend'] = 'Blue: Mostly achieved (60–79%)';
 $string['btn_process_now'] = 'Process Success Rates Now';
 $string['classavg'] = 'Class Average';
