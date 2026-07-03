@@ -113,6 +113,22 @@ class scheduled_competency_rates_task extends \core\task\scheduled_task {
                         $DB->delete_records_list('competency_evidence', 'id', $existingevids);
                     }
 
+                    $uc = $DB->get_record('competency_usercomp', ['userid' => $student->id, 'competencyid' => $compid]);
+                    if ($uc) {
+                        $lastev = $DB->get_record_sql(
+                            "SELECT id, grade
+                               FROM {competency_evidence}
+                              WHERE usercompetencyid = :usercompid
+                                AND desccomponent = 'local_competency_report'
+                           ORDER BY timecreated DESC, id DESC",
+                            ['usercompid' => $uc->id],
+                            IGNORE_MISSING
+                        );
+                        if ($lastev && $lastev->grade == (int)$rate) {
+                            continue; // Skip adding duplicate evidence since the success rate has not changed.
+                        }
+                    }
+
                     $evidence = new \stdClass();
                     $evidence->userid            = $student->id;
                     $evidence->name              = get_string('process_success_title', 'local_competency_report')
@@ -133,7 +149,6 @@ class scheduled_competency_rates_task extends \core\task\scheduled_task {
                     $link->usermodified  = $adminid;
                     $DB->insert_record('competency_userevidencecomp', $link);
 
-                    $uc = $DB->get_record('competency_usercomp', ['userid' => $student->id, 'competencyid' => $compid]);
                     if (!$uc) {
                         $uc               = new \stdClass();
                         $uc->userid       = $student->id;
