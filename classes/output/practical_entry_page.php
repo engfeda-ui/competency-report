@@ -71,6 +71,10 @@ class practical_entry_page implements renderable, templatable {
             'courseid' => $this->data->courseid,
         ]))->out(false);
 
+        $d->setupurl = (new moodle_url('/local/competency_report/assessment_setup.php', [
+            'courseid' => $this->data->courseid,
+        ]))->out(false);
+
         // Practical assessment selector.
         $d->assessments = [];
         foreach ($this->data->assessments as $a) {
