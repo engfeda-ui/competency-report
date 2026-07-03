@@ -29,18 +29,23 @@ require_once(__DIR__ . '/../../config.php');
 require_once(__DIR__ . '/ai.php');
 
 $courseid = required_param('courseid', PARAM_INT);
+$req_userid = optional_param('userid', 0, PARAM_INT);
+
 require_login($courseid);
 
 $course  = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
 $context = context_course::instance($courseid);
 $userid  = $USER->id;
 
-// Students can view their own report; teachers can view any student's report.
-if (
-    !has_capability('local/competency_report:viewownreport', $context)
-    && !has_capability('local/competency_report:viewreports', $context)
-) {
-    require_capability('local/competency_report:viewownreport', $context);
+// If a specific userid is requested and it's not the current user.
+if ($req_userid && $req_userid != $USER->id) {
+    require_capability('local/competency_report:viewreports', $context);
+    $userid = $req_userid;
+} else {
+    // Students can view their own report.
+    if (!has_capability('local/competency_report:viewownreport', $context) && !has_capability('local/competency_report:viewreports', $context)) {
+        require_capability('local/competency_report:viewownreport', $context);
+    }
 }
 
 // Page Setup.
@@ -219,7 +224,11 @@ $renderdata->has_examdata = !empty($examrows);
 $renderdata->courseid   = $courseid;
 $renderdata->userid     = $userid;
 $renderdata->context    = $context;
-$renderdata->pdf_url    = (new moodle_url('/local/competency_report/parent_pdf.php', ['courseid' => $courseid]))->out(false);
+$pdf_params = ['courseid' => $courseid];
+if ($req_userid && $req_userid != $USER->id) {
+    $pdf_params['userid'] = $req_userid;
+}
+$renderdata->pdf_url    = (new moodle_url('/local/competency_report/parent_pdf.php', $pdf_params))->out(false);
 $renderdata->chart_data = $chartdata;
 $renderdata->has_radar  = count($chartlabels) >= 2;
 // AI feedback loaded on-demand via AJAX.

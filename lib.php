@@ -172,7 +172,7 @@ function local_competency_report_check_and_notify($userid, $courseid, array $rat
         $weaklist .= "• {$code}: " . round($rate, 1) . "%\n";
     }
 
-    $reporturl = (new moodle_url('/local/competency_report/student_competency_detail.php', [
+    $reporturl = (new moodle_url('/local/competency_report/student_report.php', [
         'courseid' => $courseid,
         'userid'   => $userid,
     ]))->out(false);
