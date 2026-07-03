@@ -26,11 +26,22 @@
 
 require_once(__DIR__ . '/../../config.php');
 
-$courseid = required_param('courseid', PARAM_INT);
-$days     = optional_param('days', 90, PARAM_INT);
+$courseid   = required_param('courseid', PARAM_INT);
+$days       = optional_param('days', 90, PARAM_INT);
+$req_userid = optional_param('userid', 0, PARAM_INT);
 
 require_login($courseid);
 $context = context_course::instance($courseid);
+
+$userid = $USER->id;
+if ($req_userid && $req_userid != $USER->id) {
+    require_capability('local/competency_report:viewreports', $context);
+    $userid = $req_userid;
+} else {
+    if (!has_capability('local/competency_report:viewownreport', $context) && !has_capability('local/competency_report:viewreports', $context)) {
+        require_capability('local/competency_report:viewownreport', $context);
+    }
+}
 
 // Page Setup and Navigation items.
 $PAGE->set_url('/local/competency_report/timeline.php', ['courseid' => $courseid]);
@@ -41,7 +52,7 @@ $PAGE->set_pagelayout('course');
 
 // 1. SQL Preparation.
 $where = "quiz.course = :courseid AND u.id = :userid AND quiza.state = 'finished'";
-$params = ['courseid' => $courseid, 'userid' => $USER->id];
+$params = ['courseid' => $courseid, 'userid' => $userid];
 
 // We are calculating the date filter.
 if ($days > 0) {
@@ -130,6 +141,7 @@ echo $OUTPUT->header();
 
 $renderdata = new stdClass();
 $renderdata->courseid = $courseid;
+$renderdata->userid = $userid;
 $renderdata->days = $days;
 $renderdata->periods = $periods;
 $renderdata->datasets = $datasets;

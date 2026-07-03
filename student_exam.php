@@ -25,11 +25,22 @@
 
 require_once(__DIR__ . '/../../config.php');
 
-$courseid = required_param('courseid', PARAM_INT);
-$quizid   = optional_param('quizid', 0, PARAM_INT);
+$courseid   = required_param('courseid', PARAM_INT);
+$quizid     = optional_param('quizid', 0, PARAM_INT);
+$req_userid = optional_param('userid', 0, PARAM_INT);
 
 require_login($courseid);
 $context = context_course::instance($courseid);
+
+$userid = $USER->id;
+if ($req_userid && $req_userid != $USER->id) {
+    require_capability('local/competency_report:viewreports', $context);
+    $userid = $req_userid;
+} else {
+    if (!has_capability('local/competency_report:viewownreport', $context) && !has_capability('local/competency_report:viewreports', $context)) {
+        require_capability('local/competency_report:viewownreport', $context);
+    }
+}
 
 // Page definitions and navigation setup.
 $PAGE->set_url('/local/competency_report/student_exam.php', ['courseid' => $courseid]);
@@ -45,7 +56,7 @@ $quizzesraw = $DB->get_records_sql("
       JOIN {quiz_attempts} qa ON qa.quiz = q.id
      WHERE qa.userid = ? AND q.course = ? AND qa.state = 'finished'
   ORDER BY q.name
-", [$USER->id, $courseid]);
+", [$userid, $courseid]);
 
 // Build the quiz selection dropdown data.
 $quizzes = [['id' => 0, 'name' => get_string('selectquiz', 'local_competency_report'), 'selected' => ($quizid == 0)]];
@@ -59,6 +70,7 @@ foreach ($quizzesraw as $q) {
 
 $renderdata = new stdClass();
 $renderdata->courseid = $courseid;
+$renderdata->userid = $userid;
 $renderdata->quizid = $quizid;
 $renderdata->quizzes = $quizzes;
 $renderdata->rows = [];
@@ -81,7 +93,7 @@ if ($quizid) {
             GROUP BY c.shortname, c.description
             ORDER BY c.shortname";
 
-    $renderdata->rows = $DB->get_records_sql($sql, [$quizid, $USER->id]);
+    $renderdata->rows = $DB->get_records_sql($sql, [$quizid, $userid]);
 }
 
 // 3. Output Generation.

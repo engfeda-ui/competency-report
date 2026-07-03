@@ -91,8 +91,7 @@ class timeline_page implements renderable, templatable {
 
         // Determine if there is sufficient data to render the visualization.
         $export->has_data = !empty($this->data->datasets);
-        global $USER;
-        $export->userid = $USER->id;
+        $export->userid = $this->data->userid;
         $export->context_type = 'student';
         $export->active_timeline = true;
 

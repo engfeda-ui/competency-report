@@ -28,19 +28,19 @@
     <!-- Consolidated Student Tab Navigation -->
     <ul class="nav nav-tabs mb-4">
         <li class="nav-item">
-            <a class="nav-link {{#active_reportcard}}active font-weight-bold{{/active_reportcard}}{{^active_reportcard}}text-muted{{/active_reportcard}}" href="student_report.php?courseid={{courseid}}"><i class="fa fa-vcard-o mr-1"></i> {{#str}}myreportcard, local_competency_report{{/str}}</a>
+            <a class="nav-link {{#active_reportcard}}active font-weight-bold{{/active_reportcard}}{{^active_reportcard}}text-muted{{/active_reportcard}}" href="student_report.php?courseid={{courseid}}{{#userid}}&userid={{userid}}{{/userid}}"><i class="fa fa-vcard-o mr-1"></i> {{#str}}myreportcard, local_competency_report{{/str}}</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {{#active_examanalysis}}active font-weight-bold{{/active_examanalysis}}{{^active_examanalysis}}text-muted{{/active_examanalysis}}" href="student_exam.php?courseid={{courseid}}"><i class="fa fa-bar-chart mr-1"></i> {{#str}}myexamanalysis, local_competency_report{{/str}}</a>
+            <a class="nav-link {{#active_examanalysis}}active font-weight-bold{{/active_examanalysis}}{{^active_examanalysis}}text-muted{{/active_examanalysis}}" href="student_exam.php?courseid={{courseid}}{{#userid}}&userid={{userid}}{{/userid}}"><i class="fa fa-bar-chart mr-1"></i> {{#str}}myexamanalysis, local_competency_report{{/str}}</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {{#active_competencyexams}}active font-weight-bold{{/active_competencyexams}}{{^active_competencyexams}}text-muted{{/active_competencyexams}}" href="student_competency_exams.php?courseid={{courseid}}"><i class="fa fa-list-alt mr-1"></i> {{#str}}mycompetencyexams, local_competency_report{{/str}}</a>
+            <a class="nav-link {{#active_competencyexams}}active font-weight-bold{{/active_competencyexams}}{{^active_competencyexams}}text-muted{{/active_competencyexams}}" href="student_competency_exams.php?courseid={{courseid}}{{#userid}}&userid={{userid}}{{/userid}}"><i class="fa fa-list-alt mr-1"></i> {{#str}}mycompetencyexams, local_competency_report{{/str}}</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {{#active_competencystate}}active font-weight-bold{{/active_competencystate}}{{^active_competencystate}}text-muted{{/active_competencystate}}" href="student_class.php?courseid={{courseid}}"><i class="fa fa-graduation-cap mr-1"></i> {{#str}}mycompetencystate, local_competency_report{{/str}}</a>
+            <a class="nav-link {{#active_competencystate}}active font-weight-bold{{/active_competencystate}}{{^active_competencystate}}text-muted{{/active_competencystate}}" href="student_class.php?courseid={{courseid}}{{#userid}}&userid={{userid}}{{/userid}}"><i class="fa fa-graduation-cap mr-1"></i> {{#str}}mycompetencystate, local_competency_report{{/str}}</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {{#active_timeline}}active font-weight-bold{{/active_timeline}}{{^active_timeline}}text-muted{{/active_timeline}}" href="timeline.php?courseid={{courseid}}"><i class="fa fa-calendar mr-1"></i> {{#str}}timeline, local_competency_report{{/str}}</a>
+            <a class="nav-link {{#active_timeline}}active font-weight-bold{{/active_timeline}}{{^active_timeline}}text-muted{{/active_timeline}}" href="timeline.php?courseid={{courseid}}{{#userid}}&userid={{userid}}{{/userid}}"><i class="fa fa-calendar mr-1"></i> {{#str}}timeline, local_competency_report{{/str}}</a>
         </li>
     </ul>
 
@@ -229,7 +229,7 @@
                 <strong>{{#str}}radar_chart_title, local_competency_report{{/str}}</strong>
             </div>
             <div class="card-body">
-                <p class="text-muted small mb-3">{{#str}}radar_chart_desc, local_competency_report{{/str}}</p>
+                <p id="competency-chart-desc-{{userid}}" class="text-muted small mb-3">{{#str}}radar_chart_desc, local_competency_report{{/str}}</p>
                 <div style="position: relative; max-width: 480px; margin: 0 auto;">
                     <canvas id="competency-radar-chart-{{userid}}" width="480" height="480"></canvas>
                 </div>
@@ -249,42 +249,80 @@
         {{> local_competency_report/ai_commentary_widget }}
 
 {{#js}}
-require(['core/chartjs', 'jquery'], function(Chart, $) {
+require(['core/chartjs', 'jquery', 'core/str'], function(Chart, $, Str) {
     var rawData = {{{chart_data}}};
     if (!rawData || !rawData.labels || rawData.labels.length < 2) { return; }
 
     var ctx = document.getElementById('competency-radar-chart-{{userid}}');
     if (!ctx) { return; }
 
-    new Chart(ctx.getContext('2d'), {
-        type: 'radar',
+    var isBarChart = rawData.labels.length < 3;
+    var container = ctx.parentElement;
+
+    if (isBarChart) {
+        container.style.maxWidth = '100%';
+        container.style.height = '240px';
+        Str.get_string('bar_chart_desc', 'local_competency_report').then(function(str) {
+            $('#competency-chart-desc-{{userid}}').text(str);
+        });
+    } else {
+        container.style.maxWidth = '480px';
+        container.style.height = '480px';
+    }
+
+    var chartConfig = {
+        type: isBarChart ? 'bar' : 'radar',
         data: {
             labels: rawData.labels,
             datasets: [
                 {
                     label: '{{#str}}radar_legend_student, local_competency_report{{/str}}',
                     data: rawData.student,
-                    backgroundColor: 'rgba(0, 123, 255, 0.15)',
+                    backgroundColor: isBarChart ? '#007bff' : 'rgba(0, 123, 255, 0.15)',
                     borderColor: '#007bff',
-                    borderWidth: 2.5,
+                    borderWidth: isBarChart ? 1 : 2.5,
                     pointBackgroundColor: '#007bff',
-                    pointRadius: 4,
+                    pointRadius: isBarChart ? 0 : 4,
+                    borderRadius: isBarChart ? 4 : 0,
+                    barPercentage: isBarChart ? 0.5 : undefined,
+                    categoryPercentage: isBarChart ? 0.7 : undefined
                 },
                 {
                     label: '{{#str}}radar_legend_class, local_competency_report{{/str}}',
                     data: rawData.class,
-                    backgroundColor: 'rgba(150,150,150,0.1)',
-                    borderColor: 'rgba(100,100,100,0.5)',
-                    borderWidth: 1.5,
-                    borderDash: [5, 3],
-                    pointBackgroundColor: 'rgba(100,100,100,0.6)',
-                    pointRadius: 3,
+                    backgroundColor: isBarChart ? 'rgba(150, 150, 150, 0.7)' : 'rgba(150,150,150,0.1)',
+                    borderColor: isBarChart ? '#969696' : 'rgba(100,100,100,0.5)',
+                    borderWidth: isBarChart ? 1 : 1.5,
+                    borderDash: isBarChart ? undefined : [5, 3],
+                    pointBackgroundColor: isBarChart ? undefined : 'rgba(100,100,100,0.6)',
+                    pointRadius: isBarChart ? 0 : 3,
+                    borderRadius: isBarChart ? 4 : 0,
+                    barPercentage: isBarChart ? 0.5 : undefined,
+                    categoryPercentage: isBarChart ? 0.7 : undefined
                 }
             ]
         },
         options: {
             responsive: true,
-            scales: {
+            maintainAspectRatio: false,
+            scales: isBarChart ? {
+                x: {
+                    beginAtZero: true,
+                    min: 0,
+                    max: 100,
+                    ticks: {
+                        stepSize: 20,
+                        callback: function(v) { return v + '%'; },
+                        font: { size: 10 }
+                    }
+                },
+                y: {
+                    grid: { display: false },
+                    ticks: {
+                        font: { size: 11, weight: 'bold' }
+                    }
+                }
+            } : {
                 r: {
                     beginAtZero: true,
                     min: 0,
@@ -306,7 +344,9 @@ require(['core/chartjs', 'jquery'], function(Chart, $) {
                 }
             }
         }
-    });
+    };
+
+    new Chart(ctx.getContext('2d'), chartConfig);
 
     $('#btn-export-student-pdf-top').on('click', function(e) {
         e.preventDefault();

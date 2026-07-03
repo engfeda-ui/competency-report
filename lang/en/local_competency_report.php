@@ -178,6 +178,7 @@ $string['exportpdf'] = 'Export PDF Report';
 // Radar Gap Analysis Chart strings.
 $string['radar_chart_title']   = '📊 Competency Gap Analysis — Your Profile vs Class Average';
 $string['radar_chart_desc']    = 'The blue area represents your personal mastery level. The dotted gray line represents the class average. Areas where your profile dips below the gray line indicate competencies needing focus.';
+$string['bar_chart_desc']      = 'The blue bars represent your personal mastery level, and the grey bars represent the class average. Competencies where your performance is lower than the class average indicate areas to focus on.';
 $string['radar_legend_student'] = 'Your Performance';
 $string['radar_legend_class']   = 'Class Average';
 

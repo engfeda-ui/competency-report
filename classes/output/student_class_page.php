@@ -109,8 +109,7 @@ class student_class_page implements renderable, templatable {
                 ],
             ]);
         }
-        global $USER;
-        $export->userid = $USER->id;
+        $export->userid = $this->data->userid;
         $export->context_type = 'student';
         $export->active_competencystate = true;
         $export->courseid = !empty($this->data->courseid) ? $this->data->courseid : 0;
