@@ -60,6 +60,32 @@ if ($action === 'add' && confirm_sesskey()) {
         );
     }
 
+    // Security: verify quiz/assign belongs to this course.
+    if ($type === 'quiz' && $quizid > 0) {
+        if (!$DB->record_exists('quiz', ['id' => $quizid, 'course' => $courseid])) {
+            redirect(
+                new moodle_url('/local/competency_report/assessment_setup.php', ['courseid' => $courseid]),
+                get_string('invaliddata', 'local_competency_report'),
+                null,
+                \core\output\notification::NOTIFY_ERROR
+            );
+        }
+    }
+    if ($type === 'practical' && $assignid > 0) {
+        if (!$DB->record_exists_sql(
+            "SELECT 1 FROM {assign} a JOIN {course_modules} cm ON cm.instance = a.id
+              WHERE a.id = :aid AND a.course = :cid",
+            ['aid' => $assignid, 'cid' => $courseid]
+        )) {
+            redirect(
+                new moodle_url('/local/competency_report/assessment_setup.php', ['courseid' => $courseid]),
+                get_string('invaliddata', 'local_competency_report'),
+                null,
+                \core\output\notification::NOTIFY_ERROR
+            );
+        }
+    }
+
     $record = new stdClass();
     $record->courseid     = $courseid;
     $record->quizid       = ($type === 'quiz' && $quizid > 0) ? $quizid : null;

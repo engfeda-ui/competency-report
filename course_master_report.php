@@ -29,7 +29,7 @@ $courseid = required_param('courseid', PARAM_INT);
 
 require_login($courseid);
 $context = context_course::instance($courseid);
-require_capability('moodle/course:update', $context);
+require_capability('local/competency_report:viewreports', $context);
 
 global $DB, $PAGE, $OUTPUT;
 

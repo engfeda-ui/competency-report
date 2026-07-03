@@ -17,9 +17,11 @@
 /**
  * Renderable class for the student's general competency overview report.
  *
+ * Updated to support the new Score Card section (exam results + competency breakdown).
+ *
  * @package    local_competency_report
  * @copyright  2026 Mahmoud Salem
- * @copyright  based on work by 2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
+ * @copyright  based on work by 2026 Hakan Çiğci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -35,11 +37,11 @@ use stdClass;
  *
  * @package    local_competency_report
  * @copyright  2026 Mahmoud Salem
- * @copyright  based on work by 2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
+ * @copyright  based on work by 2026 Hakan Çiğci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class student_report_page implements renderable, templatable {
-    /** @var stdClass Raw report data including database rows and context information. */
+    /** @var stdClass Raw report data. */
     protected $data;
 
     /**
@@ -61,45 +63,52 @@ class student_report_page implements renderable, templatable {
         $export = new stdClass();
         $export->rows = [];
 
+        // ── Legacy competency rows (radar chart + old table) ───────────────────
         foreach ($this->data->rows as $r) {
-            // Calculate achievement rate as a percentage.
-            $rate = $r->questions ? number_format(($r->correct / $r->questions) * 100, 1) : 0;
+            $rate = isset($r->percent)
+                ? (float)$r->percent
+                : ($r->questions ? (float)(($r->correct / $r->questions) * 100) : 0);
 
-            // Define color codes for visual representation (Bootstrap compatible HEX codes).
             if ($rate >= 80) {
-                $color = '#28a745'; // Green.
+                $color = '#28a745';
             } else if ($rate >= 60) {
-                $color = '#007bff'; // Blue.
+                $color = '#007bff';
             } else if ($rate >= 40) {
-                $color = '#fd7e14'; // Orange.
+                $color = '#fd7e14';
             } else {
-                $color = '#dc3545'; // Red.
+                $color = '#dc3545';
             }
 
-            $row = new stdClass();
-            $row->shortname = s($r->shortname);
-
-            // Render description maintaining HTML formatting and context-aware filtering.
+            $row              = new stdClass();
+            $row->shortname   = s($r->shortname);
             $row->description = format_text($r->description, $r->descriptionformat, ['context' => $this->data->context]);
-
-            $row->questions = (float)$r->questions;
-            $row->correct = (float)$r->correct;
-            $row->rate = $rate;
-            $row->color = $color;
+            $row->questions   = isset($r->questions) ? (float)$r->questions : 0;
+            $row->correct     = isset($r->correct)   ? (float)$r->correct   : 0;
+            $row->rate        = number_format($rate, 1);
+            $row->color       = $color;
 
             $export->rows[] = $row;
         }
 
-        // Assign additional report meta-data.
-        $export->pdf_url = $this->data->pdf_url;
-        $export->ai_comment = $this->data->ai_comment;
-        $export->has_data = !empty($export->rows);
-        $export->courseid = $this->data->courseid;
-        $export->userid = $this->data->userid;
-        $export->context_type = 'student';
+        // ── Score Card: exam results rows ──────────────────────────────────────
+        $export->examrows      = $this->data->examrows ?? [];
+        $export->has_examdata  = !empty($export->examrows);
+
+        // ── Score Card: competency breakdown rows ──────────────────────────────
+        $export->comprows      = $this->data->comprows ?? [];
+        $export->hasweights    = !empty($this->data->hasweights) && $this->data->hasweights;
+        $export->has_compdata  = !empty($export->comprows);
+
+        // ── Meta ───────────────────────────────────────────────────────────────
+        $export->pdf_url        = $this->data->pdf_url;
+        $export->ai_comment     = $this->data->ai_comment;
+        $export->has_data       = !empty($export->rows) || !empty($export->comprows);
+        $export->courseid       = $this->data->courseid;
+        $export->userid         = $this->data->userid;
+        $export->context_type   = 'student';
         $export->active_reportcard = true;
-        $export->chart_data = $this->data->chart_data ?? '{}';
-        $export->has_radar = !empty($this->data->has_radar) && $this->data->has_radar;
+        $export->chart_data     = $this->data->chart_data ?? '{}';
+        $export->has_radar      = !empty($this->data->has_radar) && $this->data->has_radar;
 
         return $export;
     }

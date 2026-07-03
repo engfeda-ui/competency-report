@@ -247,3 +247,48 @@ $string['confirmdelete']               = 'هل أنت متأكد من رغبتك
 $string['updateassessments']           = 'تحديث الأسماء والأوزان';
 $string['invaliddata']                 = 'البيانات المدخلة غير صالحة.';
 
+// Practical Entry.
+$string['practicalentry']              = 'إدخال الامتحان العملي';
+$string['practicalsaved']              = 'تم حفظ النتائج العملية بنجاح.';
+$string['selectpracticalassessment']   = 'اختر التقييم العملي';
+$string['competencypercent']           = 'نسبة إنجاز الكفاية (%)';
+$string['showstudents']                = 'عرض الطلاب';
+$string['enterstudentresults']         = 'إدخال نتائج الطلاب';
+$string['nostudentsenrolled']          = 'لا يوجد طلاب مسجلون في هذا المقرر.';
+$string['nopracticalassessments']      = 'لم يتم تهيئة أي تقييمات عملية لهذا المقرر بعد.';
+$string['goassessmentsetup']           = 'الذهاب إلى إعداد التقييمات';
+$string['practicalentryhintsave']      = 'اترك الحقل فارغاً لتجاوز طالب. سيقوم الحفظ بالكتابة فوق أي نتيجة سابقة لذلك الطالب.';
+
+// Capability strings.
+$string['competency_report:manageassessments'] = 'تهيئة أوزان التقييمات لقياس الكفايات';
+$string['competency_report:enterpractical']    = 'إدخال نتائج الامتحانات العملية للطلاب';
+
+// ── Student Score Card (new) ─────────────────────────────────────────────────
+$string['scorecard_title']             = '🎓 بطاقة نتائجي الكاملة';
+$string['scorecard_desc']              = 'عرض شامل لنتائج الاختبارات وإنجاز الكفايات، بما في ذلك مساهمة كل اختبار في درجة كل كفاية.';
+$string['scorecard_exams_heading']     = '📝 نتائج الاختبارات';
+$string['scorecard_exams_desc']        = 'درجتك في كل اختبار/تقييم تم تهيئته لهذا المقرر.';
+$string['scorecard_comp_heading']      = '🏆 تفصيل إنجاز الكفايات';
+$string['scorecard_comp_desc']         = 'تُحسب درجات الكفايات من مزيج موزون من نتائج اختباراتك.';
+$string['scorecard_exam_col_name']     = 'التقييم';
+$string['scorecard_exam_col_type']     = 'النوع';
+$string['scorecard_exam_col_grade']    = 'درجتك';
+$string['scorecard_exam_col_max']      = 'الدرجة العظمى';
+$string['scorecard_exam_col_pct']      = 'النسبة %';
+$string['scorecard_exam_col_pass']     = 'النتيجة';
+$string['scorecard_exam_col_weight']   = 'الوزن';
+$string['scorecard_pass']              = '✅ ناجح';
+$string['scorecard_fail']              = '❌ راسب';
+$string['scorecard_notsat']            = '— لم يؤدَّ';
+$string['scorecard_comp_col_name']     = 'الكفاية';
+$string['scorecard_comp_col_score']    = 'الدرجة الموزونة';
+$string['scorecard_comp_col_passed']   = 'الحالة';
+$string['scorecard_comp_col_detail']   = 'تفصيل التقييمات';
+$string['scorecard_breakdown_row']     = '{$a->name} ({$a->weight}%): {$a->score_pct}% ← مساهمة {$a->weighted_contribution}%';
+$string['scorecard_nodata']            = 'لا توجد بيانات تقييم متاحة بعد. أكمل اختباراً أو اطلب من معلمك إدخال نتائجك العملية.';
+$string['scorecard_noweights']         = 'لم يتم تهيئة أوزان التقييمات لهذا المقرر بعد. يتم عرض متوسطات الأسئلة غير الموزونة.';
+$string['scorecard_practical']         = 'عملي';
+$string['scorecard_quiz']              = 'اختبار';
+$string['weighted_score']              = 'الدرجة الموزونة';
+$string['contribution']                = 'المساهمة';
+
