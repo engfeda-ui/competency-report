@@ -25,23 +25,19 @@
 
 require_once(__DIR__ . '/../../config.php');
 
-$courseid   = required_param('courseid', PARAM_INT);
-$req_userid = optional_param('userid', 0, PARAM_INT);
-$course     = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
-$context    = context_course::instance($courseid);
+$courseid = required_param('courseid', PARAM_INT);
+$course   = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
+$context  = context_course::instance($courseid);
 
 require_login($course);
 
-$userid = $USER->id;
-if ($req_userid && $req_userid != $USER->id) {
-    require_capability('local/competency_report:viewreports', $context);
-    $userid = $req_userid;
-} else {
-    if (!has_capability('local/competency_report:viewownreport', $context) && !has_capability('local/competency_report:viewreports', $context)) {
-        require_capability('local/competency_report:viewownreport', $context);
-    }
+// Students can view their own class comparison; teachers can view it too.
+if (
+    !has_capability('local/competency_report:viewownreport', $context)
+    && !has_capability('local/competency_report:viewreports', $context)
+) {
+    require_capability('local/competency_report:viewownreport', $context);
 }
-$targetuser = $DB->get_record('user', ['id' => $userid], '*', MUST_EXIST);
 
 // Page settings and navigation.
 $PAGE->set_url('/local/competency_report/student_class.php', ['courseid' => $courseid]);
@@ -72,14 +68,13 @@ $coursedata = $DB->get_records_sql($coursesql, ['courseid' => $courseid]);
 
 $renderdata = new stdClass();
 $renderdata->courseid = $courseid;
-$renderdata->userid = $userid;
 $renderdata->coursedata = $coursedata;
 $renderdata->classdata = [];
 $renderdata->studentdata = [];
 
 if (!empty($coursedata)) {
     // 2. Class (Department) Average.
-    if (!empty($targetuser->department)) {
+    if (!empty($USER->department)) {
         // Build class SQL directly — avoids fragile str_replace on the base query.
         $classsql = "SELECT c.id, c.shortname,
                             CAST(SUM(qa.maxfraction) AS DECIMAL(12, 1)) AS attempts,
@@ -92,9 +87,9 @@ if (!empty($coursedata)) {
                      JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
                      JOIN {competency} c ON c.id = m.competencyid
                      JOIN (
-                          SELECT MAX(fraction) AS fraction, questionattemptid
-                          FROM {question_attempt_steps}
-                          GROUP BY questionattemptid
+                         SELECT MAX(fraction) AS fraction, questionattemptid
+                         FROM {question_attempt_steps}
+                         GROUP BY questionattemptid
                      ) qas ON qas.questionattemptid = qa.id
                      WHERE quiz.course = :courseid
                        AND quiza.state = 'finished'
@@ -102,7 +97,7 @@ if (!empty($coursedata)) {
                      GROUP BY c.id, c.shortname";
         $renderdata->classdata = $DB->get_records_sql($classsql, [
             'courseid' => $courseid,
-            'dept'     => $targetuser->department,
+            'dept'     => $USER->department,
         ]);
     }
 
@@ -127,7 +122,7 @@ if (!empty($coursedata)) {
                    GROUP BY c.id, c.shortname";
     $renderdata->studentdata = $DB->get_records_sql($studentsql, [
         'courseid' => $courseid,
-        'userid'   => $userid,
+        'userid'   => $USER->id,
     ]);
 }
 

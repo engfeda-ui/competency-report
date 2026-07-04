@@ -25,22 +25,11 @@
 
 require_once(__DIR__ . '/../../config.php');
 
-$courseid     = required_param('courseid', PARAM_INT);
+$courseid = required_param('courseid', PARAM_INT);
 $competencyid = optional_param('competencyid', 0, PARAM_INT);
-$req_userid   = optional_param('userid', 0, PARAM_INT);
 
 require_login($courseid);
 $context = context_course::instance($courseid);
-
-$userid = $USER->id;
-if ($req_userid && $req_userid != $USER->id) {
-    require_capability('local/competency_report:viewreports', $context);
-    $userid = $req_userid;
-} else {
-    if (!has_capability('local/competency_report:viewownreport', $context) && !has_capability('local/competency_report:viewreports', $context)) {
-        require_capability('local/competency_report:viewownreport', $context);
-    }
-}
 
 // Page definitions and navigation setup.
 $PAGE->set_url('/local/competency_report/student_competency_exams.php', ['courseid' => $courseid]);
@@ -68,7 +57,6 @@ foreach ($compsraw as $c) {
 
 $renderdata = new stdClass();
 $renderdata->courseid = $courseid;
-$renderdata->userid = $userid;
 $renderdata->competencyid = $competencyid;
 $renderdata->competencies = $competencies;
 $renderdata->rows = [];
@@ -104,7 +92,7 @@ if ($competencyid) {
     $summaryrows = $DB->get_records_sql($sqlsummary, [
         'courseid' => $courseid,
         'competencyid' => $competencyid,
-        'userid' => $userid,
+        'userid' => $USER->id,
     ]);
 
     foreach ($summaryrows as $r) {
@@ -130,7 +118,7 @@ if ($competencyid) {
 
     $questions = $DB->get_records_sql($sqldetails, [
         'competencyid' => $competencyid,
-        'userid' => $userid,
+        'userid' => $USER->id,
         'courseid' => $courseid,
     ]);
 

@@ -135,7 +135,7 @@ if ($groupid && $quizid) {
     $grouptotals = [];
     foreach ($students as $s) {
         $row = new stdClass();
-        $detailurl = new moodle_url('/local/competency_report/student_report.php', [
+        $detailurl = new moodle_url('/local/competency_report/student_competency_detail.php', [
             'courseid' => $courseid,
             'userid' => $s->id,
         ]);

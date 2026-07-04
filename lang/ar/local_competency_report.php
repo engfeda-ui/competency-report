@@ -42,8 +42,6 @@ $string['allusers'] = 'جميع الطلاب';
 $string['analysisfor'] = 'تحليل الكفايات: {$a}';
 $string['apikey'] = 'مفتاح API';
 $string['apikey_desc'] = 'أدخل مفتاح OpenAI أو Azure OpenAI API. <a href="https://platform.openai.com/account/api-keys" target="_blank">اضغط هنا للحصول على مفتاح OpenAI</a>.';
-$string['attempts'] = 'عدد المحاولات';
-$string['averagescore'] = 'متوسط الدرجة';
 $string['bluelegend'] = 'أزرق: محقق إلى حد كبير (60–79%)';
 $string['btn_process_now'] = 'معالجة نسب النجاح الآن';
 $string['classavg'] = 'متوسط الفصل';
@@ -178,7 +176,6 @@ $string['exportpdf'] = 'تصدير تقرير PDF';
 // Radar Gap Analysis Chart strings.
 $string['radar_chart_title']   = '📊 تحليل فجوة الكفايات — ملفك مقابل متوسط الفصل';
 $string['radar_chart_desc']    = 'المنطقة الزرقاء تُمثّل مستوى إتقانك الشخصي. الخط الرمادي المنقّط يُمثّل متوسط الفصل. المناطق التي ينخفض فيها ملفك عن الخط الرمادي تُشير إلى الكفايات التي تحتاج تركيزاً.';
-$string['bar_chart_desc']      = 'الأعمدة الزرقاء تُمثّل مستوى إتقانك الشخصي، والأعمدة الرمادية تُمثّل متوسط الفصل. الكفايات التي يقل فيها أداؤك عن متوسط الفصل تُشير إلى المجالات التي تحتاج إلى تركيز.';
 $string['radar_legend_student'] = 'أداؤك';
 $string['radar_legend_class']   = 'متوسط الفصل';
 
@@ -223,73 +220,3 @@ $string['studentdashboard'] = 'لوحة تحكم أداء الطلاب';
 $string['groupperformance'] = 'تحليل أداء المجموعات';
 $string['tab_by_competency'] = 'حسب الكفايات العامة';
 $string['tab_by_quiz'] = 'حسب كفايات الاختبارات';
-
-// ── Weighted Assessment System ──────────────────────────────────────────────
-$string['assessmentsetup']             = 'إعداد أوزان التقييمات';
-$string['assessmentsaved']             = 'تم حفظ إعدادات التقييم بنجاح.';
-$string['assessmentdeleted']           = 'تم حذف التقييم.';
-$string['configuredassessments']       = 'التقييمات المهيأة';
-$string['addnewassessment']            = 'إضافة تقييم جديد';
-$string['addquizassessment']           = 'إضافة تقييم اختبار';
-$string['addpracticalassessment']      = 'إضافة تقييم عملي';
-$string['assessmentname']              = 'اسم التقييم';
-$string['assessmentnamepholder']       = 'مثال: الاختبار النظري 1، التقييم العملي';
-$string['assessmenttype']              = 'النوع';
-$string['typequiz']                    = 'اختبار (تلقائي)';
-$string['typepractical']               = 'عملي (يدوي)';
-$string['weight']                      = 'الوزن';
-$string['totalweight']                 = 'الوزن الإجمالي';
-$string['totalweightlabel']            = 'الوزن الإجمالي';
-$string['weighttotal_ok']              = '✅ الوزن الإجمالي 100% - الإعدادات صحيحة.';
-$string['weightwarning']               = '⚠️ إجمالي وزن التقييمات هو {$a}%. يجب أن يساوي 100% للحساب الصحيح.';
-$string['assessmentweighthint']        = 'يجب أن يساوي مجموع أوزان التقييمات 100%. يساهم كل اختبار أو تقييم عملي بنسبته المحددة في الدرجة النهائية للكفاءة.';
-$string['noassessments']               = 'لم يتم تهيئة أي تقييمات بعد. أضف اختباراً أو تقييماً عملياً أدناه.';
-$string['confirmdelete']               = 'هل أنت متأكد من رغبتك في حذف هذا التقييم؟ سيتم أيضاً حذف جميع الدرجات العملية المرتبطة به.';
-$string['updateassessments']           = 'تحديث الأسماء والأوزان';
-$string['invaliddata']                 = 'البيانات المدخلة غير صالحة.';
-
-// Practical Entry.
-$string['practicalentry']              = 'إدخال الامتحان العملي';
-$string['practicalsaved']              = 'تم حفظ النتائج العملية بنجاح.';
-$string['selectpracticalassessment']   = 'اختر التقييم العملي';
-$string['competencypercent']           = 'نسبة إنجاز الكفاية (%)';
-$string['showstudents']                = 'عرض الطلاب';
-$string['enterstudentresults']         = 'إدخال نتائج الطلاب';
-$string['nostudentsenrolled']          = 'لا يوجد طلاب مسجلون في هذا المقرر.';
-$string['nopracticalassessments']      = 'لم يتم تهيئة أي تقييمات عملية لهذا المقرر بعد.';
-$string['goassessmentsetup']           = 'الذهاب إلى إعداد التقييمات';
-$string['practicalentryhintsave']      = 'اترك الحقل فارغاً لتجاوز طالب. سيقوم الحفظ بالكتابة فوق أي نتيجة سابقة لذلك الطالب.';
-
-// Capability strings.
-$string['competency_report:manageassessments'] = 'تهيئة أوزان التقييمات لقياس الكفايات';
-$string['competency_report:enterpractical']    = 'إدخال نتائج الامتحانات العملية للطلاب';
-
-// ── Student Score Card (new) ─────────────────────────────────────────────────
-$string['scorecard_title']             = '🎓 بطاقة نتائجي الكاملة';
-$string['scorecard_desc']              = 'عرض شامل لنتائج الاختبارات وإنجاز الكفايات، بما في ذلك مساهمة كل اختبار في درجة كل كفاية.';
-$string['scorecard_exams_heading']     = '📝 نتائج الاختبارات';
-$string['scorecard_exams_desc']        = 'درجتك في كل اختبار/تقييم تم تهيئته لهذا المقرر.';
-$string['scorecard_comp_heading']      = '🏆 تفصيل إنجاز الكفايات';
-$string['scorecard_comp_desc']         = 'تُحسب درجات الكفايات من مزيج موزون من نتائج اختباراتك.';
-$string['scorecard_exam_col_name']     = 'التقييم';
-$string['scorecard_exam_col_type']     = 'النوع';
-$string['scorecard_exam_col_grade']    = 'درجتك';
-$string['scorecard_exam_col_max']      = 'الدرجة العظمى';
-$string['scorecard_exam_col_pct']      = 'النسبة %';
-$string['scorecard_exam_col_pass']     = 'النتيجة';
-$string['scorecard_exam_col_weight']   = 'الوزن';
-$string['scorecard_pass']              = '✅ ناجح';
-$string['scorecard_fail']              = '❌ راسب';
-$string['scorecard_notsat']            = '— لم يؤدَّ';
-$string['scorecard_comp_col_name']     = 'الكفاية';
-$string['scorecard_comp_col_score']    = 'الدرجة الموزونة';
-$string['scorecard_comp_col_passed']   = 'الحالة';
-$string['scorecard_comp_col_detail']   = 'تفصيل التقييمات';
-$string['scorecard_breakdown_row']     = '{$a->name} ({$a->weight}%): {$a->score_pct}% ← مساهمة {$a->weighted_contribution}%';
-$string['scorecard_nodata']            = 'لا توجد بيانات تقييم متاحة بعد. أكمل اختباراً أو اطلب من معلمك إدخال نتائجك العملية.';
-$string['scorecard_noweights']         = 'لم يتم تهيئة أوزان التقييمات لهذا المقرر بعد. يتم عرض متوسطات الأسئلة غير الموزونة.';
-$string['scorecard_practical']         = 'عملي';
-$string['scorecard_quiz']              = 'اختبار';
-$string['weighted_score']              = 'الدرجة الموزونة';
-$string['contribution']                = 'المساهمة';
-

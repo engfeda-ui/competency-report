@@ -111,7 +111,8 @@ class student_exam_page implements renderable, templatable {
             ]);
         }
 
-        $export->userid = $this->data->userid;
+        global $USER;
+        $export->userid = $USER->id;
         $export->context_type = 'student';
         $export->active_examanalysis = true;
 

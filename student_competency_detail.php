@@ -17,19 +17,14 @@
 /**
  * Detailed competency report for a specific student.
  *
- * Uses the weighted competency calculator so that practical exam results
- * and configured assessment weights are reflected here.
- *
  * @package    local_competency_report
  * @copyright  2026 Mahmoud Salem
- * @copyright  based on work by 2026 Hakan Çiğci {@link https://hakancigci.com.tr}
+ * @copyright  based on work by 2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 require_once(__DIR__ . '/../../config.php');
 require_once(__DIR__ . '/ai.php'); // Include for AI commentary generation.
-
-use local_competency_report\competency_calculator;
 
 $courseid = required_param('courseid', PARAM_INT);
 $userid   = optional_param('userid', $USER->id, PARAM_INT);
@@ -53,40 +48,39 @@ $PAGE->set_pagelayout('course');
 $PAGE->set_title(get_string('studentreport', 'local_competency_report'));
 $PAGE->set_heading(fullname($student) . ' - ' . $course->fullname);
 
-// 1. Data Preparation — use weighted calculator.
-$calculator = new competency_calculator($courseid);
-$weightedscores = $calculator->get_student_scores($userid);
+// 1. Data Preparation.
+// Fetch student performance broken down by competency.
+$sql = "SELECT c.id, c.shortname, c.description,
+               CAST(SUM(qa.maxfraction) AS DECIMAL(12, 1)) AS questions,
+               CAST(SUM(qas.fraction) AS DECIMAL(12, 1)) AS correct
+        FROM {quiz_attempts} quiza
+        JOIN {question_usages} qu ON qu.id = quiza.uniqueid
+        JOIN {question_attempts} qa ON qa.questionusageid = qu.id
+        JOIN {quiz} quiz ON quiz.id = quiza.quiz
+        JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
+        JOIN {competency} c ON c.id = m.competencyid
+        JOIN (
+            SELECT MAX(fraction) AS fraction, questionattemptid
+            FROM {question_attempt_steps}
+            GROUP BY questionattemptid
+        ) qas ON qas.questionattemptid = qa.id
+        WHERE quiz.course = :courseid AND quiza.userid = :userid AND quiza.state = 'finished'
+        GROUP BY c.id, c.shortname, c.description";
 
-// 2. Prepare success rates for AI processing and build rows for template.
+$rows = $DB->get_records_sql($sql, ['courseid' => $courseid, 'userid' => $userid]);
+
+// 2. Prepare success rates for AI processing.
 $rates = [];
-$rows  = [];
-
-foreach ($weightedscores as $compid => $data) {
-    $comp = $data['competency'];
-    $pct  = $data['percent'];
-
-    $rates[$comp->shortname] = $pct;
-
-    // Build a row object compatible with the existing template.
-    $row                      = new stdClass();
-    $row->id                  = $comp->id;
-    $row->shortname           = $comp->shortname;
-    $row->description         = isset($comp->description) ? $comp->description : '';
-    $row->descriptionformat   = isset($comp->descriptionformat) ? $comp->descriptionformat : FORMAT_HTML;
-    $row->weighted_percent    = $pct;
-    $row->passed              = $data['passed'];
-    $row->breakdown           = $data['breakdown'];
-    $row->hasbreakdown        = !empty($data['breakdown']);
-    $rows[] = $row;
+foreach ($rows as $r) {
+    $rates[$r->shortname] = $r->questions ? ($r->correct / $r->questions) * 100 : 0;
 }
 
 $renderdata = new stdClass();
-$renderdata->rows      = $rows;
-$renderdata->courseid  = $courseid;
-$renderdata->userid    = $userid;
-$renderdata->weighted  = $calculator->has_assessments(); // true = weighted mode, false = legacy.
+$renderdata->rows = $rows;
+$renderdata->courseid = $courseid;
+$renderdata->userid = $userid;
 $pdfurl = new moodle_url('/local/competency_report/parent_pdf.php', ['courseid' => $courseid, 'userid' => $userid]);
-$renderdata->pdf_url  = $pdfurl->out(false);
+$renderdata->pdf_url = $pdfurl->out(false);
 
 // AI feedback is now loaded on-demand via AJAX to avoid slow page loads.
 $renderdata->ai_comment = null;

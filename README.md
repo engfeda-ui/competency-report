@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.4.0-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.1.0-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_competency`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -14,21 +14,17 @@ A professional Moodle reporting engine that calculates and visualises student co
 
 - **Automated Performance Analysis:** Evaluates student responses to competency-linked quiz questions across all attempts.
 - **Skill-Based Progress Tracking:** Computes exact competency mastery percentages dynamically per student, class, and course.
-- **AI-Powered Feedback Engine:** Generates personalised pedagogical comments via OpenAI or local LLM providers (e.g., Ollama, vLLM). Falls back to rule-based colour-coded comments when AI is disabled.
-- **AI Personalized Study Plan (NEW in v3.2.0):** Generates structured remedial study schedules (with session count and language options like English/Arabic) and exports to PDF.
-- **Radar Gap Analysis Chart (NEW in v3.2.0):** Visualizes the gap between the student's mastery profile and the class average to easily identify areas for development.
-- **Automated At-Risk Alerts (NEW in v3.2.0):** Real-time monitoring of quiz submissions. Automatically notifies course teachers via Moodle's Message API when a student falls below the `alert_threshold` in 2 or more competencies.
-- **Unified Course Master Report:** A comprehensive course-wide analytics dashboard for teachers aggregating overall statistics, exam grade summaries, group comparisons, and competency grids.
-- **Configurable Success Threshold:** A global `success_threshold` setting (default 60%) is used for color-coding, `quizaccess_failgrade` competency mode, and the background evidence task.
+- **AI-Powered Feedback Engine (Optional):** Generates personalised pedagogical comments via OpenAI (or compatible API). Falls back to rule-based colour-coded comments when AI is disabled.
+- **Configurable Success Threshold (NEW in v3.0.8):** A global `success_threshold` setting (default 60%) is now exposed in the admin settings page. This value is used by colour-coding, `quizaccess_failgrade` competency mode, and the background evidence task.
 - **Multiple Report Views:**
-  - Student report card, exam analysis, competency state, timeline, and radar gap chart.
-  - Teacher class report (Student Performance Dashboard), student comparison, exam analysis, and Unified Course Master Report.
-  - Group competency and group quiz competency analysis.
-  - School-wide report and PDF export.
-- **Background Evidence Processing:** An adhoc task calculates competency success rates and writes them as Moodle competency evidence, scoped to enrolled course students only for improved performance.
+  - Student report card, exam analysis, competency state, timeline
+  - Teacher class report, student comparison, exam analysis
+  - Group competency and group quiz competency analysis
+  - School-wide report and PDF export
+- **Background Evidence Processing:** An adhoc task calculates competency success rates and writes them as Moodle competency evidence — now scoped to enrolled course students only (performance improvement).
 - **Enterprise PDF Exports:** Students and educators can download structured PDF reports.
 - **Responsive Web UI:** Built with Mustache templates, Bootstrap, and Chart.js.
-- **Localization Support:** Full English and Arabic language packs included (with RTL support).
+- **Localization Support:** English and Arabic language packs included (with RTL support).
 
 ---
 
@@ -39,7 +35,7 @@ A professional Moodle reporting engine that calculates and visualises student co
 | **Moodle Framework** | Moodle 4.5 to 5.0+ |
 | **PHP Runtime** | PHP 8.1, PHP 8.2, PHP 8.3 |
 | **Database System** | PostgreSQL 13+, MySQL 8.0+, or MariaDB 10.5+ |
-| **Required Plugin** | [**`qbank_competency`**](https://github.com/engfeda-ui/competency) ≥ 2026070300 |
+| **Required Plugin** | [**`qbank_competency`**](https://github.com/engfeda-ui/competency) ≥ 2026052500 |
 
 ---
 
@@ -63,15 +59,11 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 
 | Setting | Description | Default |
 | :--- | :--- | :--- |
-| **Enable AI integration** | Toggle AI-powered feedback and study plans on/off | Off |
-| **AI Provider** | Choose between OpenAI Cloud API or a Local LLM (OpenAI-compatible) | `openai` |
-| **Local LLM Endpoint URL**| Endpoint URL of your locally running LLM server (e.g. `http://localhost:11434/v1`) | `http://localhost:11434/v1` |
+| **Enable AI integration** | Toggle AI-powered feedback on/off | Off |
 | **API Key** | OpenAI (or compatible) API key | — |
-| **Model** | Model name (e.g., `gpt-4`, `gpt-4o`, `llama3`) | `gpt-4` |
+| **Model** | Model name (e.g., `gpt-4`, `gpt-4o`) | `gpt-4` |
 | **Maximum rows** | Max rows shown in report tables | 100 |
 | **Success threshold** | Minimum % for competency mastery (used by colour-coding and `quizaccess_failgrade`) | 60 |
-| **Enable At-Risk Student Alerts** | Toggle automated notifications to teachers when a student falls behind | Off |
-| **At-Risk Alert Threshold (%)** | Threshold % below which a competency is marked as weak (triggers alert if ≥ 2 competencies match) | 40 |
 
 ---
 
@@ -80,8 +72,8 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 1. **Map questions to competencies** using `qbank_competency`.
 2. **Deliver quizzes** — students attempt quizzes as normal.
 3. **Access reports:**
-   - **Teachers/Admins:** Course navigation → *Unified Course Master Report*, *Student Performance Dashboard* (Class Report), *Group Performance Analysis*.
-   - **Students:** Course navigation → *My Competency Reports* → choose from report card, exam analysis, competency state, timeline, or radar gap analysis.
+   - **Teachers:** Course navigation → *Class Report*, *Student Analysis*, *Student Exam Analysis*, *Group Competency Analysis*.
+   - **Students:** Course navigation → *My Competency Reports* → choose from report card, exam analysis, competency state, or timeline.
    - **Admins:** Site administration → Reports → *School General Report* / *School PDF Report*.
 4. **Export PDF:** Click the PDF button on any report page.
 5. **Process evidence:** Use the *Process Success Rates* page (admin only) to queue a background task that writes competency evidence for all enrolled students.
@@ -89,13 +81,6 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 ---
 
 ## 📋 Changelog
-
-### v3.4.0 — 2026-07-03
-- **New:** Multi-Competency Support! If a question evaluates multiple competencies simultaneously, the plugin correctly calculates partial and full credits across all linked competencies independently.
-- **New:** PHPUnit test suite integration for validating complex multi-competency and weighted scoring logic in `competency_calculator`.
-
-### v3.3.0 — 2026-07-01
-- **Improvement:** Optimized report generation speed and enhanced UI rendering performance.
 
 ### v3.2.0 — 2026-05-31
 - **New:** Complete Arabic (`ar`) language pack — all 50+ UI strings, AI commentary widget, radar chart, study plan, and at-risk alert strings are now fully translated into Arabic (RTL support).
@@ -191,8 +176,3 @@ npx grunt amd --files=local/competency_report
 - **Copyright:** © 2026 Mahmoud Salem
 - **Based on work by:** 2026 Hakan Çiğci
 - **License:** [GNU GPL v3](http://www.gnu.org/copyleft/gpl.html) or later.
-
- # #   V e r s i o n   3 . 4 . 0 
- -   A d d e d   s u p p o r t   f o r   m u l t i p l e   c o m p e t e n c i e s   m a p p e d   t o   a   s i n g l e   q u e s t i o n . 
- -   R e n a m e d   d a t a b a s e   t a b l e s   t o   c o m p l y   w i t h   M o o d l e   2 8 - c h a r a c t e r   l i m i t .  
- 

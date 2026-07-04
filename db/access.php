@@ -38,29 +38,6 @@ $capabilities = [
         ],
     ],
 
-    // Ability to configure assessment weights (which quizzes count and how much).
-    'local/competency_report:manageassessments' => [
-        'riskbitmask'  => RISK_CONFIG,
-        'captype'      => 'write',
-        'contextlevel' => CONTEXT_COURSE,
-        'archetypes'   => [
-            'editingteacher' => CAP_ALLOW,
-            'manager'        => CAP_ALLOW,
-        ],
-    ],
-
-    // Ability to enter practical/workshop exam results for students.
-    'local/competency_report:enterpractical' => [
-        'riskbitmask'  => RISK_PERSONAL,
-        'captype'      => 'write',
-        'contextlevel' => CONTEXT_COURSE,
-        'archetypes'   => [
-            'teacher'        => CAP_ALLOW,
-            'editingteacher' => CAP_ALLOW,
-            'manager'        => CAP_ALLOW,
-        ],
-    ],
-
     // Ability to view all competency reports (Teachers and Managers).
     'local/competency_report:viewreports' => [
         'captype'      => 'read',

@@ -11,39 +11,44 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    @template local_competency_report/student_report_page
+    @template local_competency_report/student_report
 
     Example context (json):
     {
         "has_data": true,
-        "rows": [],
-        "examrows": [],
-        "comprows": [],
-        "hasweights": true,
+        "rows": [
+            {
+                "shortname": "C01",
+                "description": "Basic Competency Description",
+                "questions": 10,
+                "correct": 8,
+                "rate": "80",
+                "color": "#28a745"
+            }
+        ],
         "pdf_url": "#",
-        "chart_data": "{}"
+        "ai_comment": "You are showing great progress! Especially in math competency, your success rate has reached 80%."
     }
 }}
 <div class="local_competency_report_student_report">
     <!-- Consolidated Student Tab Navigation -->
     <ul class="nav nav-tabs mb-4">
         <li class="nav-item">
-            <a class="nav-link {{#active_reportcard}}active font-weight-bold{{/active_reportcard}}{{^active_reportcard}}text-muted{{/active_reportcard}}" href="student_report.php?courseid={{courseid}}{{#userid}}&userid={{userid}}{{/userid}}"><i class="fa fa-vcard-o mr-1"></i> {{#str}}myreportcard, local_competency_report{{/str}}</a>
+            <a class="nav-link {{#active_reportcard}}active font-weight-bold{{/active_reportcard}}{{^active_reportcard}}text-muted{{/active_reportcard}}" href="student_report.php?courseid={{courseid}}"><i class="fa fa-vcard-o mr-1"></i> {{#str}}myreportcard, local_competency_report{{/str}}</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {{#active_examanalysis}}active font-weight-bold{{/active_examanalysis}}{{^active_examanalysis}}text-muted{{/active_examanalysis}}" href="student_exam.php?courseid={{courseid}}{{#userid}}&userid={{userid}}{{/userid}}"><i class="fa fa-bar-chart mr-1"></i> {{#str}}myexamanalysis, local_competency_report{{/str}}</a>
+            <a class="nav-link {{#active_examanalysis}}active font-weight-bold{{/active_examanalysis}}{{^active_examanalysis}}text-muted{{/active_examanalysis}}" href="student_exam.php?courseid={{courseid}}"><i class="fa fa-bar-chart mr-1"></i> {{#str}}myexamanalysis, local_competency_report{{/str}}</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {{#active_competencyexams}}active font-weight-bold{{/active_competencyexams}}{{^active_competencyexams}}text-muted{{/active_competencyexams}}" href="student_competency_exams.php?courseid={{courseid}}{{#userid}}&userid={{userid}}{{/userid}}"><i class="fa fa-list-alt mr-1"></i> {{#str}}mycompetencyexams, local_competency_report{{/str}}</a>
+            <a class="nav-link {{#active_competencyexams}}active font-weight-bold{{/active_competencyexams}}{{^active_competencyexams}}text-muted{{/active_competencyexams}}" href="student_competency_exams.php?courseid={{courseid}}"><i class="fa fa-list-alt mr-1"></i> {{#str}}mycompetencyexams, local_competency_report{{/str}}</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {{#active_competencystate}}active font-weight-bold{{/active_competencystate}}{{^active_competencystate}}text-muted{{/active_competencystate}}" href="student_class.php?courseid={{courseid}}{{#userid}}&userid={{userid}}{{/userid}}"><i class="fa fa-graduation-cap mr-1"></i> {{#str}}mycompetencystate, local_competency_report{{/str}}</a>
+            <a class="nav-link {{#active_competencystate}}active font-weight-bold{{/active_competencystate}}{{^active_competencystate}}text-muted{{/active_competencystate}}" href="student_class.php?courseid={{courseid}}"><i class="fa fa-graduation-cap mr-1"></i> {{#str}}mycompetencystate, local_competency_report{{/str}}</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {{#active_timeline}}active font-weight-bold{{/active_timeline}}{{^active_timeline}}text-muted{{/active_timeline}}" href="timeline.php?courseid={{courseid}}{{#userid}}&userid={{userid}}{{/userid}}"><i class="fa fa-calendar mr-1"></i> {{#str}}timeline, local_competency_report{{/str}}</a>
+            <a class="nav-link {{#active_timeline}}active font-weight-bold{{/active_timeline}}{{^active_timeline}}text-muted{{/active_timeline}}" href="timeline.php?courseid={{courseid}}"><i class="fa fa-calendar mr-1"></i> {{#str}}timeline, local_competency_report{{/str}}</a>
         </li>
     </ul>
-
     {{#has_data}}
         <!-- Student Premium View Header Banner -->
         <div class="alert alert-info d-flex align-items-center shadow-sm border-0 rounded-lg p-3 mb-4 bg-light text-dark border-left border-info" style="border-left-width: 5px !important;">
@@ -56,147 +61,15 @@
             </div>
         </div>
 
-        {{! ═══════════════════════════════════════════════════════════════ }}
-        {{! SCORE CARD SECTION — Exam Results + Competency Breakdown        }}
-        {{! ═══════════════════════════════════════════════════════════════ }}
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-header d-flex align-items-center py-3" style="background: linear-gradient(135deg,#1e3a5f,#2980b9); color:#fff;">
-                <i class="fa fa-id-card fa-lg mr-3"></i>
-                <div>
-                    <h5 class="mb-0 font-weight-bold">{{#str}}scorecard_title, local_competency_report{{/str}}</h5>
-                    <small class="opacity-75">{{#str}}scorecard_desc, local_competency_report{{/str}}</small>
-                </div>
-            </div>
-            <div class="card-body p-0">
-
-                {{! ── Exam Results Table ── }}
-                {{#has_examdata}}
-                <div class="px-4 pt-4 pb-2">
-                    <h6 class="font-weight-bold text-dark mb-1">{{#str}}scorecard_exams_heading, local_competency_report{{/str}}</h6>
-                    <p class="text-muted small mb-3">{{#str}}scorecard_exams_desc, local_competency_report{{/str}}</p>
-                </div>
-                <div class="table-responsive px-2 pb-3">
-                    <table class="table table-hover table-striped mb-0" style="font-size:0.92rem;">
-                        <thead>
-                            <tr style="background:#f0f4f8;">
-                                <th>{{#str}}scorecard_exam_col_name, local_competency_report{{/str}}</th>
-                                <th class="text-center">{{#str}}scorecard_exam_col_type, local_competency_report{{/str}}</th>
-                                <th class="text-center">{{#str}}scorecard_exam_col_weight, local_competency_report{{/str}}</th>
-                                <th class="text-center">{{#str}}scorecard_exam_col_grade, local_competency_report{{/str}}</th>
-                                <th class="text-center">{{#str}}scorecard_exam_col_max, local_competency_report{{/str}}</th>
-                                <th class="text-center">{{#str}}scorecard_exam_col_pct, local_competency_report{{/str}}</th>
-                                <th class="text-center">{{#str}}scorecard_exam_col_pass, local_competency_report{{/str}}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {{#examrows}}
-                            <tr>
-                                <td class="font-weight-bold">{{name}}</td>
-                                <td class="text-center">
-                                    <span class="badge badge-pill badge-{{#sat}}secondary{{/sat}}{{^sat}}light{{/sat}}" style="font-size:0.78rem;">
-                                        {{#str}}{{typelabel}}, local_competency_report{{/str}}
-                                    </span>
-                                </td>
-                                <td class="text-center text-muted">{{weight}}%</td>
-                                {{#sat}}
-                                <td class="text-center font-weight-bold">{{grade}}</td>
-                                <td class="text-center text-muted">{{maxgrade}}</td>
-                                <td class="text-center">
-                                    <span class="badge badge-{{color}} px-2 py-1" style="font-size:0.85rem; min-width:55px;">%{{scorepct}}</span>
-                                </td>
-                                <td class="text-center">
-                                    {{#passed}}<span class="text-success font-weight-bold">{{#str}}scorecard_pass, local_competency_report{{/str}}</span>{{/passed}}
-                                    {{^passed}}<span class="text-danger font-weight-bold">{{#str}}scorecard_fail, local_competency_report{{/str}}</span>{{/passed}}
-                                </td>
-                                {{/sat}}
-                                {{^sat}}
-                                <td class="text-center text-muted" colspan="3">{{#str}}scorecard_notsat, local_competency_report{{/str}}</td>
-                                <td></td>
-                                {{/sat}}
-                            </tr>
-                            {{/examrows}}
-                        </tbody>
-                    </table>
-                </div>
-                {{/has_examdata}}
-
-                {{! ── Competency Breakdown Table ── }}
-                {{#has_compdata}}
-                <div class="px-4 pt-3 pb-2" style="border-top: 1px solid #e9ecef;">
-                    <h6 class="font-weight-bold text-dark mb-1">{{#str}}scorecard_comp_heading, local_competency_report{{/str}}</h6>
-                    <p class="text-muted small mb-3">{{#str}}scorecard_comp_desc, local_competency_report{{/str}}</p>
-                    {{^hasweights}}
-                    <div class="alert alert-warning py-2 px-3 mb-3 small">
-                        <i class="fa fa-info-circle mr-1"></i> {{#str}}scorecard_noweights, local_competency_report{{/str}}
-                    </div>
-                    {{/hasweights}}
-                </div>
-                <div class="table-responsive px-2 pb-4">
-                    <table class="table table-hover mb-0" style="font-size:0.92rem;">
-                        <thead>
-                            <tr style="background:#f0f4f8;">
-                                <th>{{#str}}scorecard_comp_col_name, local_competency_report{{/str}}</th>
-                                <th class="text-center">{{#str}}scorecard_comp_col_score, local_competency_report{{/str}}</th>
-                                <th class="text-center">{{#str}}scorecard_comp_col_passed, local_competency_report{{/str}}</th>
-                                <th>{{#str}}scorecard_comp_col_detail, local_competency_report{{/str}}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {{#comprows}}
-                            <tr>
-                                <td class="font-weight-bold align-middle">{{shortname}}</td>
-                                <td class="text-center align-middle">
-                                    <span class="badge badge-{{color}} px-3 py-2" style="font-size:1rem; min-width:65px;">%{{percent}}</span>
-                                </td>
-                                <td class="text-center align-middle">
-                                    {{#passed}}<span class="text-success font-weight-bold">{{#str}}scorecard_pass, local_competency_report{{/str}}</span>{{/passed}}
-                                    {{^passed}}<span class="text-danger font-weight-bold">{{#str}}scorecard_fail, local_competency_report{{/str}}</span>{{/passed}}
-                                </td>
-                                <td class="align-middle">
-                                    {{#has_breakdown}}
-                                    <ul class="list-unstyled mb-0 small text-muted">
-                                        {{#breakdown}}
-                                        <li class="mb-1">
-                                            <span class="badge badge-light border mr-1">{{#str}}{{typelabel}}, local_competency_report{{/str}}</span>
-                                            <strong>{{name}}</strong>
-                                            <span class="ml-1">({{weight}}%)</span>
-                                            →
-                                            <span class="text-dark font-weight-bold">%{{score_pct}}</span>
-                                            <span class="text-muted ml-1">[{{#str}}contribution, local_competency_report{{/str}}: {{weighted_contribution}}%]</span>
-                                        </li>
-                                        {{/breakdown}}
-                                    </ul>
-                                    {{/has_breakdown}}
-                                    {{^has_breakdown}}
-                                    <span class="text-muted small">—</span>
-                                    {{/has_breakdown}}
-                                </td>
-                            </tr>
-                            {{/comprows}}
-                        </tbody>
-                    </table>
-                </div>
-                {{/has_compdata}}
-
-                {{^has_examdata}}{{^has_compdata}}
-                <div class="p-4 text-center text-muted">
-                    <i class="fa fa-inbox fa-2x mb-2 d-block"></i>
-                    {{#str}}scorecard_nodata, local_competency_report{{/str}}
-                </div>
-                {{/has_compdata}}{{/has_examdata}}
-
-            </div>
-        </div>
-
-        {{! ═══════════════════════════════════════════════════════════════ }}
-        {{! Legacy plain-average competency table (still useful as context) }}
-        {{! ═══════════════════════════════════════════════════════════════ }}
+        {{! Achievement Statistics Table }}
         <div class="table-responsive">
             <table class="generaltable table table-bordered table-hover mt-3 shadow-sm bg-white">
                 <thead class="thead-dark">
                     <tr>
                         <th>{{#str}}competencycode, local_competency_report{{/str}}</th>
                         <th>{{#str}}competency, local_competency_report{{/str}}</th>
+                        <th class="text-center">{{#str}}questioncount, local_competency_report{{/str}}</th>
+                        <th class="text-center">{{#str}}correctcount, local_competency_report{{/str}}</th>
                         <th class="text-center">{{#str}}successrate, local_competency_report{{/str}}</th>
                     </tr>
                 </thead>
@@ -205,6 +78,8 @@
                     <tr>
                         <td class="font-weight-bold">{{shortname}}</td>
                         <td>{{{description}}}</td>
+                        <td class="text-center">{{questions}}</td>
+                        <td class="text-center">{{correct}}</td>
                         <td class="text-center font-weight-bold" style="color: {{color}};">
                             %{{rate}}
                         </td>
@@ -229,7 +104,7 @@
                 <strong>{{#str}}radar_chart_title, local_competency_report{{/str}}</strong>
             </div>
             <div class="card-body">
-                <p id="competency-chart-desc-{{userid}}" class="text-muted small mb-3">{{#str}}radar_chart_desc, local_competency_report{{/str}}</p>
+                <p class="text-muted small mb-3">{{#str}}radar_chart_desc, local_competency_report{{/str}}</p>
                 <div style="position: relative; max-width: 480px; margin: 0 auto;">
                     <canvas id="competency-radar-chart-{{userid}}" width="480" height="480"></canvas>
                 </div>
@@ -249,80 +124,42 @@
         {{> local_competency_report/ai_commentary_widget }}
 
 {{#js}}
-require(['core/chartjs', 'jquery', 'core/str'], function(Chart, $, Str) {
+require(['core/chartjs', 'jquery'], function(Chart, $) {
     var rawData = {{{chart_data}}};
     if (!rawData || !rawData.labels || rawData.labels.length < 2) { return; }
 
     var ctx = document.getElementById('competency-radar-chart-{{userid}}');
     if (!ctx) { return; }
 
-    var isBarChart = rawData.labels.length < 3;
-    var container = ctx.parentElement;
-
-    if (isBarChart) {
-        container.style.maxWidth = '100%';
-        container.style.height = '240px';
-        Str.get_string('bar_chart_desc', 'local_competency_report').then(function(str) {
-            $('#competency-chart-desc-{{userid}}').text(str);
-        });
-    } else {
-        container.style.maxWidth = '480px';
-        container.style.height = '480px';
-    }
-
-    var chartConfig = {
-        type: isBarChart ? 'bar' : 'radar',
+    new Chart(ctx.getContext('2d'), {
+        type: 'radar',
         data: {
             labels: rawData.labels,
             datasets: [
                 {
                     label: '{{#str}}radar_legend_student, local_competency_report{{/str}}',
                     data: rawData.student,
-                    backgroundColor: isBarChart ? '#007bff' : 'rgba(0, 123, 255, 0.15)',
+                    backgroundColor: 'rgba(0, 123, 255, 0.15)',
                     borderColor: '#007bff',
-                    borderWidth: isBarChart ? 1 : 2.5,
+                    borderWidth: 2.5,
                     pointBackgroundColor: '#007bff',
-                    pointRadius: isBarChart ? 0 : 4,
-                    borderRadius: isBarChart ? 4 : 0,
-                    barPercentage: isBarChart ? 0.5 : undefined,
-                    categoryPercentage: isBarChart ? 0.7 : undefined
+                    pointRadius: 4,
                 },
                 {
                     label: '{{#str}}radar_legend_class, local_competency_report{{/str}}',
                     data: rawData.class,
-                    backgroundColor: isBarChart ? 'rgba(150, 150, 150, 0.7)' : 'rgba(150,150,150,0.1)',
-                    borderColor: isBarChart ? '#969696' : 'rgba(100,100,100,0.5)',
-                    borderWidth: isBarChart ? 1 : 1.5,
-                    borderDash: isBarChart ? undefined : [5, 3],
-                    pointBackgroundColor: isBarChart ? undefined : 'rgba(100,100,100,0.6)',
-                    pointRadius: isBarChart ? 0 : 3,
-                    borderRadius: isBarChart ? 4 : 0,
-                    barPercentage: isBarChart ? 0.5 : undefined,
-                    categoryPercentage: isBarChart ? 0.7 : undefined
+                    backgroundColor: 'rgba(150,150,150,0.1)',
+                    borderColor: 'rgba(100,100,100,0.5)',
+                    borderWidth: 1.5,
+                    borderDash: [5, 3],
+                    pointBackgroundColor: 'rgba(100,100,100,0.6)',
+                    pointRadius: 3,
                 }
             ]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false,
-            scales: isBarChart ? {
-                x: {
-                    beginAtZero: true,
-                    min: 0,
-                    max: 100,
-                    ticks: {
-                        stepSize: 20,
-                        callback: function(v) { return v + '%'; },
-                        font: { size: 10 }
-                    }
-                },
-                y: {
-                    grid: { display: false },
-                    ticks: {
-                        font: { size: 11, weight: 'bold' }
-                    }
-                }
-            } : {
+            scales: {
                 r: {
                     beginAtZero: true,
                     min: 0,
@@ -344,9 +181,7 @@ require(['core/chartjs', 'jquery', 'core/str'], function(Chart, $, Str) {
                 }
             }
         }
-    };
-
-    new Chart(ctx.getContext('2d'), chartConfig);
+    });
 
     $('#btn-export-student-pdf-top').on('click', function(e) {
         e.preventDefault();

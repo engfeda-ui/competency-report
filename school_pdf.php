@@ -36,13 +36,22 @@ $customprompt = optional_param('custom_prompt', '', PARAM_RAW);
 $pdfcontent   = optional_param('pdf_content', '', PARAM_RAW);
 
 // 2. Authentication & Capability Checks.
-require_login($courseid);
-$context = context_course::instance($courseid);
-require_capability('local/competency_report:viewreports', $context);
+if ($courseid > 0) {
+    require_login($courseid);
+    $context = context_course::instance($courseid);
+    require_capability('local/competency_report:viewreports', $context);
+    $course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
+} else {
+    // If no course is specified, treat as a site-wide report (admin access).
+    require_login();
+    $context = context_system::instance();
+    require_capability('moodle/site:config', $context);
+    $course = $DB->get_record('course', ['id' => SITEID], '*', MUST_EXIST);
+    $course->fullname = get_string('schoolreport', 'local_competency_report');
+}
 
-$course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
 $group = null;
-if ($groupid) {
+if ($groupid && $courseid > 0) {
     $group = $DB->get_record('groups', ['id' => $groupid, 'courseid' => $courseid], '*', MUST_EXIST);
 }
 
@@ -70,7 +79,7 @@ $tablehtml = '';
 
 if ($focustype === 'grades') {
     // GENERAL GRADES MODE.
-    if ($groupid) {
+    if ($groupid && $courseid > 0) {
         $sql = "SELECT q.id, q.name, AVG(qa.sumgrades) as avggrade, q.sumgrades as maxgrade, COUNT(qa.id) as attempts
                 FROM {quiz_attempts} qa
                 JOIN {quiz} q ON q.id = qa.quiz
@@ -79,7 +88,7 @@ if ($focustype === 'grades') {
                 GROUP BY q.id, q.name, q.sumgrades
                 ORDER BY q.name ASC";
         $rows = $DB->get_records_sql($sql, ['courseid' => $courseid, 'groupid' => $groupid]);
-    } else {
+    } else if ($courseid > 0) {
         $sql = "SELECT q.id, q.name, AVG(qa.sumgrades) as avggrade, q.sumgrades as maxgrade, COUNT(qa.id) as attempts
                 FROM {quiz_attempts} qa
                 JOIN {quiz} q ON q.id = qa.quiz
@@ -87,6 +96,14 @@ if ($focustype === 'grades') {
                 GROUP BY q.id, q.name, q.sumgrades
                 ORDER BY q.name ASC";
         $rows = $DB->get_records_sql($sql, ['courseid' => $courseid]);
+    } else {
+        $sql = "SELECT q.id, q.name, AVG(qa.sumgrades) as avggrade, q.sumgrades as maxgrade, COUNT(qa.id) as attempts
+                FROM {quiz_attempts} qa
+                JOIN {quiz} q ON q.id = qa.quiz
+                WHERE qa.state = 'finished'
+                GROUP BY q.id, q.name, q.sumgrades
+                ORDER BY q.name ASC";
+        $rows = $DB->get_records_sql($sql, []);
     }
 
     foreach ($rows as $r) {
@@ -99,10 +116,10 @@ if ($focustype === 'grades') {
     <table border="1" cellpadding="6">
         <thead>
             <tr bgcolor="#f2f2f2" style="font-weight: bold;">
-                <th width="45%" align="center">' . get_string('quiz', 'local_competency_report') . '</th>
-                <th width="15%" align="center">' . get_string('attempts', 'local_competency_report') . '</th>
-                <th width="24%" align="center">' . get_string('averagescore', 'local_competency_report') . '</th>
-                <th width="16%" align="center">' . get_string('successrate', 'local_competency_report') . '</th>
+                <th width="45%" align="center">Quiz / Exam Name</th>
+                <th width="15%" align="center">Attempts</th>
+                <th width="24%" align="center">Average Score</th>
+                <th width="16%" align="center">Success Rate</th>
             </tr>
         </thead>
         <tbody>';
@@ -123,13 +140,16 @@ if ($focustype === 'grades') {
     $tablehtml .= '</tbody></table>';
 } else {
     // COMPETENCY ACHIEVEMENTS MODE.
-    if ($groupid) {
+    if ($groupid && $courseid > 0) {
         $wheresql = "WHERE quiz.course = :courseid AND quiza.state = 'finished' "
             . "AND quiza.userid IN (SELECT userid FROM {groups_members} WHERE groupid = :groupid)";
         $params = ['courseid' => $courseid, 'groupid' => $groupid];
-    } else {
+    } else if ($courseid > 0) {
         $wheresql = "WHERE quiz.course = :courseid AND quiza.state = 'finished'";
         $params = ['courseid' => $courseid];
+    } else {
+        $wheresql = "WHERE quiza.state = 'finished'";
+        $params = [];
     }
 
     $sql = "

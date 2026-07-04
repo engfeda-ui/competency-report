@@ -112,7 +112,8 @@ class student_competency_exams_page implements renderable, templatable {
             $export->has_questions = !empty($this->data->questiondetails);
             $export->questiondetails = $this->data->questiondetails;
         }
-        $export->userid = $this->data->userid;
+        global $USER;
+        $export->userid = $USER->id;
         $export->context_type = 'student';
         $export->active_competencyexams = true;
 

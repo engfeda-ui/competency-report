@@ -158,9 +158,9 @@ $quizzeshtml = '
 <table border="1" cellpadding="5" style="border-collapse: collapse; font-size: 9pt;">
     <thead>
         <tr bgcolor="#f2f2f2" style="font-weight: bold;">
-            <th width="45%">' . get_string('quiz', 'local_competency_report') . '</th>
-            <th width="15%" align="center">' . get_string('attempts', 'local_competency_report') . '</th>
-            <th width="20%" align="center">' . get_string('averagescore', 'local_competency_report') . '</th>
+            <th width="45%">' . get_string('searchquiz', 'local_competency_report') . '</th>
+            <th width="15%" align="center">' . get_string('questioncount', 'local_competency_report') . '</th>
+            <th width="20%" align="center">' . get_string('correctcount', 'local_competency_report') . '</th>
             <th width="20%" align="center">' . get_string('successrate', 'local_competency_report') . '</th>
         </tr>
     </thead>
