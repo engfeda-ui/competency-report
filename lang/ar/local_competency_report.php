@@ -159,6 +159,8 @@ $string['visual_report'] = 'التقرير المرئي';
 $string['competency_report:manage'] = 'إدارة ربط الأسئلة بالكفايات';
 $string['competency_report:viewownreport'] = 'عرض تقرير تحليل الكفايات الخاص';
 $string['competency_report:viewreports'] = 'عرض جميع تقارير كفايات الطلاب';
+$string['competency_report:manageassessments'] = 'إدارة إعداد التقييمات وأوزانها';
+$string['competency_report:enterpractical'] = 'إدخال نتائج الاختبارات العملية للطلاب';
 
 // AI Commentary and Premium UI strings.
 $string['student_banner_title'] = '🎓 تقرير كفايات الطالب';

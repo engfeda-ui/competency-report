@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
-// Event observer registrations for local_competency_report plugin.
+ * Event observer registrations for local_competency_report plugin.
  *
  * @package    local_competency_report
  * @copyright  2026 Mahmoud Salem

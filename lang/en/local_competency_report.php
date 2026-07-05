@@ -160,6 +160,8 @@ $string['visual_report'] = 'Visual report';
 $string['competency_report:manage'] = 'Manage question-competency mappings';
 $string['competency_report:viewownreport'] = 'View own competency analysis report';
 $string['competency_report:viewreports'] = 'View all student competency reports';
+$string['competency_report:manageassessments'] = 'Manage assessment weights and setup';
+$string['competency_report:enterpractical'] = 'Enter practical exam results for students';
 
 // AI Commentary and Premium UI strings.
 $string['student_banner_title'] = '🎓 Student Competency Report';

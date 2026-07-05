@@ -97,5 +97,11 @@ function xmldb_local_competency_report_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026070302, 'local', 'competency_report');
     }
 
+    if ($oldversion < 2026070500) {
+        // Version bump: added manageassessments and enterpractical capabilities to db/access.php.
+        // No database changes required, capabilities are registered automatically by Moodle.
+        upgrade_plugin_savepoint(true, 2026070500, 'local', 'competency_report');
+    }
+
     return true;
 }
