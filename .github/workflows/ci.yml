@@ -58,11 +58,8 @@ jobs:
           echo "$(cd ci/bin; pwd)" >> $GITHUB_PATH
           echo "$(cd ci/vendor/bin; pwd)" >> $GITHUB_PATH
 
-      - name: Checkout qbank_competency
-        uses: actions/checkout@v4
-        with:
-          repository: engfeda-ui/competency
-          path: question/bank/competency
+      - name: Add qbank_competency dependency
+        run: moodle-plugin-ci add-plugin --clone=https://github.com/engfeda-ui/competency.git
 
 
       - name: Install Moodle
