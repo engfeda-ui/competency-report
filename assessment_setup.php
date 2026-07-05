@@ -39,9 +39,7 @@ $PAGE->set_pagelayout('course');
 $PAGE->set_title(get_string('assessmentsetup', 'local_competency_report'));
 $PAGE->set_heading($course->fullname . ' — ' . get_string('assessmentsetup', 'local_competency_report'));
 
-// -----------------------------------------------------------------------
 // Handle POST actions.
-// -----------------------------------------------------------------------
 $action = optional_param('action', '', PARAM_ALPHA);
 
 if ($action === 'add' && confirm_sesskey()) {
@@ -72,11 +70,12 @@ if ($action === 'add' && confirm_sesskey()) {
         }
     }
     if ($type === 'practical' && $assignid > 0) {
-        if (!$DB->record_exists_sql(
+        $exists = $DB->record_exists_sql(
             "SELECT 1 FROM {assign} a JOIN {course_modules} cm ON cm.instance = a.id
               WHERE a.id = :aid AND a.course = :cid",
             ['aid' => $assignid, 'cid' => $courseid]
-        )) {
+        );
+        if (!$exists) {
             redirect(
                 new moodle_url('/local/competency_report/assessment_setup.php', ['courseid' => $courseid]),
                 get_string('invaliddata', 'local_competency_report'),
@@ -119,7 +118,7 @@ if ($action === 'update' && confirm_sesskey()) {
                 'id'           => $id,
                 'name'         => $name,
                 'weight'       => $weight,
-                'timemodified' => time()
+                'timemodified' => time(),
             ]);
         }
     }
@@ -162,9 +161,7 @@ $quizzes = $DB->get_records('quiz', ['course' => $courseid], 'name ASC', 'id, na
 // All assignments in this course (for the assign selector dropdown).
 $assignments = $DB->get_records('assign', ['course' => $courseid], 'name ASC', 'id, name');
 
-// -----------------------------------------------------------------------
 // Output.
-// -----------------------------------------------------------------------
 echo $OUTPUT->header();
 
 // Warning if total weight ≠ 100.

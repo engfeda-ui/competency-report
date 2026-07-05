@@ -35,18 +35,13 @@ namespace local_competency_report;
 
 use advanced_testcase;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Unit tests for competency_calculator.
  *
  * @covers \local_competency_report\competency_calculator
  */
 class competency_calculator_test extends advanced_testcase {
-
-    // -----------------------------------------------------------------------
-    // Helpers
-    // -----------------------------------------------------------------------
+    // Helpers.
 
     /**
      * Create a minimal assessment record in local_competency_report_asmt.
@@ -103,7 +98,13 @@ class competency_calculator_test extends advanced_testcase {
      * @param float $percent
      * @return void
      */
-    private function add_practical_result(int $assessmentid, int $courseid, int $competencyid, int $studentid, float $percent): void {
+    private function add_practical_result(
+        int $assessmentid,
+        int $courseid,
+        int $competencyid,
+        int $studentid,
+        float $percent
+    ): void {
         global $DB;
         $now = time();
         $DB->insert_record('local_competency_report_prac', (object)[
@@ -111,18 +112,18 @@ class competency_calculator_test extends advanced_testcase {
             'courseid'           => $courseid,
             'competencyid'       => $competencyid,
             'studentid'          => $studentid,
-            'trainerid'          => 2, // admin
+            'trainerid'          => 2, // Admin user.
             'competency_percent' => $percent,
             'timecreated'        => $now,
             'timemodified'       => $now,
         ]);
     }
 
-    // -----------------------------------------------------------------------
-    // Tests — rate_color() helper
-    // -----------------------------------------------------------------------
+    // Tests for rate_color() helper.
 
     /**
+     * Test green rate color boundary conditions.
+     *
      * @covers \local_competency_report\competency_calculator::rate_color
      */
     public function test_rate_color_green(): void {
@@ -132,6 +133,8 @@ class competency_calculator_test extends advanced_testcase {
     }
 
     /**
+     * Test blue rate color boundary conditions.
+     *
      * @covers \local_competency_report\competency_calculator::rate_color
      */
     public function test_rate_color_blue(): void {
@@ -140,6 +143,8 @@ class competency_calculator_test extends advanced_testcase {
     }
 
     /**
+     * Test orange rate color boundary conditions.
+     *
      * @covers \local_competency_report\competency_calculator::rate_color
      */
     public function test_rate_color_orange(): void {
@@ -148,6 +153,8 @@ class competency_calculator_test extends advanced_testcase {
     }
 
     /**
+     * Test red rate color boundary conditions.
+     *
      * @covers \local_competency_report\competency_calculator::rate_color
      */
     public function test_rate_color_red(): void {
@@ -155,11 +162,11 @@ class competency_calculator_test extends advanced_testcase {
         $this->assertEquals('red', competency_calculator::rate_color(39.9));
     }
 
-    // -----------------------------------------------------------------------
-    // Tests — has_assessments()
-    // -----------------------------------------------------------------------
+    // Tests for has_assessments().
 
     /**
+     * Test has_assessments returns false when course has no assessments configured.
+     *
      * @covers \local_competency_report\competency_calculator::has_assessments
      */
     public function test_has_assessments_false_when_empty(): void {
@@ -172,6 +179,8 @@ class competency_calculator_test extends advanced_testcase {
     }
 
     /**
+     * Test has_assessments returns true when course has assessments configured.
+     *
      * @covers \local_competency_report\competency_calculator::has_assessments
      */
     public function test_has_assessments_true_when_configured(): void {
@@ -186,9 +195,7 @@ class competency_calculator_test extends advanced_testcase {
         $this->assertTrue($calc->has_assessments());
     }
 
-    // -----------------------------------------------------------------------
-    // Tests — Practical-only assessment (simplest path)
-    // -----------------------------------------------------------------------
+    // Tests for Practical-only assessment (simplest path).
 
     /**
      * A single practical assessment at 100% weight.
@@ -223,9 +230,7 @@ class competency_calculator_test extends advanced_testcase {
         $this->assertTrue($scores[$competency->get('id')]['passed']);  // 75 >= 60
     }
 
-    // -----------------------------------------------------------------------
-    // Tests — Weighted quiz + practical
-    // -----------------------------------------------------------------------
+    // Tests for weighted quiz and practical.
 
     /**
      * Theory 40% + Practical 60%
@@ -253,11 +258,11 @@ class competency_calculator_test extends advanced_testcase {
         ]);
 
         // Simulate two practical assessments: 40% + 60% weight.
-        $assid_theory    = $this->create_assessment($course->id, null, 'practical', 40, 'Theory (simulated)');
-        $assid_practical = $this->create_assessment($course->id, null, 'practical', 60, 'Workshop');
+        $assidtheory    = $this->create_assessment($course->id, null, 'practical', 40, 'Theory (simulated)');
+        $assidpractical = $this->create_assessment($course->id, null, 'practical', 60, 'Workshop');
 
-        $this->add_practical_result($assid_theory,    $course->id, $competency->get('id'), $student->id, 50);
-        $this->add_practical_result($assid_practical, $course->id, $competency->get('id'), $student->id, 80);
+        $this->add_practical_result($assidtheory, $course->id, $competency->get('id'), $student->id, 50);
+        $this->add_practical_result($assidpractical, $course->id, $competency->get('id'), $student->id, 80);
 
         $calc   = new competency_calculator($course->id);
         $scores = $calc->get_student_scores($student->id);
@@ -288,11 +293,11 @@ class competency_calculator_test extends advanced_testcase {
             'competencyframeworkid' => $framework->get('id'),
         ]);
 
-        $assid_theory    = $this->create_assessment($course->id, null, 'practical', 40, 'Theory (simulated)');
-        $assid_practical = $this->create_assessment($course->id, null, 'practical', 60, 'Workshop');
+        $assidtheory    = $this->create_assessment($course->id, null, 'practical', 40, 'Theory (simulated)');
+        $assidpractical = $this->create_assessment($course->id, null, 'practical', 60, 'Workshop');
 
-        $this->add_practical_result($assid_theory,    $course->id, $competency->get('id'), $student->id, 40);
-        $this->add_practical_result($assid_practical, $course->id, $competency->get('id'), $student->id, 70);
+        $this->add_practical_result($assidtheory, $course->id, $competency->get('id'), $student->id, 40);
+        $this->add_practical_result($assidpractical, $course->id, $competency->get('id'), $student->id, 70);
 
         $calc   = new competency_calculator($course->id);
         $scores = $calc->get_student_scores($student->id);
@@ -303,9 +308,7 @@ class competency_calculator_test extends advanced_testcase {
         $this->assertFalse($scores[$compid]['passed']); // 58 < 60
     }
 
-    // -----------------------------------------------------------------------
-    // Tests — Partial participation (not all assessments attempted)
-    // -----------------------------------------------------------------------
+    // Tests for partial participation.
 
     /**
      * Student only did the practical (60% weight), not the theory (40% weight).
@@ -329,10 +332,10 @@ class competency_calculator_test extends advanced_testcase {
 
         // Two assessments configured: 40 + 60 = 100.
         $this->create_assessment($course->id, null, 'practical', 40, 'Theory (simulated)');
-        $assid_practical = $this->create_assessment($course->id, null, 'practical', 60, 'Workshop');
+        $assidpractical = $this->create_assessment($course->id, null, 'practical', 60, 'Workshop');
 
         // Only practical result entered.
-        $this->add_practical_result($assid_practical, $course->id, $competency->get('id'), $student->id, 80);
+        $this->add_practical_result($assidpractical, $course->id, $competency->get('id'), $student->id, 80);
 
         $calc   = new competency_calculator($course->id);
         $scores = $calc->get_student_scores($student->id);
@@ -344,16 +347,10 @@ class competency_calculator_test extends advanced_testcase {
         $this->assertEquals(80.0, $scores[$compid]['percent']);
     }
 
-    // -----------------------------------------------------------------------
-    // Tests — Multi-competency question (Full Credit model)
-    // -----------------------------------------------------------------------
+    // Tests for Multi-competency question (Full Credit model).
 
     /**
      * Test that a question mapped to TWO competencies counts fully toward both.
-     *
-     * Setup (via practical to avoid quiz attempt complexity):
-     * - Competency A: assessed by practical at 80% → should appear in results.
-     * - Competency B: assessed by practical at 60% → should appear in results.
      *
      * @covers \local_competency_report\competency_calculator::get_student_scores
      */
@@ -365,10 +362,10 @@ class competency_calculator_test extends advanced_testcase {
         $gen->enrol_user($student->id, $course->id, 'student');
 
         $framework   = $gen->get_plugin_generator('core_competency')->create_framework();
-        $competencyA = $gen->get_plugin_generator('core_competency')->create_competency([
+        $competencya = $gen->get_plugin_generator('core_competency')->create_competency([
             'competencyframeworkid' => $framework->get('id'),
         ]);
-        $competencyB = $gen->get_plugin_generator('core_competency')->create_competency([
+        $competencyb = $gen->get_plugin_generator('core_competency')->create_competency([
             'competencyframeworkid' => $framework->get('id'),
         ]);
 
@@ -376,25 +373,23 @@ class competency_calculator_test extends advanced_testcase {
         $assid = $this->create_assessment($course->id, null, 'practical', 100, 'Workshop');
 
         // Enter SEPARATE results per competency (full credit, independent).
-        $this->add_practical_result($assid, $course->id, $competencyA->get('id'), $student->id, 80);
-        $this->add_practical_result($assid, $course->id, $competencyB->get('id'), $student->id, 60);
+        $this->add_practical_result($assid, $course->id, $competencya->get('id'), $student->id, 80);
+        $this->add_practical_result($assid, $course->id, $competencyb->get('id'), $student->id, 60);
 
         $calc   = new competency_calculator($course->id);
         $scores = $calc->get_student_scores($student->id);
 
-        $this->assertArrayHasKey($competencyA->get('id'), $scores);
-        $this->assertArrayHasKey($competencyB->get('id'), $scores);
+        $this->assertArrayHasKey($competencya->get('id'), $scores);
+        $this->assertArrayHasKey($competencyb->get('id'), $scores);
 
-        $this->assertEquals(80.0, $scores[$competencyA->get('id')]['percent']);
-        $this->assertTrue($scores[$competencyA->get('id')]['passed']);
+        $this->assertEquals(80.0, $scores[$competencya->get('id')]['percent']);
+        $this->assertTrue($scores[$competencya->get('id')]['passed']);
 
-        $this->assertEquals(60.0, $scores[$competencyB->get('id')]['percent']);
-        $this->assertTrue($scores[$competencyB->get('id')]['passed']);
+        $this->assertEquals(60.0, $scores[$competencyb->get('id')]['percent']);
+        $this->assertTrue($scores[$competencyb->get('id')]['passed']);
     }
 
-    // -----------------------------------------------------------------------
-    // Tests — save_question_competency multi-mapping (DB level)
-    // -----------------------------------------------------------------------
+    // Tests for save_question_competency multi-mapping (DB level).
 
     /**
      * Verify the DB correctly stores multiple competency mappings per question.
@@ -408,8 +403,12 @@ class competency_calculator_test extends advanced_testcase {
         $gen        = $this->getDataGenerator();
         $course     = $gen->create_course();
         $framework  = $gen->get_plugin_generator('core_competency')->create_framework();
-        $compA      = $gen->get_plugin_generator('core_competency')->create_competency(['competencyframeworkid' => $framework->get('id')]);
-        $compB      = $gen->get_plugin_generator('core_competency')->create_competency(['competencyframeworkid' => $framework->get('id')]);
+        $compa      = $gen->get_plugin_generator('core_competency')->create_competency([
+            'competencyframeworkid' => $framework->get('id'),
+        ]);
+        $compb      = $gen->get_plugin_generator('core_competency')->create_competency([
+            'competencyframeworkid' => $framework->get('id'),
+        ]);
 
         $questionid = 999; // Fake question ID (no FK enforced in unit tests).
         $now = time();
@@ -417,11 +416,11 @@ class competency_calculator_test extends advanced_testcase {
         // Insert two mappings for the same question.
         $DB->insert_record('qbank_competency_qmap', (object)[
             'questionid' => $questionid, 'courseid' => $course->id,
-            'competencyid' => $compA->get('id'), 'timecreated' => $now,
+            'competencyid' => $compa->get('id'), 'timecreated' => $now,
         ]);
         $DB->insert_record('qbank_competency_qmap', (object)[
             'questionid' => $questionid, 'courseid' => $course->id,
-            'competencyid' => $compB->get('id'), 'timecreated' => $now,
+            'competencyid' => $compb->get('id'), 'timecreated' => $now,
         ]);
 
         $rows = $DB->get_records('qbank_competency_qmap', [
@@ -432,8 +431,8 @@ class competency_calculator_test extends advanced_testcase {
         $this->assertCount(2, $rows, 'Question should have exactly 2 competency mappings');
 
         $storedids = array_column(array_values($rows), 'competencyid');
-        $this->assertContains((string)$compA->get('id'), $storedids);
-        $this->assertContains((string)$compB->get('id'), $storedids);
+        $this->assertContains((string)$compa->get('id'), $storedids);
+        $this->assertContains((string)$compb->get('id'), $storedids);
     }
 
     /**
@@ -448,15 +447,21 @@ class competency_calculator_test extends advanced_testcase {
         $gen       = $this->getDataGenerator();
         $course    = $gen->create_course();
         $framework = $gen->get_plugin_generator('core_competency')->create_framework();
-        $compA     = $gen->get_plugin_generator('core_competency')->create_competency(['competencyframeworkid' => $framework->get('id')]);
-        $compB     = $gen->get_plugin_generator('core_competency')->create_competency(['competencyframeworkid' => $framework->get('id')]);
-        $compC     = $gen->get_plugin_generator('core_competency')->create_competency(['competencyframeworkid' => $framework->get('id')]);
+        $compa     = $gen->get_plugin_generator('core_competency')->create_competency([
+            'competencyframeworkid' => $framework->get('id'),
+        ]);
+        $compb     = $gen->get_plugin_generator('core_competency')->create_competency([
+            'competencyframeworkid' => $framework->get('id'),
+        ]);
+        $compc     = $gen->get_plugin_generator('core_competency')->create_competency([
+            'competencyframeworkid' => $framework->get('id'),
+        ]);
 
         $questionid = 888;
         $now = time();
 
         // Initial mapping: A + B.
-        foreach ([$compA->get('id'), $compB->get('id')] as $cid) {
+        foreach ([$compa->get('id'), $compb->get('id')] as $cid) {
             $DB->insert_record('qbank_competency_qmap', (object)[
                 'questionid' => $questionid, 'courseid' => $course->id,
                 'competencyid' => $cid, 'timecreated' => $now,
@@ -467,21 +472,19 @@ class competency_calculator_test extends advanced_testcase {
         $DB->delete_records('qbank_competency_qmap', ['questionid' => $questionid, 'courseid' => $course->id]);
         $DB->insert_record('qbank_competency_qmap', (object)[
             'questionid' => $questionid, 'courseid' => $course->id,
-            'competencyid' => $compC->get('id'), 'timecreated' => $now,
+            'competencyid' => $compc->get('id'), 'timecreated' => $now,
         ]);
 
         $rows = $DB->get_records('qbank_competency_qmap', ['questionid' => $questionid, 'courseid' => $course->id]);
 
         $this->assertCount(1, $rows, 'After full-replace only 1 mapping should remain');
-        $this->assertEquals($compC->get('id'), reset($rows)->competencyid);
+        $this->assertEquals($compc->get('id'), reset($rows)->competencyid);
     }
 
-    // -----------------------------------------------------------------------
-    // Tests — get_group_scores
-    // -----------------------------------------------------------------------
+    // Tests for get_group_scores().
 
     /**
-     * get_group_scores() returns empty array for empty user list.
+     * Test get_group_scores() returns empty array for empty user list.
      *
      * @covers \local_competency_report\competency_calculator::get_group_scores
      */

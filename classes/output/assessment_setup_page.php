@@ -35,7 +35,6 @@ use stdClass;
  * @package local_competency_report
  */
 class assessment_setup_page implements renderable, templatable {
-
     /** @var stdClass */
     private $data;
 
@@ -123,14 +122,14 @@ class assessment_setup_page implements renderable, templatable {
             'courseid' => $this->data->courseid,
         ]))->out(false);
 
-        $d->straddquiz       = get_string('addquizassessment',    'local_competency_report');
+        $d->straddquiz       = get_string('addquizassessment', 'local_competency_report');
         $d->straddpractical  = get_string('addpracticalassessment', 'local_competency_report');
         $d->strsave          = get_string('savechanges');
-        $d->strweight        = get_string('weight',               'local_competency_report');
-        $d->strname          = get_string('assessmentname',       'local_competency_report');
-        $d->strtype          = get_string('assessmenttype',       'local_competency_report');
-        $d->strquiz          = get_string('quiz',                 'local_competency_report');
-        $d->strtotalweight   = get_string('totalweight',          'local_competency_report');
+        $d->strweight        = get_string('weight', 'local_competency_report');
+        $d->strname          = get_string('assessmentname', 'local_competency_report');
+        $d->strtype          = get_string('assessmenttype', 'local_competency_report');
+        $d->strquiz          = get_string('quiz', 'local_competency_report');
+        $d->strtotalweight   = get_string('totalweight', 'local_competency_report');
         $d->strdelete        = get_string('delete');
         $d->strweightwarning = !$d->weightok
             ? get_string('weightwarning', 'local_competency_report', $d->totalweight)

@@ -48,7 +48,6 @@ namespace local_competency_report;
  * @package local_competency_report
  */
 class competency_calculator {
-
     /** @var int */
     private $courseid;
 
@@ -166,7 +165,6 @@ class competency_calculator {
                 if ($assessment->type === 'quiz' && !empty($assessment->quizid)) {
                     // Get question-attempt score for this quiz + competency + student.
                     $scorepct = $this->get_quiz_score_pct($userid, (int)$assessment->quizid, (int)$comp->id);
-
                 } else if ($assessment->type === 'practical') {
                     // Get latest manual practical result.
                     $record = $DB->get_record(

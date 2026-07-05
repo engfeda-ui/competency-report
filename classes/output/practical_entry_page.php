@@ -36,7 +36,6 @@ use moodle_url;
  * @package local_competency_report
  */
 class practical_entry_page implements renderable, templatable {
-
     /** @var stdClass */
     private $data;
 
@@ -113,14 +112,14 @@ class practical_entry_page implements renderable, templatable {
         $d->hasstudents = !empty($d->students);
 
         // String labels.
-        $d->strselectassessment  = get_string('selectpracticalassessment', 'local_competency_report');
-        $d->strselectcompetency  = get_string('selectcompetency',          'local_competency_report');
-        $d->strstudent           = get_string('student',                   'local_competency_report');
-        $d->strpercent           = get_string('competencypercent',         'local_competency_report');
-        $d->strsave              = get_string('savechanges');
-        $d->strshowstudents      = get_string('showstudents',              'local_competency_report');
-        $d->strnostudenst        = get_string('nostudentsenrolled',        'local_competency_report');
-        $d->strnopracticals      = get_string('nopracticalassessments',    'local_competency_report');
+        $d->strselectassessment = get_string('selectpracticalassessment', 'local_competency_report');
+        $d->strselectcompetency = get_string('selectcompetency', 'local_competency_report');
+        $d->strstudent          = get_string('student', 'local_competency_report');
+        $d->strpercent          = get_string('competencypercent', 'local_competency_report');
+        $d->strsave             = get_string('savechanges');
+        $d->strshowstudents     = get_string('showstudents', 'local_competency_report');
+        $d->strnostudenst       = get_string('nostudentsenrolled', 'local_competency_report');
+        $d->strnopracticals     = get_string('nopracticalassessments', 'local_competency_report');
 
         return $d;
     }

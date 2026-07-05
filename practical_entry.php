@@ -41,18 +41,14 @@ $PAGE->set_pagelayout('course');
 $PAGE->set_title(get_string('practicalentry', 'local_competency_report'));
 $PAGE->set_heading($course->fullname . ' — ' . get_string('practicalentry', 'local_competency_report'));
 
-// -----------------------------------------------------------------------
 // Get selected assessment and competency from request.
-// -----------------------------------------------------------------------
 $assessmentid = optional_param('assessmentid', 0, PARAM_INT);
 $competencyid = optional_param('competencyid', 0, PARAM_INT);
 
-// -----------------------------------------------------------------------
 // Handle POST — save results.
-// -----------------------------------------------------------------------
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
-    $studentids = optional_param_array('studentid',           [], PARAM_INT);
-    $percents   = optional_param_array('competency_percent',  [], PARAM_FLOAT);
+    $studentids = optional_param_array('studentid', [], PARAM_INT);
+    $percents   = optional_param_array('competency_percent', [], PARAM_FLOAT);
     $postassid  = required_param('assessmentid', PARAM_INT);
     $postcompid = required_param('competencyid', PARAM_INT);
     $now        = time();
@@ -89,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
         }
     }
 
-    // ─── Sync with Moodle Assignment Gradebook ───
+    // Sync with Moodle Assignment Gradebook.
     $asmt = $DB->get_record('local_competency_report_asmt', ['id' => $postassid]);
     if ($asmt && $asmt->type === 'practical' && !empty($asmt->assignid)) {
         require_once($CFG->dirroot . '/mod/assign/locallib.php');
@@ -103,7 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
                 // Fetch all competency grades for this student and this practical assessment.
                 $competencygrades = $DB->get_records('local_competency_report_prac', [
                     'assessmentid' => $postassid,
-                    'studentid'    => $sid
+                    'studentid'    => $sid,
                 ], '', 'competency_percent');
 
                 if (!empty($competencygrades)) {
@@ -129,11 +125,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
                          WHERE p.assessmentid = :assessmentid AND p.studentid = :studentid
                       ORDER BY c.shortname ASC
                     ", ['assessmentid' => $postassid, 'studentid' => $sid]);
-                    
+
                     foreach ($allrows as $row) {
                         $breakdown[] = "• " . s($row->shortname) . ": " . round($row->competency_percent, 1) . "%";
                     }
-                    $feedbacktext = "<strong>" . get_string('summaryreport', 'local_competency_report') . ":</strong><br>" . implode("<br>", $breakdown);
+                    $summarystr = get_string('summaryreport', 'local_competency_report');
+                    $feedbacktext = "<strong>" . $summarystr . ":</strong><br>" .
+                        implode("<br>", $breakdown);
 
                     // Push grade and feedback to Moodle Assignment.
                     $gradedata = new stdClass();
@@ -210,7 +208,13 @@ if (empty($competencies)) {
 }
 
 // Students enrolled in the course.
-$students = array_values(get_enrolled_users($context, 'mod/quiz:attempt', 0, 'u.id, u.firstname, u.lastname, u.idnumber', 'u.lastname ASC'));
+$students = array_values(get_enrolled_users(
+    $context,
+    'mod/quiz:attempt',
+    0,
+    'u.id, u.firstname, u.lastname, u.idnumber',
+    'u.lastname ASC'
+));
 
 // If assessment and competency are selected, load existing results.
 $existingresults = [];
@@ -225,9 +229,7 @@ if ($assessmentid && $competencyid) {
     }
 }
 
-// -----------------------------------------------------------------------
 // Output.
-// -----------------------------------------------------------------------
 echo $OUTPUT->header();
 
 $renderdata                    = new stdClass();

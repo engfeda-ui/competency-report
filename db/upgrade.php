@@ -22,8 +22,6 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Upgrade the plugin from one version to another.
  *
@@ -35,7 +33,6 @@ function xmldb_local_competency_report_upgrade($oldversion) {
     $dbman = $DB->get_manager();
 
     if ($oldversion < 2026070100) {
-
         // 1. Create local_competency_report_asmt table.
         $table = new xmldb_table('local_competency_report_asmt');
 
@@ -50,7 +47,6 @@ function xmldb_local_competency_report_upgrade($oldversion) {
 
         $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
         $table->add_key('coursefk', XMLDB_KEY_FOREIGN, ['courseid'], 'course', ['id']);
-
 
         $table->add_index('course_quiz_idx', XMLDB_INDEX_NOTUNIQUE, ['courseid', 'quizid']);
 
