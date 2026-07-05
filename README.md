@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.1.0-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.2.2-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_competency`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -35,7 +35,7 @@ A professional Moodle reporting engine that calculates and visualises student co
 | **Moodle Framework** | Moodle 4.5 to 5.0+ |
 | **PHP Runtime** | PHP 8.1, PHP 8.2, PHP 8.3 |
 | **Database System** | PostgreSQL 13+, MySQL 8.0+, or MariaDB 10.5+ |
-| **Required Plugin** | [**`qbank_competency`**](https://github.com/engfeda-ui/competency) ≥ 2026052500 |
+| **Required Plugin** | [**`qbank_competency`**](https://github.com/engfeda-ui/competency) ≥ 2026070500 |
 
 ---
 
@@ -81,6 +81,16 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 ---
 
 ## 📋 Changelog
+
+### v3.2.2 — 2026-07-05
+- **Fix:** Corrected all Moodle PHP CodeSniffer violations across the codebase (including PSR12 class opening brace spaces, comma argument spaces, trailing spaces, array commas, and variable casing in tests).
+- **Fix:** Synchronized ecosystem dependency version requirements to require `qbank_competency` >= `2026070500` to prevent PHP 8.x Fatal Errors.
+- **Fix:** Updated GitHub Actions workflow (`ci.yml`) to correctly load the `qbank_competency` dependency using `moodle-plugin-ci add-plugin`.
+
+### v3.2.1 — 2026-07-03
+- **Fix:** Added missing capability definitions for `local/competency_report:manageassessments` and `local/competency_report:enterpractical` in `db/access.php` to resolve runtime exceptions during fresh installs.
+- **Fix:** Refined observer and background task logic to skip writing duplicate Moodle competency evidence when success rates have not changed.
+- **Cleanup:** Removed local development-only files (`update_ip.sh`).
 
 ### v3.2.0 — 2026-05-31
 - **New:** Complete Arabic (`ar`) language pack — all 50+ UI strings, AI commentary widget, radar chart, study plan, and at-risk alert strings are now fully translated into Arabic (RTL support).
