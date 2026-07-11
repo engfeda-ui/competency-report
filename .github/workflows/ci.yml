@@ -59,7 +59,12 @@ jobs:
           echo "$(cd ci/vendor/bin; pwd)" >> $GITHUB_PATH
 
       - name: Add qbank_competency dependency
-        run: moodle-plugin-ci add-plugin --clone=https://github.com/engfeda-ui/competency.git
+        run: |
+          if [ -n "${{ secrets.COMPETENCY_CLONE_TOKEN }}" ]; then
+            moodle-plugin-ci add-plugin --clone=https://x-access-token:${{ secrets.COMPETENCY_CLONE_TOKEN }}@github.com/engfeda-ui/competency.git
+          else
+            moodle-plugin-ci add-plugin --clone=https://github.com/engfeda-ui/competency.git
+          fi
 
 
       - name: Install Moodle
