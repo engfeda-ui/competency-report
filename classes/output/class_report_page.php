@@ -17,13 +17,13 @@
 /**
  * Class Report for Competency Matching output class.
  *
- * @package    local_competency_report
+ * @package    local_comp_report_ext
  * @copyright  2026 Mahmoud Salem
  * @copyright  based on work by 2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_competency_report\output;
+namespace local_comp_report_ext\output;
 
 use renderable;
 use templatable;
@@ -33,7 +33,7 @@ use stdClass;
 /**
  * Renderable page class for the competency class report.
  *
- * @package    local_competency_report
+ * @package    local_comp_report_ext
  * @copyright  2026 Mahmoud Salem
  * @copyright  based on work by 2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later

@@ -17,19 +17,19 @@
 /**
  * Scheduled Task to automatically calculate and sync competency rates.
  *
- * @package    local_competency_report
+ * @package    local_comp_report_ext
  * @copyright  2026 Mahmoud Salem
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_competency_report\task;
+namespace local_comp_report_ext\task;
 
 /**
  * Class scheduled_competency_rates_task
  *
  * Scheduled cron task to calculate quiz-based competency success rates for all active courses.
  *
- * @package    local_competency_report
+ * @package    local_comp_report_ext
  */
 class scheduled_competency_rates_task extends \core\task\scheduled_task {
     /**
@@ -38,7 +38,7 @@ class scheduled_competency_rates_task extends \core\task\scheduled_task {
      * @return string
      */
     public function get_name() {
-        return get_string('process_success_title', 'local_competency_report') . ' (Automatic Sync)';
+        return get_string('process_success_title', 'local_comp_report_ext') . ' (Automatic Sync)';
     }
 
     /**
@@ -60,7 +60,7 @@ class scheduled_competency_rates_task extends \core\task\scheduled_task {
             $contextid = \context_course::instance($courseid)->id;
 
             $sql = "SELECT DISTINCT c.id, c.shortname
-                      FROM {qbank_competency_qmap} m
+                      FROM {qbank_comp_ext_qmap} m
                       JOIN {competency} c ON c.id = m.competencyid
                      WHERE m.courseid = :courseid
                   ORDER BY c.shortname";
@@ -94,9 +94,9 @@ class scheduled_competency_rates_task extends \core\task\scheduled_task {
                     // Insert user evidence.
                     $evidence = new \stdClass();
                     $evidence->userid = $student->id;
-                    $evidence->name = get_string('process_success_title', 'local_competency_report')
+                    $evidence->name = get_string('process_success_title', 'local_comp_report_ext')
                         . " (Auto Sync " . date('d.m.Y') . ")";
-                    $evidence->description = get_string('evidence_description', 'local_competency_report', $a);
+                    $evidence->description = get_string('evidence_description', 'local_comp_report_ext', $a);
                     $evidence->descriptionformat = FORMAT_HTML;
                     $evidence->url = '';
                     $evidence->timecreated = time();
@@ -129,11 +129,11 @@ class scheduled_competency_rates_task extends \core\task\scheduled_task {
                     $cevidence->action = 1;
                     $cevidence->actionuserid = $adminid;
                     $cevidence->descidentifier = 'evidence';
-                    $cevidence->desccomponent = 'local_competency_report';
+                    $cevidence->desccomponent = 'local_comp_report_ext';
                     $cevidence->desca = null;
                     $cevidence->url = '';
                     $cevidence->grade = (int)$rate;
-                    $cevidence->note = get_string('evidence_note', 'local_competency_report', $a);
+                    $cevidence->note = get_string('evidence_note', 'local_comp_report_ext', $a);
                     $cevidence->timecreated = time();
                     $cevidence->timemodified = time();
                     $cevidence->usermodified = $adminid;
@@ -154,7 +154,7 @@ class scheduled_competency_rates_task extends \core\task\scheduled_task {
                   JOIN {question_usages} qu ON qu.id = quiza.uniqueid
                   JOIN {question_attempts} qa ON qa.questionusageid = qu.id
                   JOIN {quiz} quiz ON quiz.id = quiza.quiz
-                  JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
+                  JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
                   JOIN (
                        SELECT MAX(fraction) AS fraction, questionattemptid
                          FROM {question_attempt_steps}

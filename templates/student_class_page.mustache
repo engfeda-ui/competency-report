@@ -11,7 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    @template local_competency_report/student_analysis
+    @template local_comp_report_ext/student_analysis
 
     Example context (json):
     {
@@ -28,23 +28,23 @@
         "chart_config": "{\"labels\":[\"Matematik\"],\"datasets\":[]}"
     }
 }}
-<div class="local_competency_report_student_analysis">
+<div class="local_comp_report_ext_student_analysis">
     <!-- Consolidated Student Tab Navigation -->
     <ul class="nav nav-tabs mb-4">
         <li class="nav-item">
-            <a class="nav-link {{#active_reportcard}}active font-weight-bold{{/active_reportcard}}{{^active_reportcard}}text-muted{{/active_reportcard}}" href="student_report.php?courseid={{courseid}}"><i class="fa fa-vcard-o mr-1"></i> {{#str}}myreportcard, local_competency_report{{/str}}</a>
+            <a class="nav-link {{#active_reportcard}}active font-weight-bold{{/active_reportcard}}{{^active_reportcard}}text-muted{{/active_reportcard}}" href="student_report.php?courseid={{courseid}}"><i class="fa fa-vcard-o mr-1"></i> {{#str}}myreportcard, local_comp_report_ext{{/str}}</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {{#active_examanalysis}}active font-weight-bold{{/active_examanalysis}}{{^active_examanalysis}}text-muted{{/active_examanalysis}}" href="student_exam.php?courseid={{courseid}}"><i class="fa fa-bar-chart mr-1"></i> {{#str}}myexamanalysis, local_competency_report{{/str}}</a>
+            <a class="nav-link {{#active_examanalysis}}active font-weight-bold{{/active_examanalysis}}{{^active_examanalysis}}text-muted{{/active_examanalysis}}" href="student_exam.php?courseid={{courseid}}"><i class="fa fa-bar-chart mr-1"></i> {{#str}}myexamanalysis, local_comp_report_ext{{/str}}</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {{#active_competencyexams}}active font-weight-bold{{/active_competencyexams}}{{^active_competencyexams}}text-muted{{/active_competencyexams}}" href="student_competency_exams.php?courseid={{courseid}}"><i class="fa fa-list-alt mr-1"></i> {{#str}}mycompetencyexams, local_competency_report{{/str}}</a>
+            <a class="nav-link {{#active_competencyexams}}active font-weight-bold{{/active_competencyexams}}{{^active_competencyexams}}text-muted{{/active_competencyexams}}" href="student_competency_exams.php?courseid={{courseid}}"><i class="fa fa-list-alt mr-1"></i> {{#str}}mycompetencyexams, local_comp_report_ext{{/str}}</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {{#active_competencystate}}active font-weight-bold{{/active_competencystate}}{{^active_competencystate}}text-muted{{/active_competencystate}}" href="student_class.php?courseid={{courseid}}"><i class="fa fa-graduation-cap mr-1"></i> {{#str}}mycompetencystate, local_competency_report{{/str}}</a>
+            <a class="nav-link {{#active_competencystate}}active font-weight-bold{{/active_competencystate}}{{^active_competencystate}}text-muted{{/active_competencystate}}" href="student_class.php?courseid={{courseid}}"><i class="fa fa-graduation-cap mr-1"></i> {{#str}}mycompetencystate, local_comp_report_ext{{/str}}</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {{#active_timeline}}active font-weight-bold{{/active_timeline}}{{^active_timeline}}text-muted{{/active_timeline}}" href="timeline.php?courseid={{courseid}}"><i class="fa fa-calendar mr-1"></i> {{#str}}timeline, local_competency_report{{/str}}</a>
+            <a class="nav-link {{#active_timeline}}active font-weight-bold{{/active_timeline}}{{^active_timeline}}text-muted{{/active_timeline}}" href="timeline.php?courseid={{courseid}}"><i class="fa fa-calendar mr-1"></i> {{#str}}timeline, local_comp_report_ext{{/str}}</a>
         </li>
     </ul>
 
@@ -54,10 +54,10 @@
             <table class="generaltable table-hover mt-3 shadow-sm bg-white border w-100">
                 <thead class="thead-dark">
                     <tr>
-                        <th>{{#str}}competencyname, local_competency_report{{/str}}</th>
-                        <th class="text-center">{{#str}}courseavg, local_competency_report{{/str}}</th>
-                        <th class="text-center">{{#str}}classavg, local_competency_report{{/str}}</th>
-                        <th class="text-center">{{#str}}myavg, local_competency_report{{/str}}</th>
+                        <th>{{#str}}competencyname, local_comp_report_ext{{/str}}</th>
+                        <th class="text-center">{{#str}}courseavg, local_comp_report_ext{{/str}}</th>
+                        <th class="text-center">{{#str}}classavg, local_comp_report_ext{{/str}}</th>
+                        <th class="text-center">{{#str}}myavg, local_comp_report_ext{{/str}}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -83,10 +83,10 @@
         </div>
 
         {{! Reusable AI Commentary & Focus Analysis Widget }}
-        {{> local_competency_report/ai_commentary_widget }}
+        {{> local_comp_report_ext/ai_commentary_widget }}
 
         {{#js}}
-        require(['local_competency_report/visualizer'], function(Visualizer) {
+        require(['local_comp_report_ext/visualizer'], function(Visualizer) {
             const canvas = document.getElementById('studentClassChart');
             if (canvas) {
                 const config = JSON.parse(canvas.getAttribute('data-chart-config'));
@@ -99,7 +99,7 @@
     {{^has_data}}
         {{! No Data Alert }}
         <div class="alert alert-info">
-            <i class="fa fa-info-circle"></i> {{#str}}nodatafound, local_competency_report{{/str}}
+            <i class="fa fa-info-circle"></i> {{#str}}nodatafound, local_comp_report_ext{{/str}}
         </div>
     {{/has_data}}
 </div>

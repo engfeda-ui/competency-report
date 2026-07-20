@@ -17,12 +17,12 @@
 /**
  * Renderable for the Assessment Setup page.
  *
- * @package    local_competency_report
+ * @package    local_comp_report_ext
  * @copyright  2026 Mahmoud Salem
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_competency_report\output;
+namespace local_comp_report_ext\output;
 
 use renderable;
 use renderer_base;
@@ -32,7 +32,7 @@ use stdClass;
 /**
  * Renderable for the assessment setup page.
  *
- * @package local_competency_report
+ * @package local_comp_report_ext
  */
 class assessment_setup_page implements renderable, templatable {
     /** @var stdClass */
@@ -68,8 +68,8 @@ class assessment_setup_page implements renderable, templatable {
             $row->name        = $a->name;
             $row->type        = $a->type;
             $row->typelabel   = ($a->type === 'practical')
-                ? get_string('typepractical', 'local_competency_report')
-                : get_string('typequiz', 'local_competency_report');
+                ? get_string('typepractical', 'local_comp_report_ext')
+                : get_string('typequiz', 'local_comp_report_ext');
             $row->weight      = $a->weight;
             $row->quizid      = $a->quizid;
             $row->assignid    = $a->assignid;
@@ -122,17 +122,17 @@ class assessment_setup_page implements renderable, templatable {
             'courseid' => $this->data->courseid,
         ]))->out(false);
 
-        $d->straddquiz       = get_string('addquizassessment', 'local_competency_report');
-        $d->straddpractical  = get_string('addpracticalassessment', 'local_competency_report');
+        $d->straddquiz       = get_string('addquizassessment', 'local_comp_report_ext');
+        $d->straddpractical  = get_string('addpracticalassessment', 'local_comp_report_ext');
         $d->strsave          = get_string('savechanges');
-        $d->strweight        = get_string('weight', 'local_competency_report');
-        $d->strname          = get_string('assessmentname', 'local_competency_report');
-        $d->strtype          = get_string('assessmenttype', 'local_competency_report');
-        $d->strquiz          = get_string('quiz', 'local_competency_report');
-        $d->strtotalweight   = get_string('totalweight', 'local_competency_report');
+        $d->strweight        = get_string('weight', 'local_comp_report_ext');
+        $d->strname          = get_string('assessmentname', 'local_comp_report_ext');
+        $d->strtype          = get_string('assessmenttype', 'local_comp_report_ext');
+        $d->strquiz          = get_string('quiz', 'local_comp_report_ext');
+        $d->strtotalweight   = get_string('totalweight', 'local_comp_report_ext');
         $d->strdelete        = get_string('delete');
         $d->strweightwarning = !$d->weightok
-            ? get_string('weightwarning', 'local_competency_report', $d->totalweight)
+            ? get_string('weightwarning', 'local_comp_report_ext', $d->totalweight)
             : '';
 
         return $d;

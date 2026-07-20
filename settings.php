@@ -17,7 +17,7 @@
 /**
  * Settings for the competency_report plugin.
  *
- * @package    local_competency_report
+ * @package    local_comp_report_ext
  * @copyright  2026 Mahmoud Salem
  * @copyright  based on work by 2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -27,34 +27,34 @@ defined('MOODLE_INTERNAL') || die();
 
 if ($hassiteconfig) {
     // 1. Define the Settings Page.
-    $settings = new admin_settingpage('local_competency_report', get_string('pluginname', 'local_competency_report'));
+    $settings = new admin_settingpage('local_comp_report_ext', get_string('pluginname', 'local_comp_report_ext'));
 
     if ($ADMIN->fulltree) {
         // AI integration toggle (enable/disable).
         $settings->add(new admin_setting_configcheckbox(
-            'local_competency_report/enable_ai',
-            get_string('enable_ai', 'local_competency_report'),
-            get_string('enable_ai_desc', 'local_competency_report'),
+            'local_comp_report_ext/enable_ai',
+            get_string('enable_ai', 'local_comp_report_ext'),
+            get_string('enable_ai_desc', 'local_comp_report_ext'),
             0
         ));
 
         // AI Provider.
         $settings->add(new admin_setting_configselect(
-            'local_competency_report/ai_provider',
-            get_string('ai_provider', 'local_competency_report'),
-            get_string('ai_provider_desc', 'local_competency_report'),
+            'local_comp_report_ext/ai_provider',
+            get_string('ai_provider', 'local_comp_report_ext'),
+            get_string('ai_provider_desc', 'local_comp_report_ext'),
             'openai',
             [
-                'openai' => get_string('ai_provider_openai', 'local_competency_report'),
-                'local'  => get_string('ai_provider_local', 'local_competency_report'),
+                'openai' => get_string('ai_provider_openai', 'local_comp_report_ext'),
+                'local'  => get_string('ai_provider_local', 'local_comp_report_ext'),
             ]
         ));
 
         // Local LLM Endpoint.
         $settings->add(new admin_setting_configtext(
-            'local_competency_report/local_endpoint',
-            get_string('local_endpoint', 'local_competency_report'),
-            get_string('local_endpoint_desc', 'local_competency_report'),
+            'local_comp_report_ext/local_endpoint',
+            get_string('local_endpoint', 'local_comp_report_ext'),
+            get_string('local_endpoint_desc', 'local_comp_report_ext'),
             'http://localhost:11434/v1',
             PARAM_RAW
         ));
@@ -62,36 +62,36 @@ if ($hassiteconfig) {
 
         // API Key.
         $settings->add(new admin_setting_configtext(
-            'local_competency_report/apikey',
-            get_string('apikey', 'local_competency_report'),
-            get_string('apikey_desc', 'local_competency_report'),
+            'local_comp_report_ext/apikey',
+            get_string('apikey', 'local_comp_report_ext'),
+            get_string('apikey_desc', 'local_comp_report_ext'),
             '',
             PARAM_TEXT
         ));
 
         // Model name.
         $settings->add(new admin_setting_configtext(
-            'local_competency_report/model',
-            get_string('model', 'local_competency_report'),
-            get_string('model_desc', 'local_competency_report'),
+            'local_comp_report_ext/model',
+            get_string('model', 'local_comp_report_ext'),
+            get_string('model_desc', 'local_comp_report_ext'),
             'gpt-4',
             PARAM_RAW
         ));
 
         // Maximum number of rows.
         $settings->add(new admin_setting_configtext(
-            'local_competency_report/maxrows',
-            get_string('maxrows', 'local_competency_report'),
-            get_string('maxrows_desc', 'local_competency_report'),
+            'local_comp_report_ext/maxrows',
+            get_string('maxrows', 'local_comp_report_ext'),
+            get_string('maxrows_desc', 'local_comp_report_ext'),
             100,
             PARAM_INT
         ));
 
         // Success threshold for competency colour coding and failgrade integration.
         $settings->add(new admin_setting_configtext(
-            'local_competency_report/success_threshold',
-            get_string('success_threshold', 'local_competency_report'),
-            get_string('success_threshold_desc', 'local_competency_report'),
+            'local_comp_report_ext/success_threshold',
+            get_string('success_threshold', 'local_comp_report_ext'),
+            get_string('success_threshold_desc', 'local_comp_report_ext'),
             60,
             PARAM_INT
         ));
@@ -100,22 +100,22 @@ if ($hassiteconfig) {
     // At-Risk Student Alert Settings.
     if ($ADMIN->fulltree) {
         $settings->add(new admin_setting_heading(
-            'local_competency_report/alerts_heading',
-            get_string('enable_alerts', 'local_competency_report'),
+            'local_comp_report_ext/alerts_heading',
+            get_string('enable_alerts', 'local_comp_report_ext'),
             ''
         ));
 
         $settings->add(new admin_setting_configcheckbox(
-            'local_competency_report/enable_alerts',
-            get_string('enable_alerts', 'local_competency_report'),
-            get_string('enable_alerts_desc', 'local_competency_report'),
+            'local_comp_report_ext/enable_alerts',
+            get_string('enable_alerts', 'local_comp_report_ext'),
+            get_string('enable_alerts_desc', 'local_comp_report_ext'),
             0
         ));
 
         $settings->add(new admin_setting_configtext(
-            'local_competency_report/alert_threshold',
-            get_string('alert_threshold', 'local_competency_report'),
-            get_string('alert_threshold_desc', 'local_competency_report'),
+            'local_comp_report_ext/alert_threshold',
+            get_string('alert_threshold', 'local_comp_report_ext'),
+            get_string('alert_threshold_desc', 'local_comp_report_ext'),
             40,
             PARAM_INT
         ));
@@ -123,9 +123,9 @@ if ($hassiteconfig) {
         // Manual Competency Sync heading and link.
         $url = new moodle_url('/local/competency_report/add_success_to_evidence.php');
         $settings->add(new admin_setting_heading(
-            'local_competency_report/manual_process_heading',
-            get_string('manual_process_heading', 'local_competency_report'),
-            get_string('manual_process_desc', 'local_competency_report', ['url' => $url->out()])
+            'local_comp_report_ext/manual_process_heading',
+            get_string('manual_process_heading', 'local_comp_report_ext'),
+            get_string('manual_process_desc', 'local_comp_report_ext', ['url' => $url->out()])
         ));
     }
 
@@ -136,15 +136,15 @@ if ($hassiteconfig) {
 
     // 3. Add External Report Pages under the "Reports" menu.
     $ADMIN->add('reports', new admin_externalpage(
-        'local_competency_report_schoolreport',
-        get_string('schoolreport', 'local_competency_report'),
+        'local_comp_report_ext_schoolreport',
+        get_string('schoolreport', 'local_comp_report_ext'),
         new moodle_url('/local/competency_report/school_report.php'),
         'moodle/site:config'
     ));
 
     $ADMIN->add('reports', new admin_externalpage(
-        'local_competency_report_schoolpdf',
-        get_string('schoolpdf', 'local_competency_report'),
+        'local_comp_report_ext_schoolpdf',
+        get_string('schoolpdf', 'local_comp_report_ext'),
         new moodle_url('/local/competency_report/school_pdf.php'),
         'moodle/site:config'
     ));

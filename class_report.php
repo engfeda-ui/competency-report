@@ -17,7 +17,7 @@
 /**
  * Class Report for Competency Matching.
  *
- * @package    local_competency_report
+ * @package    local_comp_report_ext
  * @copyright  2026 Mahmoud Salem
  * @copyright  based on work by 2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -38,14 +38,14 @@ $course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
 $PAGE->set_url('/local/competency_report/class_report.php', ['courseid' => $courseid]);
 $PAGE->set_context($context);
 $PAGE->set_pagelayout('course');
-$PAGE->set_title(get_string('report_title', 'local_competency_report', $course->fullname));
-$PAGE->set_heading($course->fullname . " - " . get_string('report_heading', 'local_competency_report'));
+$PAGE->set_title(get_string('report_title', 'local_comp_report_ext', $course->fullname));
+$PAGE->set_heading($course->fullname . " - " . get_string('report_heading', 'local_comp_report_ext'));
 
 // 1. Parameter Management and Form.
 $userid     = optional_param('userid', 0, PARAM_INT);
 $competency = optional_param('competencyid', 0, PARAM_INT);
 
-$mform = new local_competency_report_selector_form(null, ['courseid' => $courseid]);
+$mform = new local_comp_report_ext_selector_form(null, ['courseid' => $courseid]);
 if ($data = $mform->get_data()) {
     $userid     = $data->userid;
     $competency = $data->competencyid;
@@ -66,7 +66,7 @@ $coursesql = "SELECT c.id, c.shortname,
               JOIN {question_usages} qu ON qu.id = quiza.uniqueid
               JOIN {question_attempts} qa ON qa.questionusageid = qu.id
               JOIN {quiz} quiz ON quiz.id = quiza.quiz
-              JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
+              JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
               JOIN {competency} c ON c.id = m.competencyid
               JOIN (SELECT MAX(fraction) AS fraction, questionattemptid
                       FROM {question_attempt_steps}
@@ -150,9 +150,9 @@ if (!empty($coursedata)) {
         'classData'  => $classrates,
         'myData'     => $studentrates,
         'labelNames' => [
-            'course' => get_string('courseavg', 'local_competency_report'),
-            'class'  => get_string('classavg', 'local_competency_report'),
-            'my'     => get_string('studentavg', 'local_competency_report'),
+            'course' => get_string('courseavg', 'local_comp_report_ext'),
+            'class'  => get_string('classavg', 'local_comp_report_ext'),
+            'my'     => get_string('studentavg', 'local_comp_report_ext'),
         ],
     ];
 }
@@ -160,7 +160,7 @@ if (!empty($coursedata)) {
 // 3. Output.
 echo $OUTPUT->header();
 
-$page = new \local_competency_report\output\class_report_page($renderdata, $mform);
+$page = new \local_comp_report_ext\output\class_report_page($renderdata, $mform);
 echo $OUTPUT->render($page);
 
 echo $OUTPUT->footer();

@@ -17,7 +17,7 @@
 /**
  * Student Performance Analysis Page compared with Class and Course averages.
  *
- * @package    local_competency_report
+ * @package    local_comp_report_ext
  * @copyright  2026 Mahmoud Salem
  * @copyright  based on work by 2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -42,8 +42,8 @@ if (
 // Page settings and navigation.
 $PAGE->set_url('/local/competency_report/student_class.php', ['courseid' => $courseid]);
 $PAGE->set_context($context);
-$PAGE->set_title(get_string('studentanalysis', 'local_competency_report'));
-$PAGE->set_heading(get_string('analysisfor', 'local_competency_report', $course->fullname));
+$PAGE->set_title(get_string('studentanalysis', 'local_comp_report_ext'));
+$PAGE->set_heading(get_string('analysisfor', 'local_comp_report_ext', $course->fullname));
 $PAGE->set_pagelayout('course');
 
 // 1. General Course Average Query.
@@ -54,7 +54,7 @@ $coursesql = "SELECT c.id, c.shortname,
               JOIN {quiz} quiz ON quiz.id = quiza.quiz
               JOIN {question_usages} qu ON qu.id = quiza.uniqueid
               JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-              JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
+              JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
               JOIN {competency} c ON c.id = m.competencyid
               JOIN (
                   SELECT MAX(fraction) AS fraction, questionattemptid
@@ -84,7 +84,7 @@ if (!empty($coursedata)) {
                      JOIN {quiz} quiz ON quiz.id = quiza.quiz
                      JOIN {question_usages} qu ON qu.id = quiza.uniqueid
                      JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-                     JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
+                     JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
                      JOIN {competency} c ON c.id = m.competencyid
                      JOIN (
                          SELECT MAX(fraction) AS fraction, questionattemptid
@@ -109,7 +109,7 @@ if (!empty($coursedata)) {
                    JOIN {quiz} quiz ON quiz.id = quiza.quiz
                    JOIN {question_usages} qu ON qu.id = quiza.uniqueid
                    JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-                   JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
+                   JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
                    JOIN {competency} c ON c.id = m.competencyid
                    JOIN (
                        SELECT MAX(fraction) AS fraction, questionattemptid
@@ -129,7 +129,7 @@ if (!empty($coursedata)) {
 // Render the output.
 echo $OUTPUT->header();
 
-$page = new \local_competency_report\output\student_class_page($renderdata);
+$page = new \local_comp_report_ext\output\student_class_page($renderdata);
 echo $OUTPUT->render($page);
 
 echo $OUTPUT->footer();

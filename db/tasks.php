@@ -17,7 +17,7 @@
 /**
  * Task definitions for the competency_report plugin.
  *
- * @package    local_competency_report
+ * @package    local_comp_report_ext
  * @copyright  2026 Mahmoud Salem
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -26,7 +26,7 @@ defined('MOODLE_INTERNAL') || die();
 
 $tasks = [
     [
-        'classname' => 'local_competency_report\task\scheduled_competency_rates_task',
+        'classname' => 'local_comp_report_ext\task\scheduled_competency_rates_task',
         'blocking' => 0,
         'minute' => '0',
         'hour' => '1', // Every night at 1:00 AM.

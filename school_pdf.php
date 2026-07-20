@@ -17,7 +17,7 @@
 /**
  * Premium PDF export for school-wide or group competency & grade analysis.
  *
- * @package    local_competency_report
+ * @package    local_comp_report_ext
  * @copyright  2026 Mahmoud Salem
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -47,7 +47,7 @@ if ($courseid > 0) {
     $context = context_system::instance();
     require_capability('moodle/site:config', $context);
     $course = $DB->get_record('course', ['id' => SITEID], '*', MUST_EXIST);
-    $course->fullname = get_string('schoolreport', 'local_competency_report');
+    $course->fullname = get_string('schoolreport', 'local_comp_report_ext');
 }
 
 $group = null;
@@ -160,7 +160,7 @@ if ($focustype === 'grades') {
         JOIN {quiz} quiz ON quiz.id = quiza.quiz
         JOIN {question_usages} qu ON qu.id = quiza.uniqueid
         JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-        JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
+        JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
         JOIN {competency} c ON c.id = m.competencyid
         JOIN (
             SELECT MAX(fraction) AS fraction, questionattemptid
@@ -184,11 +184,11 @@ if ($focustype === 'grades') {
     <table border="1" cellpadding="6">
         <thead>
             <tr bgcolor="#f2f2f2" style="font-weight: bold;">
-                <th width="15%" align="center">' . get_string('competencycode', 'local_competency_report') . '</th>
-                <th width="41%" align="center">' . get_string('competencyname', 'local_competency_report') . '</th>
-                <th width="14%" align="center">' . get_string('questioncount', 'local_competency_report') . '</th>
-                <th width="14%" align="center">' . get_string('correctcount', 'local_competency_report') . '</th>
-                <th width="16%" align="center">' . get_string('successrate', 'local_competency_report') . '</th>
+                <th width="15%" align="center">' . get_string('competencycode', 'local_comp_report_ext') . '</th>
+                <th width="41%" align="center">' . get_string('competencyname', 'local_comp_report_ext') . '</th>
+                <th width="14%" align="center">' . get_string('questioncount', 'local_comp_report_ext') . '</th>
+                <th width="14%" align="center">' . get_string('correctcount', 'local_comp_report_ext') . '</th>
+                <th width="16%" align="center">' . get_string('successrate', 'local_comp_report_ext') . '</th>
             </tr>
         </thead>
         <tbody>';
@@ -215,7 +215,7 @@ if ($focustype === 'grades') {
 if (!empty($pdfcontent)) {
     $comment = $pdfcontent;
 } else {
-    $comment = local_competency_report_generate_comment($rates, $contexttype, $customprompt, $focustype);
+    $comment = local_comp_report_ext_generate_comment($rates, $contexttype, $customprompt, $focustype);
 }
 // Strip any non-BMP unicode characters (emojis) to prevent TCPDF font warnings.
 $comment = preg_replace('/[^\x{0000}-\x{FFFF}]/u', '', $comment);
@@ -243,7 +243,7 @@ if ($group) {
 }
 
 $dateconfig = get_string('strftimedatetimeshort', 'langconfig');
-$dateinfo = get_string('creation_date', 'local_competency_report') . ": " . userdate(time(), $dateconfig);
+$dateinfo = get_string('creation_date', 'local_comp_report_ext') . ": " . userdate(time(), $dateconfig);
 $pdf->Cell(0, 6, $dateinfo, 0, 1, 'L');
 $pdf->Ln(5);
 
@@ -266,12 +266,12 @@ if (!empty($comment)) {
 // Legend.
 $pdf->Ln(8);
 $pdf->SetFont('freeserif', 'B', 9);
-$pdf->Cell(0, 7, get_string('colorlegend', 'local_competency_report'), 0, 1);
+$pdf->Cell(0, 7, get_string('colorlegend', 'local_comp_report_ext'), 0, 1);
 $pdf->SetFont('freeserif', '', 8);
-$legend = get_string('redlegend', 'local_competency_report') . " | " .
-          get_string('orangelegend', 'local_competency_report') . " | " .
-          get_string('bluelegend', 'local_competency_report') . " | " .
-          get_string('greenlegend', 'local_competency_report');
+$legend = get_string('redlegend', 'local_comp_report_ext') . " | " .
+          get_string('orangelegend', 'local_comp_report_ext') . " | " .
+          get_string('bluelegend', 'local_comp_report_ext') . " | " .
+          get_string('greenlegend', 'local_comp_report_ext');
 $pdf->Cell(0, 5, $legend, 0, 1);
 
 // Final PDF output.

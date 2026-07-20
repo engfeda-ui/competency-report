@@ -17,7 +17,7 @@
 /**
  * Report for competency analysis based on school-wide or course-specific data.
  *
- * @package    local_competency_report
+ * @package    local_comp_report_ext
  * @copyright  2026 Mahmoud Salem
  * @copyright  based on work by 2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -36,14 +36,14 @@ if ($courseid) {
     $context = context_course::instance($courseid);
     require_capability('moodle/course:view', $context);
     $course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
-    $reporttitle = get_string('report_title', 'local_competency_report', $course->fullname);
+    $reporttitle = get_string('report_title', 'local_comp_report_ext', $course->fullname);
     $wheresql = "WHERE quiz.course = :courseid AND quiza.state = 'finished'";
     $params = ['courseid' => $courseid];
 } else {
     // If no course is specified, treat as a site-wide report (admin access).
     $context = context_system::instance();
     require_capability('moodle/site:config', $context);
-    $reporttitle = get_string('report_title', 'local_competency_report', get_string('schoolreport', 'local_competency_report'));
+    $reporttitle = get_string('report_title', 'local_comp_report_ext', get_string('schoolreport', 'local_comp_report_ext'));
     $wheresql = "WHERE quiza.state = 'finished'";
     $params = [];
 }
@@ -63,7 +63,7 @@ $sql = "SELECT c.id, c.shortname, c.description,
         JOIN {quiz} quiz ON quiz.id = quiza.quiz
         JOIN {question_usages} qu ON qu.id = quiza.uniqueid
         JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-        JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
+        JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
         JOIN {competency} c ON c.id = m.competencyid
         JOIN (
             SELECT MAX(fraction) AS fraction, questionattemptid
@@ -94,7 +94,7 @@ if (!empty($rows)) {
 // Output generation.
 echo $OUTPUT->header();
 
-$page = new \local_competency_report\output\school_report_page($renderdata);
+$page = new \local_comp_report_ext\output\school_report_page($renderdata);
 echo $OUTPUT->render($page);
 
 echo $OUTPUT->footer();

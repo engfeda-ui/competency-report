@@ -17,7 +17,7 @@
 /**
  * Report for competency analysis based on group and quiz selection.
  *
- * @package    local_competency_report
+ * @package    local_comp_report_ext
  * @copyright  2026 Mahmoud Salem
  * @copyright  based on work by 2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -41,8 +41,8 @@ $PAGE->set_url('/local/competency_report/group_quiz_competency.php', [
     'groupid'  => $groupid,
     'quizid'   => $quizid,
 ]);
-$PAGE->set_title(get_string('groupquizcompetency', 'local_competency_report'));
-$PAGE->set_heading(get_string('groupquizcompetency', 'local_competency_report'));
+$PAGE->set_title(get_string('groupquizcompetency', 'local_comp_report_ext'));
+$PAGE->set_heading(get_string('groupquizcompetency', 'local_comp_report_ext'));
 $PAGE->set_pagelayout('course');
 $PAGE->set_context($context);
 
@@ -54,7 +54,7 @@ $renderdata->courseid = $courseid;
 $groups = groups_get_all_groups($courseid);
 $renderdata->groups = [[
     'id' => 0,
-    'name' => get_string('selectgroup', 'local_competency_report'),
+    'name' => get_string('selectgroup', 'local_comp_report_ext'),
     'selected' => ($groupid == 0),
 ]];
 foreach ($groups as $g) {
@@ -69,7 +69,7 @@ foreach ($groups as $g) {
 $quizzes = $DB->get_records('quiz', ['course' => $courseid], 'name ASC');
 $renderdata->quizzes = [[
     'id' => 0,
-    'name' => get_string('selectquiz', 'local_competency_report'),
+    'name' => get_string('selectquiz', 'local_comp_report_ext'),
     'selected' => ($quizid == 0),
 ]];
 foreach ($quizzes as $q) {
@@ -101,7 +101,7 @@ if ($groupid && $quizid) {
         FROM {quiz_attempts} quiza
         JOIN {question_usages} qu ON qu.id = quiza.uniqueid
         JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-        JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
+        JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
         JOIN {competency} c ON c.id = m.competencyid
         WHERE quiza.quiz = :quizid
         ORDER BY c.shortname", ['quizid' => $quizid]);
@@ -117,7 +117,7 @@ if ($groupid && $quizid) {
         FROM {quiz_attempts} quiza
         JOIN {question_usages} qu ON qu.id = quiza.uniqueid
         JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-        JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
+        JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
         JOIN (
             SELECT questionattemptid, MAX(fraction) AS fraction
             FROM {question_attempt_steps}
@@ -181,7 +181,7 @@ if ($groupid && $quizid) {
 // 5. OUTPUT START.
 echo $OUTPUT->header();
 
-$page = new \local_competency_report\output\group_quiz_competency_page($courseid, $groupid, $quizid, $renderdata);
+$page = new \local_comp_report_ext\output\group_quiz_competency_page($courseid, $groupid, $quizid, $renderdata);
 echo $OUTPUT->render($page);
 
 echo $OUTPUT->footer();

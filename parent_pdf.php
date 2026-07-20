@@ -17,7 +17,7 @@
 /**
  * PDF report generator for student competencies or grades.
  *
- * @package    local_competency_report
+ * @package    local_comp_report_ext
  * @copyright  2026 Mahmoud Salem
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -77,7 +77,7 @@ if ($focustype === 'grades') {
         JOIN {question_usages} qu ON qu.id = quiza.uniqueid
         JOIN {question_attempts} qa ON qa.questionusageid = qu.id
         JOIN {quiz} quiz ON quiz.id = quiza.quiz
-        JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
+        JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
         JOIN {competency} c ON c.id = m.competencyid
         JOIN (
             SELECT MAX(fraction) AS fraction, questionattemptid
@@ -104,7 +104,7 @@ if ($focustype === 'grades') {
 if (!empty($pdfcontent)) {
     $comment = $pdfcontent;
 } else {
-    $comment = local_competency_report_generate_comment($stats, 'student', $customprompt, $focustype);
+    $comment = local_comp_report_ext_generate_comment($stats, 'student', $customprompt, $focustype);
 }
 // Strip any non-BMP unicode characters (emojis) to prevent TCPDF font warnings.
 $comment = preg_replace('/[^\x{0000}-\x{FFFF}]/u', '', $comment);
@@ -113,7 +113,7 @@ $comment = preg_replace('/[^\x{0000}-\x{FFFF}]/u', '', $comment);
 $pdf = new TCPDF();
 $pdf->SetCreator(PDF_CREATOR);
 $pdf->SetAuthor('Moodle Competency Report');
-$pdf->SetTitle(get_string('studentpdfreport', 'local_competency_report'));
+$pdf->SetTitle(get_string('studentpdfreport', 'local_comp_report_ext'));
 $pdf->setPrintHeader(false);
 $pdf->setPrintFooter(false);
 $pdf->AddPage();
@@ -127,7 +127,7 @@ $pdf->Cell(0, 7, $course->fullname, 0, 1, 'L');
 
 $titletext = ($focustype === 'grades') ?
     "General Grades and Academic Performance Card" :
-    get_string('studentpdfreport', 'local_competency_report');
+    get_string('studentpdfreport', 'local_comp_report_ext');
 $pdf->Cell(0, 7, $titletext, 0, 1, 'L');
 $pdf->Ln(5);
 
@@ -140,9 +140,9 @@ if ($focustype === 'grades') {
     $pdf->Cell(40, 10, "Score achieved", 1, 0, 'C', true);
     $pdf->Cell(40, 10, "Success rate", 1, 1, 'C', true);
 } else {
-    $pdf->Cell(40, 10, get_string('competencycode', 'local_competency_report'), 1, 0, 'C', true);
-    $pdf->Cell(100, 10, get_string('competency', 'local_competency_report'), 1, 0, 'C', true);
-    $pdf->Cell(40, 10, get_string('success', 'local_competency_report'), 1, 1, 'C', true);
+    $pdf->Cell(40, 10, get_string('competencycode', 'local_comp_report_ext'), 1, 0, 'C', true);
+    $pdf->Cell(100, 10, get_string('competency', 'local_comp_report_ext'), 1, 0, 'C', true);
+    $pdf->Cell(40, 10, get_string('success', 'local_comp_report_ext'), 1, 1, 'C', true);
 }
 
 /* Table Body */
@@ -191,12 +191,12 @@ $pdf->writeHTML($comment, true, false, true, false, '');
 // Legend.
 $pdf->Ln(10);
 $pdf->SetFont('freeserif', 'B', 9);
-$pdf->Cell(0, 7, get_string('colorlegend', 'local_competency_report'), 0, 1);
+$pdf->Cell(0, 7, get_string('colorlegend', 'local_comp_report_ext'), 0, 1);
 $pdf->SetFont('freeserif', '', 8);
-$legend = get_string('redlegend', 'local_competency_report') . " | " .
-          get_string('orangelegend', 'local_competency_report') . " | " .
-          get_string('bluelegend', 'local_competency_report') . " | " .
-          get_string('greenlegend', 'local_competency_report');
+$legend = get_string('redlegend', 'local_comp_report_ext') . " | " .
+          get_string('orangelegend', 'local_comp_report_ext') . " | " .
+          get_string('bluelegend', 'local_comp_report_ext') . " | " .
+          get_string('greenlegend', 'local_comp_report_ext');
 $pdf->Cell(0, 5, $legend, 0, 1);
 
 // Clear output buffer to prevent PHP warnings/headers-already-sent errors from corrupting the PDF.

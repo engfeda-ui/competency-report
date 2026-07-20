@@ -17,12 +17,12 @@
 /**
  * Renderable for the Practical Entry page.
  *
- * @package    local_competency_report
+ * @package    local_comp_report_ext
  * @copyright  2026 Mahmoud Salem
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_competency_report\output;
+namespace local_comp_report_ext\output;
 
 use renderable;
 use renderer_base;
@@ -33,7 +33,7 @@ use moodle_url;
 /**
  * Renderable for the practical entry page.
  *
- * @package local_competency_report
+ * @package local_comp_report_ext
  */
 class practical_entry_page implements renderable, templatable {
     /** @var stdClass */
@@ -112,14 +112,14 @@ class practical_entry_page implements renderable, templatable {
         $d->hasstudents = !empty($d->students);
 
         // String labels.
-        $d->strselectassessment = get_string('selectpracticalassessment', 'local_competency_report');
-        $d->strselectcompetency = get_string('selectcompetency', 'local_competency_report');
-        $d->strstudent          = get_string('student', 'local_competency_report');
-        $d->strpercent          = get_string('competencypercent', 'local_competency_report');
+        $d->strselectassessment = get_string('selectpracticalassessment', 'local_comp_report_ext');
+        $d->strselectcompetency = get_string('selectcompetency', 'local_comp_report_ext');
+        $d->strstudent          = get_string('student', 'local_comp_report_ext');
+        $d->strpercent          = get_string('competencypercent', 'local_comp_report_ext');
         $d->strsave             = get_string('savechanges');
-        $d->strshowstudents     = get_string('showstudents', 'local_competency_report');
-        $d->strnostudenst       = get_string('nostudentsenrolled', 'local_competency_report');
-        $d->strnopracticals     = get_string('nopracticalassessments', 'local_competency_report');
+        $d->strshowstudents     = get_string('showstudents', 'local_comp_report_ext');
+        $d->strnostudenst       = get_string('nostudentsenrolled', 'local_comp_report_ext');
+        $d->strnopracticals     = get_string('nopracticalassessments', 'local_comp_report_ext');
 
         return $d;
     }

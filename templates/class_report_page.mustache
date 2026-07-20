@@ -11,7 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    @template local_competency_report/class_report_page
+    @template local_comp_report_ext/class_report_page
 
     Example context (json):
     {
@@ -29,12 +29,12 @@
         "chart_config": "{\"labels\":[\"Y01\"],\"datasets\":[]}"
     }
 }}
-<div class="local_competency_report_class_report">
+<div class="local_comp_report_ext_class_report">
 
     {{! 1. Top Buttons and Links }}
     <div class="d-flex justify-content-between align-items-center mb-3">
         <button id="btn-export-class-pdf-top" class="btn btn-secondary">
-            <i class="fa fa-file-pdf-o"></i> {{#str}}pdfreport, local_competency_report{{/str}}
+            <i class="fa fa-file-pdf-o"></i> {{#str}}pdfreport, local_comp_report_ext{{/str}}
         </button>
     </div>
 
@@ -51,10 +51,10 @@
             <table class="generaltable table table-bordered table-hover mt-4 shadow-sm bg-white">
                 <thead class="thead-dark">
                     <tr>
-                        <th scope="col">{{#str}}competencyname, local_competency_report{{/str}}</th>
-                        <th scope="col" class="text-center">{{#str}}courseavg, local_competency_report{{/str}}</th>
-                        <th scope="col" class="text-center">{{#str}}classavg, local_competency_report{{/str}}</th>
-                        <th scope="col" class="text-center">{{#str}}studentavg, local_competency_report{{/str}}</th>
+                        <th scope="col">{{#str}}competencyname, local_comp_report_ext{{/str}}</th>
+                        <th scope="col" class="text-center">{{#str}}courseavg, local_comp_report_ext{{/str}}</th>
+                        <th scope="col" class="text-center">{{#str}}classavg, local_comp_report_ext{{/str}}</th>
+                        <th scope="col" class="text-center">{{#str}}studentavg, local_comp_report_ext{{/str}}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -73,7 +73,7 @@
         {{! 4. Chart Area }}
         <div class="card mt-4 p-4 shadow-sm bg-white border-0">
             <div class="card-title">
-                <h5><i class="fa fa-bar-chart"></i> {{#str}}visual_report, local_competency_report{{/str}}</h5>
+                <h5><i class="fa fa-bar-chart"></i> {{#str}}visual_report, local_comp_report_ext{{/str}}</h5>
             </div>
             <div style="height:400px; width:100%; position: relative;">
                 {{! Store configuration data safely in data-chart-config }}
@@ -82,20 +82,20 @@
         </div>
 
         {{! Reusable AI Commentary & Focus Analysis Widget }}
-        {{> local_competency_report/ai_commentary_widget }}
+        {{> local_comp_report_ext/ai_commentary_widget }}
     {{/has_data}}
 
     {{^has_data}}
         {{! No Data Found Warning }}
         <div class="alert alert-info shadow-sm">
-            <i class="fa fa-info-circle"></i> {{#str}}nodatafound, local_competency_report{{/str}}
+            <i class="fa fa-info-circle"></i> {{#str}}nodatafound, local_comp_report_ext{{/str}}
         </div>
     {{/has_data}}
 </div>
 
 {{#has_data}}
 {{#js}}
-require(['local_competency_report/visualizer', 'core/log', 'jquery'], function(Visualizer, Log, $) {
+require(['local_comp_report_ext/visualizer', 'core/log', 'jquery'], function(Visualizer, Log, $) {
     const canvas = document.getElementById('studentClassChart');
     if (canvas) {
         const rawData = canvas.getAttribute('data-chart-config');

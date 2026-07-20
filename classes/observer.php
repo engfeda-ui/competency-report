@@ -15,21 +15,21 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Event observer for quiz attempts inside local_competency_report.
+ * Event observer for quiz attempts inside local_comp_report_ext.
  *
- * @package    local_competency_report
+ * @package    local_comp_report_ext
  * @copyright  2026 Mahmoud Salem
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_competency_report;
+namespace local_comp_report_ext;
 
 /**
  * Class observer
  *
  * Handles immediate calculation of competency rates and registers user evidence on quiz submission.
  *
- * @package    local_competency_report
+ * @package    local_comp_report_ext
  */
 class observer {
     /**
@@ -65,7 +65,7 @@ class observer {
                   FROM {quiz_attempts} quiza
                   JOIN {question_usages} qu ON qu.id = quiza.uniqueid
                   JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-                  JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
+                  JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
                   JOIN {competency} c ON c.id = m.competencyid
                  WHERE quiza.id = :attemptid AND m.courseid = :courseid";
         $competencies = $DB->get_records_sql($sql, ['attemptid' => $eventdata->id, 'courseid' => $courseid]);
@@ -90,8 +90,8 @@ class observer {
             // Insert user evidence.
             $evidence = new \stdClass();
             $evidence->userid = $userid;
-            $evidence->name = get_string('process_success_title', 'local_competency_report') . " (Auto Sync " . date('d.m.Y') . ")";
-            $evidence->description = get_string('evidence_description', 'local_competency_report', $a);
+            $evidence->name = get_string('process_success_title', 'local_comp_report_ext') . " (Auto Sync " . date('d.m.Y') . ")";
+            $evidence->description = get_string('evidence_description', 'local_comp_report_ext', $a);
             $evidence->descriptionformat = FORMAT_HTML;
             $evidence->url = '';
             $evidence->timecreated = time();
@@ -124,11 +124,11 @@ class observer {
             $cevidence->action = 1;
             $cevidence->actionuserid = $adminid;
             $cevidence->descidentifier = 'evidence';
-            $cevidence->desccomponent = 'local_competency_report';
+            $cevidence->desccomponent = 'local_comp_report_ext';
             $cevidence->desca = null;
             $cevidence->url = '';
             $cevidence->grade = (int)$rate;
-            $cevidence->note = get_string('evidence_note', 'local_competency_report', $a);
+            $cevidence->note = get_string('evidence_note', 'local_comp_report_ext', $a);
             $cevidence->timecreated = time();
             $cevidence->timemodified = time();
             $cevidence->usermodified = $adminid;
@@ -144,7 +144,7 @@ class observer {
                          JOIN {question_usages} qu ON qu.id = quiza.uniqueid
                          JOIN {question_attempts} qa ON qa.questionusageid = qu.id
                          JOIN {quiz} quiz ON quiz.id = quiza.quiz
-                         JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
+                         JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
                          JOIN {competency} c ON c.id = m.competencyid
                          JOIN (
                               SELECT MAX(fraction) AS fraction, questionattemptid
@@ -161,7 +161,7 @@ class observer {
         }
 
         if (!empty($allrates)) {
-            local_competency_report_check_and_notify($userid, $courseid, $allrates);
+            local_comp_report_ext_check_and_notify($userid, $courseid, $allrates);
         }
     }
 
@@ -182,7 +182,7 @@ class observer {
                   JOIN {question_usages} qu ON qu.id = quiza.uniqueid
                   JOIN {question_attempts} qa ON qa.questionusageid = qu.id
                   JOIN {quiz} quiz ON quiz.id = quiza.quiz
-                  JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
+                  JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
                   JOIN (
                        SELECT MAX(fraction) AS fraction, questionattemptid
                          FROM {question_attempt_steps}

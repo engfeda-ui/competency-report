@@ -17,7 +17,7 @@
 /**
  * AJAX Endpoint to generate a personalized AI remedial study plan (session-based).
  *
- * @package    local_competency_report
+ * @package    local_comp_report_ext
  * @copyright  2026 Mahmoud Salem
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -53,9 +53,9 @@ if ($userid != $USER->id) {
 }
 
 // 2b. Verify AI is enabled.
-if (!get_config('local_competency_report', 'enable_ai')) {
+if (!get_config('local_comp_report_ext', 'enable_ai')) {
     header('Content-Type: application/json');
-    echo json_encode(['success' => false, 'error' => get_string('ai_not_configured', 'local_competency_report')]);
+    echo json_encode(['success' => false, 'error' => get_string('ai_not_configured', 'local_comp_report_ext')]);
     exit;
 }
 
@@ -67,7 +67,7 @@ $sql = "SELECT c.id, c.shortname, c.description,
         JOIN {question_usages} qu ON qu.id = quiza.uniqueid
         JOIN {question_attempts} qa ON qa.questionusageid = qu.id
         JOIN {quiz} quiz ON quiz.id = quiza.quiz
-        JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
+        JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
         JOIN {competency} c ON c.id = m.competencyid
         JOIN (
             SELECT MAX(fraction) AS fraction, questionattemptid
@@ -81,7 +81,7 @@ $rows = $DB->get_records_sql($sql, ['courseid' => $courseid, 'userid' => $userid
 
 if (empty($rows)) {
     header('Content-Type: application/json');
-    echo json_encode(['success' => false, 'error' => get_string('nodatafound', 'local_competency_report')]);
+    echo json_encode(['success' => false, 'error' => get_string('nodatafound', 'local_comp_report_ext')]);
     exit;
 }
 
@@ -161,10 +161,10 @@ STRICT REQUIREMENTS:
 ";
 
 // 5. Call AI with study plan system prompt.
-$plan = local_competency_report_generate_study_plan($prompt);
+$plan = local_comp_report_ext_generate_study_plan($prompt);
 
 // Convert any markdown tables in the AI response to beautiful HTML tables.
-$plan = local_competency_report_markdown_to_html_table($plan);
+$plan = local_comp_report_ext_markdown_to_html_table($plan);
 
 header('Content-Type: application/json');
 echo json_encode([

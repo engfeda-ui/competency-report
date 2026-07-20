@@ -17,7 +17,7 @@
 /**
  * Detailed competency report for a specific student.
  *
- * @package    local_competency_report
+ * @package    local_comp_report_ext
  * @copyright  2026 Mahmoud Salem
  * @copyright  based on work by 2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -45,7 +45,7 @@ $student = $DB->get_record('user', ['id' => $userid], '*', MUST_EXIST);
 $PAGE->set_url('/local/competency_report/student_competency_detail.php', ['courseid' => $courseid, 'userid' => $userid]);
 $PAGE->set_context($context);
 $PAGE->set_pagelayout('course');
-$PAGE->set_title(get_string('studentreport', 'local_competency_report'));
+$PAGE->set_title(get_string('studentreport', 'local_comp_report_ext'));
 $PAGE->set_heading(fullname($student) . ' - ' . $course->fullname);
 
 // 1. Data Preparation.
@@ -57,7 +57,7 @@ $sql = "SELECT c.id, c.shortname, c.description,
         JOIN {question_usages} qu ON qu.id = quiza.uniqueid
         JOIN {question_attempts} qa ON qa.questionusageid = qu.id
         JOIN {quiz} quiz ON quiz.id = quiza.quiz
-        JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
+        JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
         JOIN {competency} c ON c.id = m.competencyid
         JOIN (
             SELECT MAX(fraction) AS fraction, questionattemptid
@@ -88,7 +88,7 @@ $renderdata->ai_comment = null;
 // 3. Output Generation.
 echo $OUTPUT->header();
 
-$page = new \local_competency_report\output\student_competency_detail_page($renderdata);
+$page = new \local_comp_report_ext\output\student_competency_detail_page($renderdata);
 echo $OUTPUT->render($page);
 
 echo $OUTPUT->footer();

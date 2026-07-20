@@ -17,7 +17,7 @@
 /**
  * AI and Rule-based commentary logic for competencies.
  *
- * @package    local_competency_report
+ * @package    local_comp_report_ext
  * @copyright  2026 Mahmoud Salem
  * @copyright  based on work by 2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -30,14 +30,14 @@
  * @param string $context The context of the comment (student or school).
  * @return string
  */
-function local_competency_report_generate_comment(
+function local_comp_report_ext_generate_comment(
     array $stats,
     $context = 'student',
     $customprompt = '',
     $focustype = 'competency'
 ) {
-    if (!get_config('local_competency_report', 'enable_ai')) {
-        return local_competency_report_rule_based_comment($stats);
+    if (!get_config('local_comp_report_ext', 'enable_ai')) {
+        return local_comp_report_ext_rule_based_comment($stats);
     }
 
     // Generate unique cache key for the student grades, custom prompts and focus type.
@@ -47,7 +47,7 @@ function local_competency_report_generate_comment(
     $cachekey = md5(json_encode($statskeys) . '_' . $context . '_' . md5($customprompt) . '_' . $focustype . '_v7');
 
     try {
-        $cache = \cache::make('local_competency_report', 'ai_feedback');
+        $cache = \cache::make('local_comp_report_ext', 'ai_feedback');
         $cachedcomment = $cache->get($cachekey);
         if ($cachedcomment !== false) {
             return $cachedcomment;
@@ -57,11 +57,11 @@ function local_competency_report_generate_comment(
     }
 
     // Call AI comment function.
-    $comment = local_competency_report_ai_comment($stats, $context, $customprompt, $focustype);
+    $comment = local_comp_report_ext_ai_comment($stats, $context, $customprompt, $focustype);
 
     // Save in cache if successful (not a failure and not unconfigured).
-    $aifailedstr = get_string('ai_failed', 'local_competency_report');
-    $ainotconfigstr = get_string('ai_not_configured', 'local_competency_report');
+    $aifailedstr = get_string('ai_failed', 'local_comp_report_ext');
+    $ainotconfigstr = get_string('ai_not_configured', 'local_comp_report_ext');
     if (
         strpos($comment, $aifailedstr) === false &&
         strpos($comment, $ainotconfigstr) === false
@@ -84,7 +84,7 @@ function local_competency_report_generate_comment(
  * @param array $stats
  * @return string
  */
-function local_competency_report_rule_based_comment(array $stats) {
+function local_comp_report_ext_rule_based_comment(array $stats) {
     $red = [];
     $orange = [];
     $blue = [];
@@ -102,25 +102,25 @@ function local_competency_report_rule_based_comment(array $stats) {
         }
     }
 
-    $text = html_writer::tag('b', get_string('generalcomment', 'local_competency_report') . ":") . html_writer::empty_tag('br');
+    $text = html_writer::tag('b', get_string('generalcomment', 'local_comp_report_ext') . ":") . html_writer::empty_tag('br');
 
     if ($red) {
-        $text .= html_writer::tag('span', get_string('comment_red', 'local_competency_report', implode(', ', $red)), [
+        $text .= html_writer::tag('span', get_string('comment_red', 'local_comp_report_ext', implode(', ', $red)), [
             'style' => 'color: red;',
         ]) . html_writer::empty_tag('br');
     }
     if ($orange) {
-        $text .= html_writer::tag('span', get_string('comment_orange', 'local_competency_report', implode(', ', $orange)), [
+        $text .= html_writer::tag('span', get_string('comment_orange', 'local_comp_report_ext', implode(', ', $orange)), [
             'style' => 'color: orange;',
         ]) . html_writer::empty_tag('br');
     }
     if ($blue) {
-        $text .= html_writer::tag('span', get_string('comment_blue', 'local_competency_report', implode(', ', $blue)), [
+        $text .= html_writer::tag('span', get_string('comment_blue', 'local_comp_report_ext', implode(', ', $blue)), [
             'style' => 'color: blue;',
         ]) . html_writer::empty_tag('br');
     }
     if ($green) {
-        $text .= html_writer::tag('span', get_string('comment_green', 'local_competency_report', implode(', ', $green)), [
+        $text .= html_writer::tag('span', get_string('comment_green', 'local_comp_report_ext', implode(', ', $green)), [
             'style' => 'color: green;',
         ]) . html_writer::empty_tag('br');
     }
@@ -135,24 +135,24 @@ function local_competency_report_rule_based_comment(array $stats) {
  * @param string $context
  * @return string
  */
-function local_competency_report_ai_comment(array $stats, $context = 'student', $customprompt = '', $focustype = 'competency') {
+function local_comp_report_ext_ai_comment(array $stats, $context = 'student', $customprompt = '', $focustype = 'competency') {
     global $CFG;
     require_once($CFG->libdir . '/filelib.php');
 
-    $provider = get_config('local_competency_report', 'ai_provider');
+    $provider = get_config('local_comp_report_ext', 'ai_provider');
     if (!$provider) {
         $provider = 'openai';
     }
 
-    $apikey = get_config('local_competency_report', 'apikey');
-    $model  = get_config('local_competency_report', 'model');
+    $apikey = get_config('local_comp_report_ext', 'apikey');
+    $model  = get_config('local_comp_report_ext', 'model');
 
     if ($provider === 'openai' && (empty($apikey) || empty($model))) {
-        return get_string('ai_not_configured', 'local_competency_report');
+        return get_string('ai_not_configured', 'local_comp_report_ext');
     }
 
     if ($provider === 'local' && empty($model)) {
-        return get_string('ai_not_configured', 'local_competency_report');
+        return get_string('ai_not_configured', 'local_comp_report_ext');
     }
 
     // Configure prompt depending on focus (Competency vs. General Grades).
@@ -195,9 +195,9 @@ function local_competency_report_ai_comment(array $stats, $context = 'student', 
             . "with actionable next steps.";
 
         if ($context === 'school') {
-            $prompt = get_string('ai_prompt_school', 'local_competency_report') . "\n";
+            $prompt = get_string('ai_prompt_school', 'local_comp_report_ext') . "\n";
         } else {
-            $prompt = get_string('ai_prompt_student', 'local_competency_report') . "\n";
+            $prompt = get_string('ai_prompt_student', 'local_comp_report_ext') . "\n";
         }
     }
 
@@ -224,7 +224,7 @@ function local_competency_report_ai_comment(array $stats, $context = 'student', 
     $curl->setHeader($headers);
 
     if ($provider === 'local') {
-        $endpoint = get_config('local_competency_report', 'local_endpoint');
+        $endpoint = get_config('local_comp_report_ext', 'local_endpoint');
         if (empty($endpoint)) {
             $endpoint = 'http://localhost:11434/v1';
         }
@@ -274,8 +274,8 @@ function local_competency_report_ai_comment(array $stats, $context = 'student', 
 
     if ($httpcode === 0 || !empty($curlerror)) {
         $detail = !empty($curlerror) ? $curlerror : 'No response from server';
-        debugging("[local_competency_report] AI cURL error: {$detail} (endpoint: {$endpoint})", DEBUG_DEVELOPER);
-        return get_string('ai_failed', 'local_competency_report')
+        debugging("[local_comp_report_ext] AI cURL error: {$detail} (endpoint: {$endpoint})", DEBUG_DEVELOPER);
+        return get_string('ai_failed', 'local_comp_report_ext')
             . ' <small class="text-muted">(Connection error: ' . s($detail) . ' | Endpoint: ' . s($endpoint) . ')</small>';
     }
 
@@ -284,7 +284,7 @@ function local_competency_report_ai_comment(array $stats, $context = 'student', 
     if (json_last_error() === JSON_ERROR_NONE && !empty($data['choices'][0]['message']['content'])) {
         $content = $data['choices'][0]['message']['content'];
         @file_put_contents(__DIR__ . '/ai_raw_response.txt', $content);
-        return local_competency_report_parse_progress_bars($content);
+        return local_comp_report_ext_parse_progress_bars($content);
     }
 
     // Build a human-readable diagnostic from the API error response.
@@ -299,9 +299,9 @@ function local_competency_report_ai_comment(array $stats, $context = 'student', 
         $errormsg = 'Empty or unexpected response structure';
     }
 
-    debugging("[local_competency_report] AI HTTP {$httpcode}: {$errormsg} (endpoint: {$endpoint})", DEBUG_DEVELOPER);
+    debugging("[local_comp_report_ext] AI HTTP {$httpcode}: {$errormsg} (endpoint: {$endpoint})", DEBUG_DEVELOPER);
 
-    return get_string('ai_failed', 'local_competency_report')
+    return get_string('ai_failed', 'local_comp_report_ext')
         . ' <small class="text-muted">(HTTP ' . $httpcode . ': ' . s($errormsg) . ' | Endpoint: ' . s($endpoint) . ')</small>';
 }
 
@@ -311,19 +311,19 @@ function local_competency_report_ai_comment(array $stats, $context = 'student', 
  * @param string $fullprompt The complete, pre-built prompt string.
  * @return string HTML study plan or error string.
  */
-function local_competency_report_generate_study_plan($fullprompt) {
+function local_comp_report_ext_generate_study_plan($fullprompt) {
     global $CFG;
     require_once($CFG->libdir . '/filelib.php');
 
-    $provider = get_config('local_competency_report', 'ai_provider') ?: 'openai';
-    $apikey   = get_config('local_competency_report', 'apikey');
-    $model    = get_config('local_competency_report', 'model');
+    $provider = get_config('local_comp_report_ext', 'ai_provider') ?: 'openai';
+    $apikey   = get_config('local_comp_report_ext', 'apikey');
+    $model    = get_config('local_comp_report_ext', 'model');
 
     if ($provider === 'openai' && (empty($apikey) || empty($model))) {
-        return get_string('ai_not_configured', 'local_competency_report');
+        return get_string('ai_not_configured', 'local_comp_report_ext');
     }
     if ($provider === 'local' && empty($model)) {
-        return get_string('ai_not_configured', 'local_competency_report');
+        return get_string('ai_not_configured', 'local_comp_report_ext');
     }
 
     $curloptions = ($provider === 'local') ? ['ignoresecurity' => true] : [];
@@ -336,7 +336,7 @@ function local_competency_report_generate_study_plan($fullprompt) {
     $curl->setHeader($headers);
 
     if ($provider === 'local') {
-        $endpoint = get_config('local_competency_report', 'local_endpoint') ?: 'http://localhost:11434/v1';
+        $endpoint = get_config('local_comp_report_ext', 'local_endpoint') ?: 'http://localhost:11434/v1';
         if (strpos($endpoint, 'localhost') !== false || strpos($endpoint, 'host.docker.internal') !== false) {
             $ipfile = __DIR__ . '/host_ip.txt';
             if (file_exists($ipfile) && is_readable($ipfile)) {
@@ -379,8 +379,8 @@ function local_competency_report_generate_study_plan($fullprompt) {
 
     if ($httpcode === 0 || !empty($curlerror)) {
         $detail = !empty($curlerror) ? $curlerror : 'No response from server';
-        debugging("[local_competency_report] Study plan cURL error: {$detail}", DEBUG_DEVELOPER);
-        return get_string('ai_failed', 'local_competency_report')
+        debugging("[local_comp_report_ext] Study plan cURL error: {$detail}", DEBUG_DEVELOPER);
+        return get_string('ai_failed', 'local_comp_report_ext')
             . ' <small class="text-muted">(Connection error: ' . s($detail) . ')</small>';
     }
 
@@ -389,7 +389,7 @@ function local_competency_report_generate_study_plan($fullprompt) {
     if (json_last_error() === JSON_ERROR_NONE && !empty($data['choices'][0]['message']['content'])) {
         $content = $data['choices'][0]['message']['content'];
         @file_put_contents(__DIR__ . '/studyplan_raw_response.txt', $content);
-        return local_competency_report_parse_progress_bars($content);
+        return local_comp_report_ext_parse_progress_bars($content);
     }
 
     // Build a human-readable diagnostic from the API error response.
@@ -404,9 +404,9 @@ function local_competency_report_generate_study_plan($fullprompt) {
         $errormsg = 'Empty or unexpected response structure';
     }
 
-    debugging("[local_competency_report] Study plan HTTP {$httpcode}: {$errormsg}", DEBUG_DEVELOPER);
+    debugging("[local_comp_report_ext] Study plan HTTP {$httpcode}: {$errormsg}", DEBUG_DEVELOPER);
 
-    return get_string('ai_failed', 'local_competency_report')
+    return get_string('ai_failed', 'local_comp_report_ext')
         . ' <small class="text-muted">(HTTP ' . $httpcode . ': ' . s($errormsg) . ')</small>';
 }
 
@@ -417,27 +417,27 @@ function local_competency_report_generate_study_plan($fullprompt) {
  * @param array $stats
  * @return string
  */
-function local_competency_report_structured_comment(array $stats) {
-    $text = html_writer::tag('b', get_string('generalcomment', 'local_competency_report') . ":") . html_writer::empty_tag('br');
+function local_comp_report_ext_structured_comment(array $stats) {
+    $text = html_writer::tag('b', get_string('generalcomment', 'local_comp_report_ext') . ":") . html_writer::empty_tag('br');
 
     foreach ($stats as $shortname => $rate) {
         $a = new \stdClass();
         $a->shortname = $shortname;
         $a->rate = $rate;
         if ($rate <= 39) {
-            $text .= html_writer::tag('span', get_string('structured_red', 'local_competency_report', $a), [
+            $text .= html_writer::tag('span', get_string('structured_red', 'local_comp_report_ext', $a), [
                 'style' => 'color: red;',
             ]) . html_writer::empty_tag('br');
         } else if ($rate >= 40 && $rate <= 59) {
-            $text .= html_writer::tag('span', get_string('structured_orange', 'local_competency_report', $a), [
+            $text .= html_writer::tag('span', get_string('structured_orange', 'local_comp_report_ext', $a), [
                 'style' => 'color: orange;',
             ]) . html_writer::empty_tag('br');
         } else if ($rate >= 60 && $rate <= 79) {
-            $text .= html_writer::tag('span', get_string('structured_blue', 'local_competency_report', $a), [
+            $text .= html_writer::tag('span', get_string('structured_blue', 'local_comp_report_ext', $a), [
                 'style' => 'color: blue;',
             ]) . html_writer::empty_tag('br');
         } else if ($rate >= 80) {
-            $text .= html_writer::tag('span', get_string('structured_green', 'local_competency_report', $a), [
+            $text .= html_writer::tag('span', get_string('structured_green', 'local_comp_report_ext', $a), [
                 'style' => 'color: green;',
             ]) . html_writer::empty_tag('br');
         }
@@ -452,7 +452,7 @@ function local_competency_report_structured_comment(array $stats) {
  *
  * @return string The parsed HTML with styled tables.
  */
-function local_competency_report_markdown_to_html_table($html) {
+function local_comp_report_ext_markdown_to_html_table($html) {
     if (strpos($html, '|') === false) {
         return $html;
     }
@@ -533,7 +533,7 @@ function local_competency_report_markdown_to_html_table($html) {
  * @param string $html
  * @return string
  */
-function local_competency_report_parse_progress_bars($html) {
+function local_comp_report_ext_parse_progress_bars($html) {
     // Regex matches [PROGRESSBAR: Name | Percent%] or [PROGRESSBAR: Name | Percent] including floats.
     $pattern = '/\[PROGRESSBAR:\s*([^|\]]+)\s*\|\s*(\d+(?:\.\d+)?)%?\s*\]/i';
 

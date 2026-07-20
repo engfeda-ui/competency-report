@@ -1,4 +1,4 @@
-# 📊 Moodle Local Plugin: Competency Analysis & Reporting (`local_competency_report`)
+# 📊 Moodle Local Plugin: Competency Analysis & Reporting (`local_comp_report_ext`)
 
 [![Moodle Compatibility](https://img.shields.io/badge/Moodle-4.5%20%7C%205.0%2B-orange.svg?style=flat-square)](https://moodle.org)
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
@@ -6,7 +6,7 @@
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
 [![Version](https://img.shields.io/badge/Version-v3.2.2-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
-A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_competency`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
+A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
 ---
 
@@ -15,7 +15,7 @@ A professional Moodle reporting engine that calculates and visualises student co
 - **Automated Performance Analysis:** Evaluates student responses to competency-linked quiz questions across all attempts.
 - **Skill-Based Progress Tracking:** Computes exact competency mastery percentages dynamically per student, class, and course.
 - **AI-Powered Feedback Engine (Optional):** Generates personalised pedagogical comments via OpenAI (or compatible API). Falls back to rule-based colour-coded comments when AI is disabled.
-- **Configurable Success Threshold (NEW in v3.0.8):** A global `success_threshold` setting (default 60%) is now exposed in the admin settings page. This value is used by colour-coding, `quizaccess_failgrade` competency mode, and the background evidence task.
+- **Configurable Success Threshold (NEW in v3.0.8):** A global `success_threshold` setting (default 60%) is now exposed in the admin settings page. This value is used by colour-coding, `quizaccess_failgrade_ext` competency mode, and the background evidence task.
 - **Multiple Report Views:**
   - Student report card, exam analysis, competency state, timeline
   - Teacher class report, student comparison, exam analysis
@@ -35,17 +35,17 @@ A professional Moodle reporting engine that calculates and visualises student co
 | **Moodle Framework** | Moodle 4.5 to 5.0+ |
 | **PHP Runtime** | PHP 8.1, PHP 8.2, PHP 8.3 |
 | **Database System** | PostgreSQL 13+, MySQL 8.0+, or MariaDB 10.5+ |
-| **Required Plugin** | [**`qbank_competency`**](https://github.com/engfeda-ui/competency) ≥ 2026070500 |
+| **Required Plugin** | [**`qbank_comp_ext`**](https://github.com/engfeda-ui/competency) ≥ 2026070500 |
 
 ---
 
 ## 🚀 Installation
 
-1. **Prerequisite:** Install [**`qbank_competency`**](https://github.com/engfeda-ui/competency) first.
+1. **Prerequisite:** Install [**`qbank_comp_ext`**](https://github.com/engfeda-ui/competency) first.
 2. **Download & Extract:** Download the repository and extract the files.
 3. **Directory Placement:** Copy the `competency-report` folder into your Moodle `local/` directory:
    ```
-   moodle/local/competency_report
+   moodle/local/comp_report_ext
    ```
    > The directory name inside `local/` must be exactly `competency_report`.
 4. **Run Moodle Upgrade:** Log in as Administrator and navigate to **Site administration > Notifications**.
@@ -63,13 +63,13 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 | **API Key** | OpenAI (or compatible) API key | — |
 | **Model** | Model name (e.g., `gpt-4`, `gpt-4o`) | `gpt-4` |
 | **Maximum rows** | Max rows shown in report tables | 100 |
-| **Success threshold** | Minimum % for competency mastery (used by colour-coding and `quizaccess_failgrade`) | 60 |
+| **Success threshold** | Minimum % for competency mastery (used by colour-coding and `quizaccess_failgrade_ext`) | 60 |
 
 ---
 
 ## 🛠️ Usage
 
-1. **Map questions to competencies** using `qbank_competency`.
+1. **Map questions to competencies** using `qbank_comp_ext`.
 2. **Deliver quizzes** — students attempt quizzes as normal.
 3. **Access reports:**
    - **Teachers:** Course navigation → *Class Report*, *Student Analysis*, *Student Exam Analysis*, *Group Competency Analysis*.
@@ -84,8 +84,8 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 
 ### v3.2.2 — 2026-07-05
 - **Fix:** Corrected all Moodle PHP CodeSniffer violations across the codebase (including PSR12 class opening brace spaces, comma argument spaces, trailing spaces, array commas, and variable casing in tests).
-- **Fix:** Synchronized ecosystem dependency version requirements to require `qbank_competency` >= `2026070500` to prevent PHP 8.x Fatal Errors.
-- **Fix:** Updated GitHub Actions workflow (`ci.yml`) to correctly load the `qbank_competency` dependency using `moodle-plugin-ci add-plugin`.
+- **Fix:** Synchronized ecosystem dependency version requirements to require `qbank_comp_ext` >= `2026070500` to prevent PHP 8.x Fatal Errors.
+- **Fix:** Updated GitHub Actions workflow (`ci.yml`) to correctly load the `qbank_comp_ext` dependency using `moodle-plugin-ci add-plugin`.
 
 ### v3.2.1 — 2026-07-03
 - **Fix:** Added missing capability definitions for `local/competency_report:manageassessments` and `local/competency_report:enterpractical` in `db/access.php` to resolve runtime exceptions during fresh installs.
@@ -104,11 +104,11 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 ### v3.0.9 — 2026-05-20
 - **Refactor:** Updated Mustache templates to utilize modern standard ES6 named module imports from `visualizer.js` instead of the obsolete RequireJS module system.
 - **Fix:** Resolved a critical session key mismatch in `add_success_to_evidence.php` that caused background evidence process launching to crash with an "Invalid session key" error.
-- **Fix:** Converted `$a` variable inside `local_competency_report_structured_comment` to a `stdClass` object to resolve property dereferencing notices/warnings.
+- **Fix:** Converted `$a` variable inside `local_comp_report_ext_structured_comment` to a `stdClass` object to resolve property dereferencing notices/warnings.
 - **Fix:** Escaped XML special characters using Moodle's `s()` helper inside `pdf_report.php` and `school_pdf.php` to prevent TCPDF HTML parser corruption.
 
 ### v3.0.8 — 2026-05-19
-- **Fix:** Added `success_threshold` to `settings.php` — this setting was referenced by `quizaccess_failgrade` and the background evidence task but was not exposed in the admin UI, making it impossible to change from the default.
+- **Fix:** Added `success_threshold` to `settings.php` — this setting was referenced by `quizaccess_failgrade_ext` and the background evidence task but was not exposed in the admin UI, making it impossible to change from the default.
 - **Fix:** Background task (`process_competency_rates_task`) now fetches only enrolled students with `mod/quiz:attempt` capability in the target course, instead of all non-deleted users site-wide. This significantly reduces execution time on large installations.
 - **Fix:** Competency SQL query in the background task now correctly filters by `m.courseid = :courseid` without an erroneous JOIN on the quiz table.
 
@@ -150,10 +150,10 @@ competency-report/
 
 ```mermaid
 graph TD
-    A[qbank_competency] -->|Maps questions to competencies| B[local_competency_report]
-    B -->|Analyses attempts & generates reports| C[block_competency_report]
+    A[qbank_comp_ext] -->|Maps questions to competencies| B[local_comp_report_ext]
+    B -->|Analyses attempts & generates reports| C[block_comp_report_ext]
     C -->|Shows progress on dashboard| D[Moodle Dashboard / Course]
-    B -->|Provides threshold config| E[quizaccess_failgrade]
+    B -->|Provides threshold config| E[quizaccess_failgrade_ext]
     A -->|Provides question-competency data| E
 ```
 

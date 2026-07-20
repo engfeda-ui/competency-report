@@ -20,7 +20,7 @@
  * Allows trainers to manually enter the competency achievement percentage
  * for each student in a practical (workshop) assessment.
  *
- * @package    local_competency_report
+ * @package    local_comp_report_ext
  * @copyright  2026 Mahmoud Salem
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -38,8 +38,8 @@ $course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
 $PAGE->set_url('/local/competency_report/practical_entry.php', ['courseid' => $courseid]);
 $PAGE->set_context($context);
 $PAGE->set_pagelayout('course');
-$PAGE->set_title(get_string('practicalentry', 'local_competency_report'));
-$PAGE->set_heading($course->fullname . ' — ' . get_string('practicalentry', 'local_competency_report'));
+$PAGE->set_title(get_string('practicalentry', 'local_comp_report_ext'));
+$PAGE->set_heading($course->fullname . ' — ' . get_string('practicalentry', 'local_comp_report_ext'));
 
 // Get selected assessment and competency from request.
 $assessmentid = optional_param('assessmentid', 0, PARAM_INT);
@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
             continue;
         }
 
-        $existing = $DB->get_record('local_competency_report_prac', [
+        $existing = $DB->get_record('local_comp_report_ext_prac', [
             'assessmentid' => $postassid,
             'courseid'     => $courseid,
             'competencyid' => $postcompid,
@@ -70,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
             $existing->competency_percent = $pct;
             $existing->trainerid          = $USER->id;
             $existing->timemodified       = $now;
-            $DB->update_record('local_competency_report_prac', $existing);
+            $DB->update_record('local_comp_report_ext_prac', $existing);
         } else {
             $record                   = new stdClass();
             $record->assessmentid     = $postassid;
@@ -81,12 +81,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
             $record->competency_percent = $pct;
             $record->timecreated      = $now;
             $record->timemodified     = $now;
-            $DB->insert_record('local_competency_report_prac', $record);
+            $DB->insert_record('local_comp_report_ext_prac', $record);
         }
     }
 
     // Sync with Moodle Assignment Gradebook.
-    $asmt = $DB->get_record('local_competency_report_asmt', ['id' => $postassid]);
+    $asmt = $DB->get_record('local_comp_report_ext_asmt', ['id' => $postassid]);
     if ($asmt && $asmt->type === 'practical' && !empty($asmt->assignid)) {
         require_once($CFG->dirroot . '/mod/assign/locallib.php');
         $cm = get_coursemodule_from_instance('assign', $asmt->assignid, $courseid, false);
@@ -97,7 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
 
             foreach ($studentids as $sid) {
                 // Fetch all competency grades for this student and this practical assessment.
-                $competencygrades = $DB->get_records('local_competency_report_prac', [
+                $competencygrades = $DB->get_records('local_comp_report_ext_prac', [
                     'assessmentid' => $postassid,
                     'studentid'    => $sid,
                 ], '', 'competency_percent');
@@ -120,7 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
                     $breakdown = [];
                     $allrows = $DB->get_records_sql("
                         SELECT c.shortname, p.competency_percent
-                          FROM {local_competency_report_prac} p
+                          FROM {local_comp_report_ext_prac} p
                           JOIN {competency} c ON c.id = p.competencyid
                          WHERE p.assessmentid = :assessmentid AND p.studentid = :studentid
                       ORDER BY c.shortname ASC
@@ -129,7 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
                     foreach ($allrows as $row) {
                         $breakdown[] = "• " . s($row->shortname) . ": " . round($row->competency_percent, 1) . "%";
                     }
-                    $summarystr = get_string('summaryreport', 'local_competency_report');
+                    $summarystr = get_string('summaryreport', 'local_comp_report_ext');
                     $feedbacktext = "<strong>" . $summarystr . ":</strong><br>" .
                         implode("<br>", $breakdown);
 
@@ -151,7 +151,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
             'assessmentid' => $postassid,
             'competencyid' => $postcompid,
         ]),
-        get_string('practicalsaved', 'local_competency_report'),
+        get_string('practicalsaved', 'local_comp_report_ext'),
         null,
         \core\output\notification::NOTIFY_SUCCESS
     );
@@ -162,7 +162,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
 // -----------------------------------------------------------------------
 // All practical assessments configured for this course.
 $practicalassessments = array_values($DB->get_records(
-    'local_competency_report_asmt',
+    'local_comp_report_ext_asmt',
     ['courseid' => $courseid, 'type' => 'practical'],
     'name ASC'
 ));
@@ -170,7 +170,7 @@ $practicalassessments = array_values($DB->get_records(
 // If assessment is selected, load competencies linked to it (via Moodle Assignment settings).
 $competencies = [];
 if ($assessmentid) {
-    $asmt = $DB->get_record('local_competency_report_asmt', ['id' => $assessmentid]);
+    $asmt = $DB->get_record('local_comp_report_ext_asmt', ['id' => $assessmentid]);
     if ($asmt && $asmt->type === 'practical' && $asmt->assignid) {
         $cm = get_coursemodule_from_instance('assign', $asmt->assignid, $courseid, false);
         if ($cm) {
@@ -200,7 +200,7 @@ if (empty($competencies)) {
 if (empty($competencies)) {
     $competencies = array_values($DB->get_records_sql("
         SELECT DISTINCT c.id, c.shortname
-          FROM {qbank_competency_qmap} m
+          FROM {qbank_comp_ext_qmap} m
           JOIN {competency} c ON c.id = m.competencyid
          WHERE m.courseid = :courseid
          ORDER BY c.shortname ASC
@@ -219,7 +219,7 @@ $students = array_values(get_enrolled_users(
 // If assessment and competency are selected, load existing results.
 $existingresults = [];
 if ($assessmentid && $competencyid) {
-    $rows = $DB->get_records('local_competency_report_prac', [
+    $rows = $DB->get_records('local_comp_report_ext_prac', [
         'assessmentid' => $assessmentid,
         'courseid'     => $courseid,
         'competencyid' => $competencyid,
@@ -242,7 +242,7 @@ $renderdata->students          = $students;
 $renderdata->existingresults   = $existingresults;
 $renderdata->sesskey           = sesskey();
 
-$page = new \local_competency_report\output\practical_entry_page($renderdata);
+$page = new \local_comp_report_ext\output\practical_entry_page($renderdata);
 echo $OUTPUT->render($page);
 
 echo $OUTPUT->footer();

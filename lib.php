@@ -15,9 +15,9 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Library functions for the local_competency_report plugin.
+ * Library functions for the local_comp_report_ext plugin.
  *
- * @package    local_competency_report
+ * @package    local_comp_report_ext
  * @copyright  2026 Mahmoud Salem
  * @copyright  based on work by 2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -33,14 +33,14 @@
  * @param context_course $context The course context.
  * @return void
  */
-function local_competency_report_extend_navigation_course($navigation, $course, $context) {
+function local_comp_report_ext_extend_navigation_course($navigation, $course, $context) {
     // 1. Teacher & Administrator Section.
     if (has_capability('mod/quiz:viewreports', $context)) {
         // Unified Course Master Report.
         if (!$navigation->find('coursemasterreport', navigation_node::TYPE_SETTING)) {
             $url = new moodle_url('/local/competency_report/course_master_report.php', ['courseid' => $course->id]);
             $navigation->add(
-                get_string('coursemasterreport', 'local_competency_report'),
+                get_string('coursemasterreport', 'local_comp_report_ext'),
                 $url,
                 navigation_node::TYPE_SETTING,
                 null,
@@ -53,7 +53,7 @@ function local_competency_report_extend_navigation_course($navigation, $course, 
         if (!$navigation->find('competency_report_teacher', navigation_node::TYPE_SETTING)) {
             $url = new moodle_url('/local/competency_report/class_report.php', ['courseid' => $course->id]);
             $navigation->add(
-                get_string('studentdashboard', 'local_competency_report'),
+                get_string('studentdashboard', 'local_comp_report_ext'),
                 $url,
                 navigation_node::TYPE_SETTING,
                 null,
@@ -67,7 +67,7 @@ function local_competency_report_extend_navigation_course($navigation, $course, 
             if (!$navigation->find('groupcompetency', navigation_node::TYPE_SETTING)) {
                 $url = new moodle_url('/local/competency_report/group_competency.php', ['courseid' => $course->id]);
                 $navigation->add(
-                    get_string('groupperformance', 'local_competency_report'),
+                    get_string('groupperformance', 'local_comp_report_ext'),
                     $url,
                     navigation_node::TYPE_SETTING,
                     null,
@@ -82,7 +82,7 @@ function local_competency_report_extend_navigation_course($navigation, $course, 
             if (!$navigation->find('competency_assessment_setup', navigation_node::TYPE_SETTING)) {
                 $url = new moodle_url('/local/competency_report/assessment_setup.php', ['courseid' => $course->id]);
                 $navigation->add(
-                    get_string('assessmentsetup', 'local_competency_report'),
+                    get_string('assessmentsetup', 'local_comp_report_ext'),
                     $url,
                     navigation_node::TYPE_SETTING,
                     null,
@@ -97,7 +97,7 @@ function local_competency_report_extend_navigation_course($navigation, $course, 
             if (!$navigation->find('competency_practical_entry', navigation_node::TYPE_SETTING)) {
                 $url = new moodle_url('/local/competency_report/practical_entry.php', ['courseid' => $course->id]);
                 $navigation->add(
-                    get_string('practicalentry', 'local_competency_report'),
+                    get_string('practicalentry', 'local_comp_report_ext'),
                     $url,
                     navigation_node::TYPE_SETTING,
                     null,
@@ -113,7 +113,7 @@ function local_competency_report_extend_navigation_course($navigation, $course, 
         if (!$navigation->find('competency_report_student_parent', navigation_node::TYPE_CUSTOM)) {
             $url = new moodle_url('/local/competency_report/student_report.php', ['courseid' => $course->id]);
             $navigation->add(
-                get_string('mycompetencies', 'local_competency_report'),
+                get_string('mycompetencies', 'local_comp_report_ext'),
                 $url,
                 navigation_node::TYPE_CUSTOM,
                 null,
@@ -132,12 +132,12 @@ function local_competency_report_extend_navigation_course($navigation, $course, 
  * @param array $rates     Associative array of competency shortname => rate (0-100).
  * @return void
  */
-function local_competency_report_check_and_notify($userid, $courseid, array $rates) {
+function local_comp_report_ext_check_and_notify($userid, $courseid, array $rates) {
     global $DB, $CFG;
 
     // Read alert threshold from settings (default: 40%).
-    $threshold = (int)(get_config('local_competency_report', 'alert_threshold') ?: 40);
-    $alertenabled = get_config('local_competency_report', 'enable_alerts');
+    $threshold = (int)(get_config('local_comp_report_ext', 'alert_threshold') ?: 40);
+    $alertenabled = get_config('local_comp_report_ext', 'enable_alerts');
 
     if (!$alertenabled) {
         return;
@@ -179,12 +179,12 @@ function local_competency_report_check_and_notify($userid, $courseid, array $rat
 
     foreach ($teachers as $teacher) {
         $message = new \core\message\message();
-        $message->component         = 'local_competency_report';
+        $message->component         = 'local_comp_report_ext';
         $message->name              = 'studentatrisk';
         $message->userfrom          = \core_user::get_noreply_user();
         $message->userto            = $teacher;
-        $message->subject           = get_string('alert_subject', 'local_competency_report', fullname($student));
-        $message->fullmessage       = get_string('alert_body', 'local_competency_report', (object)[
+        $message->subject           = get_string('alert_subject', 'local_comp_report_ext', fullname($student));
+        $message->fullmessage       = get_string('alert_body', 'local_comp_report_ext', (object)[
             'student'  => fullname($student),
             'course'   => $course->fullname,
             'weaklist' => $weaklist,
@@ -192,10 +192,10 @@ function local_competency_report_check_and_notify($userid, $courseid, array $rat
         ]);
         $message->fullmessageformat = FORMAT_PLAIN;
         $message->fullmessagehtml   = '<p>' . str_replace("\n", '<br>', $message->fullmessage) . '</p>';
-        $message->smallmessage      = get_string('alert_subject', 'local_competency_report', fullname($student));
+        $message->smallmessage      = get_string('alert_subject', 'local_comp_report_ext', fullname($student));
         $message->notification      = 1;
         $message->contexturl        = $reporturl;
-        $message->contexturlname    = get_string('studentcompetencydetail', 'local_competency_report');
+        $message->contexturlname    = get_string('studentcompetencydetail', 'local_comp_report_ext');
 
         message_send($message);
     }

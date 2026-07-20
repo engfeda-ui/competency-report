@@ -35,17 +35,17 @@
  * calculator falls back to the original plain average across all quizzes
  * so that existing courses continue to work.
  *
- * @package    local_competency_report
+ * @package    local_comp_report_ext
  * @copyright  2026 Mahmoud Salem
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_competency_report;
+namespace local_comp_report_ext;
 
 /**
  * Weighted competency score calculator.
  *
- * @package local_competency_report
+ * @package local_comp_report_ext
  */
 class competency_calculator {
     /** @var int */
@@ -72,7 +72,7 @@ class competency_calculator {
         global $DB;
         if ($this->assessments === null) {
             $this->assessments = $DB->get_records(
-                'local_competency_report_asmt',
+                'local_comp_report_ext_asmt',
                 ['courseid' => $this->courseid],
                 'id ASC'
             );
@@ -118,11 +118,11 @@ class competency_calculator {
             return $this->legacy_plain_scores($userid, $filtercompetencyid);
         }
 
-        $threshold = (int)(get_config('local_competency_report', 'success_threshold') ?: 60);
+        $threshold = (int)(get_config('local_comp_report_ext', 'success_threshold') ?: 60);
 
         // Fetch all competencies that have question mappings in this course.
         $compsql = "SELECT DISTINCT c.id, c.shortname, c.description, c.descriptionformat
-                      FROM {qbank_competency_qmap} m
+                      FROM {qbank_comp_ext_qmap} m
                       JOIN {competency} c ON c.id = m.competencyid
                      WHERE m.courseid = :courseid";
         $params = ['courseid' => $this->courseid];
@@ -136,7 +136,7 @@ class competency_calculator {
         foreach ($assessments as $assessment) {
             if ($assessment->type === 'practical') {
                 $practicals = $DB->get_records(
-                    'local_competency_report_prac',
+                    'local_comp_report_ext_prac',
                     ['assessmentid' => $assessment->id, 'courseid' => $this->courseid],
                     '',
                     'DISTINCT competencyid'
@@ -168,7 +168,7 @@ class competency_calculator {
                 } else if ($assessment->type === 'practical') {
                     // Get latest manual practical result.
                     $record = $DB->get_record(
-                        'local_competency_report_prac',
+                        'local_comp_report_ext_prac',
                         [
                             'assessmentid' => $assessment->id,
                             'studentid'    => $userid,
@@ -256,7 +256,7 @@ class competency_calculator {
                   FROM {quiz_attempts} quiza
                   JOIN {question_usages} qu   ON qu.id = quiza.uniqueid
                   JOIN {question_attempts} qa  ON qa.questionusageid = qu.id
-                  JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
+                  JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
                   JOIN (
                       SELECT questionattemptid, MAX(fraction) AS fraction
                         FROM {question_attempt_steps}
@@ -293,7 +293,7 @@ class competency_calculator {
     private function legacy_plain_scores(int $userid, ?int $filtercompetencyid): array {
         global $DB;
 
-        $threshold = (int)(get_config('local_competency_report', 'success_threshold') ?: 60);
+        $threshold = (int)(get_config('local_comp_report_ext', 'success_threshold') ?: 60);
 
         $sql = "SELECT c.id, c.shortname, c.description, c.descriptionformat,
                        SUM(qa.maxfraction) AS maxf,
@@ -302,7 +302,7 @@ class competency_calculator {
                   JOIN {question_usages} qu   ON qu.id = quiza.uniqueid
                   JOIN {question_attempts} qa  ON qa.questionusageid = qu.id
                   JOIN {quiz} quiz             ON quiz.id = quiza.quiz
-                  JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
+                  JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
                   JOIN {competency} c          ON c.id = m.competencyid
                   JOIN (
                       SELECT questionattemptid, MAX(fraction) AS fraction

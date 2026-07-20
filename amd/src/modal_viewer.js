@@ -16,7 +16,7 @@
 /**
  * Modal viewer for competency question review.
  *
- * @module     local_competency_report/modal_viewer
+ * @module     local_comp_report_ext/modal_viewer
   * @copyright  2026 Mahmoud Salem
  * @copyright  based on work by 2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -40,8 +40,8 @@ define(['jquery', 'core/modal_factory', 'core/modal_events', 'core/str', 'core/n
                     var targetUrl = element.getAttribute('href');
 
                     // Fetch the translated string for the modal title.
-                    // We use 'viewattempt' from our local_competency_report language file.
-                    Str.get_string('viewattempt', 'local_competency_report').then(function(title) {
+                    // We use 'viewattempt' from our local_comp_report_ext language file.
+                    Str.get_string('viewattempt', 'local_comp_report_ext').then(function(title) {
 
                         // Create the Moodle Modal instance.
                         return ModalFactory.create({

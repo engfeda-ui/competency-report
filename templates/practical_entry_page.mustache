@@ -1,13 +1,13 @@
 {{!
     Practical Entry Page — trainer enters competency achievement % per student.
-    @package local_competency_report
+    @package local_comp_report_ext
 }}
 <div class="local-competency-practical-entry">
 
     {{! ─── Filter selectors ─── }}
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-success text-white">
-            <h5 class="mb-0"><i class="fa fa-tools me-2"></i>{{#str}}practicalentry, local_competency_report{{/str}}</h5>
+            <h5 class="mb-0"><i class="fa fa-tools me-2"></i>{{#str}}practicalentry, local_comp_report_ext{{/str}}</h5>
         </div>
         <div class="card-body">
             {{^hasassessments}}
@@ -15,7 +15,7 @@
                 <i class="fa fa-exclamation-triangle me-2"></i>
                 {{strnopracticals}}
                 <a href="{{setupurl}}" class="alert-link ms-1">
-                    {{#str}}goassessmentsetup, local_competency_report{{/str}}
+                    {{#str}}goassessmentsetup, local_comp_report_ext{{/str}}
                 </a>
             </div>
             {{/hasassessments}}
@@ -65,7 +65,7 @@
     <div class="card shadow-sm">
         <div class="card-header bg-primary text-white">
             <h5 class="mb-0">
-                <i class="fa fa-users me-2"></i>{{#str}}enterstudentresults, local_competency_report{{/str}}
+                <i class="fa fa-users me-2"></i>{{#str}}enterstudentresults, local_comp_report_ext{{/str}}
             </h5>
         </div>
         <div class="card-body p-0">
@@ -117,7 +117,7 @@
                 <div class="p-3 border-top bg-light d-flex justify-content-between align-items-center">
                     <span class="text-muted small">
                         <i class="fa fa-info-circle me-1"></i>
-                        {{#str}}practicalentryhintsave, local_competency_report{{/str}}
+                        {{#str}}practicalentryhintsave, local_comp_report_ext{{/str}}
                     </span>
                     <button type="submit" class="btn btn-primary">
                         <i class="fa fa-save me-1"></i> {{strsave}}

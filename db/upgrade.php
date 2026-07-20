@@ -15,9 +15,9 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Upgrade script for local_competency_report.
+ * Upgrade script for local_comp_report_ext.
  *
- * @package    local_competency_report
+ * @package    local_comp_report_ext
  * @copyright  2026 Mahmoud Salem
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -28,13 +28,13 @@
  * @param int $oldversion The old version of the plugin.
  * @return bool
  */
-function xmldb_local_competency_report_upgrade($oldversion) {
+function xmldb_local_comp_report_ext_upgrade($oldversion) {
     global $DB;
     $dbman = $DB->get_manager();
 
     if ($oldversion < 2026070100) {
-        // 1. Create local_competency_report_asmt table.
-        $table = new xmldb_table('local_competency_report_asmt');
+        // 1. Create local_comp_report_ext_asmt table.
+        $table = new xmldb_table('local_comp_report_ext_asmt');
 
         $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
         $table->add_field('courseid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
@@ -54,8 +54,8 @@ function xmldb_local_competency_report_upgrade($oldversion) {
             $dbman->create_table($table);
         }
 
-        // 2. Create local_competency_report_prac table.
-        $table2 = new xmldb_table('local_competency_report_prac');
+        // 2. Create local_comp_report_ext_prac table.
+        $table2 = new xmldb_table('local_comp_report_ext_prac');
 
         $table2->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
         $table2->add_field('assessmentid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
@@ -68,7 +68,7 @@ function xmldb_local_competency_report_upgrade($oldversion) {
         $table2->add_field('timemodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
 
         $table2->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
-        $table2->add_key('assessmentfk', XMLDB_KEY_FOREIGN, ['assessmentid'], 'local_competency_report_asmt', ['id']);
+        $table2->add_key('assessmentfk', XMLDB_KEY_FOREIGN, ['assessmentid'], 'local_comp_report_ext_asmt', ['id']);
         $table2->add_key('coursefk', XMLDB_KEY_FOREIGN, ['courseid'], 'course', ['id']);
         $table2->add_key('studentfk', XMLDB_KEY_FOREIGN, ['studentid'], 'user', ['id']);
 
@@ -83,7 +83,7 @@ function xmldb_local_competency_report_upgrade($oldversion) {
     }
 
     if ($oldversion < 2026070302) {
-        $table = new xmldb_table('local_competency_report_asmt');
+        $table = new xmldb_table('local_comp_report_ext_asmt');
         $field = new xmldb_field('assignid', XMLDB_TYPE_INTEGER, '10', null, null, null, null, 'quizid');
 
         if (!$dbman->field_exists($table, $field)) {

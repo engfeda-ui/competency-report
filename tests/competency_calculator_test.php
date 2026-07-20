@@ -25,26 +25,26 @@
  *  - Pass/fail threshold logic
  *  - rate_color() helper
  *
- * @package    local_competency_report
+ * @package    local_comp_report_ext
  * @category   test
  * @copyright  2026 Mahmoud Salem
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_competency_report;
+namespace local_comp_report_ext;
 
 use advanced_testcase;
 
 /**
  * Unit tests for competency_calculator.
  *
- * @covers \local_competency_report\competency_calculator
+ * @covers \local_comp_report_ext\competency_calculator
  */
 class competency_calculator_test extends advanced_testcase {
     // Helpers.
 
     /**
-     * Create a minimal assessment record in local_competency_report_asmt.
+     * Create a minimal assessment record in local_comp_report_ext_asmt.
      *
      * @param int    $courseid
      * @param int|null $quizid
@@ -56,7 +56,7 @@ class competency_calculator_test extends advanced_testcase {
     private function create_assessment(int $courseid, ?int $quizid, string $type, float $weight, string $name = ''): int {
         global $DB;
         $now = time();
-        return $DB->insert_record('local_competency_report_asmt', (object)[
+        return $DB->insert_record('local_comp_report_ext_asmt', (object)[
             'courseid'     => $courseid,
             'quizid'       => $quizid,
             'name'         => $name ?: "{$type}-{$weight}",
@@ -68,7 +68,7 @@ class competency_calculator_test extends advanced_testcase {
     }
 
     /**
-     * Map a question to one or more competencies in qbank_competency_qmap.
+     * Map a question to one or more competencies in qbank_comp_ext_qmap.
      *
      * @param int   $questionid
      * @param int   $courseid
@@ -79,7 +79,7 @@ class competency_calculator_test extends advanced_testcase {
         global $DB;
         $now = time();
         foreach ($competencyids as $compid) {
-            $DB->insert_record('qbank_competency_qmap', (object)[
+            $DB->insert_record('qbank_comp_ext_qmap', (object)[
                 'questionid'   => $questionid,
                 'courseid'     => $courseid,
                 'competencyid' => $compid,
@@ -107,7 +107,7 @@ class competency_calculator_test extends advanced_testcase {
     ): void {
         global $DB;
         $now = time();
-        $DB->insert_record('local_competency_report_prac', (object)[
+        $DB->insert_record('local_comp_report_ext_prac', (object)[
             'assessmentid'       => $assessmentid,
             'courseid'           => $courseid,
             'competencyid'       => $competencyid,
@@ -124,7 +124,7 @@ class competency_calculator_test extends advanced_testcase {
     /**
      * Test green rate color boundary conditions.
      *
-     * @covers \local_competency_report\competency_calculator::rate_color
+     * @covers \local_comp_report_ext\competency_calculator::rate_color
      */
     public function test_rate_color_green(): void {
         $this->assertEquals('green', competency_calculator::rate_color(80));
@@ -135,7 +135,7 @@ class competency_calculator_test extends advanced_testcase {
     /**
      * Test blue rate color boundary conditions.
      *
-     * @covers \local_competency_report\competency_calculator::rate_color
+     * @covers \local_comp_report_ext\competency_calculator::rate_color
      */
     public function test_rate_color_blue(): void {
         $this->assertEquals('blue', competency_calculator::rate_color(60));
@@ -145,7 +145,7 @@ class competency_calculator_test extends advanced_testcase {
     /**
      * Test orange rate color boundary conditions.
      *
-     * @covers \local_competency_report\competency_calculator::rate_color
+     * @covers \local_comp_report_ext\competency_calculator::rate_color
      */
     public function test_rate_color_orange(): void {
         $this->assertEquals('orange', competency_calculator::rate_color(40));
@@ -155,7 +155,7 @@ class competency_calculator_test extends advanced_testcase {
     /**
      * Test red rate color boundary conditions.
      *
-     * @covers \local_competency_report\competency_calculator::rate_color
+     * @covers \local_comp_report_ext\competency_calculator::rate_color
      */
     public function test_rate_color_red(): void {
         $this->assertEquals('red', competency_calculator::rate_color(0));
@@ -167,7 +167,7 @@ class competency_calculator_test extends advanced_testcase {
     /**
      * Test has_assessments returns false when course has no assessments configured.
      *
-     * @covers \local_competency_report\competency_calculator::has_assessments
+     * @covers \local_comp_report_ext\competency_calculator::has_assessments
      */
     public function test_has_assessments_false_when_empty(): void {
         $this->resetAfterTest();
@@ -181,7 +181,7 @@ class competency_calculator_test extends advanced_testcase {
     /**
      * Test has_assessments returns true when course has assessments configured.
      *
-     * @covers \local_competency_report\competency_calculator::has_assessments
+     * @covers \local_comp_report_ext\competency_calculator::has_assessments
      */
     public function test_has_assessments_true_when_configured(): void {
         $this->resetAfterTest();
@@ -201,7 +201,7 @@ class competency_calculator_test extends advanced_testcase {
      * A single practical assessment at 100% weight.
      * Student result: 75% → weighted score = 75%.
      *
-     * @covers \local_competency_report\competency_calculator::get_student_scores
+     * @covers \local_comp_report_ext\competency_calculator::get_student_scores
      */
     public function test_practical_only_75_percent(): void {
         $this->resetAfterTest();
@@ -240,7 +240,7 @@ class competency_calculator_test extends advanced_testcase {
      *
      * This is exactly the real-world scenario described by the user.
      *
-     * @covers \local_competency_report\competency_calculator::get_student_scores
+     * @covers \local_comp_report_ext\competency_calculator::get_student_scores
      */
     public function test_weighted_theory40_practical60_gives_68_percent(): void {
         // We cannot easily simulate quiz_attempts in a unit test without a full
@@ -279,7 +279,7 @@ class competency_calculator_test extends advanced_testcase {
      * Same as above but student scores 40% theory + 70% practical
      * = 40*0.40 + 70*0.60 = 16 + 42 = 58% → FAIL (< 60)
      *
-     * @covers \local_competency_report\competency_calculator::get_student_scores
+     * @covers \local_comp_report_ext\competency_calculator::get_student_scores
      */
     public function test_weighted_theory40_practical60_fail_case(): void {
         $this->resetAfterTest();
@@ -316,7 +316,7 @@ class competency_calculator_test extends advanced_testcase {
      * 80 * (60/60) = 100%   NO — wait, user confirmed: scaled by total attempted weight.
      * Actually our formula: totalweighted/totalweight*100 = 48/60*100 = 80%.
      *
-     * @covers \local_competency_report\competency_calculator::get_student_scores
+     * @covers \local_comp_report_ext\competency_calculator::get_student_scores
      */
     public function test_partial_participation_practical_only(): void {
         $this->resetAfterTest();
@@ -352,7 +352,7 @@ class competency_calculator_test extends advanced_testcase {
     /**
      * Test that a question mapped to TWO competencies counts fully toward both.
      *
-     * @covers \local_competency_report\competency_calculator::get_student_scores
+     * @covers \local_comp_report_ext\competency_calculator::get_student_scores
      */
     public function test_multi_competency_both_assessed_independently(): void {
         $this->resetAfterTest();
@@ -394,7 +394,7 @@ class competency_calculator_test extends advanced_testcase {
     /**
      * Verify the DB correctly stores multiple competency mappings per question.
      *
-     * @covers \qbank_competency\external\save_question_competency::execute
+     * @covers \qbank_comp_ext\external\save_question_competency::execute
      */
     public function test_qmap_allows_multiple_competencies_per_question(): void {
         $this->resetAfterTest();
@@ -414,16 +414,16 @@ class competency_calculator_test extends advanced_testcase {
         $now = time();
 
         // Insert two mappings for the same question.
-        $DB->insert_record('qbank_competency_qmap', (object)[
+        $DB->insert_record('qbank_comp_ext_qmap', (object)[
             'questionid' => $questionid, 'courseid' => $course->id,
             'competencyid' => $compa->get('id'), 'timecreated' => $now,
         ]);
-        $DB->insert_record('qbank_competency_qmap', (object)[
+        $DB->insert_record('qbank_comp_ext_qmap', (object)[
             'questionid' => $questionid, 'courseid' => $course->id,
             'competencyid' => $compb->get('id'), 'timecreated' => $now,
         ]);
 
-        $rows = $DB->get_records('qbank_competency_qmap', [
+        $rows = $DB->get_records('qbank_comp_ext_qmap', [
             'questionid' => $questionid,
             'courseid'   => $course->id,
         ]);
@@ -438,7 +438,7 @@ class competency_calculator_test extends advanced_testcase {
     /**
      * Verify full-replace: saving a new set of competency IDs removes the old ones.
      *
-     * @covers \qbank_competency\external\save_question_competency::execute
+     * @covers \qbank_comp_ext\external\save_question_competency::execute
      */
     public function test_qmap_full_replace_removes_old_mappings(): void {
         $this->resetAfterTest();
@@ -462,20 +462,20 @@ class competency_calculator_test extends advanced_testcase {
 
         // Initial mapping: A + B.
         foreach ([$compa->get('id'), $compb->get('id')] as $cid) {
-            $DB->insert_record('qbank_competency_qmap', (object)[
+            $DB->insert_record('qbank_comp_ext_qmap', (object)[
                 'questionid' => $questionid, 'courseid' => $course->id,
                 'competencyid' => $cid, 'timecreated' => $now,
             ]);
         }
 
         // Simulate full-replace: delete all, then insert only C.
-        $DB->delete_records('qbank_competency_qmap', ['questionid' => $questionid, 'courseid' => $course->id]);
-        $DB->insert_record('qbank_competency_qmap', (object)[
+        $DB->delete_records('qbank_comp_ext_qmap', ['questionid' => $questionid, 'courseid' => $course->id]);
+        $DB->insert_record('qbank_comp_ext_qmap', (object)[
             'questionid' => $questionid, 'courseid' => $course->id,
             'competencyid' => $compc->get('id'), 'timecreated' => $now,
         ]);
 
-        $rows = $DB->get_records('qbank_competency_qmap', ['questionid' => $questionid, 'courseid' => $course->id]);
+        $rows = $DB->get_records('qbank_comp_ext_qmap', ['questionid' => $questionid, 'courseid' => $course->id]);
 
         $this->assertCount(1, $rows, 'After full-replace only 1 mapping should remain');
         $this->assertEquals($compc->get('id'), reset($rows)->competencyid);
@@ -486,7 +486,7 @@ class competency_calculator_test extends advanced_testcase {
     /**
      * Test get_group_scores() returns empty array for empty user list.
      *
-     * @covers \local_competency_report\competency_calculator::get_group_scores
+     * @covers \local_comp_report_ext\competency_calculator::get_group_scores
      */
     public function test_get_group_scores_empty_userids(): void {
         $this->resetAfterTest();

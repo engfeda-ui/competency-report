@@ -17,13 +17,13 @@
 /**
  * Renderable class for student performance analysis compared with class/course data.
  *
- * @package    local_competency_report
+ * @package    local_comp_report_ext
  * @copyright  2026 Mahmoud Salem
  * @copyright  based on work by 2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_competency_report\output;
+namespace local_comp_report_ext\output;
 
 use renderable;
 use templatable;
@@ -33,7 +33,7 @@ use stdClass;
 /**
  * Output class for student class comparison page.
  *
- * @package    local_competency_report
+ * @package    local_comp_report_ext
  * @copyright  2026 Mahmoud Salem
  * @copyright  based on work by 2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -103,9 +103,9 @@ class student_class_page implements renderable, templatable {
                 'classData'  => $classrates,
                 'myData'     => $myrates,
                 'labelNames' => [
-                    'course' => get_string('courseavg', 'local_competency_report'),
-                    'class'  => get_string('classavg', 'local_competency_report'),
-                    'my'     => get_string('myavg', 'local_competency_report'),
+                    'course' => get_string('courseavg', 'local_comp_report_ext'),
+                    'class'  => get_string('classavg', 'local_comp_report_ext'),
+                    'my'     => get_string('myavg', 'local_comp_report_ext'),
                 ],
             ]);
         }

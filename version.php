@@ -15,9 +15,9 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Version details for the local_competency_report plugin.
+ * Version details for the local_comp_report_ext plugin.
  *
- * @package    local_competency_report
+ * @package    local_comp_report_ext
  * @copyright  2026 Mahmoud Salem
  * @copyright  based on work by 2026 Hakan Çiğci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -26,7 +26,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 /** @var stdClass $plugin */
-$plugin->component = 'local_competency_report';       // Full name of the plugin (category_name).
+$plugin->component = 'local_comp_report_ext';       // Full name of the plugin (category_name).
 $plugin->version   = 2026070501;              // The current module version (YYYYMMDDXX).
 $plugin->requires  = 2024042210;              // Requires Moodle 4.5 or later.
 $plugin->maturity  = MATURITY_STABLE;          // Stable release.
@@ -34,5 +34,5 @@ $plugin->release   = '3.2.2';                 // Human-readable version name.
 
 // Plugin dependencies (Other plugins that must be installed first).
 $plugin->dependencies = [
-    'qbank_competency' => 2026070500,
+    'qbank_comp_ext' => 2026070500,
 ];

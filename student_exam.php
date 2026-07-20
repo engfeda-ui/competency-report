@@ -17,7 +17,7 @@
 /**
  * Report for student competency analysis based on a specific quiz selection.
  *
- * @package    local_competency_report
+ * @package    local_comp_report_ext
  * @copyright  2026 Mahmoud Salem
  * @copyright  based on work by 2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -34,8 +34,8 @@ $context = context_course::instance($courseid);
 // Page definitions and navigation setup.
 $PAGE->set_url('/local/competency_report/student_exam.php', ['courseid' => $courseid]);
 $PAGE->set_context($context);
-$PAGE->set_title(get_string('studentexam', 'local_competency_report'));
-$PAGE->set_heading(get_string('studentexam', 'local_competency_report'));
+$PAGE->set_title(get_string('studentexam', 'local_comp_report_ext'));
+$PAGE->set_heading(get_string('studentexam', 'local_comp_report_ext'));
 $PAGE->set_pagelayout('course');
 
 // 1. Prepare the list of quizzes completed by the student.
@@ -48,7 +48,7 @@ $quizzesraw = $DB->get_records_sql("
 ", [$USER->id, $courseid]);
 
 // Build the quiz selection dropdown data.
-$quizzes = [['id' => 0, 'name' => get_string('selectquiz', 'local_competency_report'), 'selected' => ($quizid == 0)]];
+$quizzes = [['id' => 0, 'name' => get_string('selectquiz', 'local_comp_report_ext'), 'selected' => ($quizid == 0)]];
 foreach ($quizzesraw as $q) {
     $quizzes[] = [
         'id' => $q->id,
@@ -70,7 +70,7 @@ if ($quizid) {
             JOIN {question_usages} qu ON qu.id = quiza.uniqueid
             JOIN {question_attempts} qa ON qa.questionusageid = qu.id
             JOIN {quiz} quiz ON quiz.id = quiza.quiz
-            JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
+            JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
             JOIN {competency} c ON c.id = m.competencyid
             JOIN (
                 SELECT MAX(fraction) AS fraction, questionattemptid
@@ -87,7 +87,7 @@ if ($quizid) {
 // 3. Output Generation.
 echo $OUTPUT->header();
 
-$page = new \local_competency_report\output\student_exam_page($renderdata);
+$page = new \local_comp_report_ext\output\student_exam_page($renderdata);
 echo $OUTPUT->render($page);
 
 echo $OUTPUT->footer();

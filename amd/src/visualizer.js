@@ -14,9 +14,9 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Chart visualizations for the local_competency_report plugin.
+ * Chart visualizations for the local_comp_report_ext plugin.
  *
- * @module      local_competency_report/visualizer
+ * @module      local_comp_report_ext/visualizer
  * @copyright   2026 Mahmoud Salem
  * @copyright   based on work by 2026 Hakan Çiğci {@link https://hakancigci.com.tr}
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later

@@ -17,7 +17,7 @@
 /**
  * Unified Course Master Report Page.
  *
- * @package    local_competency_report
+ * @package    local_comp_report_ext
  * @copyright  2026 Mahmoud Salem
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -38,8 +38,8 @@ $course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
 $PAGE->set_url('/local/competency_report/course_master_report.php', ['courseid' => $courseid]);
 $PAGE->set_context($context);
 $PAGE->set_pagelayout('course');
-$PAGE->set_title(get_string('coursemasterreport', 'local_competency_report'));
-$PAGE->set_heading($course->fullname . " - " . get_string('coursemasterreport', 'local_competency_report'));
+$PAGE->set_title(get_string('coursemasterreport', 'local_comp_report_ext'));
+$PAGE->set_heading($course->fullname . " - " . get_string('coursemasterreport', 'local_comp_report_ext'));
 
 $renderdata = new stdClass();
 $renderdata->courseid = $courseid;
@@ -60,7 +60,7 @@ $renderdata->stats->groups = $DB->count_records('groups', ['courseid' => $course
 
 $renderdata->stats->competencies = $DB->count_records_sql("
     SELECT COUNT(DISTINCT competencyid)
-    FROM {qbank_competency_qmap}
+    FROM {qbank_comp_ext_qmap}
     WHERE courseid = :courseid
 ", ['courseid' => $courseid]);
 
@@ -103,7 +103,7 @@ $rawcomps = $DB->get_records_sql("
     JOIN {quiz} quiz ON quiz.id = quiza.quiz
     JOIN {question_usages} qu ON qu.id = quiza.uniqueid
     JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-    JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
+    JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
     JOIN {competency} c ON c.id = m.competencyid
     JOIN (
         SELECT MAX(fraction) AS fraction, questionattemptid
@@ -135,7 +135,7 @@ foreach ($rawcomps as $rc) {
 // 4. Group Competency Comparison Matrix.
 $compslist = $DB->get_records_sql("
     SELECT DISTINCT c.id, c.shortname
-    FROM {qbank_competency_qmap} m
+    FROM {qbank_comp_ext_qmap} m
     JOIN {competency} c ON c.id = m.competencyid
     WHERE m.courseid = :courseid
     ORDER BY c.shortname ASC
@@ -154,7 +154,7 @@ $groupcompraw = $DB->get_records_sql("
     FROM {quiz_attempts} quiza
     JOIN {question_usages} qu ON qu.id = quiza.uniqueid
     JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-    JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
+    JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
     JOIN {groups_members} gm ON gm.userid = quiza.userid
     JOIN (
         SELECT MAX(fraction) AS fraction, questionattemptid
@@ -206,7 +206,7 @@ foreach ($groups as $g) {
 // 5. Output rendering.
 echo $OUTPUT->header();
 
-$page = new \local_competency_report\output\course_master_report_page($renderdata);
+$page = new \local_comp_report_ext\output\course_master_report_page($renderdata);
 echo $OUTPUT->render($page);
 
 echo $OUTPUT->footer();

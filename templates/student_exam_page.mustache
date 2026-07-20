@@ -11,7 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    @template local_competency_report/student_exam
+    @template local_comp_report_ext/student_exam
 
     Example context (json):
     {
@@ -33,23 +33,23 @@
         "chart_config": "{\"labels\":[\"MAT01\"],\"datasets\":[{\"label\":\"BaÅŸarÄ±\",\"data\":[85]}]}"
     }
 }}
-<div class="local_competency_report_student_exam">
+<div class="local_comp_report_ext_student_exam">
     <!-- Consolidated Student Tab Navigation -->
     <ul class="nav nav-tabs mb-4">
         <li class="nav-item">
-            <a class="nav-link {{#active_reportcard}}active font-weight-bold{{/active_reportcard}}{{^active_reportcard}}text-muted{{/active_reportcard}}" href="student_report.php?courseid={{courseid}}"><i class="fa fa-vcard-o mr-1"></i> {{#str}}myreportcard, local_competency_report{{/str}}</a>
+            <a class="nav-link {{#active_reportcard}}active font-weight-bold{{/active_reportcard}}{{^active_reportcard}}text-muted{{/active_reportcard}}" href="student_report.php?courseid={{courseid}}"><i class="fa fa-vcard-o mr-1"></i> {{#str}}myreportcard, local_comp_report_ext{{/str}}</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {{#active_examanalysis}}active font-weight-bold{{/active_examanalysis}}{{^active_examanalysis}}text-muted{{/active_examanalysis}}" href="student_exam.php?courseid={{courseid}}"><i class="fa fa-bar-chart mr-1"></i> {{#str}}myexamanalysis, local_competency_report{{/str}}</a>
+            <a class="nav-link {{#active_examanalysis}}active font-weight-bold{{/active_examanalysis}}{{^active_examanalysis}}text-muted{{/active_examanalysis}}" href="student_exam.php?courseid={{courseid}}"><i class="fa fa-bar-chart mr-1"></i> {{#str}}myexamanalysis, local_comp_report_ext{{/str}}</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {{#active_competencyexams}}active font-weight-bold{{/active_competencyexams}}{{^active_competencyexams}}text-muted{{/active_competencyexams}}" href="student_competency_exams.php?courseid={{courseid}}"><i class="fa fa-list-alt mr-1"></i> {{#str}}mycompetencyexams, local_competency_report{{/str}}</a>
+            <a class="nav-link {{#active_competencyexams}}active font-weight-bold{{/active_competencyexams}}{{^active_competencyexams}}text-muted{{/active_competencyexams}}" href="student_competency_exams.php?courseid={{courseid}}"><i class="fa fa-list-alt mr-1"></i> {{#str}}mycompetencyexams, local_comp_report_ext{{/str}}</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {{#active_competencystate}}active font-weight-bold{{/active_competencystate}}{{^active_competencystate}}text-muted{{/active_competencystate}}" href="student_class.php?courseid={{courseid}}"><i class="fa fa-graduation-cap mr-1"></i> {{#str}}mycompetencystate, local_competency_report{{/str}}</a>
+            <a class="nav-link {{#active_competencystate}}active font-weight-bold{{/active_competencystate}}{{^active_competencystate}}text-muted{{/active_competencystate}}" href="student_class.php?courseid={{courseid}}"><i class="fa fa-graduation-cap mr-1"></i> {{#str}}mycompetencystate, local_comp_report_ext{{/str}}</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {{#active_timeline}}active font-weight-bold{{/active_timeline}}{{^active_timeline}}text-muted{{/active_timeline}}" href="timeline.php?courseid={{courseid}}"><i class="fa fa-calendar mr-1"></i> {{#str}}timeline, local_competency_report{{/str}}</a>
+            <a class="nav-link {{#active_timeline}}active font-weight-bold{{/active_timeline}}{{^active_timeline}}text-muted{{/active_timeline}}" href="timeline.php?courseid={{courseid}}"><i class="fa fa-calendar mr-1"></i> {{#str}}timeline, local_comp_report_ext{{/str}}</a>
         </li>
     </ul>
     
@@ -60,7 +60,7 @@
                 <input type="hidden" name="courseid" value="{{courseid}}">
                 
                 <label class="mr-2 font-weight-bold" for="quizid_select">
-                    {{#str}}selectquiz, local_competency_report{{/str}}
+                    {{#str}}selectquiz, local_comp_report_ext{{/str}}
                 </label>
                 
                 <select name="quizid" id="quizid_select" class="form-control mr-2">
@@ -70,7 +70,7 @@
                 </select>
                 
                 <button type="submit" class="btn btn-primary">
-                    {{#str}}show, local_competency_report{{/str}}
+                    {{#str}}show, local_comp_report_ext{{/str}}
                 </button>
             </form>
         </div>
@@ -83,9 +83,9 @@
                 <table class="generaltable table table-hover mt-3 shadow-sm bg-white">
                     <thead class="thead-dark">
                         <tr>
-                            <th>{{#str}}competencycode, local_competency_report{{/str}}</th>
-                            <th>{{#str}}competency, local_competency_report{{/str}}</th>
-                            <th class="text-center">{{#str}}success, local_competency_report{{/str}}</th>
+                            <th>{{#str}}competencycode, local_comp_report_ext{{/str}}</th>
+                            <th>{{#str}}competency, local_comp_report_ext{{/str}}</th>
+                            <th class="text-center">{{#str}}success, local_comp_report_ext{{/str}}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -110,7 +110,7 @@
             </div>
 
             {{#js}}
-            require(['local_competency_report/visualizer'], function(Visualizer) {
+            require(['local_comp_report_ext/visualizer'], function(Visualizer) {
                 const canvas = document.getElementById('studentexamchart');
                 if (canvas) {
                     // Extract and parse the chart configuration from data attribute.
@@ -121,13 +121,13 @@
             {{/js}}
 
             {{! Reusable AI Commentary & Focus Analysis Widget }}
-            {{> local_competency_report/ai_commentary_widget }}
+            {{> local_comp_report_ext/ai_commentary_widget }}
         {{/has_data}}
 
         {{^has_data}}
             {{! Empty State Notification }}
             <div class="alert alert-info">
-                {{#str}}noexamdata, local_competency_report{{/str}}
+                {{#str}}noexamdata, local_comp_report_ext{{/str}}
             </div>
         {{/has_data}}
     {{/quizid}}

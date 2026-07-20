@@ -18,7 +18,7 @@
  * Assessment setup page — configure which quizzes/practicals contribute to
  * competency scoring and with what weight.
  *
- * @package    local_competency_report
+ * @package    local_comp_report_ext
  * @copyright  2026 Mahmoud Salem
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -36,8 +36,8 @@ $course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
 $PAGE->set_url('/local/competency_report/assessment_setup.php', ['courseid' => $courseid]);
 $PAGE->set_context($context);
 $PAGE->set_pagelayout('course');
-$PAGE->set_title(get_string('assessmentsetup', 'local_competency_report'));
-$PAGE->set_heading($course->fullname . ' — ' . get_string('assessmentsetup', 'local_competency_report'));
+$PAGE->set_title(get_string('assessmentsetup', 'local_comp_report_ext'));
+$PAGE->set_heading($course->fullname . ' — ' . get_string('assessmentsetup', 'local_comp_report_ext'));
 
 // Handle POST actions.
 $action = optional_param('action', '', PARAM_ALPHA);
@@ -52,7 +52,7 @@ if ($action === 'add' && confirm_sesskey()) {
     if ($name === '' || $weight < 0) {
         redirect(
             new moodle_url('/local/competency_report/assessment_setup.php', ['courseid' => $courseid]),
-            get_string('invaliddata', 'local_competency_report'),
+            get_string('invaliddata', 'local_comp_report_ext'),
             null,
             \core\output\notification::NOTIFY_ERROR
         );
@@ -63,7 +63,7 @@ if ($action === 'add' && confirm_sesskey()) {
         if (!$DB->record_exists('quiz', ['id' => $quizid, 'course' => $courseid])) {
             redirect(
                 new moodle_url('/local/competency_report/assessment_setup.php', ['courseid' => $courseid]),
-                get_string('invaliddata', 'local_competency_report'),
+                get_string('invaliddata', 'local_comp_report_ext'),
                 null,
                 \core\output\notification::NOTIFY_ERROR
             );
@@ -78,7 +78,7 @@ if ($action === 'add' && confirm_sesskey()) {
         if (!$exists) {
             redirect(
                 new moodle_url('/local/competency_report/assessment_setup.php', ['courseid' => $courseid]),
-                get_string('invaliddata', 'local_competency_report'),
+                get_string('invaliddata', 'local_comp_report_ext'),
                 null,
                 \core\output\notification::NOTIFY_ERROR
             );
@@ -95,11 +95,11 @@ if ($action === 'add' && confirm_sesskey()) {
     $record->timecreated  = time();
     $record->timemodified = time();
 
-    $DB->insert_record('local_competency_report_asmt', $record);
+    $DB->insert_record('local_comp_report_ext_asmt', $record);
 
     redirect(
         new moodle_url('/local/competency_report/assessment_setup.php', ['courseid' => $courseid]),
-        get_string('assessmentsaved', 'local_competency_report'),
+        get_string('assessmentsaved', 'local_comp_report_ext'),
         null,
         \core\output\notification::NOTIFY_SUCCESS
     );
@@ -114,7 +114,7 @@ if ($action === 'update' && confirm_sesskey()) {
         $weight = isset($weights[$id]) ? (float)$weights[$id] : 0.0;
 
         if ($name !== '' && $weight >= 0) {
-            $DB->update_record('local_competency_report_asmt', (object)[
+            $DB->update_record('local_comp_report_ext_asmt', (object)[
                 'id'           => $id,
                 'name'         => $name,
                 'weight'       => $weight,
@@ -125,7 +125,7 @@ if ($action === 'update' && confirm_sesskey()) {
 
     redirect(
         new moodle_url('/local/competency_report/assessment_setup.php', ['courseid' => $courseid]),
-        get_string('assessmentsaved', 'local_competency_report'),
+        get_string('assessmentsaved', 'local_comp_report_ext'),
         null,
         \core\output\notification::NOTIFY_SUCCESS
     );
@@ -133,10 +133,10 @@ if ($action === 'update' && confirm_sesskey()) {
 
 if ($action === 'delete' && confirm_sesskey()) {
     $deleteid = required_param('deleteid', PARAM_INT);
-    $DB->delete_records('local_competency_report_asmt', ['id' => $deleteid, 'courseid' => $courseid]);
+    $DB->delete_records('local_comp_report_ext_asmt', ['id' => $deleteid, 'courseid' => $courseid]);
     redirect(
         new moodle_url('/local/competency_report/assessment_setup.php', ['courseid' => $courseid]),
-        get_string('assessmentdeleted', 'local_competency_report'),
+        get_string('assessmentdeleted', 'local_comp_report_ext'),
         null,
         \core\output\notification::NOTIFY_SUCCESS
     );
@@ -147,7 +147,7 @@ if ($action === 'delete' && confirm_sesskey()) {
 // -----------------------------------------------------------------------
 // Existing configured assessments.
 $assessments = array_values($DB->get_records(
-    'local_competency_report_asmt',
+    'local_comp_report_ext_asmt',
     ['courseid' => $courseid],
     'id ASC'
 ));
@@ -167,7 +167,7 @@ echo $OUTPUT->header();
 // Warning if total weight ≠ 100.
 if (!empty($assessments) && abs($totalweight - 100) > 0.01) {
     echo $OUTPUT->notification(
-        get_string('weightwarning', 'local_competency_report', round($totalweight, 1)),
+        get_string('weightwarning', 'local_comp_report_ext', round($totalweight, 1)),
         \core\output\notification::NOTIFY_WARNING
     );
 }
@@ -180,7 +180,7 @@ $renderdata->quizzes      = array_values($quizzes);
 $renderdata->assignments  = array_values($assignments);
 $renderdata->sesskey      = sesskey();
 
-$page = new \local_competency_report\output\assessment_setup_page($renderdata);
+$page = new \local_comp_report_ext\output\assessment_setup_page($renderdata);
 echo $OUTPUT->render($page);
 
 echo $OUTPUT->footer();

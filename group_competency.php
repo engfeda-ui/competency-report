@@ -17,7 +17,7 @@
 /**
  * Report for competency.
  *
- * @package    local_competency_report
+ * @package    local_comp_report_ext
  * @copyright  2026 Mahmoud Salem
  * @copyright  based on work by 2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -34,8 +34,8 @@ require_capability('local/competency_report:viewreports', $context);
 
 // Page definitions and navigation.
 $PAGE->set_url('/local/competency_report/group_competency.php', ['courseid' => $courseid]);
-$PAGE->set_title(get_string('groupcompetency', 'local_competency_report'));
-$PAGE->set_heading(get_string('groupcompetency', 'local_competency_report'));
+$PAGE->set_title(get_string('groupcompetency', 'local_comp_report_ext'));
+$PAGE->set_heading(get_string('groupcompetency', 'local_comp_report_ext'));
 $PAGE->set_pagelayout('course');
 $PAGE->set_context($context);
 
@@ -69,7 +69,7 @@ if ($groupid) {
     // 3. Fetch mapped competencies list — scoped to this course.
     $competencies = (array) $DB->get_records_sql("
         SELECT DISTINCT c.id, c.shortname
-        FROM {qbank_competency_qmap} m
+        FROM {qbank_comp_ext_qmap} m
         JOIN {competency} c ON c.id = m.competencyid
         WHERE m.courseid = :courseid
         ORDER BY c.shortname ASC
@@ -88,7 +88,7 @@ if ($groupid) {
         FROM {quiz_attempts} quiza
         JOIN {question_usages} qu ON qu.id = quiza.uniqueid
         JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-        JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
+        JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
         JOIN (
             SELECT questionattemptid, MAX(fraction) AS fraction
             FROM {question_attempt_steps}
@@ -181,7 +181,7 @@ if ($groupid) {
 // 7. Output rendering.
 echo $OUTPUT->header();
 
-$page = new \local_competency_report\output\group_competency_page($courseid, $groupid, $renderdata);
+$page = new \local_comp_report_ext\output\group_competency_page($courseid, $groupid, $renderdata);
 echo $OUTPUT->render($page);
 
 echo $OUTPUT->footer();

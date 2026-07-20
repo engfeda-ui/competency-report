@@ -17,7 +17,7 @@
 /**
  * Teacher view for specific student analysis based on a selected quiz.
  *
- * @package    local_competency_report
+ * @package    local_comp_report_ext
  * @copyright  2026 Mahmoud Salem
  * @copyright  based on work by 2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -35,12 +35,12 @@ require_capability('mod/quiz:viewreports', $context);
 
 // Page configuration and navigation setup.
 $PAGE->set_url('/local/competency_report/teacher_student_exam.php', ['courseid' => $courseid]);
-$PAGE->set_title(get_string('studentanalysis', 'local_competency_report'));
-$PAGE->set_heading(get_string('studentanalysis', 'local_competency_report'));
+$PAGE->set_title(get_string('studentanalysis', 'local_comp_report_ext'));
+$PAGE->set_heading(get_string('studentanalysis', 'local_comp_report_ext'));
 $PAGE->set_pagelayout('course');
 
 // Initialize the form: Hide competency, show quiz.
-$mform = new \local_competency_report_selector_form(null, [
+$mform = new \local_comp_report_ext_selector_form(null, [
     'courseid' => $courseid,
     'showcompetency' => false, // This hides competencies.
     'showquiz' => true, // Added comma after last item to fix NormalizedArrays error.
@@ -64,7 +64,7 @@ if ($fromform = $mform->get_data()) {
                 FROM {quiz_attempts} quiza
                 JOIN {question_usages} qu ON qu.id = quiza.uniqueid
                 JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-                JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
+                JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
                 JOIN {competency} c ON c.id = m.competencyid
                 JOIN (
                     SELECT MAX(fraction) AS fraction, questionattemptid
@@ -98,7 +98,7 @@ if ($fromform = $mform->get_data()) {
 // Render the output.
 echo $OUTPUT->header();
 
-$page = new \local_competency_report\output\teacher_student_exam_page($data, $mform);
+$page = new \local_comp_report_ext\output\teacher_student_exam_page($data, $mform);
 echo $OUTPUT->render($page);
 
 echo $OUTPUT->footer();

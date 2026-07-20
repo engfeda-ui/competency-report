@@ -11,20 +11,20 @@
     <div class="card border-info shadow-sm bg-light">
         <div class="card-body">
             <h4 class="card-title text-info border-bottom pb-2 mb-3">
-                <i class="fa fa-magic mr-2"></i> {{#str}}generalcomment, local_competency_report{{/str}} (AI Analysis)
+                <i class="fa fa-magic mr-2"></i> {{#str}}generalcomment, local_comp_report_ext{{/str}} (AI Analysis)
             </h4>
 
             <!-- Focus Type Selector (Competency vs. General Grades) -->
             <div class="form-group mb-3">
                 <label class="font-weight-bold text-muted d-block mb-2">
-                    <i class="fa fa-sliders mr-1"></i> {{#str}}ai_analysis_focus, local_competency_report{{/str}}
+                    <i class="fa fa-sliders mr-1"></i> {{#str}}ai_analysis_focus, local_comp_report_ext{{/str}}
                 </label>
                 <div class="d-flex flex-wrap gap-2">
                     <button type="button" class="btn btn-outline-info active mr-2 mb-2 font-weight-bold" id="btn-focus-competency-{{context_type}}" style="transition: all 0.2s ease;">
-                        <i class="fa fa-crosshairs mr-1"></i> {{#str}}ai_focus_competency, local_competency_report{{/str}}
+                        <i class="fa fa-crosshairs mr-1"></i> {{#str}}ai_focus_competency, local_comp_report_ext{{/str}}
                     </button>
                     <button type="button" class="btn btn-outline-info mb-2 font-weight-bold" id="btn-focus-grades-{{context_type}}" style="transition: all 0.2s ease;">
-                        <i class="fa fa-bar-chart mr-1"></i> {{#str}}ai_focus_grades, local_competency_report{{/str}}
+                        <i class="fa fa-bar-chart mr-1"></i> {{#str}}ai_focus_grades, local_comp_report_ext{{/str}}
                     </button>
                 </div>
             </div>
@@ -32,16 +32,16 @@
             <!-- Custom Prompt Input -->
             <div class="form-group mb-3">
                 <label for="custom-prompt-input-{{context_type}}" class="font-weight-bold text-muted">
-                    <i class="fa fa-pencil-square-o mr-1"></i> {{#str}}opt_instructions, local_competency_report{{/str}}
+                    <i class="fa fa-pencil-square-o mr-1"></i> {{#str}}opt_instructions, local_comp_report_ext{{/str}}
                 </label>
-                <input type="text" id="custom-prompt-input-{{context_type}}" class="form-control form-control-lg bg-white shadow-inner" placeholder="{{#str}}custom_prompt_placeholder, local_competency_report{{/str}}" style="border: 1px solid #ced4da; border-radius: 8px;">
+                <input type="text" id="custom-prompt-input-{{context_type}}" class="form-control form-control-lg bg-white shadow-inner" placeholder="{{#str}}custom_prompt_placeholder, local_comp_report_ext{{/str}}" style="border: 1px solid #ced4da; border-radius: 8px;">
                 <small class="form-text text-muted">Write custom instructions to guide the AI report (e.g. language, length, focus).</small>
             </div>
 
             <!-- Trigger Action Button -->
             <div class="d-flex align-items-center mb-3">
                 <button id="btn-generate-ai-{{context_type}}" class="btn btn-info btn-lg px-4 font-weight-bold shadow-sm" style="border-radius: 8px;">
-                    <i class="fa fa-play mr-2"></i> {{#str}}btn_generate_ai, local_competency_report{{/str}}
+                    <i class="fa fa-play mr-2"></i> {{#str}}btn_generate_ai, local_comp_report_ext{{/str}}
                 </button>
             </div>
 
@@ -63,7 +63,7 @@
                         <i class="fa fa-magic mr-1"></i> AI Feedback Report
                     </h5>
                     <button type="button" id="btn-export-pdf-{{context_type}}" class="btn btn-outline-danger btn-sm font-weight-bold shadow-sm" style="border-radius: 6px; transition: all 0.2s ease;">
-                        <i class="fa fa-file-pdf-o mr-1"></i> {{#str}}exportpdf, local_competency_report{{/str}}
+                        <i class="fa fa-file-pdf-o mr-1"></i> {{#str}}exportpdf, local_comp_report_ext{{/str}}
                     </button>
                 </div>
                 <div class="ai-content-html text-dark leading-relaxed p-2" style="font-size: 1.05rem; line-height: 1.6;">
@@ -83,7 +83,7 @@
                 <i class="fa fa-list-alt mr-2"></i> AI Personalized Study Plan
             </h5>
             <p class="text-muted small mb-3">
-                {{#str}}studyplan_desc, local_competency_report{{/str}}
+                {{#str}}studyplan_desc, local_comp_report_ext{{/str}}
             </p>
 
             {{! Controls Row: Language + Sessions + Button }}
@@ -91,7 +91,7 @@
                 {{! Language Selector }}
                 <div class="col-md-3 col-sm-6 mb-3 mb-md-0">
                     <label for="studyplan-lang-{{userid}}" class="font-weight-bold text-muted small d-block mb-1">
-                        <i class="fa fa-language mr-1"></i> {{#str}}studyplan_language, local_competency_report{{/str}}
+                        <i class="fa fa-language mr-1"></i> {{#str}}studyplan_language, local_comp_report_ext{{/str}}
                     </label>
                     <select id="studyplan-lang-{{userid}}" class="form-control form-control-sm bg-white" style="border-radius: 6px; height: 36px; border: 1px solid #ced4da;">
                         <option value="English">🇬🇧 English</option>
@@ -102,7 +102,7 @@
                 {{! Sessions Input }}
                 <div class="col-md-3 col-sm-6 mb-3 mb-md-0">
                     <label for="studyplan-sessions-{{userid}}" class="font-weight-bold text-muted small d-block mb-1">
-                        <i class="fa fa-clock-o mr-1"></i> {{#str}}studyplan_sessions_label, local_competency_report{{/str}}
+                        <i class="fa fa-clock-o mr-1"></i> {{#str}}studyplan_sessions_label, local_comp_report_ext{{/str}}
                     </label>
                     <div class="input-group input-group-sm">
                         <input type="number"
@@ -114,7 +114,7 @@
                                style="max-width: 80px; text-align: center; font-weight: bold; height: 36px; border-radius: 6px 0 0 6px;"
                         />
                         <div class="input-group-append">
-                            <span class="input-group-text small" style="border-radius: 0 6px 6px 0; height: 36px; display: flex; align-items: center;">{{#str}}studyplan_sessions_unit, local_competency_report{{/str}}</span>
+                            <span class="input-group-text small" style="border-radius: 0 6px 6px 0; height: 36px; display: flex; align-items: center;">{{#str}}studyplan_sessions_unit, local_comp_report_ext{{/str}}</span>
                         </div>
                     </div>
                 </div>
@@ -122,14 +122,14 @@
                 {{! Generate Button }}
                 <div class="col-md-6 col-sm-12 text-md-right align-self-end">
                     <button id="btn-studyplan-{{userid}}" class="btn btn-success px-4 font-weight-bold shadow-sm w-100 w-md-auto" style="border-radius: 8px; height: 38px; min-width: 240px; transition: all 0.2s ease;">
-                        <i class="fa fa-graduation-cap mr-2"></i> {{#str}}btn_studyplan, local_competency_report{{/str}}
+                        <i class="fa fa-graduation-cap mr-2"></i> {{#str}}btn_studyplan, local_comp_report_ext{{/str}}
                     </button>
                 </div>
             </div>
 
             {{! Helper Text Div (outside the row to keep inputs perfectly aligned) }}
             <div class="text-muted small mb-3 mt-2">
-                <i class="fa fa-info-circle mr-1"></i>{{#str}}studyplan_session_hint, local_competency_report{{/str}}
+                <i class="fa fa-info-circle mr-1"></i>{{#str}}studyplan_session_hint, local_comp_report_ext{{/str}}
             </div>
 
             {{! Loading Spinner }}
@@ -137,21 +137,21 @@
                 <div class="spinner-border mr-3 text-success" role="status" style="width: 1.8rem; height: 1.8rem;">
                     <span class="sr-only">Loading...</span>
                 </div>
-                <strong class="d-block text-dark">{{#str}}studyplan_generating, local_competency_report{{/str}}</strong>
+                <strong class="d-block text-dark">{{#str}}studyplan_generating, local_comp_report_ext{{/str}}</strong>
             </div>
 
             {{! Result Box (hidden until generated) }}
             <div id="studyplan-result-{{userid}}" class="d-none mt-3 p-4 bg-white rounded border shadow-inner" style="border-left: 5px solid #28a745;">
                 <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
                     <h5 class="font-weight-bold mb-0" style="color:#28a745;">
-                        <i class="fa fa-check-circle mr-2"></i> {{#str}}studyplan_title, local_competency_report{{/str}}
+                        <i class="fa fa-check-circle mr-2"></i> {{#str}}studyplan_title, local_comp_report_ext{{/str}}
                     </h5>
                     {{! PDF Export Button — appears after plan is generated }}
                     <button type="button"
                        id="btn-studyplan-pdf-{{userid}}"
                        class="btn btn-outline-danger btn-sm font-weight-bold shadow-sm"
                        style="border-radius: 6px; transition: all 0.2s ease;">
-                        <i class="fa fa-file-pdf-o mr-1"></i> {{#str}}btn_studyplan_pdf, local_competency_report{{/str}}
+                        <i class="fa fa-file-pdf-o mr-1"></i> {{#str}}btn_studyplan_pdf, local_comp_report_ext{{/str}}
                     </button>
                 </div>
                 <div class="studyplan-content text-dark p-2" style="font-size: 1rem; line-height: 1.7;"></div>

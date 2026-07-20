@@ -17,7 +17,7 @@
 /**
  * AJAX Endpoint for on-demand AI pedagogical commentary.
  *
- * @package    local_competency_report
+ * @package    local_comp_report_ext
  * @copyright  2026 Mahmoud Salem
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -195,7 +195,7 @@ if ($focustype === 'grades') {
                 JOIN {quiz} quiz ON quiz.id = quiza.quiz
                 JOIN {question_usages} qu ON qu.id = quiza.uniqueid
                 JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-                JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
+                JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
                 JOIN {competency} c ON c.id = m.competencyid
                 JOIN (
                     SELECT MAX(fraction) AS fraction, questionattemptid
@@ -218,7 +218,7 @@ if ($focustype === 'grades') {
                 JOIN {quiz} quiz ON quiz.id = quiza.quiz
                 JOIN {question_usages} qu ON qu.id = quiza.uniqueid
                 JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-                JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
+                JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
                 JOIN {competency} c ON c.id = m.competencyid
                 JOIN (
                     SELECT MAX(fraction) AS fraction, questionattemptid
@@ -240,7 +240,7 @@ if ($focustype === 'grades') {
                 JOIN {quiz} quiz ON quiz.id = quiza.quiz
                 JOIN {question_usages} qu ON qu.id = quiza.uniqueid
                 JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-                JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
+                JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
                 JOIN {competency} c ON c.id = m.competencyid
                 JOIN {groups_members} gm ON gm.userid = quiza.userid
                 JOIN (
@@ -263,7 +263,7 @@ if ($focustype === 'grades') {
                     FROM {quiz_attempts} quiza
                     JOIN {question_usages} qu ON qu.id = quiza.uniqueid
                     JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-                    JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
+                    JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
                     JOIN {competency} c ON c.id = m.competencyid
                     JOIN (
                         SELECT MAX(fraction) AS fraction, questionattemptid
@@ -280,7 +280,7 @@ if ($focustype === 'grades') {
                     FROM {quiz_attempts} quiza
                     JOIN {question_usages} qu ON qu.id = quiza.uniqueid
                     JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-                    JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
+                    JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
                     JOIN {competency} c ON c.id = m.competencyid
                     JOIN (
                         SELECT MAX(fraction) AS fraction, questionattemptid
@@ -303,7 +303,7 @@ if ($focustype === 'grades') {
                 JOIN {question_usages} qu ON qu.id = quiza.uniqueid
                 JOIN {question_attempts} qa ON qa.questionusageid = qu.id
                 JOIN {quiz} quiz ON quiz.id = quiza.quiz
-                JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
+                JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
                 JOIN {competency} c ON c.id = m.competencyid
                 JOIN (
                     SELECT MAX(fraction) AS fraction, questionattemptid
@@ -323,11 +323,11 @@ if ($focustype === 'grades') {
 // 4. Generate AI Commentary.
 if (empty($rates)) {
     header('Content-Type: application/json');
-    echo json_encode(['success' => false, 'error' => get_string('nodatafound', 'local_competency_report')]);
+    echo json_encode(['success' => false, 'error' => get_string('nodatafound', 'local_comp_report_ext')]);
     exit;
 }
 
-$comment = local_competency_report_generate_comment($rates, $contexttype, $customprompt, $focustype);
+$comment = local_comp_report_ext_generate_comment($rates, $contexttype, $customprompt, $focustype);
 
 // 5. JSON Response Output.
 header('Content-Type: application/json');

@@ -17,13 +17,13 @@
 /**
  * Report for competency analysis based on school-wide or course-specific data.
  *
- * @package    local_competency_report
+ * @package    local_comp_report_ext
  * @copyright  2026 Mahmoud Salem
  * @copyright  based on work by 2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_competency_report\output;
+namespace local_comp_report_ext\output;
 
 use renderable;
 use templatable;
@@ -34,7 +34,7 @@ use moodle_url;
 /**
  * Renderable class for the school-wide competency report.
  *
- * @package    local_competency_report
+ * @package    local_comp_report_ext
  * @copyright  2026 Mahmoud Salem
  * @copyright  based on work by 2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -100,7 +100,7 @@ class school_report_page implements renderable, templatable {
             // AI Commentary Section.
             if (!empty($this->data->comment)) {
                 $export->ai_comment = [
-                    'title'   => get_string('generalcomment', 'local_competency_report'),
+                    'title'   => get_string('generalcomment', 'local_comp_report_ext'),
                     'content' => format_text($this->data->comment, FORMAT_HTML),
                 ];
             }

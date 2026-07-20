@@ -17,7 +17,7 @@
 /**
  * PDF export for the AI personalized remedial study plan (session-based).
  *
- * @package    local_competency_report
+ * @package    local_comp_report_ext
  * @copyright  2026 Mahmoud Salem
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -51,8 +51,8 @@ if ($userid != $USER->id) {
 }
 
 // 3. Check AI is enabled.
-if (!get_config('local_competency_report', 'enable_ai')) {
-    throw new moodle_exception('ai_not_configured', 'local_competency_report');
+if (!get_config('local_comp_report_ext', 'enable_ai')) {
+    throw new moodle_exception('ai_not_configured', 'local_comp_report_ext');
 }
 
 // 4. Fetch competency data.
@@ -63,7 +63,7 @@ $sql = "SELECT c.id, c.shortname, c.description,
         JOIN {question_usages} qu ON qu.id = quiza.uniqueid
         JOIN {question_attempts} qa ON qa.questionusageid = qu.id
         JOIN {quiz} quiz ON quiz.id = quiza.quiz
-        JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
+        JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
         JOIN {competency} c ON c.id = m.competencyid
         JOIN (
             SELECT MAX(fraction) AS fraction, questionattemptid
@@ -76,7 +76,7 @@ $sql = "SELECT c.id, c.shortname, c.description,
 $rows = $DB->get_records_sql($sql, ['courseid' => $courseid, 'userid' => $userid]);
 
 if (empty($rows)) {
-    throw new moodle_exception('nodatafound', 'local_competency_report');
+    throw new moodle_exception('nodatafound', 'local_comp_report_ext');
 }
 
 // 5. Separate weak vs strong.
@@ -149,9 +149,9 @@ STRICT REQUIREMENTS:
 ";
 
 // 7. Generate plan via AI.
-$planhtml = local_competency_report_generate_study_plan($prompt);
+$planhtml = local_comp_report_ext_generate_study_plan($prompt);
 // Convert any markdown tables in the AI response to beautiful HTML tables.
-$planhtml = local_competency_report_markdown_to_html_table($planhtml);
+$planhtml = local_comp_report_ext_markdown_to_html_table($planhtml);
 // Strip any non-BMP unicode characters (emojis) to prevent TCPDF font warnings.
 $planhtml = preg_replace('/[^\x{0000}-\x{FFFF}]/u', '', $planhtml);
 
@@ -162,7 +162,7 @@ $isrtl = ($language === 'Arabic');
 $pdf = new TCPDF(($isrtl ? 'RTL' : 'LTR'), 'mm', 'A4', true, 'UTF-8');
 $pdf->SetCreator('Moodle Competency Report');
 $pdf->SetAuthor($studentname);
-$pdf->SetTitle(get_string('studyplan_pdf_title', 'local_competency_report') . ' — ' . $studentname);
+$pdf->SetTitle(get_string('studyplan_pdf_title', 'local_comp_report_ext') . ' — ' . $studentname);
 $pdf->SetRTL($isrtl);
 $pdf->setPrintHeader(false);
 $pdf->setPrintFooter(false);
@@ -176,7 +176,7 @@ $pdf->Rect(0, 0, 210, 22, 'F');
 $pdf->SetTextColor(255, 255, 255);
 $pdf->SetFont('freeserif', 'B', 15);
 $pdf->SetXY(10, 5);
-$pdf->Cell(0, 12, get_string('studyplan_pdf_title', 'local_competency_report'), 0, 1, $isrtl ? 'R' : 'L');
+$pdf->Cell(0, 12, get_string('studyplan_pdf_title', 'local_comp_report_ext'), 0, 1, $isrtl ? 'R' : 'L');
 $pdf->SetTextColor(0, 0, 0);
 $pdf->Ln(8);
 
@@ -190,8 +190,8 @@ $pdf->Cell(0, 6, $course->fullname, 0, 1, 'C');
 
 // Plan meta: sessions, language, total hours.
 $totalhours = $sessions;
-$infotext = get_string('studyplan_sessions_label', 'local_competency_report') . ': ' . $sessions
-    . ' × 1 ' . get_string('studyplan_session_hint_short', 'local_competency_report')
+$infotext = get_string('studyplan_sessions_label', 'local_comp_report_ext') . ': ' . $sessions
+    . ' × 1 ' . get_string('studyplan_session_hint_short', 'local_comp_report_ext')
     . ' = ' . $totalhours . ' h'
     . '   |   Language: ' . $language;
 $pdf->Cell(0, 6, $infotext, 0, 1, 'C');
@@ -252,7 +252,7 @@ if (!empty($weak)) {
 // AI Study Plan Content.
 $pdf->SetFillColor(235, 255, 240);
 $pdf->SetFont('freeserif', 'B', 11);
-$pdf->Cell(0, 9, '[*] ' . get_string('studyplan_pdf_title', 'local_competency_report'), 1, 1, 'L', true);
+$pdf->Cell(0, 9, '[*] ' . get_string('studyplan_pdf_title', 'local_comp_report_ext'), 1, 1, 'L', true);
 $pdf->Ln(2);
 $pdf->SetFont('freeserif', '', 10);
 $pdf->writeHTML($planhtml, true, false, true, false, $isrtl ? 'R' : '');

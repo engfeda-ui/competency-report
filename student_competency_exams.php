@@ -17,7 +17,7 @@
 /**
  * Report showing student performance per quiz for a specific selected competency.
  *
- * @package    local_competency_report
+ * @package    local_comp_report_ext
  * @copyright  2026 Mahmoud Salem
  * @copyright  based on work by 2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -34,14 +34,14 @@ $context = context_course::instance($courseid);
 // Page definitions and navigation setup.
 $PAGE->set_url('/local/competency_report/student_competency_exams.php', ['courseid' => $courseid]);
 $PAGE->set_context($context);
-$PAGE->set_title(get_string('studentcompetencyexams', 'local_competency_report'));
-$PAGE->set_heading(get_string('studentcompetencyexams', 'local_competency_report'));
+$PAGE->set_title(get_string('studentcompetencyexams', 'local_comp_report_ext'));
+$PAGE->set_heading(get_string('studentcompetencyexams', 'local_comp_report_ext'));
 $PAGE->set_pagelayout('course');
 
 // 1. Fetch available competencies for the selection filter — scoped to this course.
 $compsraw = $DB->get_records_sql("
     SELECT DISTINCT c.id, c.shortname
-    FROM {qbank_competency_qmap} m
+    FROM {qbank_comp_ext_qmap} m
     JOIN {competency} c ON c.id = m.competencyid
     WHERE m.courseid = :courseid
     ORDER BY c.shortname", ['courseid' => $courseid]);
@@ -76,7 +76,7 @@ if ($competencyid) {
                    JOIN {question_usages} qu ON qu.id = quiza.uniqueid
                    JOIN {question_attempts} qa ON qa.questionusageid = qu.id
                    JOIN {quiz} quiz ON quiz.id = quiza.quiz
-                   JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
+                   JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
                    JOIN (
                        SELECT MAX(fraction) AS fraction, questionattemptid
                        FROM {question_attempt_steps}
@@ -109,7 +109,7 @@ if ($competencyid) {
                    JOIN {question_usages} qu ON qu.id = quiza.uniqueid
                    JOIN {question_attempts} qa ON qa.questionusageid = qu.id
                    JOIN {question} q ON q.id = qa.questionid
-                   INNER JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
+                   INNER JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
                    WHERE m.competencyid = :competencyid
                      AND quiza.userid = :userid
                      AND quiza.state = 'finished'
@@ -138,7 +138,7 @@ if ($competencyid) {
 // 5. Output Generation.
 echo $OUTPUT->header();
 
-$page = new \local_competency_report\output\student_competency_exams_page($renderdata);
+$page = new \local_comp_report_ext\output\student_competency_exams_page($renderdata);
 echo $OUTPUT->render($page);
 
 echo $OUTPUT->footer();

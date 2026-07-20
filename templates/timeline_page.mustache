@@ -11,7 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    @template local_competency_report/timeline
+    @template local_comp_report_ext/timeline
 
     Example context (json):
     {
@@ -24,23 +24,23 @@
         "chart_config": "{\"labels\":[\"Monday\",\"Tuesday\"],\"datasets\":[{\"label\":\"Success Rate\",\"data\":[65,70]}]}"
     }
 }}
-<div class="local_competency_report_timeline">
+<div class="local_comp_report_ext_timeline">
     <!-- Consolidated Student Tab Navigation -->
     <ul class="nav nav-tabs mb-4">
         <li class="nav-item">
-            <a class="nav-link {{#active_reportcard}}active font-weight-bold{{/active_reportcard}}{{^active_reportcard}}text-muted{{/active_reportcard}}" href="student_report.php?courseid={{courseid}}"><i class="fa fa-vcard-o mr-1"></i> {{#str}}myreportcard, local_competency_report{{/str}}</a>
+            <a class="nav-link {{#active_reportcard}}active font-weight-bold{{/active_reportcard}}{{^active_reportcard}}text-muted{{/active_reportcard}}" href="student_report.php?courseid={{courseid}}"><i class="fa fa-vcard-o mr-1"></i> {{#str}}myreportcard, local_comp_report_ext{{/str}}</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {{#active_examanalysis}}active font-weight-bold{{/active_examanalysis}}{{^active_examanalysis}}text-muted{{/active_examanalysis}}" href="student_exam.php?courseid={{courseid}}"><i class="fa fa-bar-chart mr-1"></i> {{#str}}myexamanalysis, local_competency_report{{/str}}</a>
+            <a class="nav-link {{#active_examanalysis}}active font-weight-bold{{/active_examanalysis}}{{^active_examanalysis}}text-muted{{/active_examanalysis}}" href="student_exam.php?courseid={{courseid}}"><i class="fa fa-bar-chart mr-1"></i> {{#str}}myexamanalysis, local_comp_report_ext{{/str}}</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {{#active_competencyexams}}active font-weight-bold{{/active_competencyexams}}{{^active_competencyexams}}text-muted{{/active_competencyexams}}" href="student_competency_exams.php?courseid={{courseid}}"><i class="fa fa-list-alt mr-1"></i> {{#str}}mycompetencyexams, local_competency_report{{/str}}</a>
+            <a class="nav-link {{#active_competencyexams}}active font-weight-bold{{/active_competencyexams}}{{^active_competencyexams}}text-muted{{/active_competencyexams}}" href="student_competency_exams.php?courseid={{courseid}}"><i class="fa fa-list-alt mr-1"></i> {{#str}}mycompetencyexams, local_comp_report_ext{{/str}}</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {{#active_competencystate}}active font-weight-bold{{/active_competencystate}}{{^active_competencystate}}text-muted{{/active_competencystate}}" href="student_class.php?courseid={{courseid}}"><i class="fa fa-graduation-cap mr-1"></i> {{#str}}mycompetencystate, local_competency_report{{/str}}</a>
+            <a class="nav-link {{#active_competencystate}}active font-weight-bold{{/active_competencystate}}{{^active_competencystate}}text-muted{{/active_competencystate}}" href="student_class.php?courseid={{courseid}}"><i class="fa fa-graduation-cap mr-1"></i> {{#str}}mycompetencystate, local_comp_report_ext{{/str}}</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {{#active_timeline}}active font-weight-bold{{/active_timeline}}{{^active_timeline}}text-muted{{/active_timeline}}" href="timeline.php?courseid={{courseid}}"><i class="fa fa-calendar mr-1"></i> {{#str}}timeline, local_competency_report{{/str}}</a>
+            <a class="nav-link {{#active_timeline}}active font-weight-bold{{/active_timeline}}{{^active_timeline}}text-muted{{/active_timeline}}" href="timeline.php?courseid={{courseid}}"><i class="fa fa-calendar mr-1"></i> {{#str}}timeline, local_comp_report_ext{{/str}}</a>
         </li>
     </ul>
 
@@ -51,7 +51,7 @@
                 <input type="hidden" name="courseid" value="{{courseid}}">
 
                 <label class="mr-2 font-weight-bold" for="days_select">
-                    {{#str}}filterlabel, local_competency_report{{/str}}
+                    {{#str}}filterlabel, local_comp_report_ext{{/str}}
                 </label>
 
                 <select name="days" id="days_select" class="form-control mr-2 custom-select">
@@ -61,7 +61,7 @@
                 </select>
 
                 <button type="submit" class="btn btn-primary">
-                    {{#str}}show, local_competency_report{{/str}}
+                    {{#str}}show, local_comp_report_ext{{/str}}
                 </button>
             </form>
         </div>
@@ -77,10 +77,10 @@
     </div>
 
     {{! Reusable AI Commentary & Focus Analysis Widget }}
-    {{> local_competency_report/ai_commentary_widget }}
+    {{> local_comp_report_ext/ai_commentary_widget }}
 
     {{#js}}
-    require(['local_competency_report/visualizer'], function(Visualizer) {
+    require(['local_comp_report_ext/visualizer'], function(Visualizer) {
         const canvas = document.getElementById('timeline');
         if (canvas) {
             // Retrieve and parse JSON configuration for Chart.js.
@@ -96,7 +96,7 @@
     {{^has_data}}
     {{! 3. Empty State Notification }}
     <div class="alert alert-info border-0 shadow-sm">
-        <i class="fa fa-info-circle"></i> {{#str}}nodatafound, local_competency_report{{/str}}
+        <i class="fa fa-info-circle"></i> {{#str}}nodatafound, local_comp_report_ext{{/str}}
     </div>
     {{/has_data}}
 

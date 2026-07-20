@@ -17,7 +17,7 @@
 /**
  * PDF report generator for Group Competency Analysis report.
  *
- * @package    local_competency_report
+ * @package    local_comp_report_ext
  * @copyright  2026 Mahmoud Salem
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -54,14 +54,14 @@ $students = (array) $DB->get_records_sql("
 // 2. Fetch mapped competencies list - scoped to course.
 $competencies = (array) $DB->get_records_sql("
     SELECT DISTINCT c.id, c.shortname
-    FROM {qbank_competency_qmap} m
+    FROM {qbank_comp_ext_qmap} m
     JOIN {competency} c ON c.id = m.competencyid
     WHERE m.courseid = :courseid
     ORDER BY c.shortname ASC
 ", ['courseid' => $courseid]);
 
 if (empty($competencies)) {
-    throw new moodle_exception('nocompetencies', 'local_competency_report');
+    throw new moodle_exception('nocompetencies', 'local_comp_report_ext');
 }
 
 // 3. Performance data query.
@@ -76,7 +76,7 @@ $rawscores = (array) $DB->get_records_sql("
     FROM {quiz_attempts} quiza
     JOIN {question_usages} qu ON qu.id = quiza.uniqueid
     JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-    JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
+    JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
     JOIN (
         SELECT questionattemptid, MAX(fraction) AS fraction
         FROM {question_attempt_steps}
@@ -107,7 +107,7 @@ $tablehtml = '<table border="1" cellpadding="6" style="border-collapse: collapse
 // Header Row.
 $tablehtml .= '<thead><tr bgcolor="#f2f2f2" style="font-weight: bold;">';
 $tablehtml .= '  <th width="' . $studentwidth . '%" align="left"><b>'
-    . get_string('student', 'local_competency_report') . '</b></th>';
+    . get_string('student', 'local_comp_report_ext') . '</b></th>';
 foreach ($competencies as $c) {
     $tablehtml .= '  <th width="' . $compwidth . '%" align="center"><b>' . s($c->shortname) . '</b></th>';
 }
@@ -157,7 +157,7 @@ $tablehtml .= '</tbody>';
 
 // Footer Total Row.
 $tablehtml .= '<tfoot><tr bgcolor="#e9ecef" style="font-weight: bold;">';
-$tablehtml .= '  <td width="' . $studentwidth . '%"><b>' . get_string('total', 'local_competency_report') . '</b></td>';
+$tablehtml .= '  <td width="' . $studentwidth . '%"><b>' . get_string('total', 'local_comp_report_ext') . '</b></td>';
 foreach ($competencies as $c) {
     $celltext = '-';
     $bgcolor = '#e9ecef';
@@ -190,7 +190,7 @@ $tablehtml = preg_replace('/[^\x{0000}-\x{FFFF}]/u', '', $tablehtml);
 // 'L' defines Landscape orientation, which is crucial for multi-column student competency grid reports.
 $pdf = new TCPDF('L', PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
 $pdf->SetCreator('Moodle');
-$pdf->SetTitle(get_string('groupcompetency', 'local_competency_report'));
+$pdf->SetTitle(get_string('groupcompetency', 'local_comp_report_ext'));
 $pdf->setPrintHeader(false);
 $pdf->setPrintFooter(true);
 $pdf->SetMargins(15, 15, 15);
@@ -202,13 +202,13 @@ $pdf->SetFont('freeserif', '', 10);
 
 // Header Banner.
 $pdf->SetFont('freeserif', 'B', 15);
-$pdf->Cell(0, 10, get_string('groupcompetency', 'local_competency_report'), 0, 1, 'L');
+$pdf->Cell(0, 10, get_string('groupcompetency', 'local_comp_report_ext'), 0, 1, 'L');
 $pdf->SetFont('freeserif', '', 10);
 $pdf->Cell(0, 6, "Subject / Course: " . $course->fullname, 0, 1, 'L');
 $pdf->Cell(0, 6, "Group / Class: " . $group->name, 0, 1, 'L');
 
 $dateconfig = get_string('strftimedatetimeshort', 'langconfig');
-$dateinfo = get_string('creation_date', 'local_competency_report') . ": " . userdate(time(), $dateconfig);
+$dateinfo = get_string('creation_date', 'local_comp_report_ext') . ": " . userdate(time(), $dateconfig);
 $pdf->Cell(0, 6, $dateinfo, 0, 1, 'L');
 $pdf->Ln(5);
 
@@ -219,12 +219,12 @@ $pdf->writeHTML($tablehtml, true, false, true, false, '');
 // Legend.
 $pdf->Ln(8);
 $pdf->SetFont('freeserif', 'B', 9);
-$pdf->Cell(0, 7, get_string('colorlegend', 'local_competency_report'), 0, 1);
+$pdf->Cell(0, 7, get_string('colorlegend', 'local_comp_report_ext'), 0, 1);
 $pdf->SetFont('freeserif', '', 8);
-$legend = get_string('redlegend', 'local_competency_report') . " | " .
-          get_string('orangelegend', 'local_competency_report') . " | " .
-          get_string('bluelegend', 'local_competency_report') . " | " .
-          get_string('greenlegend', 'local_competency_report');
+$legend = get_string('redlegend', 'local_comp_report_ext') . " | " .
+          get_string('orangelegend', 'local_comp_report_ext') . " | " .
+          get_string('bluelegend', 'local_comp_report_ext') . " | " .
+          get_string('greenlegend', 'local_comp_report_ext');
 $pdf->Cell(0, 5, $legend, 0, 1);
 
 // Render AI Commentary Section if provided.

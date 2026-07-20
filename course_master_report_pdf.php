@@ -17,7 +17,7 @@
 /**
  * Landscape PDF report generator for the Unified Course Master Report.
  *
- * @package    local_competency_report
+ * @package    local_comp_report_ext
  * @copyright  2026 Mahmoud Salem
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -37,7 +37,7 @@ require_capability('moodle/course:update', $context);
 global $DB;
 
 $course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
-$reporttitle = get_string('coursemasterreport', 'local_competency_report');
+$reporttitle = get_string('coursemasterreport', 'local_comp_report_ext');
 
 // 1. Overall Statistics.
 $studentscount = $DB->count_records_sql("
@@ -53,7 +53,7 @@ $groupscount = $DB->count_records('groups', ['courseid' => $courseid]);
 
 $compscount = $DB->count_records_sql("
     SELECT COUNT(DISTINCT competencyid)
-    FROM {qbank_competency_qmap}
+    FROM {qbank_comp_ext_qmap}
     WHERE courseid = :courseid
 ", ['courseid' => $courseid]);
 
@@ -78,7 +78,7 @@ $rawcomps = $DB->get_records_sql("
     JOIN {quiz} quiz ON quiz.id = quiza.quiz
     JOIN {question_usages} qu ON qu.id = quiza.uniqueid
     JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-    JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
+    JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
     JOIN {competency} c ON c.id = m.competencyid
     JOIN (
         SELECT MAX(fraction) AS fraction, questionattemptid
@@ -93,7 +93,7 @@ $rawcomps = $DB->get_records_sql("
 // 4. Group Comparison Matrix.
 $compslist = $DB->get_records_sql("
     SELECT DISTINCT c.id, c.shortname
-    FROM {qbank_competency_qmap} m
+    FROM {qbank_comp_ext_qmap} m
     JOIN {competency} c ON c.id = m.competencyid
     WHERE m.courseid = :courseid
     ORDER BY c.shortname ASC
@@ -111,7 +111,7 @@ $groupcompraw = $DB->get_records_sql("
     FROM {quiz_attempts} quiza
     JOIN {question_usages} qu ON qu.id = quiza.uniqueid
     JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-    JOIN {qbank_competency_qmap} m ON m.questionid = qa.questionid
+    JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
     JOIN {groups_members} gm ON gm.userid = quiza.userid
     JOIN (
         SELECT MAX(fraction) AS fraction, questionattemptid
@@ -140,10 +140,10 @@ foreach ($groupcompraw as $gr) {
 $statshtml = '
 <table border="1" cellpadding="6" style="border-collapse: collapse; background-color: #f8f9fa;">
     <tr bgcolor="#17a2b8" style="color: #ffffff; font-weight: bold; font-size: 11pt;">
-        <th align="center" width="25%">' . get_string('allusers', 'local_competency_report') . '</th>
-        <th align="center" width="25%">' . get_string('selectgroup', 'local_competency_report') . '</th>
-        <th align="center" width="25%">' . get_string('allcompetencies', 'local_competency_report') . '</th>
-        <th align="center" width="25%">' . get_string('searchquiz', 'local_competency_report') . '</th>
+        <th align="center" width="25%">' . get_string('allusers', 'local_comp_report_ext') . '</th>
+        <th align="center" width="25%">' . get_string('selectgroup', 'local_comp_report_ext') . '</th>
+        <th align="center" width="25%">' . get_string('allcompetencies', 'local_comp_report_ext') . '</th>
+        <th align="center" width="25%">' . get_string('searchquiz', 'local_comp_report_ext') . '</th>
     </tr>
     <tr style="font-weight: bold; font-size: 14pt;">
         <td align="center" width="25%">' . $studentscount . '</td>
@@ -158,10 +158,10 @@ $quizzeshtml = '
 <table border="1" cellpadding="5" style="border-collapse: collapse; font-size: 9pt;">
     <thead>
         <tr bgcolor="#f2f2f2" style="font-weight: bold;">
-            <th width="45%">' . get_string('searchquiz', 'local_competency_report') . '</th>
-            <th width="15%" align="center">' . get_string('questioncount', 'local_competency_report') . '</th>
-            <th width="20%" align="center">' . get_string('correctcount', 'local_competency_report') . '</th>
-            <th width="20%" align="center">' . get_string('successrate', 'local_competency_report') . '</th>
+            <th width="45%">' . get_string('searchquiz', 'local_comp_report_ext') . '</th>
+            <th width="15%" align="center">' . get_string('questioncount', 'local_comp_report_ext') . '</th>
+            <th width="20%" align="center">' . get_string('correctcount', 'local_comp_report_ext') . '</th>
+            <th width="20%" align="center">' . get_string('successrate', 'local_comp_report_ext') . '</th>
         </tr>
     </thead>
     <tbody>';
@@ -190,10 +190,10 @@ $compshtml = '
 <table border="1" cellpadding="5" style="border-collapse: collapse; font-size: 9pt;">
     <thead>
         <tr bgcolor="#f2f2f2" style="font-weight: bold;">
-            <th width="45%">' . get_string('competencyname', 'local_competency_report') . '</th>
-            <th width="15%" align="center">' . get_string('questioncount', 'local_competency_report') . '</th>
-            <th width="20%" align="center">' . get_string('correctcount', 'local_competency_report') . '</th>
-            <th width="20%" align="center">' . get_string('successrate', 'local_competency_report') . '</th>
+            <th width="45%">' . get_string('competencyname', 'local_comp_report_ext') . '</th>
+            <th width="15%" align="center">' . get_string('questioncount', 'local_comp_report_ext') . '</th>
+            <th width="20%" align="center">' . get_string('correctcount', 'local_comp_report_ext') . '</th>
+            <th width="20%" align="center">' . get_string('successrate', 'local_comp_report_ext') . '</th>
         </tr>
     </thead>
     <tbody>';
@@ -225,7 +225,7 @@ $matrixhtml = '
 <table border="1" cellpadding="5" style="border-collapse: collapse; font-size: 8.5pt;">
     <thead>
         <tr bgcolor="#f2f2f2" style="font-weight: bold;">
-            <th width="' . $groupcolwidth . '%">' . get_string('selectgroup', 'local_competency_report') . '</th>';
+            <th width="' . $groupcolwidth . '%">' . get_string('selectgroup', 'local_comp_report_ext') . '</th>';
 foreach ($compslist as $c) {
     $matrixhtml .= '<th width="' . $compcolwidth . '%" align="center">' . s($c->shortname) . '</th>';
 }
@@ -264,7 +264,7 @@ if (!empty($pdfcontent)) {
         $rates[$rc->shortname] = $rc->attempts ? ($rc->correct / $rc->attempts) * 100 : 0;
     }
     if (!empty($rates)) {
-        $comment = local_competency_report_generate_comment($rates, 'course_master', $customprompt, 'competency');
+        $comment = local_comp_report_ext_generate_comment($rates, 'course_master', $customprompt, 'competency');
     }
 }
 
@@ -296,13 +296,13 @@ $pdf->SetFont('freeserif', '', 10);
 $pdf->Cell(0, 6, "Subject / Course: " . $course->fullname, 0, 1, 'L');
 
 $dateconfig = get_string('strftimedatetimeshort', 'langconfig');
-$dateinfo = get_string('creation_date', 'local_competency_report') . ": " . userdate(time(), $dateconfig);
+$dateinfo = get_string('creation_date', 'local_comp_report_ext') . ": " . userdate(time(), $dateconfig);
 $pdf->Cell(0, 6, $dateinfo, 0, 1, 'L');
 $pdf->Ln(4);
 
 // Section 1: Stats Grid.
 $pdf->SetFont('freeserif', 'B', 12);
-$pdf->Cell(0, 8, "1. " . get_string('course_stats', 'local_competency_report'), 0, 1, 'L');
+$pdf->Cell(0, 8, "1. " . get_string('course_stats', 'local_comp_report_ext'), 0, 1, 'L');
 $pdf->Ln(2);
 $pdf->SetFont('freeserif', '', 9);
 $pdf->writeHTML($statshtml, true, false, true, false, '');
@@ -310,7 +310,7 @@ $pdf->Ln(6);
 
 // Section 2: Exams Summary.
 $pdf->SetFont('freeserif', 'B', 12);
-$pdf->Cell(0, 8, "2. " . get_string('exam_grades_summary', 'local_competency_report'), 0, 1, 'L');
+$pdf->Cell(0, 8, "2. " . get_string('exam_grades_summary', 'local_comp_report_ext'), 0, 1, 'L');
 $pdf->Ln(2);
 $pdf->SetFont('freeserif', '', 9);
 $pdf->writeHTML($quizzeshtml, true, false, true, false, '');
@@ -320,7 +320,7 @@ $pdf->AddPage();
 
 // Section 3: Competencies Achievements.
 $pdf->SetFont('freeserif', 'B', 12);
-$pdf->Cell(0, 8, "3. " . get_string('summaryreport', 'local_competency_report'), 0, 1, 'L');
+$pdf->Cell(0, 8, "3. " . get_string('summaryreport', 'local_comp_report_ext'), 0, 1, 'L');
 $pdf->Ln(2);
 $pdf->SetFont('freeserif', '', 9);
 $pdf->writeHTML($compshtml, true, false, true, false, '');
@@ -328,7 +328,7 @@ $pdf->Ln(6);
 
 // Section 4: Group Comparison Grid.
 $pdf->SetFont('freeserif', 'B', 12);
-$pdf->Cell(0, 8, "4. " . get_string('group_comparison_grid', 'local_competency_report'), 0, 1, 'L');
+$pdf->Cell(0, 8, "4. " . get_string('group_comparison_grid', 'local_comp_report_ext'), 0, 1, 'L');
 $pdf->Ln(2);
 $pdf->SetFont('freeserif', '', 9);
 $pdf->writeHTML($matrixhtml, true, false, true, false, '');

@@ -11,7 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    @template local_competency_report/student_detail
+    @template local_comp_report_ext/student_detail
 
     Example context (json):
     {
@@ -38,7 +38,7 @@
         "ai_comment": "<p>Ã–ÄŸrenci genel olarak <b>baÅŸarÄ±lÄ±</b> bir grafik Ã§izmektedir. Analitik dÃ¼ÅŸÃ¼nme alanÄ±nda geliÅŸime aÃ§Ä±ktÄ±r.</p>"
     }
 }}
-<div class="local_competency_report_student_detail">
+<div class="local_comp_report_ext_student_detail">
     
     {{#has_data}}
         <!-- Teacher Premium View Header Banner -->
@@ -48,10 +48,10 @@
             </div>
             <div class="w-100">
                 <div class="d-flex align-items-center justify-content-between flex-wrap">
-                    <h5 class="mb-1 font-weight-bold text-dark">{{#str}}teacher_banner_title, local_competency_report{{/str}}</h5>
-                    <span class="badge badge-warning text-dark px-3 py-1 font-weight-bold rounded-pill">{{#str}}teacherstudentcompetency, local_competency_report{{/str}}</span>
+                    <h5 class="mb-1 font-weight-bold text-dark">{{#str}}teacher_banner_title, local_comp_report_ext{{/str}}</h5>
+                    <span class="badge badge-warning text-dark px-3 py-1 font-weight-bold rounded-pill">{{#str}}teacherstudentcompetency, local_comp_report_ext{{/str}}</span>
                 </div>
-                <p class="mb-0 text-muted small">{{#str}}teacher_banner_desc, local_competency_report{{/str}}</p>
+                <p class="mb-0 text-muted small">{{#str}}teacher_banner_desc, local_comp_report_ext{{/str}}</p>
             </div>
         </div>
 
@@ -60,11 +60,11 @@
             <table class="generaltable table table-bordered table-hover shadow-sm bg-white">
                 <thead class="thead-dark">
                     <tr>
-                        <th>{{#str}}competencycode, local_competency_report{{/str}}</th>
-                        <th>{{#str}}competency, local_competency_report{{/str}}</th>
-                        <th class="text-center{{#str}}questioncount, local_competency_report{{/str}}</th>
-                        <th class="text-center">{{#str}}correctcount, local_competency_report{{/str}}</th>
-                        <th class="text-center">{{#str}}successrate, local_competency_report{{/str}}</th>
+                        <th>{{#str}}competencycode, local_comp_report_ext{{/str}}</th>
+                        <th>{{#str}}competency, local_comp_report_ext{{/str}}</th>
+                        <th class="text-center{{#str}}questioncount, local_comp_report_ext{{/str}}</th>
+                        <th class="text-center">{{#str}}correctcount, local_comp_report_ext{{/str}}</th>
+                        <th class="text-center">{{#str}}successrate, local_comp_report_ext{{/str}}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -86,18 +86,18 @@
         {{! PDF Export Button }}
         <div class="mt-4">
             <a href="{{pdf_url}}" class="btn btn-secondary" target="_blank">
-                <i class="fa fa-file-pdf-o"></i> {{#str}}pdfmystudent, local_competency_report{{/str}}
+                <i class="fa fa-file-pdf-o"></i> {{#str}}pdfmystudent, local_comp_report_ext{{/str}}
             </a>
         </div>
 
         {{! Reusable AI Commentary & Focus Analysis Widget }}
-        {{> local_competency_report/ai_commentary_widget }}
+        {{> local_comp_report_ext/ai_commentary_widget }}
     {{/has_data}}
 
     {{^has_data}}
         {{! No Data Found Alert }}
         <div class="alert alert-warning">
-            <i class="fa fa-exclamation-triangle"></i> {{#str}}nodatafound, local_competency_report{{/str}}
+            <i class="fa fa-exclamation-triangle"></i> {{#str}}nodatafound, local_comp_report_ext{{/str}}
         </div>
     {{/has_data}}
 </div>
