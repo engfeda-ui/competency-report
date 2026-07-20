@@ -33,7 +33,7 @@
  * @param context_course $context The course context.
  * @return void
  */
-function local_comp_report_ext_extend_navigation_course($navigation, $course, $context) {
+function local_comp_report_extend_navigation_course($navigation, $course, $context) {
     // 1. Teacher & Administrator Section.
     if (has_capability('mod/quiz:viewreports', $context)) {
         // Unified Course Master Report.
