@@ -7,7 +7,7 @@ on:
       - staging
 
 env:
-  PLUGIN_PATH: local/competency_report
+  PLUGIN_PATH: local/comp_report_ext
 
 jobs:
   deploy:
