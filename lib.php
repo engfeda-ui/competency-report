@@ -200,3 +200,100 @@ function local_comp_report_ext_check_and_notify($userid, $courseid, array $rates
         message_send($message);
     }
 }
+
+/**
+ * Get the local filesystem path for a PDF logo image based on position.
+ *
+ * @param string $type Position: 'left' or 'right'.
+ * @return string|null Local path to image file or null if not found.
+ */
+function local_comp_report_ext_get_logo_path($type = 'left') {
+    global $CFG;
+
+    $filearea = ($type === 'left') ? 'logo_left' : 'logo_right';
+
+    // 1. Check stored file upload in Moodle file storage.
+    try {
+        $fs = get_file_storage();
+        $syscontext = context_system::instance();
+        $files = $fs->get_area_files($syscontext->id, 'local_comp_report_ext', $filearea, 0, 'itemid, filepath, filename', false);
+        if (!empty($files)) {
+            $file = reset($files);
+            $tempdir = make_temp_directory('local_comp_report_ext');
+            $temppath = $tempdir . '/' . $filearea . '_' . clean_filename($file->get_filename());
+            $file->copy_content_to($temppath);
+            if (file_exists($temppath) && filesize($temppath) > 0) {
+                return $temppath;
+            }
+        }
+    } catch (\Throwable $e) {
+        // Fallthrough to URL check.
+    }
+
+    // 2. Check URL or path text setting.
+    $urlsetting = ($type === 'left') ? 'logo_left_url' : 'logo_right_url';
+    $url = get_config('local_comp_report_ext', $urlsetting);
+    if (!empty($url)) {
+        $url = trim($url);
+        if (file_exists($url)) {
+            return $url;
+        }
+        // If it starts with http/https, download/cache to temp directory.
+        if (preg_match('/^https?:\/\//i', $url)) {
+            try {
+                $tempdir = make_temp_directory('local_comp_report_ext');
+                $ext = pathinfo(parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION) ?: 'png';
+                $temppath = $tempdir . '/' . $filearea . '_web.' . $ext;
+                if (!file_exists($temppath) || (time() - filemtime($temppath) > 3600)) {
+                    $content = @file_get_contents($url);
+                    if ($content) {
+                        file_put_contents($temppath, $content);
+                    }
+                }
+                if (file_exists($temppath) && filesize($temppath) > 0) {
+                    return $temppath;
+                }
+            } catch (\Throwable $e) {
+                return null;
+            }
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Render configured left and right logos in the top header of a PDF document.
+ *
+ * @param TCPDF $pdf The TCPDF instance.
+ * @param bool $is_landscape Whether the page is in landscape mode.
+ * @return void
+ */
+function local_comp_report_ext_render_pdf_header_logos(&$pdf, $is_landscape = false) {
+    $leftpath = local_comp_report_ext_get_logo_path('left');
+    $rightpath = local_comp_report_ext_get_logo_path('right');
+
+    $has_left = !empty($leftpath) && file_exists($leftpath);
+    $has_right = !empty($rightpath) && file_exists($rightpath);
+
+    if (!$has_left && !$has_right) {
+        return;
+    }
+
+    $pageWidth = $pdf->getPageWidth();
+    $margin = 15;
+    $y = 8;
+    $maxHeight = 16; // height in mm
+    $logoWidth = 45; // max width in mm
+
+    if ($has_left) {
+        $pdf->Image($leftpath, $margin, $y, $logoWidth, $maxHeight, '', '', '', false, 300, 'L', false, false, 0, false, false, false);
+    }
+
+    if ($has_right) {
+        $rightX = $pageWidth - $margin - $logoWidth;
+        $pdf->Image($rightpath, $rightX, $y, $logoWidth, $maxHeight, '', '', '', false, 300, 'R', false, false, 0, false, false, false);
+    }
+
+    $pdf->SetY($y + $maxHeight + 4);
+}

@@ -95,6 +95,51 @@ if ($hassiteconfig) {
             60,
             PARAM_INT
         ));
+
+        // PDF Header Logo Settings.
+        $settings->add(new admin_setting_heading(
+            'local_comp_report_ext/pdf_logo_heading',
+            get_string('pdf_logo_heading', 'local_comp_report_ext'),
+            get_string('pdf_logo_heading_desc', 'local_comp_report_ext')
+        ));
+
+        // Left logo stored file.
+        $settings->add(new admin_setting_configstoredfile(
+            'local_comp_report_ext/logo_left',
+            get_string('logo_left', 'local_comp_report_ext'),
+            get_string('logo_left_desc', 'local_comp_report_ext'),
+            'logo_left',
+            0,
+            ['maxfiles' => 1, 'accepted_types' => ['image']]
+        ));
+
+        // Left logo URL / path fallback.
+        $settings->add(new admin_setting_configtext(
+            'local_comp_report_ext/logo_left_url',
+            get_string('logo_left_url', 'local_comp_report_ext'),
+            get_string('logo_left_url_desc', 'local_comp_report_ext'),
+            '',
+            PARAM_RAW
+        ));
+
+        // Right logo stored file.
+        $settings->add(new admin_setting_configstoredfile(
+            'local_comp_report_ext/logo_right',
+            get_string('logo_right', 'local_comp_report_ext'),
+            get_string('logo_right_desc', 'local_comp_report_ext'),
+            'logo_right',
+            0,
+            ['maxfiles' => 1, 'accepted_types' => ['image']]
+        ));
+
+        // Right logo URL / path fallback.
+        $settings->add(new admin_setting_configtext(
+            'local_comp_report_ext/logo_right_url',
+            get_string('logo_right_url', 'local_comp_report_ext'),
+            get_string('logo_right_url_desc', 'local_comp_report_ext'),
+            '',
+            PARAM_RAW
+        ));
     }
 
     // At-Risk Student Alert Settings.

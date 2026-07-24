@@ -178,6 +178,18 @@ $string['custom_prompt_placeholder'] = 'e.g. Write in English, keep it extremely
 $string['btn_generate_ai'] = 'Generate AI Analysis';
 $string['exportpdf'] = 'Export PDF Report';
 
+// PDF Header Logo Settings.
+$string['pdf_logo_heading'] = 'PDF Report Logo Settings';
+$string['pdf_logo_heading_desc'] = 'Configure logos to appear in the top header of all exported PDF reports.';
+$string['logo_left'] = 'Header Logo (Left)';
+$string['logo_left_desc'] = 'Upload an image file (PNG/JPG) to appear on the top-left of PDF reports.';
+$string['logo_left_url'] = 'Header Logo (Left) URL / Path';
+$string['logo_left_url_desc'] = 'Alternative: Enter a full image URL or server path for the left logo.';
+$string['logo_right'] = 'Header Logo (Right)';
+$string['logo_right_desc'] = 'Upload an image file (PNG/JPG) to appear on the top-right of PDF reports.';
+$string['logo_right_url'] = 'Header Logo (Right) URL / Path';
+$string['logo_right_url_desc'] = 'Alternative: Enter a full image URL or server path for the right logo.';
+
 // Radar Gap Analysis Chart strings.
 $string['radar_chart_title']   = '📊 Competency Gap Analysis — Your Profile vs Class Average';
 $string['radar_chart_desc']    = 'The blue area shows your personal mastery level. The grey dotted line shows the class average. Areas where your profile dips below the grey line indicate competencies to focus on.';

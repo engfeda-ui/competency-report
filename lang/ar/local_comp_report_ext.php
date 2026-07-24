@@ -177,6 +177,18 @@ $string['custom_prompt_placeholder'] = 'مثال: اكتب بالعربية، ا
 $string['btn_generate_ai'] = 'توليد تحليل الذكاء الاصطناعي';
 $string['exportpdf'] = 'تصدير تقرير PDF';
 
+// PDF Header Logo Settings.
+$string['pdf_logo_heading'] = 'إعدادات شعارات تقارير PDF';
+$string['pdf_logo_heading_desc'] = 'قم بتعيين الشعارات لتظهر في أعلى الترويسة لجميع تقارير الـ PDF المصدّرة.';
+$string['logo_left'] = 'شعار الترويسة (اليسار)';
+$string['logo_left_desc'] = 'ارفع ملف صورة (PNG/JPG) ليظهر في أعلى يسار تقارير الـ PDF.';
+$string['logo_left_url'] = 'رابط / مسار شعار اليسار';
+$string['logo_left_url_desc'] = 'بديل: أدخل رابط صورة كامل أو مسار سيرفر لشعار اليسار.';
+$string['logo_right'] = 'شعار الترويسة (اليمين)';
+$string['logo_right_desc'] = 'ارفع ملف صورة (PNG/JPG) ليظهر في أعلى يمين تقارير الـ PDF.';
+$string['logo_right_url'] = 'رابط / مسار شعار اليمين';
+$string['logo_right_url_desc'] = 'بديل: أدخل رابط صورة كامل أو مسار سيرفر لشعار اليمين.';
+
 // Radar Gap Analysis Chart strings.
 $string['radar_chart_title']   = '📊 تحليل فجوة الكفايات — ملفك مقابل متوسط الفصل';
 $string['radar_chart_desc']    = 'المنطقة الزرقاء تُمثّل مستوى إتقانك الشخصي. الخط الرمادي المنقّط يُمثّل متوسط الفصل. المناطق التي ينخفض فيها ملفك عن الخط الرمادي تُشير إلى الكفايات التي تحتاج تركيزاً.';

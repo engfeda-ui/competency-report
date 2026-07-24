@@ -24,6 +24,7 @@
 
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->libdir . '/tcpdf/tcpdf.php');
+require_once(__DIR__ . '/lib.php');
 require_once(__DIR__ . '/ai.php');
 
 global $DB, $USER;
@@ -229,6 +230,7 @@ $pdf->setPrintFooter(true);
 $pdf->SetMargins(15, 15, 15);
 $pdf->SetAutoPageBreak(true, PDF_MARGIN_BOTTOM);
 $pdf->AddPage();
+local_comp_report_ext_render_pdf_header_logos($pdf);
 
 // Set font for robust UTF-8 / Arabic support.
 $pdf->SetFont('freeserif', '', 11);

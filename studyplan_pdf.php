@@ -24,6 +24,7 @@
 
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->libdir . '/tcpdf/tcpdf.php');
+require_once(__DIR__ . '/lib.php');
 require_once(__DIR__ . '/ai.php');
 
 // 1. Parameters.
@@ -168,6 +169,7 @@ $pdf->setPrintHeader(false);
 $pdf->setPrintFooter(false);
 $pdf->SetAutoPageBreak(true, 15);
 $pdf->AddPage();
+local_comp_report_ext_render_pdf_header_logos($pdf);
 $pdf->SetFont('freeserif', '', 12);
 
 // Branded Header.

@@ -290,6 +290,7 @@ $pdf->setPrintFooter(true);
 $pdf->SetMargins(15, 15, 15);
 $pdf->SetAutoPageBreak(true, PDF_MARGIN_BOTTOM);
 $pdf->AddPage();
+local_comp_report_ext_render_pdf_header_logos($pdf, true);
 
 // Set font for robust UTF-8 / Arabic support.
 $pdf->SetFont('freeserif', '', 10);

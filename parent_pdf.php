@@ -24,6 +24,7 @@
 
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->libdir . '/tcpdf/tcpdf.php');
+require_once(__DIR__ . '/lib.php');
 require_once(__DIR__ . '/ai.php');
 
 $courseid     = required_param('courseid', PARAM_INT);
@@ -117,6 +118,7 @@ $pdf->SetTitle(get_string('studentpdfreport', 'local_comp_report_ext'));
 $pdf->setPrintHeader(false);
 $pdf->setPrintFooter(false);
 $pdf->AddPage();
+local_comp_report_ext_render_pdf_header_logos($pdf);
 $pdf->SetFont('freeserif', '', 12);
 
 // Header Info.
