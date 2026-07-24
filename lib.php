@@ -33,9 +33,13 @@
  * @param context_course $context The course context.
  * @return void
  */
-function local_comp_report_extend_navigation_course($navigation, $course, $context) {
+function local_comp_report_ext_extend_navigation_course($navigation, $course, $context) {
+    $canview = has_capability('local/comp_report_ext:viewreports', $context)
+        || has_capability('mod/quiz:viewreports', $context)
+        || has_capability('moodle/site:config', $context);
+
     // 1. Teacher & Administrator Section.
-    if (has_capability('mod/quiz:viewreports', $context)) {
+    if ($canview) {
         // Unified Course Master Report.
         if (!$navigation->find('coursemasterreport', navigation_node::TYPE_SETTING)) {
             $url = new moodle_url('/local/comp_report_ext/course_master_report.php', ['courseid' => $course->id]);
@@ -63,7 +67,7 @@ function local_comp_report_extend_navigation_course($navigation, $course, $conte
         }
 
         // Group Performance Analysis (consolidated group report).
-        if (has_capability('moodle/course:update', $context)) {
+        if (has_capability('moodle/course:update', $context) || has_capability('moodle/site:config', $context)) {
             if (!$navigation->find('groupcompetency', navigation_node::TYPE_SETTING)) {
                 $url = new moodle_url('/local/comp_report_ext/group_competency.php', ['courseid' => $course->id]);
                 $navigation->add(
@@ -78,7 +82,7 @@ function local_comp_report_extend_navigation_course($navigation, $course, $conte
         }
 
         // Assessment weight configuration (editing teachers / managers).
-        if (has_capability('local/competency_report:manageassessments', $context)) {
+        if (has_capability('local/comp_report_ext:manageassessments', $context) || has_capability('moodle/site:config', $context)) {
             if (!$navigation->find('competency_assessment_setup', navigation_node::TYPE_SETTING)) {
                 $url = new moodle_url('/local/comp_report_ext/assessment_setup.php', ['courseid' => $course->id]);
                 $navigation->add(
@@ -93,7 +97,7 @@ function local_comp_report_extend_navigation_course($navigation, $course, $conte
         }
 
         // Practical exam result entry (teachers / trainers).
-        if (has_capability('local/competency_report:enterpractical', $context)) {
+        if (has_capability('local/comp_report_ext:enterpractical', $context) || has_capability('moodle/site:config', $context)) {
             if (!$navigation->find('competency_practical_entry', navigation_node::TYPE_SETTING)) {
                 $url = new moodle_url('/local/comp_report_ext/practical_entry.php', ['courseid' => $course->id]);
                 $navigation->add(
@@ -109,7 +113,7 @@ function local_comp_report_extend_navigation_course($navigation, $course, $conte
     }
 
     // 2. Student Specific Menus.
-    if (isloggedin() && !isguestuser() && !has_capability('mod/quiz:viewreports', $context)) {
+    if (isloggedin() && !isguestuser() && !$canview) {
         if (!$navigation->find('competency_report_student_parent', navigation_node::TYPE_CUSTOM)) {
             $url = new moodle_url('/local/comp_report_ext/student_report.php', ['courseid' => $course->id]);
             $navigation->add(
@@ -121,6 +125,56 @@ function local_comp_report_extend_navigation_course($navigation, $course, $conte
                 new pix_icon('i/stats', '')
             );
         }
+    }
+}
+
+/**
+ * Backward compatibility navigation callback.
+ */
+function local_comp_report_extend_navigation_course($navigation, $course, $context) {
+    local_comp_report_ext_extend_navigation_course($navigation, $course, $context);
+}
+
+/**
+ * Inject competency reports directly into the Course Reports navigation node.
+ *
+ * @param navigation_node $navigation The reports navigation node.
+ * @param stdClass $course The course object.
+ * @param context_course $context The course context.
+ * @return void
+ */
+function local_comp_report_ext_extend_navigation_reports($navigation, $course, $context) {
+    $canview = has_capability('local/comp_report_ext:viewreports', $context)
+        || has_capability('mod/quiz:viewreports', $context)
+        || has_capability('moodle/site:config', $context);
+
+    if ($canview) {
+        $url1 = new moodle_url('/local/comp_report_ext/course_master_report.php', ['courseid' => $course->id]);
+        $navigation->add(
+            get_string('coursemasterreport', 'local_comp_report_ext'),
+            $url1,
+            navigation_node::TYPE_SETTING,
+            null,
+            'coursemasterreport_rep'
+        );
+
+        $url2 = new moodle_url('/local/comp_report_ext/class_report.php', ['courseid' => $course->id]);
+        $navigation->add(
+            get_string('studentdashboard', 'local_comp_report_ext'),
+            $url2,
+            navigation_node::TYPE_SETTING,
+            null,
+            'competency_report_teacher_rep'
+        );
+
+        $url3 = new moodle_url('/local/comp_report_ext/group_competency.php', ['courseid' => $course->id]);
+        $navigation->add(
+            get_string('groupperformance', 'local_comp_report_ext'),
+            $url3,
+            navigation_node::TYPE_SETTING,
+            null,
+            'groupcompetency_rep'
+        );
     }
 }
 

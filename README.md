@@ -197,7 +197,8 @@ npx grunt amd --files=local/competency_report
 
 ## 📋 Changelog
 
-### v3.3.2 (2026072501) — 2026-07-25
+### v3.3.2 (2026072502) — 2026-07-25
+- **Fix:** Fixed course menu navigation callback name (`local_comp_report_ext_extend_navigation_course` & `local_comp_report_ext_extend_navigation_reports`) so competency reports appear under Course Reports & secondary navigation tabs.
 - **Fix:** Fixed folder read permissions (755) on server and cleaned up duplicate language string declarations causing `[[string_name]]` double bracket placeholders.
 
 ## 📄 License & Credits
