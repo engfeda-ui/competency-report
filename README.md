@@ -88,6 +88,10 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 ### v3.3.1 — 2026-07-24
 - **Fix:** Added missing admin settings language strings (`enable_ai`, `logo_left`, `logo_right`, `success_threshold_desc`, etc.) in `lang/en/local_comp_report_ext.php` and `lang/ar/local_comp_report_ext.php` to resolve double bracket `[[...]]` display on Site Administration settings page.
 
+### v3.4.0 — 2026-07-25
+- **New Feature:** Domain-Specific & Curriculum-Aware AI Pedagogical Analysis — AI reports now inspect the course full name, exam topic context, and specific mastered vs. missed questions.
+- **Improvement:** Added automatic Arabic language detection and domain-specific terminology generation (RTL) for Arabic academy courses.
+
 ### v3.3.3 — 2026-07-25
 - **Fix:** Resolved `File not found` error on PDF exports by updating all Mustache templates, forms, AJAX requests, and PHP scripts to use the correct plugin path `/local/comp_report_ext/`.
 - **Fix:** Fixed `local/competency_report:viewreports` capability error on `group_competency.php` by mapping all capability checks to `local/comp_report_ext:` and registering legacy capability aliases in `db/access.php`.
