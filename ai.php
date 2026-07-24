@@ -221,9 +221,16 @@ function local_comp_report_ext_ai_comment(array $stats, $context = 'student', $c
     if (!empty($apikey)) {
         $headers[] = "Authorization: Bearer {$apikey}";
     }
-    $curl->setHeader($headers);
 
-    if ($provider === 'local') {
+    if ($provider === 'openrouter') {
+        $headers[] = "HTTP-Referer: https://sanad.ws";
+        $headers[] = "X-Title: Sanad Moodle Competency Report";
+        $endpoint = 'https://openrouter.ai/api/v1/chat/completions';
+    } else if ($provider === 'deepseek') {
+        $endpoint = 'https://api.deepseek.com/v1/chat/completions';
+    } else if ($provider === 'groq') {
+        $endpoint = 'https://api.groq.com/openai/v1/chat/completions';
+    } else if ($provider === 'local') {
         $endpoint = get_config('local_comp_report_ext', 'local_endpoint');
         if (empty($endpoint)) {
             $endpoint = 'http://localhost:11434/v1';
@@ -244,6 +251,8 @@ function local_comp_report_ext_ai_comment(array $stats, $context = 'student', $c
     } else {
         $endpoint = "https://api.openai.com/v1/chat/completions";
     }
+
+    $curl->setHeader($headers);
 
     $postdata = json_encode([
         "model" => $model,

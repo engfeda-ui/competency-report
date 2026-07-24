@@ -45,8 +45,11 @@ if ($hassiteconfig) {
             get_string('ai_provider_desc', 'local_comp_report_ext'),
             'openai',
             [
-                'openai' => get_string('ai_provider_openai', 'local_comp_report_ext'),
-                'local'  => get_string('ai_provider_local', 'local_comp_report_ext'),
+                'openai'     => get_string('ai_provider_openai', 'local_comp_report_ext'),
+                'openrouter' => get_string('ai_provider_openrouter', 'local_comp_report_ext'),
+                'deepseek'   => get_string('ai_provider_deepseek', 'local_comp_report_ext'),
+                'groq'       => get_string('ai_provider_groq', 'local_comp_report_ext'),
+                'local'      => get_string('ai_provider_local', 'local_comp_report_ext'),
             ]
         ));
 
