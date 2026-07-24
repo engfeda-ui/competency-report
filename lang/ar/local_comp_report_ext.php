@@ -287,4 +287,3 @@ $string['logo_right'] = 'شعار الترويسة (اليمين)';
 $string['logo_right_desc'] = 'ارفع صورة الشعار (PNG/JPG) لجهة اليمين في ترويسة الـ PDF.';
 $string['logo_right_url'] = 'رابط / مسار شعار اليمين';
 $string['logo_right_url_desc'] = 'مسار أو رابط مباشر للشعار الأيمن كخيار بديل.';
-

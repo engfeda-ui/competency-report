@@ -288,4 +288,3 @@ $string['logo_right'] = 'Header Logo (Right)';
 $string['logo_right_desc'] = 'Upload an image file (PNG/JPG) for the right side of the PDF header.';
 $string['logo_right_url'] = 'Right Logo URL / Path';
 $string['logo_right_url_desc'] = 'Alternative direct image URL or path for the right logo.';
-
