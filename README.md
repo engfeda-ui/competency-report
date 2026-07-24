@@ -195,6 +195,11 @@ npx grunt amd --files=local/competency_report
 
 ---
 
+## 📋 Changelog
+
+### v3.3.2 (2026072501) — 2026-07-25
+- **Fix:** Fixed folder read permissions (755) on server and cleaned up duplicate language string declarations causing `[[string_name]]` double bracket placeholders.
+
 ## 📄 License & Credits
 
 - **Copyright:** © 2026 Mahmoud Salem

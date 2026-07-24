@@ -272,21 +272,3 @@ $string['totalweightlabel'] = 'الوزن الإجمالي';
 $string['updateassessments'] = 'حفظ الأوزان والتغييرات';
 $string['weighttotal_ok'] = 'مجموع أوزان التقييمات هو 100% تماماً. تم ضبط كل شيء بشكل صحيح.';
 
-// Admin settings strings.
-$string['enable_ai'] = 'تفعيل الذكاء الاصطناعي';
-$string['enable_ai_desc'] = 'تمكين أو تعطيل التغذية الراجعة التوليدية بالذكاء الاصطناعي.';
-$string['model_desc'] = 'اسم النموذج (مثل gpt-4 أو gpt-4o أو llama3.1).';
-$string['maxrows'] = 'الحد الأقصى للسطور';
-$string['maxrows_desc'] = 'الحد الأقصى للأسطر المعروضة في جداول التقارير.';
-$string['success_threshold'] = 'نسبة إتقان الكفاية (%)';
-$string['success_threshold_desc'] = 'النسبة المئوية الدنيا لاعتبار الكفاية متقنة (الافتراضي: 60%).';
-$string['pdf_logo_heading'] = 'إعدادات شعارات تقارير PDF';
-$string['pdf_logo_heading_desc'] = 'تخصيص الشعار الأيمن والأيسر في ترويسة تقارير PDF المصدّرة.';
-$string['logo_left'] = 'شعار الترويسة (اليسار)';
-$string['logo_left_desc'] = 'ارفع صورة الشعار (PNG/JPG) لجهة اليسار في ترويسة الـ PDF.';
-$string['logo_left_url'] = 'رابط / مسار شعار اليسار';
-$string['logo_left_url_desc'] = 'مسار أو رابط مباشر للشعار الأيسر كخيار بديل.';
-$string['logo_right'] = 'شعار الترويسة (اليمين)';
-$string['logo_right_desc'] = 'ارفع صورة الشعار (PNG/JPG) لجهة اليمين في ترويسة الـ PDF.';
-$string['logo_right_url'] = 'رابط / مسار شعار اليمين';
-$string['logo_right_url_desc'] = 'مسار أو رابط مباشر للشعار الأيمن كخيار بديل.';
