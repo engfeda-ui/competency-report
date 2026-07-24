@@ -389,3 +389,77 @@ function local_comp_report_ext_render_pdf_header_logos(&$pdf, $islandscape = fal
 
     $pdf->SetY($y + $maxheight + 4);
 }
+
+/**
+ * Build rich context details for domain-specific AI analysis.
+ *
+ * @param int $courseid
+ * @param int $userid
+ * @param int $quizid
+ * @return array
+ */
+function local_comp_report_ext_build_context_details($courseid, $userid = 0, $quizid = 0) {
+    global $DB;
+    $contextdetails = [];
+
+    if ($courseid > 0) {
+        $course = $DB->get_record('course', ['id' => $courseid], 'id, fullname, shortname');
+        if ($course) {
+            $contextdetails['coursename'] = $course->fullname;
+        }
+    }
+
+    if ($quizid > 0) {
+        $quiz = $DB->get_record('quiz', ['id' => $quizid], 'id, name');
+        if ($quiz) {
+            $contextdetails['quizname'] = $quiz->name;
+        }
+    }
+
+    if ($userid > 0 && $courseid > 0) {
+        $qsql = "SELECT q.id, q.name, qas.fraction, qa.maxfraction
+                   FROM {quiz_attempts} quiza
+                   JOIN {quiz} quiz ON quiz.id = quiza.quiz
+                   JOIN {question_usages} qu ON qu.id = quiza.uniqueid
+                   JOIN {question_attempts} qa ON qa.questionusageid = qu.id
+                   JOIN {question} q ON q.id = qa.questionid
+                   JOIN (
+                       SELECT MAX(fraction) AS fraction, questionattemptid
+                         FROM {question_attempt_steps}
+                        GROUP BY questionattemptid
+                   ) qas ON qas.questionattemptid = qa.id
+                  WHERE quiz.course = :courseid AND quiza.userid = :userid AND quiza.state = 'finished'
+                  ORDER BY qas.fraction ASC";
+        $qattempts = $DB->get_records_sql($qsql, ['courseid' => $courseid, 'userid' => $userid]);
+
+        $missed = [];
+        $mastered = [];
+        foreach ($qattempts as $qa) {
+            $cleanname = clean_param(strip_tags($qa->name), PARAM_TEXT);
+            if (empty($cleanname)) {
+                continue;
+            }
+            if (strlen($cleanname) > 90) {
+                $cleanname = substr($cleanname, 0, 87) . '...';
+            }
+            if ($qa->fraction < $qa->maxfraction) {
+                if (count($missed) < 6 && !in_array($cleanname, $missed)) {
+                    $missed[] = $cleanname;
+                }
+            } else {
+                if (count($mastered) < 6 && !in_array($cleanname, $mastered)) {
+                    $mastered[] = $cleanname;
+                }
+            }
+        }
+        if (!empty($missed)) {
+            $contextdetails['missed_questions'] = $missed;
+        }
+        if (!empty($mastered)) {
+            $contextdetails['mastered_questions'] = $mastered;
+        }
+    }
+
+    $contextdetails['lang'] = current_language();
+    return $contextdetails;
+}

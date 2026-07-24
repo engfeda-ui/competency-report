@@ -270,7 +270,8 @@ if (!empty($pdfcontent)) {
         $rates[$rc->shortname] = $rc->attempts ? ($rc->correct / $rc->attempts) * 100 : 0;
     }
     if (!empty($rates)) {
-        $comment = local_comp_report_ext_generate_comment($rates, 'course_master', $customprompt, 'competency');
+        $contextdetails = local_comp_report_ext_build_context_details($courseid);
+        $comment = local_comp_report_ext_generate_comment($rates, 'course_master', $customprompt, 'competency', $contextdetails);
     }
 }
 

@@ -231,7 +231,11 @@ $legend = get_string('redlegend', 'local_comp_report_ext') . " | " .
           get_string('greenlegend', 'local_comp_report_ext');
 $pdf->Cell(0, 5, $legend, 0, 1);
 
-// Render AI Commentary Section if provided.
+if (empty($pdfcontent)) {
+    $contextdetails = local_comp_report_ext_build_context_details($courseid);
+    $pdfcontent = local_comp_report_ext_generate_comment($grouptotals, 'group', '', 'competency', $contextdetails);
+}
+
 if (!empty($pdfcontent)) {
     // Strip non-BMP characters.
     $pdfcontent = preg_replace('/[^\x{0000}-\x{FFFF}]/u', '', $pdfcontent);

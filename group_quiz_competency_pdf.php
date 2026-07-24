@@ -215,6 +215,11 @@ $pdf->SetFont('freeserif', '', 9);
 $pdf->writeHTML($tablehtml, true, false, true, false, '');
 
 // Render AI Commentary Section if provided.
+if (empty($pdfcontent) && !empty($grouptotals)) {
+    $contextdetails = local_comp_report_ext_build_context_details($courseid, 0, $quizid);
+    $pdfcontent = local_comp_report_ext_generate_comment($grouptotals, 'quiz', '', 'competency', $contextdetails);
+}
+
 if (!empty($pdfcontent)) {
     $pdfcontent = preg_replace('/[^\x{0000}-\x{FFFF}]/u', '', $pdfcontent);
     $pdf->AddPage();

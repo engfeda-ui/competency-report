@@ -88,6 +88,10 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 ### v3.3.1 — 2026-07-24
 - **Fix:** Added missing admin settings language strings (`enable_ai`, `logo_left`, `logo_right`, `success_threshold_desc`, etc.) in `lang/en/local_comp_report_ext.php` and `lang/ar/local_comp_report_ext.php` to resolve double bracket `[[...]]` display on Site Administration settings page.
 
+### v3.4.2 — 2026-07-25
+- **Fix:** Ensured all PDF export generators (`parent_pdf.php`, `group_competency_pdf.php`, `group_quiz_competency_pdf.php`, `course_master_report_pdf.php`, `school_pdf.php`) pass full curriculum context details (`local_comp_report_ext_build_context_details`) to prevent LLM meta-disclaimers/preambles.
+- **Fix:** Added strict Rule 6 (`NO META-DISCLAIMERS`) in system prompt.
+
 ### v3.4.1 — 2026-07-25
 - **Fix:** Added missing `require_once(__DIR__ . '/lib.php');` in `course_master_report_pdf.php` to resolve `Call to undefined function local_comp_report_ext_render_pdf_header_logos()` fatal exception.
 

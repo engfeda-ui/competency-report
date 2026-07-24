@@ -218,7 +218,8 @@ if ($focustype === 'grades') {
 if (!empty($pdfcontent)) {
     $comment = $pdfcontent;
 } else {
-    $comment = local_comp_report_ext_generate_comment($rates, $contexttype, $customprompt, $focustype);
+    $contextdetails = local_comp_report_ext_build_context_details($courseid);
+    $comment = local_comp_report_ext_generate_comment($rates, $contexttype, $customprompt, $focustype, $contextdetails);
 }
 // Strip any non-BMP unicode characters (emojis) to prevent TCPDF font warnings.
 $comment = preg_replace('/[^\x{0000}-\x{FFFF}]/u', '', $comment);
