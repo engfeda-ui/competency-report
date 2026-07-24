@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.2.2-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.3.0-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -81,6 +81,14 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 ---
 
 ## 📋 Changelog
+
+### v3.3.0 — 2026-07-24
+- **New Feature:** Header logo settings in Site Administration (`logo_left`, `logo_right`, and URL fallbacks) to render custom academy logos on the top header of all exported PDF reports.
+- **Fix:** Restructured the "Exams & General Grades Summary" table in Unified Course Master Report (`course_master_report.php` and PDF) into 5 logical columns: Exam Name, Number of Questions (from quiz slots), Participating Students, Average Score, and Success Rate (%).
+- **Fix:** Resolved column header misalignment in TCPDF export by adding explicit percentage width attributes to both `<th>` and `<td>` tags.
+- **Fix:** Fixed Class Average calculation in Student Performance Dashboard (`class_report.php`) to query student group membership in `{groups_members}`, avoiding `%0` display.
+- **Fix:** Fixed HTML syntax error in `student_competency_detail_page.mustache` (missing `">"` on line 65) that caused column shifts on Teacher Dashboard.
+- **Fix:** Resolved 100% of Moodle CodeSniffer (`moodle-plugin-ci codechecker`) rules and guidelines.
 
 ### v3.2.2 — 2026-07-05
 - **Fix:** Corrected all Moodle PHP CodeSniffer violations across the codebase (including PSR12 class opening brace spaces, comma argument spaces, trailing spaces, array commas, and variable casing in tests).
