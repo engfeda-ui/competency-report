@@ -269,3 +269,23 @@ $string['practicalentryhintsave'] = 'Enter achievements as percentage (0-100) pe
 $string['totalweightlabel'] = 'Total Weight';
 $string['updateassessments'] = 'Save Weights & Changes';
 $string['weighttotal_ok'] = 'The total weight of all assessments is exactly 100%. Everything is set correctly.';
+
+// Admin settings strings.
+$string['enable_ai'] = 'Enable AI integration';
+$string['enable_ai_desc'] = 'Toggle AI-powered feedback on or off.';
+$string['model_desc'] = 'Model name (e.g., gpt-4, gpt-4o, llama3.1).';
+$string['maxrows'] = 'Maximum Rows';
+$string['maxrows_desc'] = 'Maximum rows shown in report tables.';
+$string['success_threshold'] = 'Success Threshold (%)';
+$string['success_threshold_desc'] = 'Minimum percentage for competency mastery (default: 60%).';
+$string['pdf_logo_heading'] = 'PDF Report Logo Settings';
+$string['pdf_logo_heading_desc'] = 'Configure left and right logos displayed in top header of PDF exports.';
+$string['logo_left'] = 'Header Logo (Left)';
+$string['logo_left_desc'] = 'Upload an image file (PNG/JPG) for the left side of the PDF header.';
+$string['logo_left_url'] = 'Left Logo URL / Path';
+$string['logo_left_url_desc'] = 'Alternative direct image URL or path for the left logo.';
+$string['logo_right'] = 'Header Logo (Right)';
+$string['logo_right_desc'] = 'Upload an image file (PNG/JPG) for the right side of the PDF header.';
+$string['logo_right_url'] = 'Right Logo URL / Path';
+$string['logo_right_url_desc'] = 'Alternative direct image URL or path for the right logo.';
+
