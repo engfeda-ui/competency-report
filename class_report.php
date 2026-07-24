@@ -95,7 +95,7 @@ if (!empty($coursedata)) {
         ", ['courseid' => $courseid, 'userid' => $userid]);
 
         if (!empty($usergroups)) {
-            list($groupinsql, $groupparams) = $DB->get_in_or_equal($usergroups, SQL_PARAMS_NAMED, 'grp');
+            [$groupinsql, $groupparams] = $DB->get_in_or_equal($usergroups, SQL_PARAMS_NAMED, 'grp');
             $classsql = str_replace(
                 "FROM {quiz_attempts} quiza",
                 "FROM {quiz_attempts} quiza JOIN {groups_members} gm ON gm.userid = quiza.userid",

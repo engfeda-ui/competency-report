@@ -227,7 +227,8 @@ function local_comp_report_ext_get_logo_path($type = 'left') {
             }
         }
     } catch (\Throwable $e) {
-        // Fallthrough to URL check.
+        // Fallthrough to URL check if file storage fails.
+        unset($e);
     }
 
     // 2. Check URL or path text setting.
@@ -254,6 +255,7 @@ function local_comp_report_ext_get_logo_path($type = 'left') {
                     return $temppath;
                 }
             } catch (\Throwable $e) {
+                unset($e);
                 return null;
             }
         }
@@ -266,34 +268,70 @@ function local_comp_report_ext_get_logo_path($type = 'left') {
  * Render configured left and right logos in the top header of a PDF document.
  *
  * @param TCPDF $pdf The TCPDF instance.
- * @param bool $is_landscape Whether the page is in landscape mode.
+ * @param bool $islandscape Whether the page is in landscape mode.
  * @return void
  */
-function local_comp_report_ext_render_pdf_header_logos(&$pdf, $is_landscape = false) {
+function local_comp_report_ext_render_pdf_header_logos(&$pdf, $islandscape = false) {
     $leftpath = local_comp_report_ext_get_logo_path('left');
     $rightpath = local_comp_report_ext_get_logo_path('right');
 
-    $has_left = !empty($leftpath) && file_exists($leftpath);
-    $has_right = !empty($rightpath) && file_exists($rightpath);
+    $hasleft = !empty($leftpath) && file_exists($leftpath);
+    $hasright = !empty($rightpath) && file_exists($rightpath);
 
-    if (!$has_left && !$has_right) {
+    if (!$hasleft && !$hasright) {
         return;
     }
 
-    $pageWidth = $pdf->getPageWidth();
+    $pagewidth = $pdf->getPageWidth();
     $margin = 15;
     $y = 8;
-    $maxHeight = 16; // height in mm
-    $logoWidth = 45; // max width in mm
+    $maxheight = 16; // Height in mm.
+    $logowidth = 45; // Max width in mm.
 
-    if ($has_left) {
-        $pdf->Image($leftpath, $margin, $y, $logoWidth, $maxHeight, '', '', '', false, 300, 'L', false, false, 0, false, false, false);
+    if ($hasleft) {
+        $pdf->Image(
+            $leftpath,
+            $margin,
+            $y,
+            $logowidth,
+            $maxheight,
+            '',
+            '',
+            '',
+            false,
+            300,
+            'L',
+            false,
+            false,
+            0,
+            false,
+            false,
+            false
+        );
     }
 
-    if ($has_right) {
-        $rightX = $pageWidth - $margin - $logoWidth;
-        $pdf->Image($rightpath, $rightX, $y, $logoWidth, $maxHeight, '', '', '', false, 300, 'R', false, false, 0, false, false, false);
+    if ($hasright) {
+        $rightx = $pagewidth - $margin - $logowidth;
+        $pdf->Image(
+            $rightpath,
+            $rightx,
+            $y,
+            $logowidth,
+            $maxheight,
+            '',
+            '',
+            '',
+            false,
+            300,
+            'R',
+            false,
+            false,
+            0,
+            false,
+            false,
+            false
+        );
     }
 
-    $pdf->SetY($y + $maxHeight + 4);
+    $pdf->SetY($y + $maxheight + 4);
 }

@@ -342,8 +342,8 @@ class competency_calculator_test extends advanced_testcase {
 
         $compid = $competency->get('id');
         $this->assertArrayHasKey($compid, $scores);
-        // totalweighted = 80*0.60 = 48; totalweight = 60 (only practical attempted)
-        // percent = 48/60*100 = 80%
+        // Total weighted = 80*0.60 = 48; total weight = 60 (only practical attempted).
+        // Percent = 48/60*100 = 80%.
         $this->assertEquals(80.0, $scores[$compid]['percent']);
     }
 
