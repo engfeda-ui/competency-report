@@ -34,5 +34,5 @@ $plugin->release   = '3.3.0';                 // Human-readable version name.
 
 // Plugin dependencies (Other plugins that must be installed first).
 $plugin->dependencies = [
-    'qbank_comp_ext' => 2026070500,
+    'qbank_competency' => 2026070500,
 ];

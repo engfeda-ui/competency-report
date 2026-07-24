@@ -35,7 +35,7 @@ A professional Moodle reporting engine that calculates and visualises student co
 | **Moodle Framework** | Moodle 4.5 to 5.0+ |
 | **PHP Runtime** | PHP 8.1, PHP 8.2, PHP 8.3 |
 | **Database System** | PostgreSQL 13+, MySQL 8.0+, or MariaDB 10.5+ |
-| **Required Plugin** | [**`qbank_comp_ext`**](https://github.com/engfeda-ui/competency) ≥ 2026070500 |
+| **Required Plugin** | [**`qbank_competency`**](https://github.com/engfeda-ui/competency) ≥ 2026070500 |
 
 ---
 
