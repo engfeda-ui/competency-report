@@ -86,25 +86,55 @@ if (!empty($coursedata)) {
     $studentdata = [];
 
     if ($userid) {
-        $userdept = $DB->get_field('user', 'department', ['id' => $userid]);
-        if (!empty($userdept)) {
-            // Fetch class/department data by joining with user table and filtering by department.
+        // 1. Check if user belongs to group(s) in this course.
+        $usergroups = $DB->get_fieldset_sql("
+            SELECT gm.groupid
+            FROM {groups_members} gm
+            JOIN {groups} g ON g.id = gm.groupid
+            WHERE g.courseid = :courseid AND gm.userid = :userid
+        ", ['courseid' => $courseid, 'userid' => $userid]);
+
+        if (!empty($usergroups)) {
+            list($groupinsql, $groupparams) = $DB->get_in_or_equal($usergroups, SQL_PARAMS_NAMED, 'grp');
             $classsql = str_replace(
                 "FROM {quiz_attempts} quiza",
-                "FROM {quiz_attempts} quiza JOIN {user} u ON quiza.userid = u.id",
+                "FROM {quiz_attempts} quiza JOIN {groups_members} gm ON gm.userid = quiza.userid",
                 $coursesql
             );
             $classsql = str_replace(
-                "WHERE quiz.course",
-                "WHERE u.department = :dept AND quiz.course",
+                "WHERE quiz.course = :courseid",
+                "WHERE quiz.course = :courseid AND gm.groupid " . $groupinsql,
                 $classsql
             );
-            $classdata = $DB->get_records_sql($classsql, [
-                'courseid' => $courseid,
-                'dept' => $userdept,
-                'competencyid' => $competency,
-            ]);
+            $classparams = array_merge(['courseid' => $courseid, 'competencyid' => $competency], $groupparams);
+            $classdata = $DB->get_records_sql($classsql, $classparams);
+        } else {
+            // 2. Fallback: check user department if set.
+            $userdept = $DB->get_field('user', 'department', ['id' => $userid]);
+            if (!empty($userdept)) {
+                $classsql = str_replace(
+                    "FROM {quiz_attempts} quiza",
+                    "FROM {quiz_attempts} quiza JOIN {user} u ON quiza.userid = u.id",
+                    $coursesql
+                );
+                $classsql = str_replace(
+                    "WHERE quiz.course",
+                    "WHERE u.department = :dept AND quiz.course",
+                    $classsql
+                );
+                $classdata = $DB->get_records_sql($classsql, [
+                    'courseid' => $courseid,
+                    'dept' => $userdept,
+                    'competencyid' => $competency,
+                ]);
+            }
         }
+
+        // 3. If classdata is still empty, fallback to coursedata so Class Average is not %0.
+        if (empty($classdata)) {
+            $classdata = $coursedata;
+        }
+
         // Fetch specific student data by filtering by userid.
         $studentsql = str_replace(
             "WHERE quiz.course",

@@ -26,6 +26,8 @@
 defined('MOODLE_INTERNAL') || die();
 
 $string['action'] = 'Action';
+$string['averagegrade'] = 'Average Score';
+$string['participantcount'] = 'Participating Students';
 $string['ai_failed'] = 'AI request failed.';
 $string['ai_not_configured'] = 'AI integration is active but settings are incomplete.';
 $string['ai_prompt_school'] = 'Write a pedagogical analysis and strategy for the school based on the following competency percentages:';

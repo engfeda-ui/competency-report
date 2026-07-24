@@ -143,7 +143,8 @@
                                 <tr bgcolor="#f8f9fa">
                                     <th>{{#str}}searchquiz, local_comp_report_ext{{/str}}</th>
                                     <th class="text-center">{{#str}}questioncount, local_comp_report_ext{{/str}}</th>
-                                    <th class="text-center">{{#str}}correctcount, local_comp_report_ext{{/str}}</th>
+                                    <th class="text-center">{{#str}}participantcount, local_comp_report_ext{{/str}}</th>
+                                    <th class="text-center">{{#str}}averagegrade, local_comp_report_ext{{/str}}</th>
                                     <th class="text-center">{{#str}}successrate, local_comp_report_ext{{/str}}</th>
                                 </tr>
                             </thead>
@@ -151,7 +152,8 @@
                                 {{#quizzes}}
                                     <tr>
                                         <td><b>{{name}}</b></td>
-                                        <td class="text-center">{{attempts}}</td>
+                                        <td class="text-center">{{numquestions}}</td>
+                                        <td class="text-center">{{participants}}</td>
                                         <td class="text-center">{{score}}</td>
                                         <td class="text-center">
                                             {{#rate}}
@@ -167,7 +169,7 @@
                                 {{/quizzes}}
                                 {{^quizzes}}
                                     <tr>
-                                        <td colspan="4" class="text-center text-muted py-4">{{#str}}nodatafound, local_comp_report_ext{{/str}}</td>
+                                        <td colspan="5" class="text-center text-muted py-4">{{#str}}nodatafound, local_comp_report_ext{{/str}}</td>
                                     </tr>
                                 {{/quizzes}}
                             </tbody>

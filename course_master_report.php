@@ -67,8 +67,10 @@ $renderdata->stats->competencies = $DB->count_records_sql("
 $renderdata->stats->quizzes = $DB->count_records('quiz', ['course' => $courseid]);
 
 // 2. Exams & General Grades Summary.
+$totalstudents = $renderdata->stats->students;
 $rawquizzes = $DB->get_records_sql("
-    SELECT q.id, q.name, AVG(qa.sumgrades) as avggrade, q.sumgrades as maxgrade, COUNT(qa.id) as attempts
+    SELECT q.id, q.name, AVG(qa.sumgrades) as avggrade, q.sumgrades as maxgrade, COUNT(DISTINCT qa.userid) as attempts,
+           (SELECT COUNT(slot.id) FROM {quiz_slots} slot WHERE slot.quizid = q.id) as numquestions
     FROM {quiz} q
     LEFT JOIN {quiz_attempts} qa ON qa.quiz = q.id AND qa.state = 'finished'
     WHERE q.course = :courseid
@@ -80,7 +82,8 @@ $renderdata->quizzes = [];
 foreach ($rawquizzes as $q) {
     $row = new stdClass();
     $row->name = $q->name;
-    $row->attempts = $q->attempts;
+    $row->numquestions = ($q->numquestions > 0) ? (int)$q->numquestions : '-';
+    $row->participants = $q->attempts . ($totalstudents > 0 ? ' / ' . $totalstudents : '');
     if ($q->attempts > 0 && $q->maxgrade > 0) {
         $rate = ($q->avggrade / $q->maxgrade) * 100;
         $row->rate = number_format($rate, 1);

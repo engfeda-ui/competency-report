@@ -25,6 +25,8 @@
 defined('MOODLE_INTERNAL') || die();
 
 $string['action'] = 'إجراء';
+$string['averagegrade'] = 'متوسط الدرجة';
+$string['participantcount'] = 'الطلاب المشاركون';
 $string['ai_failed'] = 'فشل طلب الذكاء الاصطناعي.';
 $string['ai_not_configured'] = 'تكامل الذكاء الاصطناعي مُفعَّل لكن الإعدادات غير مكتملة.';
 $string['ai_prompt_school'] = 'اكتب تحليلاً تربوياً واستراتيجية تطوير للمدرسة بناءً على نسب الكفايات التالية:';

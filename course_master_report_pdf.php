@@ -61,7 +61,8 @@ $quizzescount = $DB->count_records('quiz', ['course' => $courseid]);
 
 // 2. Exams & General Grades.
 $rawquizzes = $DB->get_records_sql("
-    SELECT q.id, q.name, AVG(qa.sumgrades) as avggrade, q.sumgrades as maxgrade, COUNT(qa.id) as attempts
+    SELECT q.id, q.name, AVG(qa.sumgrades) as avggrade, q.sumgrades as maxgrade, COUNT(DISTINCT qa.userid) as attempts,
+           (SELECT COUNT(slot.id) FROM {quiz_slots} slot WHERE slot.quizid = q.id) as numquestions
     FROM {quiz} q
     LEFT JOIN {quiz_attempts} qa ON qa.quiz = q.id AND qa.state = 'finished'
     WHERE q.course = :courseid
@@ -155,19 +156,22 @@ $statshtml = '
 
 // Quizzes Grades Table.
 $quizzeshtml = '
-<table border="1" cellpadding="5" style="border-collapse: collapse; font-size: 9pt;">
+<table border="1" cellpadding="5" style="border-collapse: collapse; font-size: 8.5pt;">
     <thead>
         <tr bgcolor="#f2f2f2" style="font-weight: bold;">
-            <th width="45%">' . get_string('searchquiz', 'local_comp_report_ext') . '</th>
+            <th width="32%">' . get_string('searchquiz', 'local_comp_report_ext') . '</th>
             <th width="15%" align="center">' . get_string('questioncount', 'local_comp_report_ext') . '</th>
-            <th width="20%" align="center">' . get_string('correctcount', 'local_comp_report_ext') . '</th>
-            <th width="20%" align="center">' . get_string('successrate', 'local_comp_report_ext') . '</th>
+            <th width="18%" align="center">' . get_string('participantcount', 'local_comp_report_ext') . '</th>
+            <th width="18%" align="center">' . get_string('averagegrade', 'local_comp_report_ext') . '</th>
+            <th width="17%" align="center">' . get_string('successrate', 'local_comp_report_ext') . '</th>
         </tr>
     </thead>
     <tbody>';
 foreach ($rawquizzes as $q) {
     $bgcolor = '#ffffff';
     $celltext = '-';
+    $numq = ($q->numquestions > 0) ? (int)$q->numquestions : '-';
+    $part = $q->attempts . ($studentscount > 0 ? ' / ' . $studentscount : '');
     if ($q->attempts > 0 && $q->maxgrade > 0) {
         $rate = ($q->avggrade / $q->maxgrade) * 100;
         $celltext = '%' . number_format($rate, 1);
@@ -175,19 +179,20 @@ foreach ($rawquizzes as $q) {
     }
     $quizzeshtml .= '
         <tr bgcolor="' . $bgcolor . '">
-            <td><b>' . s($q->name) . '</b></td>
-            <td align="center">' . $q->attempts . '</td>
-            <td align="center">'
+            <td width="32%"><b>' . s($q->name) . '</b></td>
+            <td width="15%" align="center">' . $numq . '</td>
+            <td width="18%" align="center">' . $part . '</td>
+            <td width="18%" align="center">'
                 . ($q->attempts > 0 ? number_format($q->avggrade, 1) . ' / ' . number_format($q->maxgrade, 1) : '-')
                 . '</td>
-            <td align="center" style="font-weight: bold;">' . $celltext . '</td>
+            <td width="17%" align="center" style="font-weight: bold;">' . $celltext . '</td>
         </tr>';
 }
 $quizzeshtml .= '</tbody></table>';
 
 // Competencies Summary Table.
 $compshtml = '
-<table border="1" cellpadding="5" style="border-collapse: collapse; font-size: 9pt;">
+<table border="1" cellpadding="5" style="border-collapse: collapse; font-size: 8.5pt;">
     <thead>
         <tr bgcolor="#f2f2f2" style="font-weight: bold;">
             <th width="45%">' . get_string('competencyname', 'local_comp_report_ext') . '</th>
@@ -207,10 +212,10 @@ foreach ($rawcomps as $rc) {
     }
     $compshtml .= '
         <tr bgcolor="' . $bgcolor . '">
-            <td><b>' . s($rc->shortname) . '</b></td>
-            <td align="center">' . number_format($rc->attempts, 0) . '</td>
-            <td align="center">' . number_format($rc->correct, 1) . '</td>
-            <td align="center" style="font-weight: bold;">' . $celltext . '</td>
+            <td width="45%"><b>' . s($rc->shortname) . '</b></td>
+            <td width="15%" align="center">' . number_format($rc->attempts, 0) . '</td>
+            <td width="20%" align="center">' . number_format($rc->correct, 1) . '</td>
+            <td width="20%" align="center" style="font-weight: bold;">' . $celltext . '</td>
         </tr>';
 }
 $compshtml .= '</tbody></table>';
