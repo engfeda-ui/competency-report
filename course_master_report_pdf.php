@@ -24,6 +24,7 @@
 
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->libdir . '/tcpdf/tcpdf.php');
+require_once(__DIR__ . '/lib.php');
 require_once(__DIR__ . '/ai.php');
 
 $courseid   = required_param('courseid', PARAM_INT);
