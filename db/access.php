@@ -28,7 +28,7 @@ defined('MOODLE_INTERNAL') || die();
 $capabilities = [
 
     // Ability to manage question-competency mapping.
-    'local/competency_report:manage' => [
+    'local/comp_report_ext:manage' => [
         'riskbitmask'  => RISK_CONFIG,
         'captype'      => 'write',
         'contextlevel' => CONTEXT_COURSE,
@@ -39,7 +39,7 @@ $capabilities = [
     ],
 
     // Ability to view all competency reports (Teachers and Managers).
-    'local/competency_report:viewreports' => [
+    'local/comp_report_ext:viewreports' => [
         'captype'      => 'read',
         'contextlevel' => CONTEXT_COURSE,
         'archetypes'   => [
@@ -50,7 +50,7 @@ $capabilities = [
     ],
 
     // Ability to view own competency analysis (Students).
-    'local/competency_report:viewownreport' => [
+    'local/comp_report_ext:viewownreport' => [
         'captype'      => 'read',
         'contextlevel' => CONTEXT_COURSE,
         'archetypes'   => [
@@ -62,7 +62,7 @@ $capabilities = [
     ],
 
     // Ability to manage assessment setup (quizzes & practicals weights).
-    'local/competency_report:manageassessments' => [
+    'local/comp_report_ext:manageassessments' => [
         'riskbitmask'  => RISK_CONFIG,
         'captype'      => 'write',
         'contextlevel' => CONTEXT_COURSE,
@@ -73,7 +73,7 @@ $capabilities = [
     ],
 
     // Ability to enter practical exam results for students.
-    'local/competency_report:enterpractical' => [
+    'local/comp_report_ext:enterpractical' => [
         'riskbitmask'  => RISK_PERSONAL,
         'captype'      => 'write',
         'contextlevel' => CONTEXT_COURSE,

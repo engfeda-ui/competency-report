@@ -38,7 +38,7 @@ function local_comp_report_extend_navigation_course($navigation, $course, $conte
     if (has_capability('mod/quiz:viewreports', $context)) {
         // Unified Course Master Report.
         if (!$navigation->find('coursemasterreport', navigation_node::TYPE_SETTING)) {
-            $url = new moodle_url('/local/competency_report/course_master_report.php', ['courseid' => $course->id]);
+            $url = new moodle_url('/local/comp_report_ext/course_master_report.php', ['courseid' => $course->id]);
             $navigation->add(
                 get_string('coursemasterreport', 'local_comp_report_ext'),
                 $url,
@@ -51,7 +51,7 @@ function local_comp_report_extend_navigation_course($navigation, $course, $conte
 
         // Student Performance Dashboard (consolidated class report).
         if (!$navigation->find('competency_report_teacher', navigation_node::TYPE_SETTING)) {
-            $url = new moodle_url('/local/competency_report/class_report.php', ['courseid' => $course->id]);
+            $url = new moodle_url('/local/comp_report_ext/class_report.php', ['courseid' => $course->id]);
             $navigation->add(
                 get_string('studentdashboard', 'local_comp_report_ext'),
                 $url,
@@ -65,7 +65,7 @@ function local_comp_report_extend_navigation_course($navigation, $course, $conte
         // Group Performance Analysis (consolidated group report).
         if (has_capability('moodle/course:update', $context)) {
             if (!$navigation->find('groupcompetency', navigation_node::TYPE_SETTING)) {
-                $url = new moodle_url('/local/competency_report/group_competency.php', ['courseid' => $course->id]);
+                $url = new moodle_url('/local/comp_report_ext/group_competency.php', ['courseid' => $course->id]);
                 $navigation->add(
                     get_string('groupperformance', 'local_comp_report_ext'),
                     $url,
@@ -80,7 +80,7 @@ function local_comp_report_extend_navigation_course($navigation, $course, $conte
         // Assessment weight configuration (editing teachers / managers).
         if (has_capability('local/competency_report:manageassessments', $context)) {
             if (!$navigation->find('competency_assessment_setup', navigation_node::TYPE_SETTING)) {
-                $url = new moodle_url('/local/competency_report/assessment_setup.php', ['courseid' => $course->id]);
+                $url = new moodle_url('/local/comp_report_ext/assessment_setup.php', ['courseid' => $course->id]);
                 $navigation->add(
                     get_string('assessmentsetup', 'local_comp_report_ext'),
                     $url,
@@ -95,7 +95,7 @@ function local_comp_report_extend_navigation_course($navigation, $course, $conte
         // Practical exam result entry (teachers / trainers).
         if (has_capability('local/competency_report:enterpractical', $context)) {
             if (!$navigation->find('competency_practical_entry', navigation_node::TYPE_SETTING)) {
-                $url = new moodle_url('/local/competency_report/practical_entry.php', ['courseid' => $course->id]);
+                $url = new moodle_url('/local/comp_report_ext/practical_entry.php', ['courseid' => $course->id]);
                 $navigation->add(
                     get_string('practicalentry', 'local_comp_report_ext'),
                     $url,
@@ -111,7 +111,7 @@ function local_comp_report_extend_navigation_course($navigation, $course, $conte
     // 2. Student Specific Menus.
     if (isloggedin() && !isguestuser() && !has_capability('mod/quiz:viewreports', $context)) {
         if (!$navigation->find('competency_report_student_parent', navigation_node::TYPE_CUSTOM)) {
-            $url = new moodle_url('/local/competency_report/student_report.php', ['courseid' => $course->id]);
+            $url = new moodle_url('/local/comp_report_ext/student_report.php', ['courseid' => $course->id]);
             $navigation->add(
                 get_string('mycompetencies', 'local_comp_report_ext'),
                 $url,

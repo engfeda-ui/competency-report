@@ -169,7 +169,7 @@ if ($hassiteconfig) {
         ));
 
         // Manual Competency Sync heading and link.
-        $url = new moodle_url('/local/competency_report/add_success_to_evidence.php');
+        $url = new moodle_url('/local/comp_report_ext/add_success_to_evidence.php');
         $settings->add(new admin_setting_heading(
             'local_comp_report_ext/manual_process_heading',
             get_string('manual_process_heading', 'local_comp_report_ext'),
@@ -180,20 +180,18 @@ if ($hassiteconfig) {
     // 2. Add the Settings Page under "Local Plugins".
     $ADMIN->add('localplugins', $settings);
 
-
-
     // 3. Add External Report Pages under the "Reports" menu.
     $ADMIN->add('reports', new admin_externalpage(
         'local_comp_report_ext_schoolreport',
         get_string('schoolreport', 'local_comp_report_ext'),
-        new moodle_url('/local/competency_report/school_report.php'),
+        new moodle_url('/local/comp_report_ext/school_report.php'),
         'moodle/site:config'
     ));
 
     $ADMIN->add('reports', new admin_externalpage(
         'local_comp_report_ext_schoolpdf',
         get_string('schoolpdf', 'local_comp_report_ext'),
-        new moodle_url('/local/competency_report/school_pdf.php'),
+        new moodle_url('/local/comp_report_ext/school_pdf.php'),
         'moodle/site:config'
     ));
 }
