@@ -33,7 +33,7 @@ require_login($courseid);
 $context = context_course::instance($courseid);
 
 // Page Setup and Navigation items.
-$PAGE->set_url('/local/competency_report/timeline.php', ['courseid' => $courseid]);
+$PAGE->set_url('/local/comp_report_ext/timeline.php', ['courseid' => $courseid]);
 $PAGE->set_context($context);
 $PAGE->set_title(get_string('timelineheading', 'local_comp_report_ext'));
 $PAGE->set_heading(get_string('timelineheading', 'local_comp_report_ext'));

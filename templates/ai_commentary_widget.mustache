@@ -181,15 +181,15 @@ require(['jquery'], function($) {
     $('#btn-export-pdf-' + context).on('click', function(e) {
         e.preventDefault();
         var editedHtml = contentHtml.html();
-        var targetUrl = M.cfg.wwwroot + '/local/competency_report/school_pdf.php';
+        var targetUrl = M.cfg.wwwroot + '/local/comp_report_ext/school_pdf.php';
         if (context === 'student') {
-            targetUrl = M.cfg.wwwroot + '/local/competency_report/parent_pdf.php';
+            targetUrl = M.cfg.wwwroot + '/local/comp_report_ext/parent_pdf.php';
         } else if (context === 'group') {
-            targetUrl = M.cfg.wwwroot + '/local/competency_report/group_competency_pdf.php';
+            targetUrl = M.cfg.wwwroot + '/local/comp_report_ext/group_competency_pdf.php';
         } else if (context === 'quiz') {
-            targetUrl = M.cfg.wwwroot + '/local/competency_report/group_quiz_competency_pdf.php';
+            targetUrl = M.cfg.wwwroot + '/local/comp_report_ext/group_quiz_competency_pdf.php';
         } else if (context === 'course_master') {
-            targetUrl = M.cfg.wwwroot + '/local/competency_report/course_master_report_pdf.php';
+            targetUrl = M.cfg.wwwroot + '/local/comp_report_ext/course_master_report_pdf.php';
         }
 
         var form = $('<form>', {
@@ -257,7 +257,7 @@ require(['jquery'], function($) {
         btn.prop('disabled', true);
 
         $.ajax({
-            url: M.cfg.wwwroot + '/local/competency_report/ajax_ai.php',
+            url: M.cfg.wwwroot + '/local/comp_report_ext/ajax_ai.php',
             type: 'POST',
             dataType: 'json',
             data: {
@@ -318,7 +318,7 @@ require(['jquery'], function($) {
         selectedSessions = Math.max(1, Math.min(60, selectedSessions));
 
         $.ajax({
-            url: M.cfg.wwwroot + '/local/competency_report/ajax_studyplan.php',
+            url: M.cfg.wwwroot + '/local/comp_report_ext/ajax_studyplan.php',
             type: 'POST',
             dataType: 'json',
             data: {
@@ -339,7 +339,7 @@ require(['jquery'], function($) {
                         e.preventDefault();
                         var editedHtml = contentPlan.html();
                         var form = $('<form>', {
-                            action: M.cfg.wwwroot + '/local/competency_report/studyplan_pdf.php',
+                            action: M.cfg.wwwroot + '/local/comp_report_ext/studyplan_pdf.php',
                             method: 'POST',
                             target: '_blank'
                         });

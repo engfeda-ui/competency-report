@@ -35,7 +35,7 @@ global $DB, $PAGE, $OUTPUT;
 
 $course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
 
-$PAGE->set_url('/local/competency_report/course_master_report.php', ['courseid' => $courseid]);
+$PAGE->set_url('/local/comp_report_ext/course_master_report.php', ['courseid' => $courseid]);
 $PAGE->set_context($context);
 $PAGE->set_pagelayout('course');
 $PAGE->set_title(get_string('coursemasterreport', 'local_comp_report_ext'));

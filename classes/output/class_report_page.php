@@ -69,7 +69,7 @@ class class_report_page implements renderable, templatable {
         $export->form_html = $this->mform->render();
 
         // PDF report URL.
-        $pdfurl = new \moodle_url('/local/competency_report/pdf_report.php', ['courseid' => $this->data->courseid]);
+        $pdfurl = new \moodle_url('/local/comp_report_ext/pdf_report.php', ['courseid' => $this->data->courseid]);
         $export->pdf_url = $pdfurl->out(false);
 
         // Table data.

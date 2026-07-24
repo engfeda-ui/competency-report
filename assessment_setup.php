@@ -29,11 +29,13 @@ $courseid = required_param('courseid', PARAM_INT);
 
 require_login($courseid);
 $context = context_course::instance($courseid);
-require_capability('local/competency_report:manageassessments', $context);
+if (!has_capability('local/comp_report_ext:manageassessments', $context) && !has_capability('local/competency_report:manageassessments', $context)) {
+    require_capability('local/comp_report_ext:manageassessments', $context);
+}
 
 $course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
 
-$PAGE->set_url('/local/competency_report/assessment_setup.php', ['courseid' => $courseid]);
+$PAGE->set_url('/local/comp_report_ext/assessment_setup.php', ['courseid' => $courseid]);
 $PAGE->set_context($context);
 $PAGE->set_pagelayout('course');
 $PAGE->set_title(get_string('assessmentsetup', 'local_comp_report_ext'));
@@ -51,7 +53,7 @@ if ($action === 'add' && confirm_sesskey()) {
 
     if ($name === '' || $weight < 0) {
         redirect(
-            new moodle_url('/local/competency_report/assessment_setup.php', ['courseid' => $courseid]),
+            new moodle_url('/local/comp_report_ext/assessment_setup.php', ['courseid' => $courseid]),
             get_string('invaliddata', 'local_comp_report_ext'),
             null,
             \core\output\notification::NOTIFY_ERROR
@@ -62,7 +64,7 @@ if ($action === 'add' && confirm_sesskey()) {
     if ($type === 'quiz' && $quizid > 0) {
         if (!$DB->record_exists('quiz', ['id' => $quizid, 'course' => $courseid])) {
             redirect(
-                new moodle_url('/local/competency_report/assessment_setup.php', ['courseid' => $courseid]),
+                new moodle_url('/local/comp_report_ext/assessment_setup.php', ['courseid' => $courseid]),
                 get_string('invaliddata', 'local_comp_report_ext'),
                 null,
                 \core\output\notification::NOTIFY_ERROR
@@ -77,7 +79,7 @@ if ($action === 'add' && confirm_sesskey()) {
         );
         if (!$exists) {
             redirect(
-                new moodle_url('/local/competency_report/assessment_setup.php', ['courseid' => $courseid]),
+                new moodle_url('/local/comp_report_ext/assessment_setup.php', ['courseid' => $courseid]),
                 get_string('invaliddata', 'local_comp_report_ext'),
                 null,
                 \core\output\notification::NOTIFY_ERROR

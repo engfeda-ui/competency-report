@@ -30,10 +30,12 @@ $groupid = optional_param('groupid', 0, PARAM_INT);
 
 require_login($courseid);
 $context = context_course::instance($courseid);
-require_capability('local/competency_report:viewreports', $context);
+if (!has_capability('local/comp_report_ext:viewreports', $context) && !has_capability('local/competency_report:viewreports', $context)) {
+    require_capability('local/comp_report_ext:viewreports', $context);
+}
 
 // Page definitions and navigation.
-$PAGE->set_url('/local/competency_report/group_competency.php', ['courseid' => $courseid]);
+$PAGE->set_url('/local/comp_report_ext/group_competency.php', ['courseid' => $courseid]);
 $PAGE->set_title(get_string('groupcompetency', 'local_comp_report_ext'));
 $PAGE->set_heading(get_string('groupcompetency', 'local_comp_report_ext'));
 $PAGE->set_pagelayout('course');
@@ -114,7 +116,7 @@ if ($groupid) {
     foreach ($students as $s) {
         $row = new stdClass();
         $detailurl = new moodle_url(
-            '/local/competency_report/student_competency_detail.php',
+            '/local/comp_report_ext/student_competency_detail.php',
             ['courseid' => $courseid, 'userid' => $s->id]
         );
         $row->studentlink = html_writer::link(

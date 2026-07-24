@@ -85,7 +85,7 @@ class assessment_setup_page implements renderable, templatable {
                 $row->associatedactivity = '—';
             }
 
-            $row->deleteurl   = (new \moodle_url('/local/competency_report/assessment_setup.php', [
+            $row->deleteurl   = (new \moodle_url('/local/comp_report_ext/assessment_setup.php', [
                 'courseid' => $this->data->courseid,
                 'action'   => 'delete',
                 'deleteid' => $a->id,
@@ -118,7 +118,7 @@ class assessment_setup_page implements renderable, templatable {
         $d->hasassignments = !empty($d->assignments);
 
         // Setup form action URL.
-        $d->formaction = (new \moodle_url('/local/competency_report/assessment_setup.php', [
+        $d->formaction = (new \moodle_url('/local/comp_report_ext/assessment_setup.php', [
             'courseid' => $this->data->courseid,
         ]))->out(false);
 

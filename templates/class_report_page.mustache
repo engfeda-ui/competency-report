@@ -118,8 +118,8 @@ require(['local_comp_report_ext/visualizer', 'core/log', 'jquery'], function(Vis
         
         var userid = parseInt("{{userid}}") || 0;
         var targetUrl = (userid > 0) 
-            ? M.cfg.wwwroot + '/local/competency_report/parent_pdf.php' 
-            : M.cfg.wwwroot + '/local/competency_report/school_pdf.php';
+            ? M.cfg.wwwroot + '/local/comp_report_ext/parent_pdf.php' 
+            : M.cfg.wwwroot + '/local/comp_report_ext/school_pdf.php';
 
         var form = $('<form>', {
             action: targetUrl,

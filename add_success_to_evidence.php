@@ -41,12 +41,12 @@ require_capability('moodle/site:config', context_system::instance());
 
 // Page Settings.
 if ($courseid > 0) {
-    $PAGE->set_url('/local/competency_report/add_success_to_evidence.php', ['courseid' => $courseid]);
+    $PAGE->set_url('/local/comp_report_ext/add_success_to_evidence.php', ['courseid' => $courseid]);
     $PAGE->set_context($context);
     $PAGE->set_title(get_string('process_success_title', 'local_comp_report_ext'));
     $PAGE->set_heading(get_string('process_success_heading', 'local_comp_report_ext'));
 } else {
-    $PAGE->set_url('/local/competency_report/add_success_to_evidence.php');
+    $PAGE->set_url('/local/comp_report_ext/add_success_to_evidence.php');
     $PAGE->set_context($context);
     $PAGE->set_title(get_string('process_success_title', 'local_comp_report_ext'));
     $PAGE->set_heading(get_string('process_success_heading', 'local_comp_report_ext'));
@@ -89,7 +89,7 @@ if ($courseid == 0) {
 
     // Output a simple form.
     echo html_writer::start_tag('form', [
-        'action' => new moodle_url('/local/competency_report/add_success_to_evidence.php'),
+        'action' => new moodle_url('/local/comp_report_ext/add_success_to_evidence.php'),
         'method' => 'GET',
         'class' => 'form-inline justify-content-center',
     ]);

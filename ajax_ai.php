@@ -102,7 +102,14 @@ if ($contexttype === 'school') {
         if (empty($userid)) {
             $userid = $USER->id;
         }
-        require_capability('local/competency_report:viewownreport', $context);
+    if (
+        !has_capability('local/comp_report_ext:viewownreport', $context)
+        && !has_capability('local/comp_report_ext:viewreports', $context)
+        && !has_capability('local/competency_report:viewownreport', $context)
+        && !has_capability('local/competency_report:viewreports', $context)
+    ) {
+        require_capability('local/comp_report_ext:viewownreport', $context);
+    }
     }
 }
 

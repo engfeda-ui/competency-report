@@ -32,7 +32,7 @@ require_login($courseid);
 $context = context_course::instance($courseid);
 
 // Page definitions and navigation setup.
-$PAGE->set_url('/local/competency_report/student_exam.php', ['courseid' => $courseid]);
+$PAGE->set_url('/local/comp_report_ext/student_exam.php', ['courseid' => $courseid]);
 $PAGE->set_context($context);
 $PAGE->set_title(get_string('studentexam', 'local_comp_report_ext'));
 $PAGE->set_heading(get_string('studentexam', 'local_comp_report_ext'));

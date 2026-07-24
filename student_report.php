@@ -35,14 +35,16 @@ $userid = $USER->id;
 
 // Students can view their own report; teachers can view any student's report.
 if (
-    !has_capability('local/competency_report:viewownreport', $context)
+    !has_capability('local/comp_report_ext:viewownreport', $context)
+    && !has_capability('local/comp_report_ext:viewreports', $context)
+    && !has_capability('local/competency_report:viewownreport', $context)
     && !has_capability('local/competency_report:viewreports', $context)
 ) {
-    require_capability('local/competency_report:viewownreport', $context);
+    require_capability('local/comp_report_ext:viewownreport', $context);
 }
 
 // Page Setup.
-$PAGE->set_url('/local/competency_report/student_report.php', ['courseid' => $courseid]);
+$PAGE->set_url('/local/comp_report_ext/student_report.php', ['courseid' => $courseid]);
 $PAGE->set_context($context);
 $PAGE->set_pagelayout('course');
 $PAGE->set_title(get_string('studentreport', 'local_comp_report_ext'));
@@ -122,7 +124,7 @@ $renderdata->rows = $rows;
 $renderdata->courseid = $courseid;
 $renderdata->userid = $userid;
 $renderdata->context = $context;
-$renderdata->pdf_url = (new moodle_url('/local/competency_report/parent_pdf.php', ['courseid' => $courseid]))->out(false);
+$renderdata->pdf_url = (new moodle_url('/local/comp_report_ext/parent_pdf.php', ['courseid' => $courseid]))->out(false);
 $renderdata->chart_data = $chartdata;
 $renderdata->has_radar = count($chartlabels) >= 2; // Only show chart if ≥2 competencies.
 

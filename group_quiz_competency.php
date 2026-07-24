@@ -36,7 +36,7 @@ $context = context_course::instance($courseid);
 require_capability('mod/quiz:viewreports', $context);
 
 // 3. Page Settings (Must be defined before header output).
-$PAGE->set_url('/local/competency_report/group_quiz_competency.php', [
+$PAGE->set_url('/local/comp_report_ext/group_quiz_competency.php', [
     'courseid' => $courseid,
     'groupid'  => $groupid,
     'quizid'   => $quizid,
@@ -135,7 +135,7 @@ if ($groupid && $quizid) {
     $grouptotals = [];
     foreach ($students as $s) {
         $row = new stdClass();
-        $detailurl = new moodle_url('/local/competency_report/student_competency_detail.php', [
+        $detailurl = new moodle_url('/local/comp_report_ext/student_competency_detail.php', [
             'courseid' => $courseid,
             'userid' => $s->id,
         ]);

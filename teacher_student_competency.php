@@ -35,7 +35,7 @@ require_login($courseid);
 $context = context_course::instance($courseid);
 require_capability('mod/quiz:viewreports', $context);
 
-$PAGE->set_url('/local/competency_report/teacher_student_competency.php', ['courseid' => $courseid]);
+$PAGE->set_url('/local/comp_report_ext/teacher_student_competency.php', ['courseid' => $courseid]);
 $PAGE->set_title(get_string('teacherstudentcompetency', 'local_comp_report_ext'));
 $PAGE->set_heading(get_string('teacherstudentcompetency', 'local_comp_report_ext'));
 $PAGE->set_pagelayout('course');

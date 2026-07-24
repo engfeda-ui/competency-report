@@ -24,7 +24,7 @@
  */
 
 require_once(__DIR__ . '/../../config.php');
-require_once($CFG->dirroot . '/local/competency_report/forms/selector_form.php');
+require_once($CFG->dirroot . '/local/comp_report_ext/forms/selector_form.php');
 
 $courseid = required_param('courseid', PARAM_INT);
 require_login($courseid);
@@ -34,7 +34,7 @@ $context = context_course::instance($courseid);
 require_capability('mod/quiz:viewreports', $context);
 
 // Page configuration and navigation setup.
-$PAGE->set_url('/local/competency_report/teacher_student_exam.php', ['courseid' => $courseid]);
+$PAGE->set_url('/local/comp_report_ext/teacher_student_exam.php', ['courseid' => $courseid]);
 $PAGE->set_title(get_string('studentanalysis', 'local_comp_report_ext'));
 $PAGE->set_heading(get_string('studentanalysis', 'local_comp_report_ext'));
 $PAGE->set_pagelayout('course');

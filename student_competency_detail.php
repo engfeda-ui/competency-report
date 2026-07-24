@@ -42,7 +42,7 @@ $course  = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
 $student = $DB->get_record('user', ['id' => $userid], '*', MUST_EXIST);
 
 // Page definitions and setup.
-$PAGE->set_url('/local/competency_report/student_competency_detail.php', ['courseid' => $courseid, 'userid' => $userid]);
+$PAGE->set_url('/local/comp_report_ext/student_competency_detail.php', ['courseid' => $courseid, 'userid' => $userid]);
 $PAGE->set_context($context);
 $PAGE->set_pagelayout('course');
 $PAGE->set_title(get_string('studentreport', 'local_comp_report_ext'));
@@ -79,7 +79,7 @@ $renderdata = new stdClass();
 $renderdata->rows = $rows;
 $renderdata->courseid = $courseid;
 $renderdata->userid = $userid;
-$pdfurl = new moodle_url('/local/competency_report/parent_pdf.php', ['courseid' => $courseid, 'userid' => $userid]);
+$pdfurl = new moodle_url('/local/comp_report_ext/parent_pdf.php', ['courseid' => $courseid, 'userid' => $userid]);
 $renderdata->pdf_url = $pdfurl->out(false);
 
 // AI feedback is now loaded on-demand via AJAX to avoid slow page loads.

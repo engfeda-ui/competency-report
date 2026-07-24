@@ -62,15 +62,15 @@ class practical_entry_page implements renderable, templatable {
         $d->sesskey      = $this->data->sesskey;
         $d->hasselection = ($this->data->assessmentid > 0 && $this->data->competencyid > 0);
 
-        $d->formaction = (new moodle_url('/local/competency_report/practical_entry.php', [
+        $d->formaction = (new moodle_url('/local/comp_report_ext/practical_entry.php', [
             'courseid' => $this->data->courseid,
         ]))->out(false);
 
-        $d->filteraction = (new moodle_url('/local/competency_report/practical_entry.php', [
+        $d->filteraction = (new moodle_url('/local/comp_report_ext/practical_entry.php', [
             'courseid' => $this->data->courseid,
         ]))->out(false);
 
-        $d->setupurl = (new moodle_url('/local/competency_report/assessment_setup.php', [
+        $d->setupurl = (new moodle_url('/local/comp_report_ext/assessment_setup.php', [
             'courseid' => $this->data->courseid,
         ]))->out(false);
 

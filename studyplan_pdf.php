@@ -45,10 +45,13 @@ $context = context_course::instance($courseid);
 if (empty($userid)) {
     $userid = $USER->id;
 }
-if ($userid != $USER->id) {
-    require_capability('mod/quiz:viewreports', $context);
-} else {
-    require_capability('local/competency_report:viewownreport', $context);
+if (
+    !has_capability('local/comp_report_ext:viewownreport', $context)
+    && !has_capability('local/comp_report_ext:viewreports', $context)
+    && !has_capability('local/competency_report:viewownreport', $context)
+    && !has_capability('local/competency_report:viewreports', $context)
+) {
+    require_capability('local/comp_report_ext:viewownreport', $context);
 }
 
 // 3. Check AI is enabled.

@@ -31,11 +31,13 @@ $courseid = required_param('courseid', PARAM_INT);
 
 require_login($courseid);
 $context = context_course::instance($courseid);
-require_capability('local/competency_report:enterpractical', $context);
+if (!has_capability('local/comp_report_ext:enterpractical', $context) && !has_capability('local/competency_report:enterpractical', $context)) {
+    require_capability('local/comp_report_ext:enterpractical', $context);
+}
 
 $course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
 
-$PAGE->set_url('/local/competency_report/practical_entry.php', ['courseid' => $courseid]);
+$PAGE->set_url('/local/comp_report_ext/practical_entry.php', ['courseid' => $courseid]);
 $PAGE->set_context($context);
 $PAGE->set_pagelayout('course');
 $PAGE->set_title(get_string('practicalentry', 'local_comp_report_ext'));
@@ -146,7 +148,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
     }
 
     redirect(
-        new moodle_url('/local/competency_report/practical_entry.php', [
+        new moodle_url('/local/comp_report_ext/practical_entry.php', [
             'courseid'     => $courseid,
             'assessmentid' => $postassid,
             'competencyid' => $postcompid,

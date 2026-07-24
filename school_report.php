@@ -49,7 +49,7 @@ if ($courseid) {
 }
 
 // Page definitions.
-$PAGE->set_url(new moodle_url('/local/competency_report/school_report.php', ['courseid' => $courseid]));
+$PAGE->set_url(new moodle_url('/local/comp_report_ext/school_report.php', ['courseid' => $courseid]));
 $PAGE->set_context($context);
 $PAGE->set_title($reporttitle);
 $PAGE->set_heading($reporttitle);

@@ -40,7 +40,9 @@ $pdfcontent   = optional_param('pdf_content', '', PARAM_RAW);
 if ($courseid > 0) {
     require_login($courseid);
     $context = context_course::instance($courseid);
-    require_capability('local/competency_report:viewreports', $context);
+    if (!has_capability('local/comp_report_ext:viewreports', $context) && !has_capability('local/competency_report:viewreports', $context)) {
+    require_capability('local/comp_report_ext:viewreports', $context);
+}
     $course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
 } else {
     // If no course is specified, treat as a site-wide report (admin access).

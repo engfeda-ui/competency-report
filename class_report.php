@@ -35,7 +35,7 @@ require_capability('moodle/course:view', $context);
 $course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
 
 // Page settings.
-$PAGE->set_url('/local/competency_report/class_report.php', ['courseid' => $courseid]);
+$PAGE->set_url('/local/comp_report_ext/class_report.php', ['courseid' => $courseid]);
 $PAGE->set_context($context);
 $PAGE->set_pagelayout('course');
 $PAGE->set_title(get_string('report_title', 'local_comp_report_ext', $course->fullname));

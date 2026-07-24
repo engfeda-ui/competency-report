@@ -33,14 +33,16 @@ require_login($course);
 
 // Students can view their own class comparison; teachers can view it too.
 if (
-    !has_capability('local/competency_report:viewownreport', $context)
+    !has_capability('local/comp_report_ext:viewownreport', $context)
+    && !has_capability('local/comp_report_ext:viewreports', $context)
+    && !has_capability('local/competency_report:viewownreport', $context)
     && !has_capability('local/competency_report:viewreports', $context)
 ) {
-    require_capability('local/competency_report:viewownreport', $context);
+    require_capability('local/comp_report_ext:viewownreport', $context);
 }
 
-// Page settings and navigation.
-$PAGE->set_url('/local/competency_report/student_class.php', ['courseid' => $courseid]);
+// Page definitions and setup.
+$PAGE->set_url('/local/comp_report_ext/student_class.php', ['courseid' => $courseid]);
 $PAGE->set_context($context);
 $PAGE->set_title(get_string('studentanalysis', 'local_comp_report_ext'));
 $PAGE->set_heading(get_string('analysisfor', 'local_comp_report_ext', $course->fullname));
