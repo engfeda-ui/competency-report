@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.4.8-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.4.9-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -81,6 +81,9 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 ---
 
 ## 📋 Changelog
+
+### v3.4.9 — 2026-07-25
+- **Fix & Purge:** Implemented complete deduplication and automatic purging of duplicate records across `{competency_userevidence}` and `{competency_userevidencecomp}` tables in `process_competency_rates_task.php` so Moodle's native Competency Breakdown evidence modal displays exactly 1 clean, updated evidence entry per student per competency.
 
 ### v3.4.8 — 2026-07-25
 - **Fix & Deduplication:** Implemented strict evidence deduplication and automatic cleanup logic in `process_competency_rates_task.php` to prevent duplicate evidence records from being generated in `{competency_evidence}` and `{competency_userevidence}` when task is executed repeatedly, and automatically purge past duplicate entries.
