@@ -277,6 +277,44 @@ class competency_sync {
             }
         }
 
+        self::purge_duplicate_evidence();
         return $count;
+    }
+
+    /**
+     * Purge all duplicate competency_evidence records site-wide.
+     * Keeps strictly the single newest evidence record per usercompetency.
+     *
+     * @return void
+     */
+    public static function purge_duplicate_evidence(): void {
+        global $DB;
+        try {
+            $dupes = $DB->get_records_sql(
+                "SELECT id, usercompetencyid
+                   FROM {competency_evidence}
+               ORDER BY usercompetencyid ASC, id DESC"
+            );
+            if (empty($dupes)) {
+                return;
+            }
+            $seen = [];
+            $todelete = [];
+            foreach ($dupes as $row) {
+                if (isset($seen[$row->usercompetencyid])) {
+                    $todelete[] = (int)$row->id;
+                } else {
+                    $seen[$row->usercompetencyid] = true;
+                }
+            }
+            if (!empty($todelete)) {
+                $chunks = array_chunk($todelete, 1000);
+                foreach ($chunks as $chunk) {
+                    $DB->delete_records_list('competency_evidence', 'id', $chunk);
+                }
+            }
+        } catch (\Throwable $e) {
+            unset($e);
+        }
     }
 }
