@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.5.3-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.5.4-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -81,6 +81,13 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 ---
 
 ## 📋 Changelog
+
+### v3.5.4 — 2026-07-25
+- **Fix & Real Automatic Verification:** Introduced a single centralised sync engine (`classes/competency_sync.php`) that all three sync entry points (quiz observer, nightly cron, manual admin trigger) now share. This guarantees automatic competency verification on quiz submission — no manual action required.
+- **Fix & Proficiency:** Always sets `proficiency` (1/0) on `competency_usercomp` and `competency_usercompcourse`, so Moodle's native Competency Breakdown page (`report/competency/index.php`) automatically marks the student as **Proficient (متقن)** the moment they cross the success threshold.
+- **Fix & Deduplication:** Strict single-evidence invariant enforced on every sync run — exactly 1 `{competency_evidence}` row and 0 redundant `{competency_userevidence}` / `{competency_userevidencecomp}` rows per student per competency. Old duplicates are auto-purged; the nightly task no longer re-creates them.
+- **Improvement:** Sync now uses the same weighted `competency_calculator` engine as the report pages, so Moodle's native UI shows identical competency rates to the plugin reports (respects configured assessment weights + practical exams).
+- **Fix:** Removed hardcoded `adminid = 2`; the acting grader is now resolved dynamically via `get_admin()`.
 
 ### v3.5.3 — 2026-07-25
 - **Fix & Single Evidence Card:** Enforced strict single evidence record pattern in `{competency_evidence}` and purged all redundant `{competency_userevidence}` entries so Moodle's native modal UI displays strictly 1 single evidence card per student per competency.

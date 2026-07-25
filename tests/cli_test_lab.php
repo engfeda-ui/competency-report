@@ -204,16 +204,63 @@ run_test("[local_comp_report_ext] Task Execution & Evidence Deduplication Purge"
     $task->set_custom_data(['courseid' => 2, 'adminid' => 2]);
     $task->execute();
 
-    // Verify no user has > 1 evidence link for any competency.
-    $dupes = $DB->get_records_sql(
+    // 1. Verify no user has > 1 userevidencecomp link for any competency.
+    $dupeslinks = $DB->get_records_sql(
         "SELECT l.competencyid, e.userid, COUNT(*) AS cnt
            FROM {competency_userevidencecomp} l
            JOIN {competency_userevidence} e ON e.id = l.userevidenceid
        GROUP BY l.competencyid, e.userid
          HAVING COUNT(*) > 1"
     );
-    if (!empty($dupes)) {
-        return "Duplicate evidence records still present after task execution";
+    if (!empty($dupeslinks)) {
+        return "Duplicate userevidencecomp links still present after task execution";
+    }
+
+    // 2. Verify exactly 1 competency_evidence row per usercompetency.
+    $dupesevid = $DB->get_records_sql(
+        "SELECT usercompetencyid, COUNT(*) AS cnt
+           FROM {competency_evidence}
+       GROUP BY usercompetencyid
+         HAVING COUNT(*) > 1"
+    );
+    if (!empty($dupesevid)) {
+        return "Duplicate competency_evidence rows still present after task execution";
+    }
+
+    // 3. Verify every rated competency_usercomp has proficiency set (not NULL).
+    $nullprof = $DB->get_records_sql(
+        "SELECT uc.id
+           FROM {competency_usercomp} uc
+           JOIN {competency_evidence} ce ON ce.usercompetencyid = uc.id
+          WHERE uc.proficiency IS NULL"
+    );
+    if (!empty($nullprof)) {
+        return "competency_usercomp rows with NULL proficiency found after sync";
+    }
+
+    return true;
+});
+
+run_test("[local_comp_report_ext] Centralised competency_sync Engine", function() {
+    // Verify the single shared sync engine exists and is callable for all
+    // three entry points (observer, scheduled task, manual trigger).
+    if (!class_exists('\local_comp_report_ext\competency_sync')) {
+        return "competency_sync class missing";
+    }
+    if (!method_exists('\local_comp_report_ext\competency_sync', 'sync_user_competency')) {
+        return "sync_user_competency() missing";
+    }
+    if (!method_exists('\local_comp_report_ext\competency_sync', 'sync_course')) {
+        return "sync_course() missing";
+    }
+    if (!method_exists('\local_comp_report_ext\competency_sync', 'resolve_grader_id')) {
+        return "resolve_grader_id() missing";
+    }
+    // resolve_grader_id must never return a hardcoded 2 blindly — it should
+    // resolve dynamically (we just confirm it returns a sane value).
+    $gid = \local_comp_report_ext\competency_sync::resolve_grader_id(99);
+    if ($gid !== 99) {
+        return "resolve_grader_id should echo preferred id (expected 99, got {$gid})";
     }
     return true;
 });

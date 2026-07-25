@@ -24,12 +24,17 @@
 
 namespace local_comp_report_ext\task;
 
+defined('MOODLE_INTERNAL') || die();
+
 /**
  * Class scheduled_competency_rates_task
  *
- * Scheduled cron task to calculate quiz-based competency success rates for all active courses.
+ * Nightly safety-net sync: re-syncs competency proficiency + evidence for all
+ * active courses. Delegates all DB writes to competency_sync so it never
+ * duplicates evidence and stays consistent with the quiz observer and the
+ * manual admin trigger.
  *
- * @package    local_comp_report_ext
+ * @package local_comp_report_ext
  */
 class scheduled_competency_rates_task extends \core\task\scheduled_task {
     /**
@@ -49,125 +54,19 @@ class scheduled_competency_rates_task extends \core\task\scheduled_task {
 
         // Fetch all active courses.
         $courses = $DB->get_records('course', ['visible' => 1]);
-        $adminid = 2; // Default to Admin user.
+        $graderid = \local_comp_report_ext\competency_sync::resolve_grader_id();
 
         foreach ($courses as $course) {
             if ($course->id == SITEID) {
                 continue;
             }
-
-            $courseid = $course->id;
-            $contextid = \context_course::instance($courseid)->id;
-
-            $sql = "SELECT DISTINCT c.id, c.shortname
-                      FROM {qbank_comp_ext_qmap} m
-                      JOIN {competency} c ON c.id = m.competencyid
-                     WHERE m.courseid = :courseid
-                  ORDER BY c.shortname";
-            $competencies = $DB->get_records_sql($sql, ['courseid' => $courseid]);
-
-            if (empty($competencies)) {
-                continue;
-            }
-
-            // Fetch only enrolled, active students in this course.
-            $context = \context_course::instance($courseid);
-            $students = get_enrolled_users($context, 'mod/quiz:attempt', 0, 'u.*', null, 0, 0, true);
-
-            if (empty($students)) {
-                continue;
-            }
-
-            foreach ($students as $student) {
-                foreach ($competencies as $c) {
-                    $rate = $this->get_user_competency_rate($student->id, $c->id, $courseid);
-
-                    if ($rate === null) {
-                        continue;
-                    }
-
-                    $ratestr = number_format($rate, 1);
-                    $a = new \stdClass();
-                    $a->competency = $c->shortname;
-                    $a->rate = $ratestr;
-
-                    // Insert user evidence.
-                    $evidence = new \stdClass();
-                    $evidence->userid = $student->id;
-                    $evidence->name = get_string('process_success_title', 'local_comp_report_ext')
-                        . " (Auto Sync " . date('d.m.Y') . ")";
-                    $evidence->description = get_string('evidence_description', 'local_comp_report_ext', $a);
-                    $evidence->descriptionformat = FORMAT_HTML;
-                    $evidence->url = '';
-                    $evidence->timecreated = time();
-                    $evidence->timemodified = time();
-                    $evidence->usermodified = $adminid;
-                    $evidenceid = $DB->insert_record('competency_userevidence', $evidence);
-
-                    $link = new \stdClass();
-                    $link->userevidenceid = $evidenceid;
-                    $link->competencyid = $c->id;
-                    $link->timecreated = time();
-                    $link->timemodified = time();
-                    $link->usermodified = $adminid;
-                    $DB->insert_record('competency_userevidencecomp', $link);
-
-                    $uc = $DB->get_record('competency_usercomp', ['userid' => $student->id, 'competencyid' => $c->id]);
-                    if (!$uc) {
-                        $uc = new \stdClass();
-                        $uc->userid = $student->id;
-                        $uc->competencyid = $c->id;
-                        $uc->timecreated = time();
-                        $uc->timemodified = time();
-                        $uc->usermodified = $adminid;
-                        $uc->id = $DB->insert_record('competency_usercomp', $uc);
-                    }
-
-                    $cevidence = new \stdClass();
-                    $cevidence->usercompetencyid = $uc->id;
-                    $cevidence->contextid = $contextid;
-                    $cevidence->action = 1;
-                    $cevidence->actionuserid = $adminid;
-                    $cevidence->descidentifier = 'evidence';
-                    $cevidence->desccomponent = 'local_comp_report_ext';
-                    $cevidence->desca = null;
-                    $cevidence->url = '';
-                    $cevidence->grade = (int)$rate;
-                    $cevidence->note = get_string('evidence_note', 'local_comp_report_ext', $a);
-                    $cevidence->timecreated = time();
-                    $cevidence->timemodified = time();
-                    $cevidence->usermodified = $adminid;
-                    $DB->insert_record('competency_evidence', $cevidence);
-                }
+            try {
+                \local_comp_report_ext\competency_sync::sync_course((int)$course->id, $graderid);
+            } catch (\Throwable $e) {
+                // Never let one course break the whole nightly run.
+                debugging('competency_sync course ' . $course->id . ': ' . $e->getMessage(), DEBUG_DEVELOPER);
+                unset($e);
             }
         }
-    }
-
-    /**
-     * Calculate user competency rate based on quiz attempts.
-     */
-    private function get_user_competency_rate($userid, $competencyid, $courseid) {
-        global $DB;
-        $sql = "SELECT CAST(SUM(qa.maxfraction) AS DECIMAL(12,1)) AS questions,
-                       CAST(SUM(qas.fraction) AS DECIMAL(12,1)) AS correct
-                  FROM {quiz_attempts} quiza
-                  JOIN {question_usages} qu ON qu.id = quiza.uniqueid
-                  JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-                  JOIN {quiz} quiz ON quiz.id = quiza.quiz
-                  JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
-                  JOIN (
-                       SELECT MAX(fraction) AS fraction, questionattemptid
-                         FROM {question_attempt_steps}
-                     GROUP BY questionattemptid
-                  ) qas ON qas.questionattemptid = qa.id
-                 WHERE quiz.course = :courseid
-                   AND quiza.userid = :userid
-                   AND m.competencyid = :competencyid";
-
-        $row = $DB->get_record_sql($sql, ['courseid' => $courseid, 'userid' => $userid, 'competencyid' => $competencyid]);
-        if ($row && $row->questions > 0) {
-            return ($row->correct / $row->questions) * 100;
-        }
-        return null;
     }
 }
