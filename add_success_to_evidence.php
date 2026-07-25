@@ -119,17 +119,17 @@ echo $OUTPUT->header();
 
 if ($run) {
     require_sesskey();
-    // Create an adhoc task.
+    // Create and execute task immediately for instant results.
     $task = new \local_comp_report_ext\task\process_competency_rates_task();
     $task->set_custom_data([
         'courseid' => $courseid,
-        'adminid' => $USER->id,
+        'adminid'  => $USER->id,
     ]);
 
-    \core\task\manager::queue_adhoc_task($task);
+    $task->execute();
 
-    echo $OUTPUT->notification(get_string('process_queued', 'local_comp_report_ext'), 'success');
-    echo $OUTPUT->continue_button(new moodle_url('/course/view.php', ['id' => $courseid]));
+    echo $OUTPUT->notification(get_string('process_success_title', 'local_comp_report_ext') . ' — ' . get_string('btn_process_now', 'local_comp_report_ext') . ' (Completed)', 'success');
+    echo $OUTPUT->continue_button(new moodle_url('/report/competency/index.php', ['id' => $courseid]));
 } else {
     // Information box and action button.
     echo $OUTPUT->box(get_string('process_success_desc', 'local_comp_report_ext'), 'generalbox boxaligncenter');
