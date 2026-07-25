@@ -100,7 +100,7 @@ if ($action === 'add' && confirm_sesskey()) {
     $DB->insert_record('local_comp_report_ext_asmt', $record);
 
     redirect(
-        new moodle_url('/local/competency_report/assessment_setup.php', ['courseid' => $courseid]),
+        new moodle_url('/local/comp_report_ext/assessment_setup.php', ['courseid' => $courseid]),
         get_string('assessmentsaved', 'local_comp_report_ext'),
         null,
         \core\output\notification::NOTIFY_SUCCESS
@@ -126,7 +126,7 @@ if ($action === 'update' && confirm_sesskey()) {
     }
 
     redirect(
-        new moodle_url('/local/competency_report/assessment_setup.php', ['courseid' => $courseid]),
+        new moodle_url('/local/comp_report_ext/assessment_setup.php', ['courseid' => $courseid]),
         get_string('assessmentsaved', 'local_comp_report_ext'),
         null,
         \core\output\notification::NOTIFY_SUCCESS
@@ -137,7 +137,7 @@ if ($action === 'delete' && confirm_sesskey()) {
     $deleteid = required_param('deleteid', PARAM_INT);
     $DB->delete_records('local_comp_report_ext_asmt', ['id' => $deleteid, 'courseid' => $courseid]);
     redirect(
-        new moodle_url('/local/competency_report/assessment_setup.php', ['courseid' => $courseid]),
+        new moodle_url('/local/comp_report_ext/assessment_setup.php', ['courseid' => $courseid]),
         get_string('assessmentdeleted', 'local_comp_report_ext'),
         null,
         \core\output\notification::NOTIFY_SUCCESS
