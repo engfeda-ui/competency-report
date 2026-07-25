@@ -167,28 +167,30 @@ class process_competency_rates_task extends \core\task\adhoc_task {
                     $DB->insert_record('competency_userevidencecomp', $link);
                 }
 
-                // 4. Deduplication Check & Purge for competency_evidence.
+                // 4. Deduplication Check & Purge for competency_evidence (Unrestricted by context to purge all legacy duplicates).
                 $existingevidences = $DB->get_records_sql(
                     "SELECT id, grade FROM {competency_evidence}
-                      WHERE usercompetencyid = :ucid AND contextid = :contextid
-                        AND desccomponent = 'local_comp_report_ext'
+                      WHERE usercompetencyid = :ucid
                    ORDER BY id DESC",
-                    ['ucid' => $uc->id, 'contextid' => $contextid]
+                    ['ucid' => $uc->id]
                 );
 
                 if (!empty($existingevidences)) {
-                    // Clean up any duplicate evidence records, keeping the newest one.
+                    // Clean up ALL older duplicate evidence records, keeping ONLY the newest one.
                     $newestcev = array_shift($existingevidences);
                     if (!empty($existingevidences)) {
                         $dupeids = array_keys($existingevidences);
                         $DB->delete_records_list('competency_evidence', 'id', $dupeids);
                     }
 
-                    // Update existing evidence grade and note.
-                    $newestcev->grade        = (int)$rate;
-                    $newestcev->note         = get_string('evidence_note', 'local_comp_report_ext', $a);
-                    $newestcev->timemodified = time();
-                    $newestcev->usermodified = $adminid;
+                    // Update existing evidence grade, note, and context.
+                    $newestcev->grade          = (int)$rate;
+                    $newestcev->note           = get_string('evidence_note', 'local_comp_report_ext', $a);
+                    $newestcev->contextid      = $contextid;
+                    $newestcev->desccomponent  = 'local_comp_report_ext';
+                    $newestcev->descidentifier = 'evidence';
+                    $newestcev->timemodified   = time();
+                    $newestcev->usermodified   = $adminid;
                     $DB->update_record('competency_evidence', $newestcev);
                 } else {
                     $cevidence = new \stdClass();
