@@ -198,6 +198,26 @@ run_test("[quizaccess_attemptpassword] Rule Class Loading & Password Rules", fun
     return true;
 });
 
+run_test("[local_comp_report_ext] Task Execution & Evidence Deduplication Purge", function() {
+    global $DB;
+    $task = new \local_comp_report_ext\task\process_competency_rates_task();
+    $task->set_custom_data(['courseid' => 2, 'adminid' => 2]);
+    $task->execute();
+
+    // Verify no user has > 1 evidence link for any competency.
+    $dupes = $DB->get_records_sql(
+        "SELECT l.competencyid, e.userid, COUNT(*) AS cnt
+           FROM {competency_userevidencecomp} l
+           JOIN {competency_userevidence} e ON e.id = l.userevidenceid
+       GROUP BY l.competencyid, e.userid
+         HAVING COUNT(*) > 1"
+    );
+    if (!empty($dupes)) {
+        return "Duplicate evidence records still present after task execution";
+    }
+    return true;
+});
+
 echo "\n---------------------------------------------------------\n";
 echo " 📊 SUMMARY: Pass = {$passcount} | Fail = {$failcount}\n";
 echo "=========================================================\n\n";
