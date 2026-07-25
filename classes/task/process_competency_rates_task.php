@@ -88,15 +88,48 @@ class process_competency_rates_task extends \core\task\adhoc_task {
                 $link->usermodified = $adminid;
                 $DB->insert_record('competency_userevidencecomp', $link);
 
+                $threshold = (int)(get_config('local_comp_report_ext', 'success_threshold') ?: 60);
+                $isproficient = ($rate >= $threshold) ? 1 : 0;
+
                 $uc = $DB->get_record('competency_usercomp', ['userid' => $student->id, 'competencyid' => $c->id]);
                 if (!$uc) {
                     $uc = new \stdClass();
                     $uc->userid = $student->id;
                     $uc->competencyid = $c->id;
+                    $uc->status = 0;
+                    $uc->proficiency = $isproficient;
                     $uc->timecreated = time();
                     $uc->timemodified = time();
                     $uc->usermodified = $adminid;
                     $uc->id = $DB->insert_record('competency_usercomp', $uc);
+                } else {
+                    $uc->proficiency = $isproficient;
+                    $uc->timemodified = time();
+                    $uc->usermodified = $adminid;
+                    $DB->update_record('competency_usercomp', $uc);
+                }
+
+                // Also update course-level user competency status for Moodle course competencies breakdown page.
+                $ucc = $DB->get_record('competency_usercompcourse', [
+                    'userid'       => $student->id,
+                    'courseid'     => $courseid,
+                    'competencyid' => $c->id,
+                ]);
+                if (!$ucc) {
+                    $ucc = new \stdClass();
+                    $ucc->userid       = $student->id;
+                    $ucc->courseid     = $courseid;
+                    $ucc->competencyid = $c->id;
+                    $ucc->proficiency  = $isproficient;
+                    $ucc->timecreated  = time();
+                    $ucc->timemodified = time();
+                    $ucc->usermodified = $adminid;
+                    $DB->insert_record('competency_usercompcourse', $ucc);
+                } else {
+                    $ucc->proficiency  = $isproficient;
+                    $ucc->timemodified = time();
+                    $ucc->usermodified = $adminid;
+                    $DB->update_record('competency_usercompcourse', $ucc);
                 }
 
                 $cevidence = new \stdClass();
