@@ -63,53 +63,35 @@ class process_competency_rates_task extends \core\task\adhoc_task {
                     continue;
                 }
 
-                // Let's retrieve the text from the language file.
+                // Retrieve localized strings.
                 $ratestr = number_format($rate, 1);
                 $a = new \stdClass();
                 $a->competency = $c->shortname;
                 $a->rate = $ratestr;
 
-                $evidence = new \stdClass();
-                $evidence->userid = $student->id;
-                $evidence->name = get_string('process_success_title', 'local_comp_report_ext') . " (" . date('d.m.Y') . ")";
-                $evidence->description = get_string('evidence_description', 'local_comp_report_ext', $a);
-                $evidence->descriptionformat = FORMAT_HTML;
-                $evidence->url = '';
-                $evidence->timecreated = time();
-                $evidence->timemodified = time();
-                $evidence->usermodified = $adminid;
-                $evidenceid = $DB->insert_record('competency_userevidence', $evidence);
-
-                $link = new \stdClass();
-                $link->userevidenceid = $evidenceid;
-                $link->competencyid = $c->id;
-                $link->timecreated = time();
-                $link->timemodified = time();
-                $link->usermodified = $adminid;
-                $DB->insert_record('competency_userevidencecomp', $link);
-
                 $threshold = (int)(get_config('local_comp_report_ext', 'success_threshold') ?: 60);
                 $isproficient = ($rate >= $threshold) ? 1 : 0;
 
+                // 1. Update/create user competency record.
                 $uc = $DB->get_record('competency_usercomp', ['userid' => $student->id, 'competencyid' => $c->id]);
                 if (!$uc) {
                     $uc = new \stdClass();
-                    $uc->userid = $student->id;
+                    $uc->userid       = $student->id;
                     $uc->competencyid = $c->id;
-                    $uc->status = 0;
-                    $uc->proficiency = $isproficient;
-                    $uc->timecreated = time();
+                    $uc->status       = 0;
+                    $uc->proficiency  = $isproficient;
+                    $uc->timecreated  = time();
                     $uc->timemodified = time();
                     $uc->usermodified = $adminid;
                     $uc->id = $DB->insert_record('competency_usercomp', $uc);
                 } else {
-                    $uc->proficiency = $isproficient;
+                    $uc->proficiency  = $isproficient;
                     $uc->timemodified = time();
                     $uc->usermodified = $adminid;
                     $DB->update_record('competency_usercomp', $uc);
                 }
 
-                // Also update course-level user competency status for Moodle course competencies breakdown page.
+                // 2. Update/create course-level user competency status.
                 $ucc = $DB->get_record('competency_usercompcourse', [
                     'userid'       => $student->id,
                     'courseid'     => $courseid,
@@ -132,20 +114,72 @@ class process_competency_rates_task extends \core\task\adhoc_task {
                     $DB->update_record('competency_usercompcourse', $ucc);
                 }
 
+                // 3. Deduplication Check & Cleanup for competency_evidence.
+                $existingevidences = $DB->get_records_sql(
+                    "SELECT id, grade FROM {competency_evidence}
+                      WHERE usercompetencyid = :ucid AND contextid = :contextid
+                        AND desccomponent = 'local_comp_report_ext'
+                   ORDER BY id DESC",
+                    ['ucid' => $uc->id, 'contextid' => $contextid]
+                );
+
+                if (!empty($existingevidences)) {
+                    // Clean up any duplicate evidence records, keeping the newest one.
+                    $newest = array_shift($existingevidences);
+                    if (!empty($existingevidences)) {
+                        $dupeids = array_keys($existingevidences);
+                        $DB->delete_records_list('competency_evidence', 'id', $dupeids);
+                    }
+
+                    // Check if grade hasn't changed.
+                    if ((int)$newest->grade === (int)$rate) {
+                        // Rate unchanged — skip creating duplicate evidence entries.
+                        continue;
+                    }
+
+                    // Rate changed: update existing evidence grade and note.
+                    $newest->grade        = (int)$rate;
+                    $newest->note         = get_string('evidence_note', 'local_comp_report_ext', $a);
+                    $newest->timemodified = time();
+                    $newest->usermodified = $adminid;
+                    $DB->update_record('competency_evidence', $newest);
+                    continue;
+                }
+
+                // 4. Create User Evidence Record (Only if no existing evidence found).
+                $evidence = new \stdClass();
+                $evidence->userid            = $student->id;
+                $evidence->name              = get_string('process_success_title', 'local_comp_report_ext') . " (" . date('d.m.Y') . ")";
+                $evidence->description       = get_string('evidence_description', 'local_comp_report_ext', $a);
+                $evidence->descriptionformat = FORMAT_HTML;
+                $evidence->url               = '';
+                $evidence->timecreated       = time();
+                $evidence->timemodified      = time();
+                $evidence->usermodified      = $adminid;
+                $evidenceid = $DB->insert_record('competency_userevidence', $evidence);
+
+                $link = new \stdClass();
+                $link->userevidenceid = $evidenceid;
+                $link->competencyid   = $c->id;
+                $link->timecreated    = time();
+                $link->timemodified   = time();
+                $link->usermodified   = $adminid;
+                $DB->insert_record('competency_userevidencecomp', $link);
+
                 $cevidence = new \stdClass();
                 $cevidence->usercompetencyid = $uc->id;
-                $cevidence->contextid = $contextid;
-                $cevidence->action = 1;
-                $cevidence->actionuserid = $adminid;
-                $cevidence->descidentifier = 'evidence';
-                $cevidence->desccomponent = 'local_comp_report_ext';
-                $cevidence->desca = null;
-                $cevidence->url = '';
-                $cevidence->grade = (int)$rate;
-                $cevidence->note = get_string('evidence_note', 'local_comp_report_ext', $a);
-                $cevidence->timecreated = time();
-                $cevidence->timemodified = time();
-                $cevidence->usermodified = $adminid;
+                $cevidence->contextid        = $contextid;
+                $cevidence->action           = 1;
+                $cevidence->actionuserid     = $adminid;
+                $cevidence->descidentifier   = 'evidence';
+                $cevidence->desccomponent    = 'local_comp_report_ext';
+                $cevidence->desca            = null;
+                $cevidence->url              = '';
+                $cevidence->grade            = (int)$rate;
+                $cevidence->note             = get_string('evidence_note', 'local_comp_report_ext', $a);
+                $cevidence->timecreated      = time();
+                $cevidence->timemodified     = time();
+                $cevidence->usermodified     = $adminid;
                 $DB->insert_record('competency_evidence', $cevidence);
             }
         }
