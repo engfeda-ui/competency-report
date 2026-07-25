@@ -24,6 +24,7 @@
 
 define('AJAX_SCRIPT', true);
 require_once(__DIR__ . '/../../config.php');
+require_once(__DIR__ . '/lib.php');
 require_once(__DIR__ . '/ai.php');
 
 // 1. Parameter Validation.
