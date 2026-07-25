@@ -496,4 +496,39 @@ class competency_calculator_test extends advanced_testcase {
         $calc = new competency_calculator($course->id);
         $this->assertSame([], $calc->get_group_scores([]));
     }
+
+    /**
+     * Test context details builder returns structured course/quiz metadata for LLM prompt.
+     *
+     * @covers ::local_comp_report_ext_build_context_details
+     */
+    public function test_context_details_builder(): void {
+        $this->resetAfterTest();
+        require_once(__DIR__ . '/../lib.php');
+
+        $gen    = $this->getDataGenerator();
+        $course = $gen->create_course(['fullname' => 'Gas Turbine Engineering']);
+        $quiz   = $gen->create_module('quiz', ['course' => $course->id, 'name' => 'Final Exam']);
+
+        $details = local_comp_report_ext_build_context_details($course->id, 0, $quiz->id);
+
+        $this->assertIsArray($details);
+        $this->assertEquals('Gas Turbine Engineering', $details['course_fullname']);
+        $this->assertEquals('Final Exam', $details['quiz_name']);
+    }
+
+    /**
+     * Test header logo path resolution fallback to default system logo.
+     *
+     * @covers ::local_comp_report_ext_get_logo_path
+     */
+    public function test_logo_path_resolution(): void {
+        require_once(__DIR__ . '/../lib.php');
+
+        $leftlogo  = local_comp_report_ext_get_logo_path('left');
+        $rightlogo = local_comp_report_ext_get_logo_path('right');
+
+        $this->assertIsString($leftlogo);
+        $this->assertIsString($rightlogo);
+    }
 }
