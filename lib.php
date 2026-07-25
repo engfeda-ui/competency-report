@@ -315,6 +315,11 @@ function local_comp_report_ext_get_logo_path($type = 'left') {
         }
     }
 
+    $fallback = $CFG->dirroot . '/pix/moodlelogo.png';
+    if (file_exists($fallback)) {
+        return $fallback;
+    }
+
     return null;
 }
 
