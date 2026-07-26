@@ -171,7 +171,7 @@ function local_comp_report_ext_ai_comment(
     $isarabic = (strpos($lang, 'ar') === 0 || (preg_match('/[\x{0600}-\x{06FF}]/u', $coursename) > 0));
 
     if ($isarabic) {
-        $langdirective = "CRITICAL LANGUAGE REQUIREMENT: Output the entire report in natural, highly professional Arabic (العربية). "
+        $langdirective = "CRITICAL LANGUAGE REQUIREMENT: Output the report in natural, highly professional Arabic (العربية). "
             . "Use exact technical, industrial, and academic terminology appropriate for the course subject.";
     } else {
         $langdirective = "CRITICAL LANGUAGE REQUIREMENT: Output the report in English, "
@@ -195,8 +195,8 @@ function local_comp_report_ext_ai_comment(
     if ($focustype === 'grades') {
         if ($isarabic) {
             $struct = "   - <h4><strong>ملخص الأداء في الاختبار</strong></h4> مع شريط التقدم.\n"
-                . "   - <h4><strong>نقاط القوة والإتقان الفني</strong></h4> قائمة نقاط ترتبط مباشرة بموضوعات المقرر.\n"
-                . "   - <h4><strong>التوصيات وخطوات التطوير</strong></h4> قائمة نقاط إجراءات عملية محددة لمراجعتها.";
+                . "   - <h4><strong>نقاط القوة والإتقان الفني</strong></h4> قائمة نقاط ترتبط بموضوعات المقرر.\n"
+                . "   - <h4><strong>التوصيات وخطوات التطوير</strong></h4> قائمة نقاط إجراءات عملية لمراجعتها.";
         } else {
             $struct = "   - <h4><strong>Exam Performance Summary</strong></h4> with progress bar.\n"
                 . "   - <h4><strong>Strengths & Progress</strong></h4> with domain-specific bullet points.\n"
@@ -214,7 +214,7 @@ function local_comp_report_ext_ai_comment(
             . "5. Format: Write directly in HTML. Use clean paragraphs, strong bold headers, and bulleted lists.\n"
             . "   - For each subject/quiz analyzed, you MUST append a progress bar placeholder using this format:\n"
             . "     '[PROGRESSBAR: Subject Name | Score%]' (e.g. '[PROGRESSBAR: Quiz 1 | 85%]').\n"
-            . "6. NO META-DISCLAIMERS: Do NOT output any notes, preambles, or intros like 'Please note: As the specific course domain...'. "
+            . "6. NO META-DISCLAIMERS: Do NOT output any notes or intros like 'Please note...'. "
             . "Start directly with the first <h4> heading.\n"
             . "7. Structure:\n{$struct}";
 
@@ -222,9 +222,9 @@ function local_comp_report_ext_ai_comment(
             . "{$courseinfo}{$questioninfo}\nGrade Summary:\n";
     } else {
         if ($isarabic) {
-            $struct = "   - <h4><strong>نظرة عامة على مستوى الإتقان</strong></h4> مع شريط التقدم لكل كفاية.\n"
-                . "   - <h4><strong>أبرز نقاط القوة والمهارات المتقنة</strong></h4> قائمة نقاط ترتبط بالمادة العلمية وموضوعات الأسئلة.\n"
-                . "   - <h4><strong>مجالات التطوير والتوصيات العملية</strong></h4> قائمة خطوات محددة لمراجعة المفاهيم والأسئلة التي احتاجت إلى تحسين.";
+            $struct = "   - <h4><strong>نظرة عامة على الإتقان</strong></h4> مع شريط التقدم لكل كفاية.\n"
+                . "   - <h4><strong>أبرز نقاط القوة</strong></h4> قائمة نقاط ترتبط بالمادة والموضوعات.\n"
+                . "   - <h4><strong>مجالات التطوير والتوصيات</strong></h4> قائمة خطوات محددة لمراجعة المفاهيم.";
         } else {
             $struct = "   - <h4><strong>Performance Overview</strong></h4> with progress bar.\n"
                 . "   - <h4><strong>Key Strengths</strong></h4> with domain-specific bullet points.\n"
@@ -242,7 +242,7 @@ function local_comp_report_ext_ai_comment(
             . "5. Format: Write directly in HTML. Use clean paragraphs, strong bold headers, and bulleted lists.\n"
             . "   - For each competency analyzed, you MUST append a progress bar placeholder using this format:\n"
             . "     '[PROGRESSBAR: Competency Name | Score%]' (e.g. '[PROGRESSBAR: Communication | 85%]').\n"
-            . "6. NO META-DISCLAIMERS: Do NOT output any notes, preambles, or intros like 'Please note: As the specific course domain...'. "
+            . "6. NO META-DISCLAIMERS: Do NOT output any notes or intros like 'Please note...'. "
             . "Start directly with the first <h4> heading.\n"
             . "7. Structure:\n{$struct}";
 

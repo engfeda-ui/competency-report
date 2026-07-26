@@ -272,4 +272,3 @@ $string['practicalentryhintsave'] = 'Enter achievements as percentage (0-100) pe
 $string['totalweightlabel'] = 'Total Weight';
 $string['updateassessments'] = 'Save Weights & Changes';
 $string['weighttotal_ok'] = 'The total weight of all assessments is exactly 100%. Everything is set correctly.';
-

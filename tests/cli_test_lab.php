@@ -68,9 +68,7 @@ function run_test($name, callable $testfunc) {
     }
 }
 
-// ===================================================================
-// Plugin 1: local_comp_report_ext (Competency Reporting Engine)
-// ===================================================================
+// Testing plugin 1: local_comp_report_ext (Competency Reporting Engine).
 
 run_test("[local_comp_report_ext] Form Action & Redirect URLs", function () {
     $url = new moodle_url('/local/comp_report_ext/assessment_setup.php', ['courseid' => 1]);
@@ -140,9 +138,7 @@ run_test("[local_comp_report_ext] AI Comment Generator & Prompts", function () {
     return true;
 });
 
-// ===================================================================
-// Plugin 2: qbank_comp_ext (Question Bank Competency Mapping)
-// ===================================================================
+// Testing plugin 2: qbank_comp_ext (Question Bank Competency Mapping).
 
 run_test("[qbank_comp_ext] File Inclusion & Class Loading", function () {
     global $CFG;
@@ -166,9 +162,7 @@ run_test("[qbank_comp_ext] DB Table {qbank_comp_ext_qmap} Existence & Schema", f
     return true;
 });
 
-// ===================================================================
-// Plugin 3: block_comp_report_ext (Competency Report Dashboard Block)
-// ===================================================================
+// Testing plugin 3: block_comp_report_ext (Competency Report Dashboard Block).
 
 run_test("[block_comp_report_ext] Block File Inclusion & Navigation Link", function () {
     global $CFG;
@@ -186,9 +180,7 @@ run_test("[block_comp_report_ext] Block File Inclusion & Navigation Link", funct
     return true;
 });
 
-// ===================================================================
-// Plugin 4: quizaccess_failgrade_ext (Competency & Failgrade Quiz Rule)
-// ===================================================================
+// Testing plugin 4: quizaccess_failgrade_ext (Competency & Failgrade Quiz Rule).
 
 run_test("[quizaccess_failgrade_ext] Rule Class Loading & Preflight Engine", function () {
     global $CFG;
@@ -203,9 +195,7 @@ run_test("[quizaccess_failgrade_ext] Rule Class Loading & Preflight Engine", fun
     return true;
 });
 
-// ===================================================================
-// Plugin 5: quizaccess_attemptpassword (Attempt Password Quiz Rule)
-// ===================================================================
+// Testing plugin 5: quizaccess_attemptpassword (Attempt Password Quiz Rule).
 
 run_test("[quizaccess_attemptpassword] Rule Class Loading & Password Rules", function () {
     global $CFG;
