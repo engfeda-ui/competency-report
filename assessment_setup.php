@@ -29,7 +29,9 @@ $courseid = required_param('courseid', PARAM_INT);
 
 require_login($courseid);
 $context = context_course::instance($courseid);
-if (!has_capability('local/comp_report_ext:manageassessments', $context) && !has_capability('local/competency_report:manageassessments', $context)) {
+$canviewext = has_capability('local/comp_report_ext:manageassessments', $context);
+$canviewold = has_capability('local/competency_report:manageassessments', $context);
+if (!$canviewext && !$canviewold) {
     require_capability('local/comp_report_ext:manageassessments', $context);
 }
 

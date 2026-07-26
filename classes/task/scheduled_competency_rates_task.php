@@ -24,8 +24,6 @@
 
 namespace local_comp_report_ext\task;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Class scheduled_competency_rates_task
  *

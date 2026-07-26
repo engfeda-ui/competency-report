@@ -41,15 +41,12 @@
 
 namespace local_comp_report_ext;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Centralised competency synchronisation helper.
  *
  * @package local_comp_report_ext
  */
 class competency_sync {
-
     /**
      * Resolve the acting admin / grader user id.
      *
@@ -100,9 +97,9 @@ class competency_sync {
         $now = time();
 
         // 1. Compute scores via the SAME weighted engine used by the reports.
-        //    This respects configured assessment weights (quizzes + practical
-        //    exams) and falls back to a plain question average when no
-        //    weights are configured. Only finished attempts are considered.
+        // This respects configured assessment weights (quizzes + practical
+        // exams) and falls back to a plain question average when no
+        // weights are configured. Only finished attempts are considered.
         $calculator = new competency_calculator($courseid);
         $scores = $calculator->get_student_scores($userid);
 
@@ -172,7 +169,7 @@ class competency_sync {
             }
 
             // 4. Purge redundant competency_userevidence + link rows so the
-            //    native evidence modal shows at most ONE card per competency.
+            // native evidence modal shows at most ONE card per competency.
             $userlinks = $DB->get_records_sql(
                 "SELECT l.id AS linkid, e.id AS evidenceid
                    FROM {competency_userevidencecomp} l

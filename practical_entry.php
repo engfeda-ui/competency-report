@@ -31,7 +31,9 @@ $courseid = required_param('courseid', PARAM_INT);
 
 require_login($courseid);
 $context = context_course::instance($courseid);
-if (!has_capability('local/comp_report_ext:enterpractical', $context) && !has_capability('local/competency_report:enterpractical', $context)) {
+$canviewext = has_capability('local/comp_report_ext:enterpractical', $context);
+$canviewold = has_capability('local/competency_report:enterpractical', $context);
+if (!$canviewext && !$canviewold) {
     require_capability('local/comp_report_ext:enterpractical', $context);
 }
 

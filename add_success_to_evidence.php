@@ -128,7 +128,9 @@ if ($run) {
 
     $task->execute();
 
-    echo $OUTPUT->notification(get_string('process_success_title', 'local_comp_report_ext') . ' — ' . get_string('btn_process_now', 'local_comp_report_ext') . ' (Completed)', 'success');
+    $msg = get_string('process_success_title', 'local_comp_report_ext') .
+        ' — ' . get_string('btn_process_now', 'local_comp_report_ext') . ' (Completed)';
+    echo $OUTPUT->notification($msg, 'success');
     echo $OUTPUT->continue_button(new moodle_url('/report/competency/index.php', ['id' => $courseid]));
 } else {
     // Information box and action button.

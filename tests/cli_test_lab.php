@@ -1,4 +1,19 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
 /**
  * CLI Test Lab Runner for all 5 Renamed Moodle Plugins:
  *  1. local_comp_report_ext
@@ -28,6 +43,13 @@ echo "=========================================================\n\n";
 $passcount = 0;
 $failcount = 0;
 
+/**
+ * Run a test case and print status.
+ *
+ * @param string $name Test description.
+ * @param callable $testfunc Test callable.
+ * @return void
+ */
 function run_test($name, callable $testfunc) {
     global $passcount, $failcount;
     echo "• Testing: {$name} ... ";
@@ -47,10 +69,10 @@ function run_test($name, callable $testfunc) {
 }
 
 // ===================================================================
-// PLUGIN 1: local_comp_report_ext (Competency Reporting Engine)
+// Plugin 1: local_comp_report_ext (Competency Reporting Engine)
 // ===================================================================
 
-run_test("[local_comp_report_ext] Form Action & Redirect URLs", function() {
+run_test("[local_comp_report_ext] Form Action & Redirect URLs", function () {
     $url = new moodle_url('/local/comp_report_ext/assessment_setup.php', ['courseid' => 1]);
     if (strpos($url->out(), '/local/comp_report_ext/assessment_setup.php') === false) {
         return "URL mismatch: " . $url->out();
@@ -58,7 +80,7 @@ run_test("[local_comp_report_ext] Form Action & Redirect URLs", function() {
     return true;
 });
 
-run_test("[local_comp_report_ext] Context Details Builder", function() {
+run_test("[local_comp_report_ext] Context Details Builder", function () {
     global $DB;
     $course = $DB->get_record('course', ['id' => 2]);
     if (!$course) {
@@ -73,7 +95,7 @@ run_test("[local_comp_report_ext] Context Details Builder", function() {
     return true;
 });
 
-run_test("[local_comp_report_ext] Header Logo Path Resolution", function() {
+run_test("[local_comp_report_ext] Header Logo Path Resolution", function () {
     $left  = local_comp_report_ext_get_logo_path('left');
     $right = local_comp_report_ext_get_logo_path('right');
     if (empty($left) || empty($right)) {
@@ -82,7 +104,7 @@ run_test("[local_comp_report_ext] Header Logo Path Resolution", function() {
     return true;
 });
 
-run_test("[local_comp_report_ext] Calculator Thresholds (rate_color)", function() {
+run_test("[local_comp_report_ext] Calculator Thresholds (rate_color)", function () {
     if (\local_comp_report_ext\competency_calculator::rate_color(85) !== 'green') {
         return "85% should be green";
     }
@@ -98,18 +120,18 @@ run_test("[local_comp_report_ext] Calculator Thresholds (rate_color)", function(
     return true;
 });
 
-run_test("[local_comp_report_ext] AI Comment Generator & Prompts", function() {
+run_test("[local_comp_report_ext] AI Comment Generator & Prompts", function () {
     $rates = [
         'COMP101' => [
             'name' => 'Gas Turbine Operations',
             'percent' => 85,
             'passed' => true,
             'color' => 'green',
-        ]
+        ],
     ];
     $contextdetails = [
         'coursename' => 'Power Plant Engineering',
-        'quizname' => 'Midterm Exam'
+        'quizname' => 'Midterm Exam',
     ];
     $comment = local_comp_report_ext_generate_comment($rates, 'course_master', '', 'competency', $contextdetails);
     if (empty($comment)) {
@@ -119,10 +141,10 @@ run_test("[local_comp_report_ext] AI Comment Generator & Prompts", function() {
 });
 
 // ===================================================================
-// PLUGIN 2: qbank_comp_ext (Question Bank Competency Mapping)
+// Plugin 2: qbank_comp_ext (Question Bank Competency Mapping)
 // ===================================================================
 
-run_test("[qbank_comp_ext] File Inclusion & Class Loading", function() {
+run_test("[qbank_comp_ext] File Inclusion & Class Loading", function () {
     global $CFG;
     $colfile = $CFG->dirroot . '/question/bank/comp_ext/classes/column/competency_column.php';
     if (!file_exists($colfile)) {
@@ -135,7 +157,7 @@ run_test("[qbank_comp_ext] File Inclusion & Class Loading", function() {
     return true;
 });
 
-run_test("[qbank_comp_ext] DB Table {qbank_comp_ext_qmap} Existence & Schema", function() {
+run_test("[qbank_comp_ext] DB Table {qbank_comp_ext_qmap} Existence & Schema", function () {
     global $DB;
     $dbmanager = $DB->get_manager();
     if (!$dbmanager->table_exists('qbank_comp_ext_qmap')) {
@@ -145,10 +167,10 @@ run_test("[qbank_comp_ext] DB Table {qbank_comp_ext_qmap} Existence & Schema", f
 });
 
 // ===================================================================
-// PLUGIN 3: block_comp_report_ext (Competency Report Dashboard Block)
+// Plugin 3: block_comp_report_ext (Competency Report Dashboard Block)
 // ===================================================================
 
-run_test("[block_comp_report_ext] Block File Inclusion & Navigation Link", function() {
+run_test("[block_comp_report_ext] Block File Inclusion & Navigation Link", function () {
     global $CFG;
     if (file_exists($CFG->dirroot . '/blocks/moodleblock.class.php')) {
         require_once($CFG->dirroot . '/blocks/moodleblock.class.php');
@@ -165,10 +187,10 @@ run_test("[block_comp_report_ext] Block File Inclusion & Navigation Link", funct
 });
 
 // ===================================================================
-// PLUGIN 4: quizaccess_failgrade_ext (Competency & Failgrade Quiz Rule)
+// Plugin 4: quizaccess_failgrade_ext (Competency & Failgrade Quiz Rule)
 // ===================================================================
 
-run_test("[quizaccess_failgrade_ext] Rule Class Loading & Preflight Engine", function() {
+run_test("[quizaccess_failgrade_ext] Rule Class Loading & Preflight Engine", function () {
     global $CFG;
     $rulefile = $CFG->dirroot . '/mod/quiz/accessrule/failgrade_ext/rule.php';
     if (!file_exists($rulefile)) {
@@ -182,10 +204,10 @@ run_test("[quizaccess_failgrade_ext] Rule Class Loading & Preflight Engine", fun
 });
 
 // ===================================================================
-// PLUGIN 5: quizaccess_attemptpassword (Attempt Password Quiz Rule)
+// Plugin 5: quizaccess_attemptpassword (Attempt Password Quiz Rule)
 // ===================================================================
 
-run_test("[quizaccess_attemptpassword] Rule Class Loading & Password Rules", function() {
+run_test("[quizaccess_attemptpassword] Rule Class Loading & Password Rules", function () {
     global $CFG;
     $rulefile = $CFG->dirroot . '/mod/quiz/accessrule/attemptpassword/rule.php';
     if (!file_exists($rulefile)) {
@@ -198,7 +220,7 @@ run_test("[quizaccess_attemptpassword] Rule Class Loading & Password Rules", fun
     return true;
 });
 
-run_test("[local_comp_report_ext] Task Execution & Evidence Deduplication Purge", function() {
+run_test("[local_comp_report_ext] Task Execution & Evidence Deduplication Purge", function () {
     global $DB;
     $task = new \local_comp_report_ext\task\process_competency_rates_task();
     $task->set_custom_data(['courseid' => 2, 'adminid' => 2]);
@@ -241,7 +263,7 @@ run_test("[local_comp_report_ext] Task Execution & Evidence Deduplication Purge"
     return true;
 });
 
-run_test("[local_comp_report_ext] Centralised competency_sync Engine", function() {
+run_test("[local_comp_report_ext] Centralised competency_sync Engine", function () {
     // Verify the single shared sync engine exists and is callable for all
     // three entry points (observer, scheduled task, manual trigger).
     if (!class_exists('\local_comp_report_ext\competency_sync')) {
@@ -256,7 +278,7 @@ run_test("[local_comp_report_ext] Centralised competency_sync Engine", function(
     if (!method_exists('\local_comp_report_ext\competency_sync', 'resolve_grader_id')) {
         return "resolve_grader_id() missing";
     }
-    // resolve_grader_id must never return a hardcoded 2 blindly — it should
+    // Resolve_grader_id must never return a hardcoded 2 blindly — it should
     // resolve dynamically (we just confirm it returns a sane value).
     $gid = \local_comp_report_ext\competency_sync::resolve_grader_id(99);
     if ($gid !== 99) {

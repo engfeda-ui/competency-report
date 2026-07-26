@@ -51,13 +51,13 @@ if ($userid != $USER->id) {
     require_capability('mod/quiz:viewreports', $context);
 } else {
     if (
-    !has_capability('local/comp_report_ext:viewownreport', $context)
-    && !has_capability('local/comp_report_ext:viewreports', $context)
-    && !has_capability('local/competency_report:viewownreport', $context)
-    && !has_capability('local/competency_report:viewreports', $context)
-) {
-    require_capability('local/comp_report_ext:viewownreport', $context);
-}
+        !has_capability('local/comp_report_ext:viewownreport', $context)
+        && !has_capability('local/comp_report_ext:viewreports', $context)
+        && !has_capability('local/competency_report:viewownreport', $context)
+        && !has_capability('local/competency_report:viewreports', $context)
+    ) {
+        require_capability('local/comp_report_ext:viewownreport', $context);
+    }
 }
 
 // 2b. Verify AI is enabled.

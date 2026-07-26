@@ -271,4 +271,3 @@ $string['practicalentryhintsave'] = 'أدخل مستوى الإنجاز بنسب
 $string['totalweightlabel'] = 'الوزن الإجمالي';
 $string['updateassessments'] = 'حفظ الأوزان والتغييرات';
 $string['weighttotal_ok'] = 'مجموع أوزان التقييمات هو 100% تماماً. تم ضبط كل شيء بشكل صحيح.';
-
