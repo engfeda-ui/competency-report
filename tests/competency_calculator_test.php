@@ -513,7 +513,9 @@ class competency_calculator_test extends advanced_testcase {
         $details = local_comp_report_ext_build_context_details($course->id, 0, $quiz->id);
 
         $this->assertIsArray($details);
+        $this->assertEquals('Gas Turbine Engineering', $details['coursename']);
         $this->assertEquals('Gas Turbine Engineering', $details['course_fullname']);
+        $this->assertEquals('Final Exam', $details['quizname']);
         $this->assertEquals('Final Exam', $details['quiz_name']);
     }
 

@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.5.8-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.5.9-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -81,6 +81,9 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 ---
 
 ## 📋 Changelog
+
+### v3.5.9 — 2026-07-26
+- **Fix & PHPUnit Pass:** Added `course_fullname` and `quiz_name` key aliases to `local_comp_report_ext_build_context_details()` in `lib.php` to resolve PHPUnit test failure (`Undefined array key "course_fullname"`).
 
 ### v3.5.8 — 2026-07-26
 - **Fix & Zero-Violation CodeSniffer:** Fixed trailing newline in `lang/en/local_comp_report_ext.php`, prompt string line lengths in `ai.php`, and inline comment headers in `tests/cli_test_lab.php` to achieve 0 ERRORS and 0 WARNINGS on Moodle CodeSniffer.

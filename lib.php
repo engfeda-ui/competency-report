@@ -411,6 +411,7 @@ function local_comp_report_ext_build_context_details($courseid, $userid = 0, $qu
         $course = $DB->get_record('course', ['id' => $courseid], 'id, fullname, shortname');
         if ($course) {
             $contextdetails['coursename'] = $course->fullname;
+            $contextdetails['course_fullname'] = $course->fullname;
         }
     }
 
@@ -418,6 +419,7 @@ function local_comp_report_ext_build_context_details($courseid, $userid = 0, $qu
         $quiz = $DB->get_record('quiz', ['id' => $quizid], 'id, name');
         if ($quiz) {
             $contextdetails['quizname'] = $quiz->name;
+            $contextdetails['quiz_name'] = $quiz->name;
         }
     }
 
