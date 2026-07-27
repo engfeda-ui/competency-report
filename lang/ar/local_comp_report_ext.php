@@ -271,3 +271,13 @@ $string['practicalentryhintsave'] = 'أدخل مستوى الإنجاز بنسب
 $string['totalweightlabel'] = 'الوزن الإجمالي';
 $string['updateassessments'] = 'حفظ الأوزان والتغييرات';
 $string['weighttotal_ok'] = 'مجموع أوزان التقييمات هو 100% تماماً. تم ضبط كل شيء بشكل صحيح.';
+
+// Missing Cache and Privacy strings.
+$string['cachedef_ai_feedback'] = 'مخزن المؤقت للتغذية الراجعة للذكاء الاصطناعي';
+$string['custominstructionsdesc'] = 'اكتب تعليمات خاصة لتوجيه تقرير الذكاء الاصطناعي (مثل اللغة، الطول، التركيز).';
+$string['generalgradesreportgroup'] = 'تقرير الدرجات العامة - المجموعة: {$a}';
+$string['privacy:metadata:local_comp_report_ext_prac'] = 'يخزن مدخلات درجات الاختبارات العملية للكفايات المُنَفَّذة بواسطة المدربين.';
+$string['privacy:metadata:local_comp_report_ext_prac:studentid'] = 'معرف المستخدم للطالب الجاري تقييمه.';
+$string['privacy:metadata:local_comp_report_ext_prac:trainerid'] = 'معرف المستخدم للمدرب الذي أدخل النتيجة.';
+$string['privacy:metadata:local_comp_report_ext_prac:competency_percent'] = 'درجة إنجاز الكفاية بنسبة مئوية.';
+

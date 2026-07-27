@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.5.9-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.6.0-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -267,6 +267,18 @@ npx grunt amd --files=local/competency_report
 ---
 
 ## 📋 Changelog
+
+### v3.6.0 (2026072700) — 2026-07-27
+- **Security Fix:** Removed `@file_put_contents` and local file writes in `ai.php` to comply with Moodle security guidelines for read-only dirroot.
+- **Access Control:** Added capability checks in `class_report.php` when inspecting reports for other user IDs (`$userid != $USER->id`).
+- **Frankenstyle Fix:** Removed non-frankenstyle wrapper function `local_comp_report_extend_navigation_course` from `lib.php`.
+- **Performance Fix:** Resolved N+1 query loops in `practical_entry.php` and `competency_calculator.php` by bulk fetching student practical scores and competency metadata.
+- **Async Task:** Converted heavy event observer `quiz_attempt_submitted` to queue a lightweight ad-hoc task `\local_comp_report_ext\task\process_quiz_attempt_task`.
+- **Privacy API:** Fully implemented `classes/privacy/provider.php` including `local_comp_report_ext_prac` database table metadata and user data export/deletion methods.
+- **Backup & Restore:** Implemented `backup/moodle2` backup and restore handlers for `local_comp_report_ext_asmt` and `local_comp_report_ext_prac` tables.
+- **External Services:** Created Moodle External Web Services in `classes/external/ai.php` & `classes/external/studyplan.php` and registered in `db/services.php`.
+- **Language & Templates:** Added missing cache definition string `cachedef_ai_feedback`, privacy strings, and standard Moodle license headers across Mustache templates.
+- **Repository Naming Note:** Recommended official repository naming convention is `moodle-local_comp_report_ext`.
 
 ### v3.3.2 (2026072502) — 2026-07-25
 - **Fix:** Fixed course menu navigation callback name (`local_comp_report_ext_extend_navigation_course` & `local_comp_report_ext_extend_navigation_reports`) so competency reports appear under Course Reports & secondary navigation tabs.

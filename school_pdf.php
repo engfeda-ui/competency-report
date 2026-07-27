@@ -66,7 +66,7 @@ $contexttype = ($groupid > 0) ? 'group' : 'school';
 // 3. Define report title based on focus and scope.
 if ($focustype === 'grades') {
     if ($group) {
-        $reporttitle = "General Grades Report - Group: " . $group->name;
+        $reporttitle = get_string('generalgradesreportgroup', 'local_comp_report_ext', $group->name);
     } else {
         $reporttitle = "General Grades Report - Course: " . $course->fullname;
     }

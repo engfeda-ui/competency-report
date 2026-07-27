@@ -133,22 +133,19 @@ class competency_calculator {
         $competencies = $DB->get_records_sql($compsql, $params);
 
         // Also add competencies that appear only in practical assessments.
-        foreach ($assessments as $assessment) {
-            if ($assessment->type === 'practical') {
-                $practicals = $DB->get_records(
-                    'local_comp_report_ext_prac',
-                    ['assessmentid' => $assessment->id, 'courseid' => $this->courseid],
-                    '',
-                    'DISTINCT competencyid'
-                );
-                foreach ($practicals as $p) {
-                    if (!isset($competencies[$p->competencyid])) {
-                        $comp = $DB->get_record('competency', ['id' => $p->competencyid]);
-                        if ($comp && (!$filtercompetencyid || $p->competencyid == $filtercompetencyid)) {
-                            $competencies[$comp->id] = $comp;
-                        }
-                    }
-                }
+        $pracsql = "SELECT DISTINCT c.id, c.shortname, c.description, c.descriptionformat
+                      FROM {local_comp_report_ext_prac} p
+                      JOIN {competency} c ON c.id = p.competencyid
+                     WHERE p.courseid = :courseid";
+        $pracparams = ['courseid' => $this->courseid];
+        if ($filtercompetencyid) {
+            $pracsql .= ' AND c.id = :compid';
+            $pracparams['compid'] = $filtercompetencyid;
+        }
+        $praccomps = $DB->get_records_sql($pracsql, $pracparams);
+        foreach ($praccomps as $cid => $comp) {
+            if (!isset($competencies[$cid])) {
+                $competencies[$cid] = $comp;
             }
         }
 

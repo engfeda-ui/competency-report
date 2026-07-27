@@ -52,6 +52,15 @@ if ($data = $mform->get_data()) {
 }
 $mform->set_data(['userid' => $userid, 'competencyid' => $competency]);
 
+// Check capability if requesting another student's report.
+if ($userid > 0 && $userid != $USER->id) {
+    if (!has_capability('local/comp_report_ext:viewreports', $context)
+            && !has_capability('mod/quiz:viewreports', $context)
+            && !has_capability('moodle/competency:usercompetencyview', $context)) {
+        require_capability('local/comp_report_ext:viewreports', $context);
+    }
+}
+
 // 2. Data Preparation.
 $renderdata = new stdClass();
 $renderdata->courseid = $courseid;

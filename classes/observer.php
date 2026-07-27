@@ -54,24 +54,18 @@ class observer {
             return;
         }
 
-        $userid = $eventdata->userid;
-        $quizid = $eventdata->quiz;
-
-        $quiz = $DB->get_record('quiz', ['id' => $quizid]);
+        $quiz = $DB->get_record('quiz', ['id' => $eventdata->quiz]);
         if (!$quiz) {
             return;
         }
 
-        $courseid = $quiz->course;
-
-        // 1. Sync this student's competency proficiency + evidence (deduped,
-        // weighted, respects configured assessment weights).
-        $graderid = competency_sync::resolve_grader_id();
-        $rates = competency_sync::sync_user_competency($userid, $courseid, $graderid);
-
-        // 2. Evaluate at-risk alerts across ALL the student's competencies.
-        if (!empty($rates)) {
-            local_comp_report_ext_check_and_notify($userid, $courseid, $rates);
-        }
+        // Queue a lightweight adhoc task to process competency sync in background.
+        $task = new \local_comp_report_ext\task\process_quiz_attempt_task();
+        $task->set_custom_data([
+            'userid'   => (int)$eventdata->userid,
+            'courseid' => (int)$quiz->course,
+            'quizid'   => (int)$eventdata->quiz,
+        ]);
+        \core\task\manager::queue_adhoc_task($task);
     }
 }

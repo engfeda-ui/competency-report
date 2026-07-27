@@ -12,27 +12,31 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version details for the local_comp_report_ext plugin.
+ * External web service functions declaration for local_comp_report_ext.
  *
  * @package    local_comp_report_ext
  * @copyright  2026 Mahmoud Salem
- * @copyright  based on work by 2026 Hakan Çiğci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-/** @var stdClass $plugin */
-$plugin->component = 'local_comp_report_ext';       // Full name of the plugin (category_name).
-$plugin->version   = 2026072700;              // The current module version (YYYYMMDDXX).
-$plugin->requires  = 2024042210;              // Requires Moodle 4.5 or later.
-$plugin->maturity  = MATURITY_STABLE;          // Stable release.
-$plugin->release   = '3.6.0';                 // Human-readable version name.
-
-// Plugin dependencies (Other plugins that must be installed first).
-$plugin->dependencies = [
-    'qbank_comp_ext' => 2026070500,
+$functions = [
+    'local_comp_report_ext_generate_ai_comment' => [
+        'classname'   => 'local_comp_report_ext\external\ai',
+        'methodname'  => 'generate_comment',
+        'description' => 'Generates AI competency and grade analysis commentary.',
+        'type'        => 'read',
+        'ajax'        => true,
+    ],
+    'local_comp_report_ext_generate_study_plan' => [
+        'classname'   => 'local_comp_report_ext\external\studyplan',
+        'methodname'  => 'generate_study_plan',
+        'description' => 'Generates personalized remedial study plans.',
+        'type'        => 'read',
+        'ajax'        => true,
+    ],
 ];

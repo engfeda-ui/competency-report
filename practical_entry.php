@@ -97,55 +97,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
         if ($cm) {
             $context = context_module::instance($cm->id);
             $assign = new assign($context, $cm, $course);
-            $maxgrade = (float)$assign->get_instance()->grade;
+            $maxgrade = (float)$assign->get_instance()->grade;            if (!empty($studentids)) {
+                list($insql, $inparams) = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'sid');
+                $params = array_merge(['assid' => $postassid], $inparams);
 
-            foreach ($studentids as $sid) {
-                // Fetch all competency grades for this student and this practical assessment.
-                $competencygrades = $DB->get_records('local_comp_report_ext_prac', [
-                    'assessmentid' => $postassid,
-                    'studentid'    => $sid,
-                ], '', 'competency_percent');
+                $allrows = $DB->get_records_sql("
+                    SELECT p.id, p.studentid, c.shortname, p.competency_percent
+                      FROM {local_comp_report_ext_prac} p
+                      JOIN {competency} c ON c.id = p.competencyid
+                     WHERE p.assessmentid = :assid AND p.studentid {$insql}
+                  ORDER BY c.shortname ASC
+                ", $params);
 
-                if (!empty($competencygrades)) {
-                    $sum = 0.0;
-                    foreach ($competencygrades as $cg) {
-                        $sum += (float)$cg->competency_percent;
-                    }
-                    $averagepercent = $sum / count($competencygrades);
-
-                    // Scale to Assignment's maximum grade if it is a positive numeric grade.
-                    if ($maxgrade > 0) {
-                        $finalgrade = ($averagepercent / 100.0) * $maxgrade;
-                    } else {
-                        $finalgrade = $averagepercent;
-                    }
-
-                    // Prepare detailed competency breakdown for feedback comments.
-                    $breakdown = [];
-                    $allrows = $DB->get_records_sql("
-                        SELECT c.shortname, p.competency_percent
-                          FROM {local_comp_report_ext_prac} p
-                          JOIN {competency} c ON c.id = p.competencyid
-                         WHERE p.assessmentid = :assessmentid AND p.studentid = :studentid
-                      ORDER BY c.shortname ASC
-                    ", ['assessmentid' => $postassid, 'studentid' => $sid]);
-
-                    foreach ($allrows as $row) {
-                        $breakdown[] = "• " . s($row->shortname) . ": " . round($row->competency_percent, 1) . "%";
-                    }
-                    $summarystr = get_string('summaryreport', 'local_comp_report_ext');
-                    $feedbacktext = "<strong>" . $summarystr . ":</strong><br>" .
-                        implode("<br>", $breakdown);
-
-                    // Push grade and feedback to Moodle Assignment.
-                    $gradedata = new stdClass();
-                    $gradedata->grade = $finalgrade;
-                    $gradedata->feedbacktext = $feedbacktext;
-                    $gradedata->feedbackformat = FORMAT_HTML;
-
-                    $assign->save_grade($sid, $gradedata);
+                $studentrows = [];
+                foreach ($allrows as $row) {
+                    $studentrows[$row->studentid][] = $row;
                 }
-            }
+
+                $summarystr = get_string('summaryreport', 'local_comp_report_ext');
+
+                foreach ($studentids as $sid) {
+                    if (!empty($studentrows[$sid])) {
+                        $rows = $studentrows[$sid];
+                        $sum = 0.0;
+                        $breakdown = [];
+                        foreach ($rows as $row) {
+                            $sum += (float)$row->competency_percent;
+                            $breakdown[] = "• " . s($row->shortname) . ": " . round($row->competency_percent, 1) . "%";
+                        }
+                        $averagepercent = $sum / count($rows);
+                        $finalgrade = ($maxgrade > 0) ? (($averagepercent / 100.0) * $maxgrade) : $averagepercent;
+                        $feedbacktext = "<strong>" . $summarystr . ":</strong><br>" . implode("<br>", $breakdown);
+
+                        $gradedata = new stdClass();
+                        $gradedata->grade = $finalgrade;
+                        $gradedata->feedbacktext = $feedbacktext;
+                        $gradedata->feedbackformat = FORMAT_HTML;
+
+                        $assign->save_grade($sid, $gradedata);
+                    }
+                }
+            }     }
         }
     }
 

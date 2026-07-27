@@ -15,7 +15,8 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * AJAX Endpoint for on-demand AI pedagogical commentary.
+ * Legacy AJAX Endpoint for on-demand AI pedagogical commentary.
+ * Delegates to External Service local_comp_report_ext\external\ai.
  *
  * @package    local_comp_report_ext
  * @copyright  2026 Mahmoud Salem
@@ -27,321 +28,36 @@ require_once(__DIR__ . '/../../config.php');
 require_once(__DIR__ . '/lib.php');
 require_once(__DIR__ . '/ai.php');
 
-// 1. Parameter Validation.
 $courseid     = optional_param('courseid', 0, PARAM_INT);
 $userid       = optional_param('userid', 0, PARAM_INT);
 $groupid      = optional_param('groupid', 0, PARAM_INT);
 $quizid       = optional_param('quizid', 0, PARAM_INT);
 $customprompt = optional_param('custom_prompt', '', PARAM_TEXT);
+$contexttype  = optional_param('context_type', 'student', PARAM_ALPHAEXT);
+$focustype    = optional_param('focus_type', 'competency', PARAM_ALPHA);
 
-$contexttype  = optional_param('context_type', 'student', PARAM_TEXT); // Context type: student, school, group, quiz, course_master.
-$focustype    = optional_param('focus_type', 'competency', PARAM_ALPHA); // Focus type: competency, grades.
+try {
+    $res = \local_comp_report_ext\external\ai::generate_comment(
+        $courseid,
+        $userid,
+        $groupid,
+        $quizid,
+        $contexttype,
+        $focustype,
+        $customprompt
+    );
 
-// 2. Authentication & Access Controls.
-require_login();
-
-if ($contexttype === 'school') {
-    if ($courseid) {
-        $context = context_course::instance($courseid);
-        $PAGE->set_context($context);
-        require_capability('moodle/course:view', $context);
-    } else {
-        $context = context_system::instance();
-        $PAGE->set_context($context);
-        require_capability('moodle/site:config', $context);
-    }
-} else if ($contexttype === 'course_master') {
-    if (empty($courseid)) {
-        header('HTTP/1.1 400 Bad Request');
-        echo json_encode(['success' => false, 'error' => 'Missing course parameter']);
-        exit;
-    }
-    $context = context_course::instance($courseid);
-    $PAGE->set_context($context);
-    require_capability('moodle/course:update', $context);
-} else if ($contexttype === 'group') {
-    if (empty($courseid) || empty($groupid)) {
-        header('HTTP/1.1 400 Bad Request');
-        echo json_encode(['success' => false, 'error' => 'Missing course or group parameters']);
-        exit;
-    }
-    $context = context_course::instance($courseid);
-    $PAGE->set_context($context);
-    require_capability('mod/quiz:viewreports', $context);
-} else if ($contexttype === 'quiz') {
-    if (empty($courseid) || empty($quizid)) {
-        header('HTTP/1.1 400 Bad Request');
-        echo json_encode(['success' => false, 'error' => 'Missing course or quiz parameters']);
-        exit;
-    }
-    $quiz = $DB->get_record('quiz', ['id' => $quizid], '*', MUST_EXIST);
-    $cm = get_coursemodule_from_instance('quiz', $quiz->id, $courseid, false, MUST_EXIST);
-    $context = context_module::instance($cm->id);
-    $PAGE->set_context($context);
-    require_login($courseid, false, $cm);
-
-    // If viewing own quiz report vs teacher viewing class performance.
-    if ($userid && $userid != $USER->id) {
-        require_capability('mod/quiz:viewreports', $context);
-    }
-} else {
-    // Student context.
-    if (empty($courseid)) {
-        header('HTTP/1.1 400 Bad Request');
-        echo json_encode(['success' => false, 'error' => 'Missing course ID']);
-        exit;
-    }
-    $context = context_course::instance($courseid);
-    $PAGE->set_context($context);
-    require_login($courseid);
-
-    // If requesting another student's report, require teacher capability.
-    if ($userid && $userid != $USER->id) {
-        require_capability('mod/quiz:viewreports', $context);
-    } else {
-        // Accessing own report.
-        if (empty($userid)) {
-            $userid = $USER->id;
-        }
-        if (
-            !has_capability('local/comp_report_ext:viewownreport', $context)
-            && !has_capability('local/comp_report_ext:viewreports', $context)
-            && !has_capability('local/competency_report:viewownreport', $context)
-            && !has_capability('local/competency_report:viewreports', $context)
-        ) {
-            require_capability('local/comp_report_ext:viewownreport', $context);
-        }
-    }
-}
-
-// 3. Performance Data Queries.
-$rates = [];
-
-if ($focustype === 'grades') {
-    // GENERAL GRADES MODE.
-    if ($contexttype === 'school') {
-        $sql = "SELECT q.id, q.name, AVG(qa.sumgrades) as avggrade, q.sumgrades as maxgrade
-                FROM {quiz_attempts} qa
-                JOIN {quiz} q ON q.id = qa.quiz
-                WHERE q.course = :courseid AND qa.state = 'finished'
-                GROUP BY q.id, q.name, q.sumgrades";
-        $rows = $DB->get_records_sql($sql, ['courseid' => $courseid]);
-        foreach ($rows as $r) {
-            $rates[$r->name] = ($r->maxgrade > 0) ? ($r->avggrade / $r->maxgrade) * 100 : 0;
-        }
-    } else if ($contexttype === 'course_master') {
-        $sql = "SELECT q.id, q.name, AVG(qa.sumgrades) as avggrade, q.sumgrades as maxgrade
-                FROM {quiz_attempts} qa
-                JOIN {quiz} q ON q.id = qa.quiz
-                WHERE q.course = :courseid AND qa.state = 'finished'
-                GROUP BY q.id, q.name, q.sumgrades";
-        $rows = $DB->get_records_sql($sql, ['courseid' => $courseid]);
-        foreach ($rows as $r) {
-            $rates[$r->name] = ($r->maxgrade > 0) ? ($r->avggrade / $r->maxgrade) * 100 : 0;
-        }
-    } else if ($contexttype === 'group') {
-        $sql = "SELECT q.id, q.name, AVG(qa.sumgrades) as avggrade, q.sumgrades as maxgrade
-                FROM {quiz_attempts} qa
-                JOIN {quiz} q ON q.id = qa.quiz
-                JOIN {groups_members} gm ON gm.userid = qa.userid
-                WHERE q.course = :courseid AND gm.groupid = :groupid AND qa.state = 'finished'
-                GROUP BY q.id, q.name, q.sumgrades";
-        $rows = $DB->get_records_sql($sql, ['courseid' => $courseid, 'groupid' => $groupid]);
-        foreach ($rows as $r) {
-            $rates[$r->name] = ($r->maxgrade > 0) ? ($r->avggrade / $r->maxgrade) * 100 : 0;
-        }
-    } else if ($contexttype === 'quiz') {
-        if ($userid) {
-            $sql = "SELECT quiza.id, quiz.name, quiza.sumgrades as grade, quiz.sumgrades as maxgrade
-                    FROM {quiz_attempts} quiza
-                    JOIN {quiz} quiz ON quiz.id = quiza.quiz
-                    WHERE quiza.quiz = :quizid AND quiza.userid = :userid AND quiza.state = 'finished'";
-            $rows = $DB->get_records_sql($sql, ['quizid' => $quizid, 'userid' => $userid]);
-            foreach ($rows as $r) {
-                $rates["Your score on " . $r->name] = ($r->maxgrade > 0) ? ($r->grade / $r->maxgrade) * 100 : 0;
-            }
-        } else {
-            $sql = "SELECT 1 as id, AVG(qa.sumgrades) as avggrade, MAX(qa.sumgrades) as maxgrade, MIN(qa.sumgrades) as mingrade
-                    FROM {quiz_attempts} qa
-                    WHERE qa.quiz = :quizid AND qa.state = 'finished'";
-            $rows = $DB->get_records_sql($sql, ['quizid' => $quizid]);
-            $quiz = $DB->get_record('quiz', ['id' => $quizid], 'sumgrades', MUST_EXIST);
-            foreach ($rows as $r) {
-                if ($quiz->sumgrades > 0) {
-                    $rates["Class average grade"] = ($r->avggrade / $quiz->sumgrades) * 100;
-                    $rates["Highest score in class"] = ($r->maxgrade / $quiz->sumgrades) * 100;
-                    $rates["Lowest score in class"] = ($r->mingrade / $quiz->sumgrades) * 100;
-                }
-            }
-        }
-    } else {
-        // Student context.
-        $sql = "SELECT q.id, q.name, qa.sumgrades as grade, q.sumgrades as maxgrade
-                FROM {quiz_attempts} qa
-                JOIN {quiz} q ON q.id = qa.quiz
-                WHERE q.course = :courseid AND qa.userid = :userid AND qa.state = 'finished'";
-        $rows = $DB->get_records_sql($sql, ['courseid' => $courseid, 'userid' => $userid]);
-        foreach ($rows as $r) {
-            $rates[$r->name] = ($r->maxgrade > 0) ? ($r->grade / $r->maxgrade) * 100 : 0;
-        }
-    }
-} else {
-    // COMPETENCY ACHIEVEMENTS MODE.
-    if ($contexttype === 'school') {
-        if ($courseid) {
-            $wheresql = "WHERE quiz.course = :courseid AND quiza.state = 'finished'";
-            $params = ['courseid' => $courseid];
-        } else {
-            $wheresql = "WHERE quiza.state = 'finished'";
-            $params = [];
-        }
-
-        $sql = "SELECT c.id, c.shortname,
-                       SUM(qa.maxfraction) AS attempts,
-                       SUM(qas.fraction) AS correct
-                FROM {quiz_attempts} quiza
-                JOIN {quiz} quiz ON quiz.id = quiza.quiz
-                JOIN {question_usages} qu ON qu.id = quiza.uniqueid
-                JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-                JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
-                JOIN {competency} c ON c.id = m.competencyid
-                JOIN (
-                    SELECT MAX(fraction) AS fraction, questionattemptid
-                    FROM {question_attempt_steps}
-                    GROUP BY questionattemptid
-                ) qas ON qas.questionattemptid = qa.id
-                $wheresql
-                GROUP BY c.id, c.shortname
-                ORDER BY c.shortname ASC";
-
-        $rows = $DB->get_records_sql($sql, $params);
-        foreach ($rows as $r) {
-            $rates[$r->shortname] = $r->attempts ? ($r->correct / $r->attempts) * 100 : 0;
-        }
-    } else if ($contexttype === 'course_master') {
-        $sql = "SELECT c.id, c.shortname,
-                       SUM(qa.maxfraction) AS attempts,
-                       SUM(qas.fraction) AS correct
-                FROM {quiz_attempts} quiza
-                JOIN {quiz} quiz ON quiz.id = quiza.quiz
-                JOIN {question_usages} qu ON qu.id = quiza.uniqueid
-                JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-                JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
-                JOIN {competency} c ON c.id = m.competencyid
-                JOIN (
-                    SELECT MAX(fraction) AS fraction, questionattemptid
-                    FROM {question_attempt_steps}
-                    GROUP BY questionattemptid
-                ) qas ON qas.questionattemptid = qa.id
-                WHERE quiz.course = :courseid AND quiza.state = 'finished'
-                GROUP BY c.id, c.shortname
-                ORDER BY c.shortname ASC";
-        $rows = $DB->get_records_sql($sql, ['courseid' => $courseid]);
-        foreach ($rows as $r) {
-            $rates[$r->shortname] = $r->attempts ? ($r->correct / $r->attempts) * 100 : 0;
-        }
-    } else if ($contexttype === 'group') {
-        $sql = "SELECT c.id, c.shortname,
-                       SUM(qa.maxfraction) AS attempts,
-                       SUM(qas.fraction) AS correct
-                FROM {quiz_attempts} quiza
-                JOIN {quiz} quiz ON quiz.id = quiza.quiz
-                JOIN {question_usages} qu ON qu.id = quiza.uniqueid
-                JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-                JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
-                JOIN {competency} c ON c.id = m.competencyid
-                JOIN {groups_members} gm ON gm.userid = quiza.userid
-                JOIN (
-                    SELECT MAX(fraction) AS fraction, questionattemptid
-                    FROM {question_attempt_steps}
-                    GROUP BY questionattemptid
-                ) qas ON qas.questionattemptid = qa.id
-                WHERE quiz.course = :courseid AND gm.groupid = :groupid AND quiza.state = 'finished'
-                GROUP BY c.id, c.shortname";
-
-        $rows = $DB->get_records_sql($sql, ['courseid' => $courseid, 'groupid' => $groupid]);
-        foreach ($rows as $r) {
-            $rates[$r->shortname] = $r->attempts ? ($r->correct / $r->attempts) * 100 : 0;
-        }
-    } else if ($contexttype === 'quiz') {
-        if ($userid) {
-            $sql = "SELECT c.id, c.shortname,
-                           CAST(SUM(qa.maxfraction) AS DECIMAL(12, 1)) AS attempts,
-                           CAST(SUM(qas.fraction) AS DECIMAL(12, 1)) AS correct
-                    FROM {quiz_attempts} quiza
-                    JOIN {question_usages} qu ON qu.id = quiza.uniqueid
-                    JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-                    JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
-                    JOIN {competency} c ON c.id = m.competencyid
-                    JOIN (
-                        SELECT MAX(fraction) AS fraction, questionattemptid
-                        FROM {question_attempt_steps}
-                        GROUP BY questionattemptid
-                    ) qas ON qas.questionattemptid = qa.id
-                    WHERE quiza.quiz = :quizid AND quiza.userid = :userid AND quiza.state = 'finished'
-                    GROUP BY c.id, c.shortname";
-            $rows = $DB->get_records_sql($sql, ['quizid' => $quizid, 'userid' => $userid]);
-        } else {
-            $sql = "SELECT c.id, c.shortname,
-                           SUM(qa.maxfraction) AS attempts,
-                           SUM(qas.fraction) AS correct
-                    FROM {quiz_attempts} quiza
-                    JOIN {question_usages} qu ON qu.id = quiza.uniqueid
-                    JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-                    JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
-                    JOIN {competency} c ON c.id = m.competencyid
-                    JOIN (
-                        SELECT MAX(fraction) AS fraction, questionattemptid
-                        FROM {question_attempt_steps}
-                        GROUP BY questionattemptid
-                    ) qas ON qas.questionattemptid = qa.id
-                    WHERE quiza.quiz = :quizid AND quiza.state = 'finished'
-                    GROUP BY c.id, c.shortname";
-            $rows = $DB->get_records_sql($sql, ['quizid' => $quizid]);
-        }
-        foreach ($rows as $r) {
-            $rates[$r->shortname] = $r->attempts ? ($r->correct / $r->attempts) * 100 : 0;
-        }
-    } else {
-        // Student competency stats.
-        $sql = "SELECT c.id, c.shortname,
-                       CAST(SUM(qa.maxfraction) AS DECIMAL(12, 1)) AS attempts,
-                       CAST(SUM(qas.fraction) AS DECIMAL(12, 1)) AS correct
-                FROM {quiz_attempts} quiza
-                JOIN {question_usages} qu ON qu.id = quiza.uniqueid
-                JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-                JOIN {quiz} quiz ON quiz.id = quiza.quiz
-                JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
-                JOIN {competency} c ON c.id = m.competencyid
-                JOIN (
-                    SELECT MAX(fraction) AS fraction, questionattemptid
-                    FROM {question_attempt_steps}
-                    GROUP BY questionattemptid
-                ) qas ON qas.questionattemptid = qa.id
-                WHERE quiz.course = :courseid AND quiza.userid = :userid AND quiza.state = 'finished'
-                GROUP BY c.id, c.shortname";
-
-        $rows = $DB->get_records_sql($sql, ['courseid' => $courseid, 'userid' => $userid]);
-        foreach ($rows as $r) {
-            $rates[$r->shortname] = $r->attempts ? ($r->correct / $r->attempts) * 100 : 0;
-        }
-    }
-}
-
-// 4. Generate AI Commentary with rich curriculum & question context.
-if (empty($rates)) {
     header('Content-Type: application/json');
-    echo json_encode(['success' => false, 'error' => get_string('nodatafound', 'local_comp_report_ext')]);
+    echo json_encode([
+        'success' => true,
+        'html'    => $res['html'],
+    ]);
+    exit;
+} catch (\Exception $e) {
+    header('Content-Type: application/json', true, 400);
+    echo json_encode([
+        'success' => false,
+        'error'   => $e->getMessage(),
+    ]);
     exit;
 }
-
-$contextdetails = local_comp_report_ext_build_context_details($courseid, $userid, $quizid);
-$comment = local_comp_report_ext_generate_comment($rates, $contexttype, $customprompt, $focustype, $contextdetails);
-
-// 5. JSON Response Output.
-header('Content-Type: application/json');
-echo json_encode([
-    'success' => true,
-    'html' => format_text($comment, FORMAT_HTML, ['context' => $context]),
-]);
-exit;

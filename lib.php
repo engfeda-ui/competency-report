@@ -129,13 +129,6 @@ function local_comp_report_ext_extend_navigation_course($navigation, $course, $c
 }
 
 /**
- * Backward compatibility navigation callback.
- */
-function local_comp_report_extend_navigation_course($navigation, $course, $context) {
-    local_comp_report_ext_extend_navigation_course($navigation, $course, $context);
-}
-
-/**
  * Inject competency reports directly into the Course Reports navigation node.
  *
  * @param navigation_node $navigation The reports navigation node.

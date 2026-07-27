@@ -272,3 +272,13 @@ $string['practicalentryhintsave'] = 'Enter achievements as percentage (0-100) pe
 $string['totalweightlabel'] = 'Total Weight';
 $string['updateassessments'] = 'Save Weights & Changes';
 $string['weighttotal_ok'] = 'The total weight of all assessments is exactly 100%. Everything is set correctly.';
+
+// Missing Cache and Privacy strings.
+$string['cachedef_ai_feedback'] = 'AI Feedback Cache';
+$string['custominstructionsdesc'] = 'Write custom instructions to guide the AI report (e.g. language, length, focus).';
+$string['generalgradesreportgroup'] = 'General Grades Report - Group: {$a}';
+$string['privacy:metadata:local_comp_report_ext_prac'] = 'Stores student practical exam competency performance entries entered by trainers.';
+$string['privacy:metadata:local_comp_report_ext_prac:studentid'] = 'The user ID of the student being evaluated.';
+$string['privacy:metadata:local_comp_report_ext_prac:trainerid'] = 'The user ID of the trainer entering the result.';
+$string['privacy:metadata:local_comp_report_ext_prac:competency_percent'] = 'The competency achievement percentage score.';
+

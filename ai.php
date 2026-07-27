@@ -284,15 +284,6 @@ function local_comp_report_ext_ai_comment(
         if (empty($endpoint)) {
             $endpoint = 'http://localhost:11434/v1';
         }
-        if (strpos($endpoint, 'localhost') !== false || strpos($endpoint, 'host.docker.internal') !== false) {
-            $ipfile = __DIR__ . '/host_ip.txt';
-            if (file_exists($ipfile) && is_readable($ipfile)) {
-                $dynamicip = trim(file_get_contents($ipfile));
-                if (!empty($dynamicip) && filter_var($dynamicip, FILTER_VALIDATE_IP)) {
-                    $endpoint = str_replace(['localhost', 'host.docker.internal'], $dynamicip, $endpoint);
-                }
-            }
-        }
         $endpoint = rtrim($endpoint, '/');
         if (strpos($endpoint, '/chat/completions') === false) {
             $endpoint .= '/chat/completions';
@@ -341,7 +332,6 @@ function local_comp_report_ext_ai_comment(
 
     if (json_last_error() === JSON_ERROR_NONE && !empty($data['choices'][0]['message']['content'])) {
         $content = $data['choices'][0]['message']['content'];
-        @file_put_contents(__DIR__ . '/ai_raw_response.txt', $content);
         return local_comp_report_ext_parse_progress_bars($content);
     }
 
@@ -446,7 +436,6 @@ function local_comp_report_ext_generate_study_plan($fullprompt) {
 
     if (json_last_error() === JSON_ERROR_NONE && !empty($data['choices'][0]['message']['content'])) {
         $content = $data['choices'][0]['message']['content'];
-        @file_put_contents(__DIR__ . '/studyplan_raw_response.txt', $content);
         return local_comp_report_ext_parse_progress_bars($content);
     }
 
