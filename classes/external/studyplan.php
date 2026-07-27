@@ -43,7 +43,6 @@ require_once(__DIR__ . '/../../ai.php');
  * @package local_comp_report_ext
  */
 class studyplan extends external_api {
-
     /**
      * Parameter definition for generate_study_plan.
      *
@@ -51,10 +50,10 @@ class studyplan extends external_api {
      */
     public static function generate_study_plan_parameters(): external_function_parameters {
         return new external_function_parameters([
-            'courseid'     => new external_value(PARAM_INT, 'Course ID'),
-            'userid'       => new external_value(PARAM_INT, 'User ID'),
-            'language'     => new external_value(PARAM_ALPHAEXT, 'Language code (ar/en)', VALUE_DEFAULT, 'ar'),
-            'num_sessions' => new external_value(PARAM_INT, 'Number of 1-hour sessions', VALUE_DEFAULT, 4),
+            'courseid'   => new external_value(PARAM_INT, 'Course ID'),
+            'userid'     => new external_value(PARAM_INT, 'User ID'),
+            'language'   => new external_value(PARAM_ALPHAEXT, 'Language code (ar/en)', VALUE_DEFAULT, 'ar'),
+            'numsessions' => new external_value(PARAM_INT, 'Number of 1-hour sessions', VALUE_DEFAULT, 4),
         ]);
     }
 
@@ -64,20 +63,20 @@ class studyplan extends external_api {
      * @param int $courseid
      * @param int $userid
      * @param string $language
-     * @param int $num_sessions
+     * @param int $numsessions
      * @return array
      */
     public static function generate_study_plan(
         int $courseid,
         int $userid,
         string $language = 'ar',
-        int $num_sessions = 4
+        int $numsessions = 4
     ): array {
         $params = self::validate_parameters(self::generate_study_plan_parameters(), [
-            'courseid'     => $courseid,
-            'userid'       => $userid,
-            'language'     => $language,
-            'num_sessions' => $num_sessions,
+            'courseid'   => $courseid,
+            'userid'     => $userid,
+            'language'   => $language,
+            'numsessions' => $numsessions,
         ]);
 
         $context = context_course::instance($params['courseid']);
@@ -86,10 +85,19 @@ class studyplan extends external_api {
         require_capability('moodle/course:view', $context);
 
         $graderid = \local_comp_report_ext\competency_sync::resolve_grader_id();
-        $rates    = \local_comp_report_ext\competency_sync::sync_user_competency($params['userid'], $params['courseid'], $graderid);
+        $rates    = \local_comp_report_ext\competency_sync::sync_user_competency(
+            $params['userid'],
+            $params['courseid'],
+            $graderid
+        );
 
         $contextdetails = local_comp_report_ext_build_context_details($params['courseid'], $params['userid']);
-        $fullprompt     = local_comp_report_ext_build_studyplan_prompt($rates, $params['language'], $params['num_sessions'], $contextdetails);
+        $fullprompt     = local_comp_report_ext_build_studyplan_prompt(
+            $rates,
+            $params['language'],
+            $params['numsessions'],
+            $contextdetails
+        );
 
         $planmarkdown = local_comp_report_ext_generate_study_plan($fullprompt);
         $planhtml     = local_comp_report_ext_markdown_to_html_table($planmarkdown);

@@ -22,8 +22,6 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Restore class for local_comp_report_ext plugin.
  *
@@ -32,7 +30,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class restore_local_comp_report_ext_plugin extends restore_local_plugin {
-
     /**
      * Define the plugin restore structure.
      *

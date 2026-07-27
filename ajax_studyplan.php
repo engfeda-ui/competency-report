@@ -25,6 +25,7 @@
 
 define('AJAX_SCRIPT', true);
 require_once(__DIR__ . '/../../config.php');
+require_login();
 require_once(__DIR__ . '/lib.php');
 require_once(__DIR__ . '/ai.php');
 

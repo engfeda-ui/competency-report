@@ -281,4 +281,3 @@ $string['privacy:metadata:local_comp_report_ext_prac'] = 'Stores student practic
 $string['privacy:metadata:local_comp_report_ext_prac:studentid'] = 'The user ID of the student being evaluated.';
 $string['privacy:metadata:local_comp_report_ext_prac:trainerid'] = 'The user ID of the trainer entering the result.';
 $string['privacy:metadata:local_comp_report_ext_prac:competency_percent'] = 'The competency achievement percentage score.';
-

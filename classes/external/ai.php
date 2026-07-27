@@ -43,7 +43,6 @@ require_once(__DIR__ . '/../../ai.php');
  * @package local_comp_report_ext
  */
 class ai extends external_api {
-
     /**
      * Parameter definition for generate_comment.
      *
@@ -55,7 +54,12 @@ class ai extends external_api {
             'userid'       => new external_value(PARAM_INT, 'User ID', VALUE_DEFAULT, 0),
             'groupid'      => new external_value(PARAM_INT, 'Group ID', VALUE_DEFAULT, 0),
             'quizid'       => new external_value(PARAM_INT, 'Quiz ID', VALUE_DEFAULT, 0),
-            'contexttype'  => new external_value(PARAM_ALPHA, 'Context type: student, school, group, quiz', VALUE_DEFAULT, 'student'),
+            'contexttype'  => new external_value(
+                PARAM_ALPHA,
+                'Context type: student, school, group, quiz',
+                VALUE_DEFAULT,
+                'student'
+            ),
             'focustype'    => new external_value(PARAM_ALPHA, 'Focus type: competency or grades', VALUE_DEFAULT, 'competency'),
             'customprompt' => new external_value(PARAM_TEXT, 'Optional custom prompt instructions', VALUE_DEFAULT, ''),
         ]);
@@ -104,7 +108,11 @@ class ai extends external_api {
         $rates = [];
         if ($params['contexttype'] === 'student' && $params['userid'] > 0) {
             $graderid = \local_comp_report_ext\competency_sync::resolve_grader_id();
-            $rates = \local_comp_report_ext\competency_sync::sync_user_competency($params['userid'], $params['courseid'], $graderid);
+            $rates = \local_comp_report_ext\competency_sync::sync_user_competency(
+                $params['userid'],
+                $params['courseid'],
+                $graderid
+            );
         } else {
             $calc = new \local_comp_report_ext\competency_calculator($params['courseid']);
             $compdata = $calc->get_all_competencies_data();

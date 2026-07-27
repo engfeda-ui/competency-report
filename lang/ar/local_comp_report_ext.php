@@ -280,4 +280,3 @@ $string['privacy:metadata:local_comp_report_ext_prac'] = 'يخزن مدخلات 
 $string['privacy:metadata:local_comp_report_ext_prac:studentid'] = 'معرف المستخدم للطالب الجاري تقييمه.';
 $string['privacy:metadata:local_comp_report_ext_prac:trainerid'] = 'معرف المستخدم للمدرب الذي أدخل النتيجة.';
 $string['privacy:metadata:local_comp_report_ext_prac:competency_percent'] = 'درجة إنجاز الكفاية بنسبة مئوية.';
-

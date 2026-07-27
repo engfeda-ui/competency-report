@@ -33,8 +33,6 @@ use core_privacy\local\request\userlist;
 use core_privacy\local\request\writer;
 use core_privacy\local\request\plugin\provider as pluginprovider;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Privacy Subsystem implementation for local_comp_report_ext.
  *
@@ -43,7 +41,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class provider implements metadataprovider, pluginprovider {
-
     /**
      * Returns metadata about user data stored by this plugin and sent to external locations.
      *

@@ -99,7 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
             $assign = new assign($context, $cm, $course);
             $maxgrade = (float)$assign->get_instance()->grade;
             if (!empty($studentids)) {
-                list($insql, $inparams) = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'sid');
+                [$insql, $inparams] = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'sid');
                 $params = array_merge(['assid' => $postassid], $inparams);
 
                 $allrows = $DB->get_records_sql("
