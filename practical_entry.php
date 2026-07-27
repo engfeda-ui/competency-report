@@ -97,7 +97,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
         if ($cm) {
             $context = context_module::instance($cm->id);
             $assign = new assign($context, $cm, $course);
-            $maxgrade = (float)$assign->get_instance()->grade;            if (!empty($studentids)) {
+            $maxgrade = (float)$assign->get_instance()->grade;
+            if (!empty($studentids)) {
                 list($insql, $inparams) = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'sid');
                 $params = array_merge(['assid' => $postassid], $inparams);
 
@@ -137,7 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
                         $assign->save_grade($sid, $gradedata);
                     }
                 }
-            }     }
+            }
         }
     }
 
