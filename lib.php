@@ -67,7 +67,7 @@ function local_comp_report_ext_extend_navigation_course($navigation, $course, $c
         }
 
         // Group Performance Analysis (consolidated group report).
-        if (has_capability('moodle/course:update', $context) || has_capability('moodle/site:config', $context)) {
+        if ($canview) {
             if (!$navigation->find('groupcompetency', navigation_node::TYPE_SETTING)) {
                 $url = new moodle_url('/local/comp_report_ext/group_competency.php', ['courseid' => $course->id]);
                 $navigation->add(

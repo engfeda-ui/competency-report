@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.7.2-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.7.3-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -267,6 +267,10 @@ npx grunt amd --files=local/competency_report
 ---
 
 ## 📋 Changelog
+
+### v3.7.3 (2026080303) — 2026-08-03
+- **Navigation Fix:** Updated capability checks in `lib.php` so all teachers/managers with report viewing permissions (`$canview`) can see the Group Assessment Distribution navigation link.
+- **UI Enhancement:** Added the 3rd tab ("By Assessment Weights" / "حسب أوزان التقييمات") to `group_competency_page.mustache` and `group_quiz_competency_page.mustache` templates.
 
 ### v3.7.2 (2026080302) — 2026-08-03
 - **Formatting Fix:** Trimmed extra trailing blank lines in English (`lang/en/local_comp_report_ext.php`) and Arabic (`lang/ar/local_comp_report_ext.php`) language files to strictly satisfy PSR2 single newline at EOF requirement.
