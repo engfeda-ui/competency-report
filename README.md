@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.7.9-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.8.0-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -81,6 +81,10 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 ---
 
 ## 📋 Changelog
+
+### v3.8.0 — 2026-08-03
+- **Improvement:** Replaced server-side TCPDF export on the Group Analytics Dashboard with a fully **client-side PDF capture** using `html2canvas` (v1.4.1) + `jsPDF` (v2.5.1). The PDF now captures the exact visual appearance of the dashboard — KPI gradient cards, radar chart, mastery distribution bar chart, learning progress curve, and theory vs. practice gap chart — at 2× resolution for crisp output. Multi-page A4 slicing is handled automatically. If AI commentary was generated before export it is appended as a plain-text page.
+- **Fix:** Wrapped KPI cards + charts in `#analytics-dashboard-content` div for precise html2canvas targeting. AI widget is hidden during capture then restored.
 
 ### v3.7.9 — 2026-08-03
 - **New Feature:** Added **PDF Export** to the Group Analytics Dashboard — clicking the new 📄 button generates a full-page TCPDF report with KPI overview (average mastery, remediation rate, top strength, critical gap), competency averages table, mastery distribution tier breakdown, colour legend, and optional AI pedagogical commentary page. Group name and date are included in the report header.
