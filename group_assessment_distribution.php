@@ -85,7 +85,7 @@ $groupoptions = [
         'id' => 0,
         'name' => get_string('allgroups', 'local_comp_report_ext'),
         'selected' => ($groupid == 0),
-    ]
+    ],
 ];
 if ($groups) {
     foreach ($groups as $g) {
@@ -126,30 +126,30 @@ if ($hasconfiguredasmts && !empty($validasmtids)) {
     if ($groupid > 0) {
         $groupobj = $DB->get_record('groups', ['id' => $groupid, 'courseid' => $courseid]);
         $gname = $groupobj ? format_string($groupobj->name) : '';
-        $students = (array)$DB->get_records_sql("
-            SELECT u.*, :gname AS groupname, :gid AS student_groupid
-            FROM {groups_members} gm
-            JOIN {user} u ON u.id = gm.userid
-            JOIN {role_assignments} ra ON ra.userid = u.id
-            JOIN {context} ctx ON ctx.id = ra.contextid
-            WHERE gm.groupid = :groupid
-              AND ctx.instanceid = :courseid
-              AND ra.roleid = (SELECT id FROM {role} WHERE shortname = 'student')
-            ORDER BY u.idnumber ASC, u.lastname ASC, u.firstname ASC",
+        $students = (array)$DB->get_records_sql(
+            "SELECT u.*, :gname AS groupname, :gid AS student_groupid
+               FROM {groups_members} gm
+               JOIN {user} u ON u.id = gm.userid
+               JOIN {role_assignments} ra ON ra.userid = u.id
+               JOIN {context} ctx ON ctx.id = ra.contextid
+              WHERE gm.groupid = :groupid
+                AND ctx.instanceid = :courseid
+                AND ra.roleid = (SELECT id FROM {role} WHERE shortname = 'student')
+           ORDER BY u.idnumber ASC, u.lastname ASC, u.firstname ASC",
             ['groupid' => $groupid, 'courseid' => $courseid, 'gname' => $gname, 'gid' => $groupid]
         );
     } else {
-        $students = (array)$DB->get_records_sql("
-            SELECT DISTINCT u.*, g.name AS groupname, g.id AS student_groupid
-            FROM {groups} g
-            JOIN {groups_members} gm ON gm.groupid = g.id
-            JOIN {user} u ON u.id = gm.userid
-            JOIN {role_assignments} ra ON ra.userid = u.id
-            JOIN {context} ctx ON ctx.id = ra.contextid
-            WHERE g.courseid = :courseid
-              AND ctx.instanceid = :courseid2
-              AND ra.roleid = (SELECT id FROM {role} WHERE shortname = 'student')
-            ORDER BY g.name ASC, u.idnumber ASC, u.lastname ASC, u.firstname ASC",
+        $students = (array)$DB->get_records_sql(
+            "SELECT DISTINCT u.*, g.name AS groupname, g.id AS student_groupid
+               FROM {groups} g
+               JOIN {groups_members} gm ON gm.groupid = g.id
+               JOIN {user} u ON u.id = gm.userid
+               JOIN {role_assignments} ra ON ra.userid = u.id
+               JOIN {context} ctx ON ctx.id = ra.contextid
+              WHERE g.courseid = :courseid
+                AND ctx.instanceid = :courseid2
+                AND ra.roleid = (SELECT id FROM {role} WHERE shortname = 'student')
+           ORDER BY g.name ASC, u.idnumber ASC, u.lastname ASC, u.firstname ASC",
             ['courseid' => $courseid, 'courseid2' => $courseid]
         );
     }
@@ -199,13 +199,17 @@ if ($hasconfiguredasmts && !empty($validasmtids)) {
                 ];
             }
 
+            $ratecolor = ($totalpercent !== null)
+                ? \local_comp_report_ext\competency_calculator::rate_color($totalpercent)
+                : 'grey';
+
             $comprows[] = [
                 'competencyid'  => $compid,
                 'shortname'     => format_string($data['competency']->shortname),
                 'asmt_cells'    => $asmtcells,
                 'total_percent' => ($totalpercent !== null) ? number_format($totalpercent, 1) : null,
                 'has_total'     => ($totalpercent !== null),
-                'color'         => ($totalpercent !== null) ? \local_comp_report_ext\competency_calculator::rate_color($totalpercent) : 'grey',
+                'color'         => $ratecolor,
                 'passed'        => ($totalpercent !== null && $totalpercent >= $threshold),
             ];
         }

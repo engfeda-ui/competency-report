@@ -28,7 +28,7 @@ require_once(__DIR__ . '/lib.php');
 
 $courseid           = required_param('courseid', PARAM_INT);
 $groupid            = optional_param('groupid', 0, PARAM_INT);
-$assessmentids_json = optional_param('assessmentids_json', '[]', PARAM_RAW);
+$assessmentidsjson  = optional_param('assessmentids_json', '[]', PARAM_RAW);
 $pdfcontent         = optional_param('pdf_content', '', PARAM_RAW);
 
 require_login($courseid);
@@ -48,7 +48,7 @@ if ($groupid > 0) {
     $groupname = format_string($group->name);
 }
 
-$validasmtids = json_decode($assessmentids_json, true);
+$validasmtids = json_decode($assessmentidsjson, true);
 if (!is_array($validasmtids)) {
     $validasmtids = [];
 }
@@ -71,30 +71,30 @@ if (empty($selectedasmts)) {
 
 // Fetch Students.
 if ($groupid > 0) {
-    $students = (array)$DB->get_records_sql("
-        SELECT u.*, :gname AS groupname
-        FROM {groups_members} gm
-        JOIN {user} u ON u.id = gm.userid
-        JOIN {role_assignments} ra ON ra.userid = u.id
-        JOIN {context} ctx ON ctx.id = ra.contextid
-        WHERE gm.groupid = :groupid
-          AND ctx.instanceid = :courseid
-          AND ra.roleid = (SELECT id FROM {role} WHERE shortname = 'student')
-        ORDER BY u.idnumber ASC, u.lastname ASC, u.firstname ASC",
+    $students = (array)$DB->get_records_sql(
+        "SELECT u.*, :gname AS groupname
+           FROM {groups_members} gm
+           JOIN {user} u ON u.id = gm.userid
+           JOIN {role_assignments} ra ON ra.userid = u.id
+           JOIN {context} ctx ON ctx.id = ra.contextid
+          WHERE gm.groupid = :groupid
+            AND ctx.instanceid = :courseid
+            AND ra.roleid = (SELECT id FROM {role} WHERE shortname = 'student')
+       ORDER BY u.idnumber ASC, u.lastname ASC, u.firstname ASC",
         ['groupid' => $groupid, 'courseid' => $courseid, 'gname' => $groupname]
     );
 } else {
-    $students = (array)$DB->get_records_sql("
-        SELECT DISTINCT u.*, g.name AS groupname
-        FROM {groups} g
-        JOIN {groups_members} gm ON gm.groupid = g.id
-        JOIN {user} u ON u.id = gm.userid
-        JOIN {role_assignments} ra ON ra.userid = u.id
-        JOIN {context} ctx ON ctx.id = ra.contextid
-        WHERE g.courseid = :courseid
-          AND ctx.instanceid = :courseid2
-          AND ra.roleid = (SELECT id FROM {role} WHERE shortname = 'student')
-        ORDER BY g.name ASC, u.idnumber ASC, u.lastname ASC, u.firstname ASC",
+    $students = (array)$DB->get_records_sql(
+        "SELECT DISTINCT u.*, g.name AS groupname
+           FROM {groups} g
+           JOIN {groups_members} gm ON gm.groupid = g.id
+           JOIN {user} u ON u.id = gm.userid
+           JOIN {role_assignments} ra ON ra.userid = u.id
+           JOIN {context} ctx ON ctx.id = ra.contextid
+          WHERE g.courseid = :courseid
+            AND ctx.instanceid = :courseid2
+            AND ra.roleid = (SELECT id FROM {role} WHERE shortname = 'student')
+       ORDER BY g.name ASC, u.idnumber ASC, u.lastname ASC, u.firstname ASC",
         ['courseid' => $courseid, 'courseid2' => $courseid]
     );
 }
@@ -142,12 +142,16 @@ foreach ($students as $student) {
             ];
         }
 
+        $ratecolor = ($totalpercent !== null)
+            ? \local_comp_report_ext\competency_calculator::rate_color($totalpercent)
+            : 'grey';
+
         $comprows[] = [
             'shortname'     => format_string($data['competency']->shortname),
             'asmt_cells'    => $asmtcells,
             'total_percent' => ($totalpercent !== null) ? number_format($totalpercent, 1) : null,
             'has_total'     => ($totalpercent !== null),
-            'color'         => ($totalpercent !== null) ? \local_comp_report_ext\competency_calculator::rate_color($totalpercent) : 'grey',
+            'color'         => $ratecolor,
         ];
     }
 
@@ -175,49 +179,36 @@ if (empty($rows)) {
     throw new moodle_exception('noexamdata', 'local_comp_report_ext');
 }
 
-// ---------------------------------------------------------
-// TCPDF Setup (Landscape)
-// ---------------------------------------------------------
-class COMP_DIST_PDF extends TCPDF {
-    public function Header() {
-        local_comp_report_ext_render_pdf_header_logos($this, true);
-    }
-    public function Footer() {
-        $this->SetY(-15);
-        $this->SetFont('helvetica', 'I', 8);
-        $this->Cell(0, 10, 'Page ' . $this->getAliasNumPage() . '/' . $this->getAliasNbPages(), 0, false, 'C');
-    }
-}
-
-$pdf = new COMP_DIST_PDF('L', 'mm', 'A4', true, 'UTF-8', false);
-$pdf->SetCreator('Moodle local_comp_report_ext');
-$pdf->SetAuthor('Competency Report Plugin');
+// PDF Generation (TCPDF).
+$pdf = new TCPDF('L', PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+$pdf->SetCreator('Moodle');
 $pdf->SetTitle(get_string('groupassessmentdistribution', 'local_comp_report_ext'));
+$pdf->setPrintHeader(false);
+$pdf->setPrintFooter(true);
 
 $isrtl = right_to_left();
 $pdf->setRTL($isrtl);
 
-$pdf->SetMargins(15, 28, 15);
-$pdf->SetHeaderMargin(8);
-$pdf->SetFooterMargin(12);
-$pdf->SetAutoPageBreak(true, 20);
+$pdf->SetMargins(15, 15, 15);
+$pdf->SetAutoPageBreak(true, PDF_MARGIN_BOTTOM);
 
 // Add Page.
 $pdf->AddPage();
+local_comp_report_ext_render_pdf_header_logos($pdf, true);
 
 // Document Title & Meta.
-$pdf->SetFont('dejavusans', 'B', 14);
+$pdf->SetFont('freeserif', 'B', 14);
 $pdf->Cell(0, 8, get_string('groupassessmentdistribution', 'local_comp_report_ext'), 0, 1, 'C');
-$pdf->SetFont('dejavusans', '', 10);
+$pdf->SetFont('freeserif', '', 10);
 $pdf->Cell(0, 6, $course->fullname . ' — ' . get_string('group', 'local_comp_report_ext') . ': ' . $groupname, 0, 1, 'C');
 $pdf->Ln(4);
 
 // Calculate Column Widths for PDF table (Total Printable Width approx 267mm).
 $showgroupcol = ($groupid === 0);
-$studentwidth = 22; // %
-$groupwidth   = $showgroupcol ? 16 : 0; // %
-$compwidth    = 18; // %
-$totalwidth   = 16; // %
+$studentwidth = 22;
+$groupwidth   = $showgroupcol ? 16 : 0;
+$compwidth    = 18;
+$totalwidth   = 16;
 
 $asmtcount    = count($selectedasmts);
 $remainingpct = 100 - ($studentwidth + $groupwidth + $compwidth + $totalwidth);
@@ -226,17 +217,21 @@ $asmtwidth    = $remainingpct / max(1, $asmtcount);
 // Build HTML Table.
 $tablehtml = '<table border="1" cellpadding="5" style="border-collapse: collapse; font-size: 8.5pt;">';
 $tablehtml .= '<thead><tr bgcolor="#343a40" style="color: #ffffff; font-weight: bold;">';
-$tablehtml .= '<th width="' . $studentwidth . '%" align="left"><b>' . get_string('student', 'local_comp_report_ext') . '</b></th>';
+$tablehtml .= '<th width="' . $studentwidth . '%" align="left"><b>' .
+    get_string('student', 'local_comp_report_ext') . '</b></th>';
 if ($showgroupcol) {
-    $tablehtml .= '<th width="' . $groupwidth . '%" align="left"><b>' . get_string('group', 'local_comp_report_ext') . '</b></th>';
+    $tablehtml .= '<th width="' . $groupwidth . '%" align="left"><b>' .
+        get_string('group', 'local_comp_report_ext') . '</b></th>';
 }
-$tablehtml .= '<th width="' . $compwidth . '%" align="left"><b>' . get_string('competency', 'local_comp_report_ext') . '</b></th>';
+$tablehtml .= '<th width="' . $compwidth . '%" align="left"><b>' .
+    get_string('competency', 'local_comp_report_ext') . '</b></th>';
 
 foreach ($selectedasmts as $asmt) {
     $hdrlabel = s($asmt->name) . '<br><small>(' . (float)$asmt->weight . '%)</small>';
     $tablehtml .= '<th width="' . $asmtwidth . '%" align="center"><b>' . $hdrlabel . '</b></th>';
 }
-$tablehtml .= '<th width="' . $totalwidth . '%" align="center"><b>' . get_string('weightedtotal', 'local_comp_report_ext') . '</b></th>';
+$tablehtml .= '<th width="' . $totalwidth . '%" align="center"><b>' .
+    get_string('weightedtotal', 'local_comp_report_ext') . '</b></th>';
 $tablehtml .= '</tr></thead><tbody>';
 
 foreach ($rows as $row) {
@@ -244,9 +239,11 @@ foreach ($rows as $row) {
     $tablehtml .= '<tr bgcolor="' . $bgcolor . '">';
 
     if (!empty($row['first_row'])) {
-        $tablehtml .= '<td width="' . $studentwidth . '%" rowspan="' . $row['rowspan'] . '" style="vertical-align: middle;"><b>' . s($row['studentname']) . '</b></td>';
+        $tablehtml .= '<td width="' . $studentwidth . '%" rowspan="' . $row['rowspan'] .
+            '" style="vertical-align: middle;"><b>' . s($row['studentname']) . '</b></td>';
         if ($showgroupcol) {
-            $tablehtml .= '<td width="' . $groupwidth . '%" rowspan="' . $row['rowspan'] . '" style="vertical-align: middle;">' . s($row['groupname']) . '</td>';
+            $tablehtml .= '<td width="' . $groupwidth . '%" rowspan="' . $row['rowspan'] .
+                '" style="vertical-align: middle;">' . s($row['groupname']) . '</td>';
         }
     }
 
@@ -269,21 +266,27 @@ foreach ($rows as $row) {
     }
 
     $totalval = $row['has_total'] ? '%' . $row['total_percent'] : '—';
-    $tablehtml .= '<td width="' . $totalwidth . '%" align="center" style="font-weight: bold; color: ' . $colorcode . ';">' . $totalval . '</td>';
+    $tablehtml .= '<td width="' . $totalwidth . '%" align="center" style="font-weight: bold; color: ' .
+        $colorcode . ';">' . $totalval . '</td>';
     $tablehtml .= '</tr>';
 }
 
 $tablehtml .= '</tbody></table>';
+
+// Clean emojis to prevent font errors.
+$tablehtml = preg_replace('/[^\x{0000}-\x{FFFF}]/u', '', $tablehtml);
 
 $pdf->writeHTML($tablehtml, true, false, true, false, '');
 
 // Append AI Commentary content if passed.
 if (!empty($pdfcontent)) {
     $pdf->Ln(6);
-    $pdf->SetFont('dejavusans', 'B', 11);
+    $pdf->SetFont('freeserif', 'B', 11);
     $pdf->Cell(0, 6, get_string('ai_analysis_focus', 'local_comp_report_ext'), 0, 1, 'L');
-    $pdf->SetFont('dejavusans', '', 9.5);
-    $pdf->writeHTML('<div style="background-color: #f8f9fa; padding: 10px; border: 1px solid #dee2e6;">' . $pdfcontent . '</div>', true, false, true, false, '');
+    $pdf->SetFont('freeserif', '', 9.5);
+    $aiblock = '<div style="background-color: #f8f9fa; padding: 10px; border: 1px solid #dee2e6;">' .
+        $pdfcontent . '</div>';
+    $pdf->writeHTML($aiblock, true, false, true, false, '');
 }
 
 // Clean output buffer & send PDF.
