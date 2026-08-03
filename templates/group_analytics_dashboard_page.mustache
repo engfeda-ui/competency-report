@@ -89,11 +89,11 @@
         <div class="col-md-3 mb-3">
             <div class="card h-100 border-0 shadow-sm kpi-card bg-strength text-white">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
                         <span class="text-uppercase small font-weight-bold opacity-75">{{#str}}top_strength, local_comp_report_ext{{/str}}</span>
                         <i class="fa fa-thumbs-up fa-lg opacity-75"></i>
                     </div>
-                    <h4 class="mb-0 font-weight-bold text-truncate" title="{{top_strength}}">{{top_strength}}</h4>
+                    <h5 class="mb-0 font-weight-bold" style="font-size: 1.05rem; line-height: 1.4;" title="{{top_strength}}">{{top_strength}}</h5>
                 </div>
             </div>
         </div>
@@ -101,11 +101,11 @@
         <div class="col-md-3 mb-3">
             <div class="card h-100 border-0 shadow-sm kpi-card bg-gap text-white">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
                         <span class="text-uppercase small font-weight-bold opacity-75">{{#str}}critical_skill_gap, local_comp_report_ext{{/str}}</span>
                         <i class="fa fa-bolt fa-lg opacity-75"></i>
                     </div>
-                    <h4 class="mb-0 font-weight-bold text-truncate" title="{{critical_gap}}">{{critical_gap}}</h4>
+                    <h5 class="mb-0 font-weight-bold" style="font-size: 1.05rem; line-height: 1.4;" title="{{critical_gap}}">{{critical_gap}}</h5>
                 </div>
             </div>
         </div>
@@ -208,10 +208,14 @@ require(['core/chartjs'], function(Chart) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            scale: {
-                ticks: {
-                    beginAtZero: true,
-                    max: 100
+            scales: {
+                r: {
+                    min: 0,
+                    max: 100,
+                    ticks: {
+                        beginAtZero: true,
+                        stepSize: 20
+                    }
                 }
             }
         }
@@ -248,14 +252,16 @@ require(['core/chartjs'], function(Chart) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            legend: { display: false },
+            plugins: {
+                legend: { display: false }
+            },
             scales: {
-                yAxes: [{
+                y: {
+                    beginAtZero: true,
                     ticks: {
-                        beginAtZero: true,
                         stepSize: 1
                     }
-                }]
+                }
             }
         }
     });
@@ -282,12 +288,13 @@ require(['core/chartjs'], function(Chart) {
             responsive: true,
             maintainAspectRatio: false,
             scales: {
-                yAxes: [{
+                y: {
+                    min: 0,
+                    max: 100,
                     ticks: {
-                        beginAtZero: true,
-                        max: 100
+                        stepSize: 20
                     }
-                }]
+                }
             }
         }
     });
@@ -319,12 +326,13 @@ require(['core/chartjs'], function(Chart) {
             responsive: true,
             maintainAspectRatio: false,
             scales: {
-                yAxes: [{
+                y: {
+                    min: 0,
+                    max: 100,
                     ticks: {
-                        beginAtZero: true,
-                        max: 100
+                        stepSize: 20
                     }
-                }]
+                }
             }
         }
     });

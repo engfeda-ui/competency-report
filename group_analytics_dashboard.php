@@ -113,7 +113,7 @@ foreach ($students as $student) {
     $student_count = 0;
 
     foreach ($scores as $compid => $data) {
-        $comp_scores[$compid]['shortname'] = format_string($data['competency']->shortname);
+        $comp_scores[$compid]['shortname'] = html_entity_decode(format_string($data['competency']->shortname), ENT_QUOTES, 'UTF-8');
         $comp_scores[$compid]['scores'][] = (float)$data['percent'];
 
         $student_sum += (float)$data['percent'];
@@ -192,8 +192,8 @@ if ($has_data) {
         $first_comp = $comp_averages[$keys[0]];
         $last_comp = $comp_averages[$keys[count($keys) - 1]];
 
-        $critical_gap = $first_comp['shortname'] . ' (' . number_format($first_comp['average'], 1) . '%)';
-        $top_strength = $last_comp['shortname'] . ' (' . number_format($last_comp['average'], 1) . '%)';
+        $critical_gap = html_entity_decode($first_comp['shortname'], ENT_QUOTES, 'UTF-8') . ' (' . number_format($first_comp['average'], 1) . '%)';
+        $top_strength = html_entity_decode($last_comp['shortname'], ENT_QUOTES, 'UTF-8') . ' (' . number_format($last_comp['average'], 1) . '%)';
     }
 
     // 4. Mastery Distribution
@@ -213,7 +213,7 @@ if ($has_data) {
     $asmts = $DB->get_records('local_comp_report_ext_asmt', ['courseid' => $courseid], 'id ASC');
     foreach ($asmts as $asmt) {
         if (isset($all_attempts_data[$asmt->id])) {
-            $progress_labels[] = format_string($asmt->name);
+            $progress_labels[] = html_entity_decode(format_string($asmt->name), ENT_QUOTES, 'UTF-8');
             $scores = $all_attempts_data[$asmt->id]['scores'];
             $progress_data[] = round(array_sum($scores) / count($scores), 1);
         }
