@@ -293,4 +293,3 @@ $string['weightedtotal']                   = 'Weighted Total';
 $string['assessmentheader']                = '{$a->name} ({$a->weight}%)';
 $string['noassessmentsconfigured']         = 'No weighted assessments have been configured for this course yet. Please use Assessment Setup first.';
 $string['groupassessmentdistribution_pdf'] = 'Export Assessment Distribution PDF';
-

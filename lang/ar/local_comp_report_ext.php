@@ -292,4 +292,3 @@ $string['weightedtotal']                   = 'المجموع المرجح';
 $string['assessmentheader']                = '{$a->name} ({$a->weight}%)';
 $string['noassessmentsconfigured']         = 'لا توجد تقييمات مرجحة مُعدَّة لهذه الدورة. يرجى استخدام إعداد التقييمات أولاً.';
 $string['groupassessmentdistribution_pdf'] = 'تصدير تقرير التوزيع PDF';
-
