@@ -281,3 +281,16 @@ $string['privacy:metadata:local_comp_report_ext_prac'] = 'Stores student practic
 $string['privacy:metadata:local_comp_report_ext_prac:studentid'] = 'The user ID of the student being evaluated.';
 $string['privacy:metadata:local_comp_report_ext_prac:trainerid'] = 'The user ID of the trainer entering the result.';
 $string['privacy:metadata:local_comp_report_ext_prac:competency_percent'] = 'The competency achievement percentage score.';
+
+// Group Assessment Distribution Report strings.
+$string['groupassessmentdistribution']     = 'Competency Distribution by Group & Assessment';
+$string['tab_assessment_distribution']     = 'By Assessment Weights';
+$string['selectassessments']               = 'Select Assessments';
+$string['allgroups']                       = 'All Groups';
+$string['group']                           = 'Group';
+$string['competency']                      = 'Competency';
+$string['weightedtotal']                   = 'Weighted Total';
+$string['assessmentheader']                = '{$a->name} ({$a->weight}%)';
+$string['noassessmentsconfigured']         = 'No weighted assessments have been configured for this course yet. Please use Assessment Setup first.';
+$string['groupassessmentdistribution_pdf'] = 'Export Assessment Distribution PDF';
+

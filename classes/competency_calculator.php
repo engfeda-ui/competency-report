@@ -185,6 +185,7 @@ class competency_calculator {
                     $totalweight   += (float)$assessment->weight;
 
                     $breakdown[] = [
+                        'assessmentid'          => (int)$assessment->id,
                         'name'                  => $assessment->name,
                         'type'                  => $assessment->type,
                         'weight'                => (float)$assessment->weight,

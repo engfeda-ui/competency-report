@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.6.1-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.7.0-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -19,7 +19,7 @@ A professional Moodle reporting engine that calculates and visualises student co
 - **Multiple Report Views:**
   - Student report card, exam analysis, competency state, timeline
   - Teacher class report, student comparison, exam analysis
-  - Group competency and group quiz competency analysis
+  - Group competency, group quiz competency, and **Group & Assessment Distribution Analysis (NEW in v3.7.0)**
   - School-wide report and PDF export
 - **Background Evidence Processing:** An adhoc task calculates competency success rates and writes them as Moodle competency evidence — now scoped to enrolled course students only (performance improvement).
 - **Enterprise PDF Exports:** Students and educators can download structured PDF reports.
@@ -267,6 +267,10 @@ npx grunt amd --files=local/competency_report
 ---
 
 ## 📋 Changelog
+
+### v3.7.0 (2026080300) — 2026-08-03
+- **Feature:** Added Group & Assessment Competency Distribution report (`group_assessment_distribution.php`). Displays each student's competency score breakdown across weighted assessments (theoretical/practical) configured in Assessment Setup, filtered by group (or all groups). Implements Option C (simulated rowspan grouping) for clean table rendering and TCPDF export (`group_assessment_distribution_pdf.php`).
+- **Enhancement:** Extended `competency_calculator::get_student_scores()` to include `assessmentid` in breakdown data array for precise per-assessment score filtering.
 
 ### v3.6.1 (2026072701) — 2026-07-27
 - **CodeSniffer Compliance:** Resolved all PHPCS Moodle CodeSniffer warnings and errors across external services, privacy provider, backup/restore classes, language files, and entry points. Added `require_login()` in `ajax_ai.php` and `ajax_studyplan.php`.

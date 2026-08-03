@@ -280,3 +280,16 @@ $string['privacy:metadata:local_comp_report_ext_prac'] = 'يخزن مدخلات 
 $string['privacy:metadata:local_comp_report_ext_prac:studentid'] = 'معرف المستخدم للطالب الجاري تقييمه.';
 $string['privacy:metadata:local_comp_report_ext_prac:trainerid'] = 'معرف المستخدم للمدرب الذي أدخل النتيجة.';
 $string['privacy:metadata:local_comp_report_ext_prac:competency_percent'] = 'درجة إنجاز الكفاية بنسبة مئوية.';
+
+// Group Assessment Distribution Report strings.
+$string['groupassessmentdistribution']     = 'توزيع الكفايات حسب المجموعات والتقييمات';
+$string['tab_assessment_distribution']     = 'حسب أوزان التقييمات';
+$string['selectassessments']               = 'اختر التقييمات';
+$string['allgroups']                       = 'كل المجموعات';
+$string['group']                           = 'المجموعة';
+$string['competency']                      = 'الكفاية';
+$string['weightedtotal']                   = 'المجموع المرجح';
+$string['assessmentheader']                = '{$a->name} ({$a->weight}%)';
+$string['noassessmentsconfigured']         = 'لا توجد تقييمات مرجحة مُعدَّة لهذه الدورة. يرجى استخدام إعداد التقييمات أولاً.';
+$string['groupassessmentdistribution_pdf'] = 'تصدير تقرير التوزيع PDF';
+
