@@ -40,7 +40,7 @@
             <form method="get" action="{{filteraction}}" class="row g-3 align-items-end">
                 <input type="hidden" name="courseid" value="{{courseid}}">
 
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label fw-bold">
                         <i class="fa fa-clipboard-list me-1"></i>{{strselectassessment}}
                     </label>
@@ -54,7 +54,7 @@
                     </select>
                 </div>
 
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label fw-bold">
                         <i class="fa fa-star me-1"></i>{{strselectcompetency}}
                     </label>
@@ -66,7 +66,18 @@
                     </select>
                 </div>
 
-                <div class="col-md-2">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">
+                        <i class="fa fa-users me-1"></i>{{#str}}group, local_comp_report_ext{{/str}}
+                    </label>
+                    <select name="groupid" class="form-select">
+                        {{#groups}}
+                        <option value="{{id}}" {{#selected}}selected{{/selected}}>{{name}}</option>
+                        {{/groups}}
+                    </select>
+                </div>
+
+                <div class="col-md-3">
                     <button type="submit" class="btn btn-success w-100">
                         <i class="fa fa-eye me-1"></i> {{strshowstudents}}
                     </button>
@@ -91,6 +102,7 @@
                 <input type="hidden" name="assessmentid" value="{{assessmentid}}">
                 <input type="hidden" name="competencyid" value="{{competencyid}}">
                 <input type="hidden" name="courseid"     value="{{courseid}}">
+                <input type="hidden" name="groupid"      value="{{groupid}}">
 
                 <div class="table-responsive">
                     <table class="table table-hover mb-0 align-middle">
@@ -110,6 +122,9 @@
                                 <td class="text-muted small">{{@index}}</td>
                                 <td>
                                     <strong>{{fullname}}</strong>
+                                    {{#groups}}
+                                    <span class="badge bg-info text-dark ms-1" style="font-size: 0.75rem; font-weight: 500;">{{name}}</span>
+                                    {{/groups}}
                                     <input type="hidden" name="studentid[]" value="{{id}}">
                                 </td>
                                 <td class="text-muted small">{{idnumber}}</td>

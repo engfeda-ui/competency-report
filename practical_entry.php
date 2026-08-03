@@ -45,20 +45,22 @@ $PAGE->set_pagelayout('course');
 $PAGE->set_title(get_string('practicalentry', 'local_comp_report_ext'));
 $PAGE->set_heading($course->fullname . ' — ' . get_string('practicalentry', 'local_comp_report_ext'));
 
-// Get selected assessment and competency from request.
+// Get selected assessment, competency, and group from request.
 $assessmentid = optional_param('assessmentid', 0, PARAM_INT);
 $competencyid = optional_param('competencyid', 0, PARAM_INT);
+$groupid      = optional_param('groupid', 0, PARAM_INT);
 
 // Handle POST — save results.
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
-    $studentids = optional_param_array('studentid', [], PARAM_INT);
-    $percents   = optional_param_array('competency_percent', [], PARAM_FLOAT);
-    $postassid  = required_param('assessmentid', PARAM_INT);
-    $postcompid = required_param('competencyid', PARAM_INT);
-    $now        = time();
+    $studentids  = optional_param_array('studentid', [], PARAM_INT);
+    $percents    = optional_param_array('competency_percent', [], PARAM_FLOAT);
+    $postassid   = required_param('assessmentid', PARAM_INT);
+    $postcompid  = required_param('competencyid', PARAM_INT);
+    $postgroupid = optional_param('groupid', 0, PARAM_INT);
+    $now         = time();
 
     foreach ($studentids as $idx => $sid) {
-        $pct = isset($percents[$idx]) ? (float)$percents[$idx] : null;
+        $pct = isset($percents[$idx]) && $percents[$idx] !== '' ? (float)$percents[$idx] : null;
         if ($pct === null || $pct < 0 || $pct > 100) {
             continue;
         }
@@ -153,6 +155,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
             'courseid'     => $courseid,
             'assessmentid' => $postassid,
             'competencyid' => $postcompid,
+            'groupid'      => $postgroupid,
         ]),
         get_string('practicalsaved', 'local_comp_report_ext'),
         null,
@@ -210,21 +213,74 @@ if (empty($competencies)) {
     ", ['courseid' => $courseid]));
 }
 
-// Students enrolled in the course — only users with the 'student' role
-// (excludes teachers/trainers who may also have quiz:attempt capability).
-$students = array_values($DB->get_records_sql(
-    "SELECT DISTINCT u.id, u.firstname, u.lastname, u.idnumber
-       FROM {role_assignments} ra
-       JOIN {role} r ON r.id = ra.roleid
-       JOIN {context} ctx ON ctx.id = ra.contextid
-       JOIN {user} u ON u.id = ra.userid
-      WHERE ctx.instanceid = :courseid
-        AND ctx.contextlevel = 50
-        AND r.shortname = 'student'
-        AND u.deleted = 0
-     ORDER BY u.lastname ASC, u.firstname ASC",
+// Fetch all groups for this course to construct filter options.
+$groups = groups_get_all_groups($courseid);
+$groupoptions = [
+    [
+        'id' => 0,
+        'name' => get_string('allgroups', 'local_comp_report_ext'),
+        'selected' => ($groupid == 0),
+    ],
+];
+if ($groups) {
+    foreach ($groups as $g) {
+        $groupoptions[] = [
+            'id' => $g->id,
+            'name' => format_string($g->name),
+            'selected' => ($g->id == $groupid),
+        ];
+    }
+}
+
+// Load group memberships for students in this course.
+$studentgroups = $DB->get_records_sql(
+    "SELECT gm.id, gm.userid, g.name AS groupname, g.id AS groupid
+       FROM {groups} g
+       JOIN {groups_members} gm ON gm.groupid = g.id
+      WHERE g.courseid = :courseid",
     ['courseid' => $courseid]
-));
+);
+$usergroupmap = [];
+foreach ($studentgroups as $sg) {
+    $usergroupmap[$sg->userid][] = [
+        'id'   => $sg->groupid,
+        'name' => format_string($sg->groupname),
+    ];
+}
+
+// Students enrolled in the course — only users with the 'student' role.
+// Optionally filter by selected group.
+if ($groupid > 0) {
+    $students = array_values($DB->get_records_sql(
+        "SELECT DISTINCT u.id, u.firstname, u.lastname, u.idnumber
+           FROM {role_assignments} ra
+           JOIN {role} r ON r.id = ra.roleid
+           JOIN {context} ctx ON ctx.id = ra.contextid
+           JOIN {user} u ON u.id = ra.userid
+           JOIN {groups_members} gm ON gm.userid = u.id
+          WHERE ctx.instanceid = :courseid
+            AND ctx.contextlevel = 50
+            AND r.shortname = 'student'
+            AND u.deleted = 0
+            AND gm.groupid = :groupid
+         ORDER BY u.lastname ASC, u.firstname ASC",
+        ['courseid' => $courseid, 'groupid' => $groupid]
+    ));
+} else {
+    $students = array_values($DB->get_records_sql(
+        "SELECT DISTINCT u.id, u.firstname, u.lastname, u.idnumber
+           FROM {role_assignments} ra
+           JOIN {role} r ON r.id = ra.roleid
+           JOIN {context} ctx ON ctx.id = ra.contextid
+           JOIN {user} u ON u.id = ra.userid
+          WHERE ctx.instanceid = :courseid
+            AND ctx.contextlevel = 50
+            AND r.shortname = 'student'
+            AND u.deleted = 0
+         ORDER BY u.lastname ASC, u.firstname ASC",
+        ['courseid' => $courseid]
+    ));
+}
 
 // If assessment and competency are selected, load existing results.
 $existingresults = [];
@@ -246,6 +302,9 @@ $renderdata                    = new stdClass();
 $renderdata->courseid          = $courseid;
 $renderdata->assessmentid      = $assessmentid;
 $renderdata->competencyid      = $competencyid;
+$renderdata->groupid            = $groupid;
+$renderdata->groups             = $groupoptions;
+$renderdata->usergroupmap      = $usergroupmap;
 $renderdata->assessments       = $practicalassessments;
 $renderdata->competencies      = $competencies;
 $renderdata->students          = $students;

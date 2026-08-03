@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.7.4-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.7.5-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -267,6 +267,9 @@ npx grunt amd --files=local/competency_report
 ---
 
 ## 📋 Changelog
+
+### v3.7.5 (2026080305) — 2026-08-03
+- **Feature:** Added **Group Filtering & Group Badges** to the Practical Exam Entry page (`practical_entry.php`). Trainers can now filter students by a specific group, view each student's group memberships as badges, and enter/save marks exclusively for the selected group. This provides a cleaner workflow and prevents mixing students from different classes together.
 
 ### v3.7.4 (2026080304) — 2026-08-03
 - **Bug Fix:** `practical_entry.php` — Student list now correctly filters by `role.shortname = 'student'` only, excluding trainers/teachers who were erroneously appearing in the list (e.g. users with both `editingteacher` + `student` roles).

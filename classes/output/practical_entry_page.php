@@ -59,6 +59,7 @@ class practical_entry_page implements renderable, templatable {
         $d->courseid     = $this->data->courseid;
         $d->assessmentid = $this->data->assessmentid;
         $d->competencyid = $this->data->competencyid;
+        $d->groupid      = $this->data->groupid;
         $d->sesskey      = $this->data->sesskey;
         $d->hasselection = ($this->data->assessmentid > 0 && $this->data->competencyid > 0);
 
@@ -97,6 +98,16 @@ class practical_entry_page implements renderable, templatable {
         }
         $d->hascompetencies = !empty($d->competencies);
 
+        // Group selector.
+        $d->groups = [];
+        foreach ($this->data->groups as $g) {
+            $item           = new stdClass();
+            $item->id       = $g['id'];
+            $item->name     = $g['name'];
+            $item->selected = $g['selected'];
+            $d->groups[]    = $item;
+        }
+
         // Students with their existing results (if selection made).
         $d->students = [];
         if ($d->hasselection) {
@@ -106,6 +117,18 @@ class practical_entry_page implements renderable, templatable {
                 $row->fullname = fullname($s);
                 $row->idnumber = $s->idnumber ?? '';
                 $row->percent  = $this->data->existingresults[$s->id] ?? '';
+
+                // Map student groups list for display.
+                $studentgroups = [];
+                if (!empty($this->data->usergroupmap[$s->id])) {
+                    foreach ($this->data->usergroupmap[$s->id] as $ginfo) {
+                        $studentgroups[] = [
+                            'name' => $ginfo['name'],
+                        ];
+                    }
+                }
+                $row->groups = $studentgroups;
+
                 $d->students[] = $row;
             }
         }
