@@ -1,0 +1,333 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    @template local_comp_report_ext/group_analytics_dashboard_page
+}}
+<div class="local_comp_report_ext_analytics_dashboard">
+    <ul class="nav nav-tabs mb-4">
+        <li class="nav-item">
+            <a class="nav-link font-weight-bold text-muted" href="group_competency.php?courseid={{courseid}}">
+                <i class="fa fa-list-alt mr-1"></i> {{#str}}tab_by_competency, local_comp_report_ext{{/str}}
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link font-weight-bold text-muted" href="group_quiz_competency.php?courseid={{courseid}}">
+                <i class="fa fa-pencil-square-o mr-1"></i> {{#str}}tab_by_quiz, local_comp_report_ext{{/str}}
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link font-weight-bold text-muted" href="group_assessment_distribution.php?courseid={{courseid}}">
+                <i class="fa fa-balance-scale mr-1"></i> {{#str}}tab_assessment_distribution, local_comp_report_ext{{/str}}
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link active font-weight-bold" href="#">
+                <i class="fa fa-bar-chart mr-1"></i> {{#str}}tab_group_analytics, local_comp_report_ext{{/str}}
+            </a>
+        </li>
+    </ul>
+
+    <!-- Filter Form -->
+    <form method="get" class="form-inline mb-4 bg-light p-3 rounded shadow-sm">
+        <input type="hidden" name="courseid" value="{{courseid}}">
+        <div class="form-group mr-3">
+            <label class="font-weight-bold mr-2 mb-0"><i class="fa fa-users mr-1"></i> {{#str}}group, local_comp_report_ext{{/str}}</label>
+            <select name="groupid" class="form-control">
+                {{#groups}}
+                    <option value="{{id}}" {{#selected}}selected{{/selected}}>{{name}}</option>
+                {{/groups}}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary"><i class="fa fa-eye mr-1"></i> {{strshowstudents}}</button>
+    </form>
+
+    {{^has_data}}
+        <div class="alert alert-info py-5 text-center shadow-sm">
+            <i class="fa fa-bar-chart fa-3x mb-3 opacity-50 d-block"></i>
+            <p class="mb-0">{{strnodata}}</p>
+        </div>
+    {{/has_data}}
+
+    {{#has_data}}
+    <!-- KPI Overview Cards -->
+    <div class="row mb-4">
+        <!-- Average Mastery Card -->
+        <div class="col-md-3 mb-3">
+            <div class="card h-100 border-0 shadow-sm kpi-card bg-mastery text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-uppercase small font-weight-bold opacity-75">{{#str}}average_mastery_rate, local_comp_report_ext{{/str}}</span>
+                        <i class="fa fa-graduation-cap fa-lg opacity-75"></i>
+                    </div>
+                    <h2 class="mb-0 font-weight-bold">{{avg_mastery}}%</h2>
+                </div>
+            </div>
+        </div>
+        <!-- Remediation Card -->
+        <div class="col-md-3 mb-3">
+            <div class="card h-100 border-0 shadow-sm kpi-card bg-remediation text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-uppercase small font-weight-bold opacity-75">{{#str}}remediation_rate, local_comp_report_ext{{/str}}</span>
+                        <i class="fa fa-exclamation-triangle fa-lg opacity-75"></i>
+                    </div>
+                    <h2 class="mb-0 font-weight-bold">{{remediation_rate}}%</h2>
+                </div>
+            </div>
+        </div>
+        <!-- Top Strength Card -->
+        <div class="col-md-3 mb-3">
+            <div class="card h-100 border-0 shadow-sm kpi-card bg-strength text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-uppercase small font-weight-bold opacity-75">{{#str}}top_strength, local_comp_report_ext{{/str}}</span>
+                        <i class="fa fa-thumbs-up fa-lg opacity-75"></i>
+                    </div>
+                    <h4 class="mb-0 font-weight-bold text-truncate" title="{{top_strength}}">{{top_strength}}</h4>
+                </div>
+            </div>
+        </div>
+        <!-- Critical Gap Card -->
+        <div class="col-md-3 mb-3">
+            <div class="card h-100 border-0 shadow-sm kpi-card bg-gap text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-uppercase small font-weight-bold opacity-75">{{#str}}critical_skill_gap, local_comp_report_ext{{/str}}</span>
+                        <i class="fa fa-bolt fa-lg opacity-75"></i>
+                    </div>
+                    <h4 class="mb-0 font-weight-bold text-truncate" title="{{critical_gap}}">{{critical_gap}}</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="row">
+        <!-- Radar Chart & Mastery Distribution -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white font-weight-bold border-bottom-0 pb-0 pt-3">
+                    <i class="fa fa-star text-warning mr-1"></i> {{#str}}competency_mastery_radar, local_comp_report_ext{{/str}}
+                </div>
+                <div class="card-body d-flex justify-content-center align-items-center" style="min-height:350px">
+                    <canvas id="chart-competency-radar"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white font-weight-bold border-bottom-0 pb-0 pt-3">
+                    <i class="fa fa-pie-chart text-info mr-1"></i> {{#str}}mastery_distribution, local_comp_report_ext{{/str}}
+                </div>
+                <div class="card-body d-flex justify-content-center align-items-center" style="min-height:350px">
+                    <canvas id="chart-mastery-distribution"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Learning Progress Curve & Theory vs Practice -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white font-weight-bold border-bottom-0 pb-0 pt-3">
+                    <i class="fa fa-line-chart text-success mr-1"></i> {{#str}}learning_progress_curve, local_comp_report_ext{{/str}}
+                </div>
+                <div class="card-body d-flex justify-content-center align-items-center" style="min-height:350px">
+                    <canvas id="chart-learning-progress"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white font-weight-bold border-bottom-0 pb-0 pt-3">
+                    <i class="fa fa-columns text-primary mr-1"></i> {{#str}}theory_vs_practice, local_comp_report_ext{{/str}}
+                </div>
+                <div class="card-body d-flex justify-content-center align-items-center" style="min-height:350px">
+                    <canvas id="chart-theory-practice"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{/has_data}}
+</div>
+
+<style>
+.local_comp_report_ext_analytics_dashboard .kpi-card {
+    border-radius: 12px;
+    transition: transform 0.2s ease;
+}
+.local_comp_report_ext_analytics_dashboard .kpi-card:hover {
+    transform: translateY(-3px);
+}
+.local_comp_report_ext_analytics_dashboard .bg-mastery {
+    background: linear-gradient(135deg, #13B981, #059669);
+}
+.local_comp_report_ext_analytics_dashboard .bg-remediation {
+    background: linear-gradient(135deg, #EF4444, #DC2626);
+}
+.local_comp_report_ext_analytics_dashboard .bg-strength {
+    background: linear-gradient(135deg, #3B82F6, #2563EB);
+}
+.local_comp_report_ext_analytics_dashboard .bg-gap {
+    background: linear-gradient(135deg, #F59E0B, #D97706);
+}
+</style>
+
+{{#has_data}}
+{{#js}}
+require(['core/chartjs'], function(Chart) {
+    // 1. Radar Chart Setup
+    var radarCtx = document.getElementById('chart-competency-radar').getContext('2d');
+    new Chart(radarCtx, {
+        type: 'radar',
+        data: {
+            labels: {{{radar_labels_json}}},
+            datasets: [{
+                label: '{{#str}}average_mastery_rate, local_comp_report_ext{{/str}} (%)',
+                data: {{{radar_data_json}}},
+                backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                borderColor: '#3B82F6',
+                borderWidth: 2,
+                pointBackgroundColor: '#2563EB',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: '#2563EB'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scale: {
+                ticks: {
+                    beginAtZero: true,
+                    max: 100
+                }
+            }
+        }
+    });
+
+    // 2. Mastery Distribution Bar Chart
+    var distCtx = document.getElementById('chart-mastery-distribution').getContext('2d');
+    new Chart(distCtx, {
+        type: 'bar',
+        data: {
+            labels: [
+                '{{#str}}critical_tier, local_comp_report_ext{{/str}}',
+                '{{#str}}developing_tier, local_comp_report_ext{{/str}}',
+                '{{#str}}proficient_tier, local_comp_report_ext{{/str}}',
+                '{{#str}}exemplary_tier, local_comp_report_ext{{/str}}'
+            ],
+            datasets: [{
+                data: {{{dist_data_json}}},
+                backgroundColor: [
+                    'rgba(239, 68, 68, 0.7)',
+                    'rgba(245, 158, 11, 0.7)',
+                    'rgba(59, 130, 246, 0.7)',
+                    'rgba(16, 185, 129, 0.7)'
+                ],
+                borderColor: [
+                    '#EF4444',
+                    '#F59E0B',
+                    '#3B82F6',
+                    '#10B981'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            legend: { display: false },
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true,
+                        stepSize: 1
+                    }
+                }]
+            }
+        }
+    });
+
+    // 3. Learning Progress Line Chart
+    var progressCtx = document.getElementById('chart-learning-progress').getContext('2d');
+    new Chart(progressCtx, {
+        type: 'line',
+        data: {
+            labels: {{{progress_labels_json}}},
+            datasets: [{
+                label: '{{#str}}average_mastery_rate, local_comp_report_ext{{/str}} (%)',
+                data: {{{progress_data_json}}},
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                borderColor: '#10B981',
+                borderWidth: 3,
+                pointBackgroundColor: '#059669',
+                pointRadius: 4,
+                fill: true,
+                lineTension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                }]
+            }
+        }
+    });
+
+    // 4. Theory vs Practice Bar Chart
+    var gapCtx = document.getElementById('chart-theory-practice').getContext('2d');
+    new Chart(gapCtx, {
+        type: 'bar',
+        data: {
+            labels: {{{gap_labels_json}}},
+            datasets: [
+                {
+                    label: '{{#str}}tab_by_quiz, local_comp_report_ext{{/str}} (%)',
+                    data: {{{gap_theory_json}}},
+                    backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                    borderColor: '#3B82F6',
+                    borderWidth: 1
+                },
+                {
+                    label: '{{#str}}practicalentry, local_comp_report_ext{{/str}} (%)',
+                    data: {{{gap_practice_json}}},
+                    backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                    borderColor: '#10B981',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                }]
+            }
+        }
+    });
+});
+{{/js}}
+{{/has_data}}

@@ -90,6 +90,17 @@ function local_comp_report_ext_extend_navigation_course($navigation, $course, $c
                     new pix_icon('i/report', '')
                 );
             }
+            if (!$navigation->find('groupanalyticsdashboard', navigation_node::TYPE_SETTING)) {
+                $url = new moodle_url('/local/comp_report_ext/group_analytics_dashboard.php', ['courseid' => $course->id]);
+                $navigation->add(
+                    get_string('group_analytics_dashboard', 'local_comp_report_ext'),
+                    $url,
+                    navigation_node::TYPE_SETTING,
+                    null,
+                    'groupanalyticsdashboard',
+                    new pix_icon('i/stats', '')
+                );
+            }
         }
 
         // Assessment weight configuration (editing teachers / managers).
@@ -187,6 +198,15 @@ function local_comp_report_ext_extend_navigation_reports($navigation, $course, $
             navigation_node::TYPE_SETTING,
             null,
             'groupassessmentdistribution_rep'
+        );
+
+        $url5 = new moodle_url('/local/comp_report_ext/group_analytics_dashboard.php', ['courseid' => $course->id]);
+        $navigation->add(
+            get_string('group_analytics_dashboard', 'local_comp_report_ext'),
+            $url5,
+            navigation_node::TYPE_SETTING,
+            null,
+            'groupanalyticsdashboard_rep'
         );
     }
 }

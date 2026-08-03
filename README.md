@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.7.6-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.7.7-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -267,6 +267,15 @@ npx grunt amd --files=local/competency_report
 ---
 
 ## 📋 Changelog
+
+### v3.7.7 (2026080307) — 2026-08-03
+- **Feature:** Added **Group Analytics Dashboard** (`group_analytics_dashboard.php`). This high-level dashboard provides cohort-level overview charts and visual analytics for trainers without individual student rows. Features include:
+  - **KPI Cards:** Average Mastery, Remediation Rate, Top Strength, and Critical Skill Gap.
+  - **Competency Radar Chart:** Visual spider graph of competency mastery averages.
+  - **Mastery Distribution Histogram:** Grouping students into performance tiers (Critical, Developing, Proficient, Exemplary).
+  - **Learning Progress Curve:** Chronological progress trend tracking cohort scores over assessments.
+  - **Theory vs. Practice Gap Chart:** Bar chart comparing average Quiz performance vs. Practical marks side-by-side.
+  - Seamless 4th-tab navigation across all group reports.
 
 ### v3.7.6 (2026080306) — 2026-08-03
 - **Bug Fix:** Fixed `Class "external_api" not found` error when triggering "Generate AI Analysis". In modern Moodle versions (4.3+), external classes are namespaced under `core_external`. Added automated namespacing fallbacks and class aliases in `classes/external/ai.php` and `classes/external/studyplan.php` to ensure 100% backward and forward compatibility across Moodle versions.
