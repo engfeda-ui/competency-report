@@ -307,3 +307,4 @@ $string['developing_tier'] = 'مطور (40-59%)';
 $string['proficient_tier'] = 'متقن (60-79%)';
 $string['exemplary_tier'] = 'متميز (80-100%)';
 $string['no_data_dashboard'] = 'لا توجد بيانات تقييمية لطلاب هذه المجموعة لإنشاء لوحة التحليلات البيانية.';
+$string['group_analytics_dashboard_pdf'] = 'تصدير لوحة التحليلات بصيغة PDF';

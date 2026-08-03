@@ -77,6 +77,12 @@ class group_analytics_dashboard_page implements renderable, templatable {
         $d->strselectgroup     = get_string('selectgroup', 'local_comp_report_ext');
         $d->strshowstudents    = get_string('showstudents', 'local_comp_report_ext');
         $d->strnodata          = get_string('no_data_dashboard', 'local_comp_report_ext');
+        $d->strexportpdf       = get_string('exportpdf', 'local_comp_report_ext');
+
+        // Fields needed by the ai_commentary_widget partial.
+        $d->userid        = 0;
+        $d->quizid        = 0;
+        $d->context_type  = 'group';
 
         return $d;
     }

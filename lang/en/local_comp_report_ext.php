@@ -308,3 +308,4 @@ $string['developing_tier'] = 'Developing (40-59%)';
 $string['proficient_tier'] = 'Proficient (60-79%)';
 $string['exemplary_tier'] = 'Exemplary (80-100%)';
 $string['no_data_dashboard'] = 'No student assessment data found for this group to generate dashboard analytics.';
+$string['group_analytics_dashboard_pdf'] = 'Export Analytics Dashboard PDF';

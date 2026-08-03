@@ -49,6 +49,11 @@
             </select>
         </div>
         <button type="submit" class="btn btn-primary"><i class="fa fa-eye mr-1"></i> {{strshowstudents}}</button>
+        {{#has_data}}
+        <button id="btn-export-analytics-pdf" type="button" class="btn btn-outline-danger font-weight-bold shadow-sm ml-2">
+            <i class="fa fa-file-pdf-o mr-1"></i> {{strexportpdf}}
+        </button>
+        {{/has_data}}
     </form>
 
     {{^has_data}}
@@ -159,6 +164,10 @@
             </div>
         </div>
     </div>
+    <!-- AI Commentary Widget -->
+    {{#has_data}}
+        {{> local_comp_report_ext/ai_commentary_widget }}
+    {{/has_data}}
     {{/has_data}}
 </div>
 
@@ -186,7 +195,35 @@
 
 {{#has_data}}
 {{#js}}
-require(['core/chartjs'], function(Chart) {
+require(['core/chartjs', 'jquery'], function(Chart, $) {
+
+    // PDF export button.
+    $('#btn-export-analytics-pdf').on('click', function(e) {
+        e.preventDefault();
+        var editedHtml = '';
+        var aiContent = $('.ai-content-html');
+        if (aiContent.length && aiContent.html().trim() !== '') {
+            editedHtml = aiContent.html();
+        }
+        var form = $('<form>', {
+            action: M.cfg.wwwroot + '/local/comp_report_ext/group_analytics_dashboard_pdf.php',
+            method: 'POST',
+            target: '_blank'
+        });
+        var params = {
+            courseid: "{{courseid}}",
+            groupid: "{{groupid}}",
+            pdf_content: editedHtml
+        };
+        $.each(params, function(key, val) {
+            form.append($('<input>', { type: 'hidden', name: key, value: val }));
+        });
+        $('body').append(form);
+        form.submit();
+        form.remove();
+    });
+
+
     // 1. Radar Chart Setup
     var radarCtx = document.getElementById('chart-competency-radar').getContext('2d');
     new Chart(radarCtx, {

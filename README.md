@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.7.8-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.7.9-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -82,7 +82,12 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 
 ## 📋 Changelog
 
-### v3.5.9 — 2026-07-26
+### v3.7.9 — 2026-08-03
+- **New Feature:** Added **PDF Export** to the Group Analytics Dashboard — clicking the new 📄 button generates a full-page TCPDF report with KPI overview (average mastery, remediation rate, top strength, critical gap), competency averages table, mastery distribution tier breakdown, colour legend, and optional AI pedagogical commentary page. Group name and date are included in the report header.
+- **New Feature:** Added the **AI Commentary Widget** directly on the Group Analytics Dashboard, enabling teachers to generate group-level pedagogical analysis (competency focus or grades focus) with optional custom instructions, and include the AI output in the exported PDF.
+- **Improvement:** Dashboard Mustache template now requires `jquery` alongside `core/chartjs` to support the new PDF form-POST export pattern. Output class updated to pass `context_type`, `userid`, `quizid`, and `strexportpdf` fields required by the AI widget partial.
+
+### v3.7.8 — 2026-08-03
 - **Fix & PHPUnit Pass:** Added `course_fullname` and `quiz_name` key aliases to `local_comp_report_ext_build_context_details()` in `lib.php` to resolve PHPUnit test failure (`Undefined array key "course_fullname"`).
 
 ### v3.5.8 — 2026-07-26
