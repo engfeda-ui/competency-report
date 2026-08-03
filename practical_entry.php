@@ -135,7 +135,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
                         $gradedata->feedbacktext = $feedbacktext;
                         $gradedata->feedbackformat = FORMAT_HTML;
 
-                        $assign->save_grade($sid, $gradedata);
+                        try {
+                            $assign->save_grade($sid, $gradedata);
+                        } catch (\Exception $e) {
+                            // Student may not be enrolled in the assignment — skip silently.
+                            debugging('practical_entry: save_grade failed for studentid=' .
+                                $sid . ': ' . $e->getMessage(), DEBUG_DEVELOPER);
+                        }
                     }
                 }
             }
@@ -204,13 +210,20 @@ if (empty($competencies)) {
     ", ['courseid' => $courseid]));
 }
 
-// Students enrolled in the course.
-$students = array_values(get_enrolled_users(
-    $context,
-    'mod/quiz:attempt',
-    0,
-    'u.id, u.firstname, u.lastname, u.idnumber',
-    'u.lastname ASC'
+// Students enrolled in the course — only users with the 'student' role
+// (excludes teachers/trainers who may also have quiz:attempt capability).
+$students = array_values($DB->get_records_sql(
+    "SELECT DISTINCT u.id, u.firstname, u.lastname, u.idnumber
+       FROM {role_assignments} ra
+       JOIN {role} r ON r.id = ra.roleid
+       JOIN {context} ctx ON ctx.id = ra.contextid
+       JOIN {user} u ON u.id = ra.userid
+      WHERE ctx.instanceid = :courseid
+        AND ctx.contextlevel = 50
+        AND r.shortname = 'student'
+        AND u.deleted = 0
+     ORDER BY u.lastname ASC, u.firstname ASC",
+    ['courseid' => $courseid]
 ));
 
 // If assessment and competency are selected, load existing results.
