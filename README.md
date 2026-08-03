@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.8.1-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.9.0-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -81,6 +81,16 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 ---
 
 ## 📋 Changelog
+
+### v3.9.0 — 2026-08-03
+- **New Feature:** Added **Final Exam & Psychometric Grade Analytics** to the Group Analytics Dashboard:
+  - **Quiz Selector:** Added a dropdown to switch between course quizzes, defaulting automatically to the Final Exam configured in `Assessment Setup`.
+  - **Exam KPI Mini-Cards:** Average score, pass rate, highest score, and lowest score.
+  - **Grade Distribution Histogram:** Bar chart categorising student scores into percentage frequency buckets (0-20%, 21-40%, 41-60%, 61-80%, 81-100%).
+  - **Pass vs Fail Ratio:** Doughnut chart displaying overall pass/fail student ratio based on pass threshold.
+  - **Question Difficulty Index ($p$-value):** Horizontal bar chart illustrating average score per question to identify hardest questions.
+  - **Question Discrimination Index:** Grouped bar chart comparing Top 27% high achievers vs Bottom 27% low achievers for each exam question.
+  - **PDF Export:** Integrated all 4 exam charts into TCPDF output as a dedicated second page of visual analytics.
 
 ### v3.8.1 — 2026-08-03
 - **Fix & Enhancement:** Replaced external CDN script loading (`html2canvas`/`jsPDF`) with **native HTML5 Canvas base64 extraction + Moodle TCPDF backend rendering**. Solved CDN/firewall script loading error (`Could not load PDF libraries`). All 4 dashboard charts (Radar, Mastery Distribution, Learning Progress, Theory vs Practice) are captured from HTML5 Canvas and rendered as crisp PNG images inside the TCPDF report in a 2x2 grid layout. Requires zero external network calls.

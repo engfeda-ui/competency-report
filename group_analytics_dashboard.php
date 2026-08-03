@@ -29,6 +29,7 @@ require_once(__DIR__ . '/../../config.php');
 
 $courseid = required_param('courseid', PARAM_INT);
 $groupid  = optional_param('groupid', 0, PARAM_INT);
+$quizid   = optional_param('quizid', 0, PARAM_INT);
 
 // Access control.
 require_login($courseid);
@@ -44,6 +45,7 @@ $course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
 $PAGE->set_url('/local/comp_report_ext/group_analytics_dashboard.php', [
     'courseid' => $courseid,
     'groupid'  => $groupid,
+    'quizid'   => $quizid,
 ]);
 $PAGE->set_title(get_string('group_analytics_dashboard', 'local_comp_report_ext'));
 $PAGE->set_heading($course->fullname . ' — ' . get_string('group_analytics_dashboard', 'local_comp_report_ext'));
@@ -64,6 +66,36 @@ foreach ($groups as $g) {
         'id' => $g->id,
         'name' => format_string($g->name),
         'selected' => ($g->id == $groupid),
+    ];
+}
+
+// -----------------------------------------------------------------------
+// Quiz Selection (Auto-default to Final Exam in Assessment Setup).
+// -----------------------------------------------------------------------
+$course_quizzes = $DB->get_records('quiz', ['course' => $courseid], 'name ASC');
+
+// Identify default quiz from Assessment Setup (type='quiz' with max weight).
+$default_quizid = 0;
+$asmts = $DB->get_records('local_comp_report_ext_asmt', ['courseid' => $courseid], 'weight DESC');
+foreach ($asmts as $asmt) {
+    if ($asmt->type === 'quiz' && !empty($asmt->activityid)) {
+        $default_quizid = (int)$asmt->activityid;
+        break;
+    }
+}
+if ($default_quizid == 0 && !empty($course_quizzes)) {
+    $first = reset($course_quizzes);
+    $default_quizid = (int)$first->id;
+}
+
+$selected_quizid = ($quizid > 0) ? $quizid : $default_quizid;
+
+$quizoptions = [];
+foreach ($course_quizzes as $q) {
+    $quizoptions[] = [
+        'id' => $q->id,
+        'name' => format_string($q->name),
+        'selected' => ($q->id == $selected_quizid),
     ];
 }
 
@@ -210,8 +242,8 @@ if ($has_data) {
     }
 
     // 5. Learning Progress Curve (Assessments in order of setup configuration)
-    $asmts = $DB->get_records('local_comp_report_ext_asmt', ['courseid' => $courseid], 'id ASC');
-    foreach ($asmts as $asmt) {
+    $asmts_list = $DB->get_records('local_comp_report_ext_asmt', ['courseid' => $courseid], 'id ASC');
+    foreach ($asmts_list as $asmt) {
         if (isset($all_attempts_data[$asmt->id])) {
             $progress_labels[] = html_entity_decode(format_string($asmt->name), ENT_QUOTES, 'UTF-8');
             $scores = $all_attempts_data[$asmt->id]['scores'];
@@ -242,16 +274,170 @@ if ($has_data) {
     }
 }
 
+// -----------------------------------------------------------------------
+// Selected Exam Grade Analytics (Detailed Psychometric & Score Analysis).
+// -----------------------------------------------------------------------
+$has_quiz_data = false;
+$exam_name     = '—';
+$exam_avg      = 0.0;
+$exam_pass_rate = 0.0;
+$exam_max      = 0.0;
+$exam_min      = 0.0;
+$exam_grade_dist = [0, 0, 0, 0, 0]; // 0-20, 21-40, 41-60, 61-80, 81-100%
+$exam_pass_fail  = [0, 0]; // Passed, Failed
+
+$item_difficulty_labels = [];
+$item_difficulty_data   = [];
+$item_discrim_top       = [];
+$item_discrim_bot       = [];
+
+if ($selected_quizid > 0 && !empty($students)) {
+    $student_ids = array_keys($students);
+    list($insql, $inparams) = $DB->get_in_or_equal($student_ids, SQL_PARAMS_NAMED, 'uid');
+    $inparams['quizid'] = $selected_quizid;
+
+    $quiz_obj = $DB->get_record('quiz', ['id' => $selected_quizid]);
+    if ($quiz_obj) {
+        $exam_name = format_string($quiz_obj->name);
+
+        $attempts = $DB->get_records_sql("
+            SELECT quiza.id, quiza.userid, quiza.sumgrades, q.sumgrades as quizgrade
+              FROM {quiz_attempts} quiza
+              JOIN {quiz} q ON q.id = quiza.quiz
+             WHERE quiza.quiz = :quizid
+               AND quiza.state = 'finished'
+               AND quiza.userid $insql
+             ORDER BY quiza.sumgrades DESC",
+            $inparams
+        );
+
+        if (!empty($attempts)) {
+            $has_quiz_data = true;
+            $user_best_scores = [];
+
+            foreach ($attempts as $att) {
+                $maxg = (float)$att->quizgrade > 0 ? (float)$att->quizgrade : 100.0;
+                $pct = round(((float)$att->sumgrades / $maxg) * 100, 1);
+                if (!isset($user_best_scores[$att->userid]) || $pct > $user_best_scores[$att->userid]) {
+                    $user_best_scores[$att->userid] = $pct;
+                }
+            }
+
+            $all_pcts = array_values($user_best_scores);
+            $total_takers = count($all_pcts);
+
+            $exam_avg = round(array_sum($all_pcts) / $total_takers, 1);
+            $exam_max = max($all_pcts);
+            $exam_min = min($all_pcts);
+
+            $passed_count = 0;
+            foreach ($all_pcts as $p) {
+                if ($p >= $threshold) {
+                    $passed_count++;
+                }
+                if ($p <= 20) {
+                    $exam_grade_dist[0]++;
+                } else if ($p <= 40) {
+                    $exam_grade_dist[1]++;
+                } else if ($p <= 60) {
+                    $exam_grade_dist[2]++;
+                } else if ($p <= 80) {
+                    $exam_grade_dist[3]++;
+                } else {
+                    $exam_grade_dist[4]++;
+                }
+            }
+
+            $exam_pass_rate = round(($passed_count / $total_takers) * 100, 1);
+            $exam_pass_fail = [$passed_count, $total_takers - $passed_count];
+
+            // Item Difficulty (p-value) & Discrimination Index (Top 27% vs Bottom 27%)
+            $q_attempts = $DB->get_records_sql("
+                SELECT qa.id, qa.questionid, q.name as qname, qa.maxfraction, qas.fraction, quiza.userid
+                  FROM {quiz_attempts} quiza
+                  JOIN {question_usages} qu ON qu.id = quiza.uniqueid
+                  JOIN {question_attempts} qa ON qa.questionusageid = qu.id
+                  JOIN {question} q ON q.id = qa.questionid
+                  JOIN (
+                      SELECT questionattemptid, MAX(fraction) AS fraction
+                        FROM {question_attempt_steps}
+                       GROUP BY questionattemptid
+                  ) qas ON qas.questionattemptid = qa.id
+                 WHERE quiza.quiz = :quizid
+                   AND quiza.state = 'finished'
+                   AND quiza.userid $insql
+                 ORDER BY qa.questionid ASC",
+                $inparams
+            );
+
+            // Group scores by question
+            $question_scores = [];
+            $question_names  = [];
+
+            // Identify Top 27% and Bottom 27% student IDs for Discrimination Index
+            arsort($user_best_scores);
+            $top_count = max(1, (int)ceil($total_takers * 0.27));
+            $top_user_ids = array_slice(array_keys($user_best_scores), 0, $top_count, true);
+            $bot_user_ids = array_slice(array_keys($user_best_scores), -$top_count, $top_count, true);
+            $top_users_map = array_fill_keys($top_user_ids, true);
+            $bot_users_map = array_fill_keys($bot_user_ids, true);
+
+            foreach ($q_attempts as $qa) {
+                $qid = (int)$qa->questionid;
+                $question_names[$qid] = html_entity_decode(format_string($qa->qname), ENT_QUOTES, 'UTF-8');
+                $maxf = (float)$qa->maxfraction > 0 ? (float)$qa->maxfraction : 1.0;
+                $fraction_pct = round(((float)$qa->fraction / $maxf) * 100, 1);
+
+                $question_scores[$qid]['all'][] = $fraction_pct;
+
+                if (isset($top_users_map[$qa->userid])) {
+                    $question_scores[$qid]['top'][] = $fraction_pct;
+                }
+                if (isset($bot_users_map[$qa->userid])) {
+                    $question_scores[$qid]['bot'][] = $fraction_pct;
+                }
+            }
+
+            $q_index = 1;
+            foreach ($question_scores as $qid => $qdata) {
+                $qlabel = 'Q' . $q_index . ': ' . shorten_text($question_names[$qid], 20);
+                $item_difficulty_labels[] = $qlabel;
+
+                $all_q_scores = $qdata['all'] ?? [0];
+                $item_difficulty_data[] = round(array_sum($all_q_scores) / count($all_q_scores), 1);
+
+                $top_q_scores = $qdata['top'] ?? [0];
+                $bot_q_scores = $qdata['bot'] ?? [0];
+
+                $item_discrim_top[] = round(array_sum($top_q_scores) / count($top_q_scores), 1);
+                $item_discrim_bot[] = round(array_sum($bot_q_scores) / count($bot_q_scores), 1);
+
+                $q_index++;
+            }
+        }
+    }
+}
+
 // Package data for views.
 $renderdata = new stdClass();
 $renderdata->courseid          = $courseid;
 $renderdata->groupid           = $groupid;
+$renderdata->quizid            = $selected_quizid;
 $renderdata->groups            = $groupoptions;
+$renderdata->quizzes           = $quizoptions;
 $renderdata->has_data          = $has_data;
 $renderdata->avg_mastery       = number_format($avg_mastery, 1);
 $renderdata->remediation_rate  = number_format($remediation_percent, 1);
 $renderdata->top_strength      = $top_strength;
 $renderdata->critical_gap      = $critical_gap;
+
+// Exam analytics view parameters
+$renderdata->has_quiz_data     = $has_quiz_data;
+$renderdata->exam_name         = $exam_name;
+$renderdata->exam_avg          = number_format($exam_avg, 1);
+$renderdata->exam_pass_rate    = number_format($exam_pass_rate, 1);
+$renderdata->exam_max          = number_format($exam_max, 1);
+$renderdata->exam_min          = number_format($exam_min, 1);
 
 // JSON strings for Chart.js rendering scripts
 $renderdata->radar_labels_json = json_encode($radar_labels);
@@ -271,6 +457,15 @@ $renderdata->gap_labels_json    = json_encode($radar_labels);
 $renderdata->gap_theory_json    = json_encode($theory_data);
 $renderdata->gap_practice_json  = json_encode($practice_data);
 
+// Exam Analytics JSON strings
+$renderdata->exam_grade_dist_json = json_encode($exam_grade_dist);
+$renderdata->exam_pass_fail_json  = json_encode($exam_pass_fail);
+
+$renderdata->item_difficulty_labels_json = json_encode($item_difficulty_labels);
+$renderdata->item_difficulty_data_json   = json_encode($item_difficulty_data);
+$renderdata->item_discrim_top_json       = json_encode($item_discrim_top);
+$renderdata->item_discrim_bot_json       = json_encode($item_discrim_bot);
+
 // Output rendering.
 echo $OUTPUT->header();
 
@@ -278,3 +473,4 @@ $page = new \local_comp_report_ext\output\group_analytics_dashboard_page($render
 echo $OUTPUT->render($page);
 
 echo $OUTPUT->footer();
+
