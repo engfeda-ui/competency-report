@@ -199,101 +199,43 @@
 {{#js}}
 require(['core/chartjs', 'jquery'], function(Chart, $) {
 
-    // PDF export — client-side capture with html2canvas + jsPDF.
+    // PDF export — convert HTML5 canvases to PNG images and submit via POST.
     $('#btn-export-analytics-pdf').on('click', function(e) {
         e.preventDefault();
-        var $btn = $(this);
-        $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin mr-1"></i> Generating...');
-
-        function loadScript(src) {
-            return new Promise(function(resolve, reject) {
-                if (document.querySelector('script[src="' + src + '"]')) { resolve(); return; }
-                var s = document.createElement('script');
-                s.src = src;
-                s.onload  = resolve;
-                s.onerror = reject;
-                document.head.appendChild(s);
-            });
+        var editedHtml = '';
+        var aiContent = $('.ai-content-html');
+        if (aiContent.length && aiContent.html().trim() !== '') {
+            editedHtml = aiContent.html();
         }
 
-        Promise.all([
-            loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'),
-            loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js')
-        ]).then(function() {
-            var dashboard = document.getElementById('analytics-dashboard-content');
+        var chart1 = document.getElementById('chart-competency-radar');
+        var chart2 = document.getElementById('chart-mastery-distribution');
+        var chart3 = document.getElementById('chart-learning-progress');
+        var chart4 = document.getElementById('chart-theory-practice');
 
-            // Hide AI widget before capture (keep report clean).
-            var aiSection = dashboard.querySelector('.ai-commentary');
-            if (aiSection) aiSection.style.display = 'none';
-
-            html2canvas(dashboard, {
-                scale: 2,
-                useCORS: true,
-                allowTaint: false,
-                backgroundColor: '#ffffff',
-                logging: false
-            }).then(function(canvas) {
-                // Restore AI section.
-                if (aiSection) aiSection.style.display = '';
-
-                var imgData = canvas.toDataURL('image/png');
-                var jspdf   = window.jspdf;
-                var doc     = new jspdf.jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
-
-                var pageW  = doc.internal.pageSize.getWidth();
-                var pageH  = doc.internal.pageSize.getHeight();
-                var margin = 10;
-                var usableW = pageW - margin * 2;
-                var imgH    = (canvas.height * usableW) / canvas.width;
-                var yPos    = margin;
-                var srcY    = 0;
-
-                // Slice the image across multiple A4 pages.
-                var sliceH = pageH - margin * 2;
-                var pxPerMm = canvas.width / usableW;
-
-                while (srcY < canvas.height) {
-                    var slicePx = Math.min(sliceH * pxPerMm, canvas.height - srcY);
-                    var sliceCanvas  = document.createElement('canvas');
-                    sliceCanvas.width  = canvas.width;
-                    sliceCanvas.height = slicePx;
-                    var sliceCtx = sliceCanvas.getContext('2d');
-                    sliceCtx.drawImage(canvas, 0, srcY, canvas.width, slicePx, 0, 0, canvas.width, slicePx);
-                    var sliceData  = sliceCanvas.toDataURL('image/png');
-                    var sliceH_mm  = slicePx / pxPerMm;
-                    if (srcY > 0) doc.addPage();
-                    doc.addImage(sliceData, 'PNG', margin, margin, usableW, sliceH_mm);
-                    srcY += slicePx;
-                }
-
-                // Append AI content if generated.
-                var aiHtml = $('.ai-content-html');
-                if (aiHtml.length && aiHtml.html().trim() !== '') {
-                    doc.addPage();
-                    doc.setFont('helvetica', 'bold');
-                    doc.setFontSize(13);
-                    doc.text('AI Pedagogical Analysis', margin, margin + 5);
-                    doc.setFont('helvetica', 'normal');
-                    doc.setFontSize(10);
-                    var textLines = doc.splitTextToSize(
-                        aiHtml.text().trim().substring(0, 3000),
-                        usableW
-                    );
-                    doc.text(textLines, margin, margin + 14);
-                }
-
-                var groupName = {{groupid}} > 0 ? 'Group_{{groupid}}' : 'All_Groups';
-                doc.save('Analytics_Dashboard_' + groupName + '.pdf');
-                $btn.prop('disabled', false).html('<i class="fa fa-file-pdf-o mr-1"></i> {{strexportpdf}}');
-            }).catch(function() {
-                if (aiSection) aiSection.style.display = '';
-                $btn.prop('disabled', false).html('<i class="fa fa-file-pdf-o mr-1"></i> {{strexportpdf}}');
-                alert('Failed to generate PDF. Please try again.');
-            });
-        }).catch(function() {
-            $btn.prop('disabled', false).html('<i class="fa fa-file-pdf-o mr-1"></i> {{strexportpdf}}');
-            alert('Could not load PDF libraries. Check your internet connection.');
+        var form = $('<form>', {
+            action: M.cfg.wwwroot + '/local/comp_report_ext/group_analytics_dashboard_pdf.php',
+            method: 'POST',
+            target: '_blank'
         });
+
+        var params = {
+            courseid: "{{courseid}}",
+            groupid: "{{groupid}}",
+            pdf_content: editedHtml,
+            chart1: chart1 ? chart1.toDataURL('image/png') : '',
+            chart2: chart2 ? chart2.toDataURL('image/png') : '',
+            chart3: chart3 ? chart3.toDataURL('image/png') : '',
+            chart4: chart4 ? chart4.toDataURL('image/png') : ''
+        };
+
+        $.each(params, function(key, val) {
+            form.append($('<input>', { type: 'hidden', name: key, value: val }));
+        });
+
+        $('body').append(form);
+        form.submit();
+        form.remove();
     });
 
 
