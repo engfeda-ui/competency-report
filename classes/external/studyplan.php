@@ -32,6 +32,23 @@ use context_course;
 
 defined('MOODLE_INTERNAL') || die();
 
+global $CFG;
+if (file_exists($CFG->libdir . '/externallib.php')) {
+    require_once($CFG->libdir . '/externallib.php');
+}
+if (!class_exists('external_api') && class_exists('core_external\external_api')) {
+    class_alias('core_external\external_api', 'external_api');
+}
+if (!class_exists('external_value') && class_exists('core_external\external_value')) {
+    class_alias('core_external\external_value', 'external_value');
+}
+if (!class_exists('external_single_structure') && class_exists('core_external\external_single_structure')) {
+    class_alias('core_external\external_single_structure', 'external_single_structure');
+}
+if (!class_exists('external_function_parameters') && class_exists('core_external\external_function_parameters')) {
+    class_alias('core_external\external_function_parameters', 'external_function_parameters');
+}
+
 require_once(__DIR__ . '/../../lib.php');
 require_once(__DIR__ . '/../../ai.php');
 
