@@ -77,6 +77,7 @@ function local_comp_report_ext_extend_navigation_course($navigation, $course, $c
                     null,
                     'groupcompetency',
                     new pix_icon('i/group', '')
+                );
             }
         }
 
