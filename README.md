@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.9.7-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.9.8-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -299,7 +299,10 @@ npx grunt amd --files=local/competency_report
 
 ## 📋 Changelog
 
-### v3.9.7 (2026080407) — 2026-08-04
+### v3.9.8 (2026080408) — 2026-08-04
+- **i18n Fix:** Added missing `allquizzes` (`All Exams / Quizzes` / `جميع الاختبارات`) language string to English and Arabic lang files to fix `[[allquizzes]]` placeholder issue in the Analytics Dashboard dropdown.
+
+
 - **Feature & Fix:** `group_analytics_dashboard.php` (Analytics Dashboard) now dynamically filters all KPIs (Average Mastery, Remediation Rate, Strengths/Gaps) and Charts (Competency Radar, Mastery Distribution) based on the selected exam (`quizid`). Added an **All Exams/Quizzes** (`quizid=0`) option to allow switching between course-wide cohort analytics and specific exam analytics.
 - **UX Improvement:** Added `onchange="this.form.submit()"` to form dropdown selects (`groupid`, `quizid`) across all report mustache templates so changing a dropdown option reloads the page and updates all charts/tables automatically.
 

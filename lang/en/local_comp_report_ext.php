@@ -288,6 +288,7 @@ $string['groupassessmentdistribution']     = 'Competency Distribution by Group &
 $string['tab_assessment_distribution']     = 'By Assessment Weights';
 $string['selectassessments']               = 'Select Assessments';
 $string['allgroups']                       = 'All Groups';
+$string['allquizzes']                      = 'All Exams / Quizzes';
 $string['group']                           = 'Group';
 $string['competency']                      = 'Competency';
 $string['weightedtotal']                   = 'Weighted Total';

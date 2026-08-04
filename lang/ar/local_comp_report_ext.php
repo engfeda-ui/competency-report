@@ -287,6 +287,7 @@ $string['groupassessmentdistribution']     = 'توزيع الكفايات حسب
 $string['tab_assessment_distribution']     = 'حسب أوزان التقييمات';
 $string['selectassessments']               = 'اختر التقييمات';
 $string['allgroups']                       = 'كل المجموعات';
+$string['allquizzes']                      = 'جميع الاختبارات';
 $string['group']                           = 'المجموعة';
 $string['competency']                      = 'الكفاية';
 $string['weightedtotal']                   = 'المجموع المرجح';
