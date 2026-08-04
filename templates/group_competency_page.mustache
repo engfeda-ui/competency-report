@@ -58,7 +58,7 @@
 
     <form method="get" class="mb-3 d-flex align-items-center flex-wrap">
         <input type="hidden" name="courseid" value="{{courseid}}">
-        <select name="groupid" class="custom-select w-auto mr-2">
+        <select name="groupid" class="custom-select w-auto mr-2" onchange="this.form.submit()">
             {{#groups}}
                 <option value="{{id}}" {{#selected}}selected{{/selected}}>{{name}}</option>
             {{/groups}}

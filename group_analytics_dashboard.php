@@ -70,34 +70,26 @@ foreach ($groups as $g) {
 }
 
 // -----------------------------------------------------------------------
-// Quiz Selection (Auto-default to Final Exam in Assessment Setup).
+// Quiz Selection.
 // -----------------------------------------------------------------------
 $course_quizzes = $DB->get_records('quiz', ['course' => $courseid], 'name ASC');
 
-// Identify default quiz from Assessment Setup (type='quiz' with max weight).
-$default_quizid = 0;
-$asmts = $DB->get_records('local_comp_report_ext_asmt', ['courseid' => $courseid], 'weight DESC');
-foreach ($asmts as $asmt) {
-    if ($asmt->type === 'quiz' && !empty($asmt->activityid)) {
-        $default_quizid = (int)$asmt->activityid;
-        break;
-    }
-}
-if ($default_quizid == 0 && !empty($course_quizzes)) {
-    $first = reset($course_quizzes);
-    $default_quizid = (int)$first->id;
-}
-
-$selected_quizid = ($quizid > 0) ? $quizid : $default_quizid;
-
-$quizoptions = [];
+$quizoptions = [
+    [
+        'id'       => 0,
+        'name'     => get_string('allquizzes', 'local_comp_report_ext') ?: 'All Exams/Quizzes',
+        'selected' => ($quizid == 0),
+    ],
+];
 foreach ($course_quizzes as $q) {
     $quizoptions[] = [
-        'id' => $q->id,
-        'name' => format_string($q->name),
-        'selected' => ($q->id == $selected_quizid),
+        'id'       => $q->id,
+        'name'     => format_string($q->name),
+        'selected' => ($q->id == $quizid),
     ];
 }
+
+$selected_quizid = $quizid;
 
 // Query students (Filtering by selected group and student role).
 if ($groupid > 0) {
@@ -135,34 +127,108 @@ $student_overall_averages = [];
 
 $threshold = (int)(get_config('local_comp_report_ext', 'success_threshold') ?: 60);
 
-foreach ($students as $student) {
-    $scores = $calculator->get_student_scores((int)$student->id);
-    if (empty($scores)) {
-        continue;
-    }
+if ($selected_quizid > 0 && !empty($students)) {
+    // Calculate performance filtered to the SELECTED EXAM specifically.
+    $comp_records = $DB->get_records_sql("
+        SELECT DISTINCT c.id, c.shortname
+          FROM {quiz_attempts} quiza
+          JOIN {question_usages} qu ON qu.id = quiza.uniqueid
+          JOIN {question_attempts} qa ON qa.questionusageid = qu.id
+          JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
+          JOIN {competency} c ON c.id = m.competencyid
+         WHERE quiza.quiz = :quizid
+         ORDER BY c.shortname",
+        ['quizid' => $selected_quizid]
+    );
 
-    $student_sum = 0.0;
-    $student_count = 0;
+    if (!empty($comp_records)) {
+        $student_ids = array_keys($students);
+        list($insql, $inparams) = $DB->get_in_or_equal($student_ids, SQL_PARAMS_NAMED, 'uid');
+        $inparams['quizid'] = $selected_quizid;
 
-    foreach ($scores as $compid => $data) {
-        $comp_scores[$compid]['shortname'] = html_entity_decode(format_string($data['competency']->shortname), ENT_QUOTES, 'UTF-8');
-        $comp_scores[$compid]['scores'][] = (float)$data['percent'];
+        $rawscores = $DB->get_records_sql("
+            SELECT CONCAT(quiza.userid, '_', m.competencyid) as unique_key,
+                   quiza.userid, m.competencyid,
+                   SUM(qa.maxfraction) AS total_max, SUM(qas.fraction) AS total_fraction
+              FROM {quiz_attempts} quiza
+              JOIN {question_usages} qu ON qu.id = quiza.uniqueid
+              JOIN {question_attempts} qa ON qa.questionusageid = qu.id
+              JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
+              JOIN (
+                  SELECT questionattemptid, MAX(fraction) AS fraction
+                    FROM {question_attempt_steps}
+                   GROUP BY questionattemptid
+              ) qas ON qas.questionattemptid = qa.id
+             WHERE quiza.quiz = :quizid AND quiza.state = 'finished'
+               AND quiza.userid $insql
+             GROUP BY quiza.userid, m.competencyid",
+            $inparams
+        );
 
-        $student_sum += (float)$data['percent'];
-        $student_count++;
+        $student_comp_map = [];
+        foreach ($rawscores as $rs) {
+            $att = (float)$rs->total_max;
+            $cor = (float)$rs->total_fraction;
+            $pct = ($att > 0) ? ($cor / $att) * 100.0 : 0.0;
+            $student_comp_map[$rs->userid][$rs->competencyid] = $pct;
+        }
 
-        if (!empty($data['breakdown'])) {
-            foreach ($data['breakdown'] as $b) {
-                $asmtid = (int)$b['assessmentid'];
-                $all_attempts_data[$asmtid]['name'] = $b['name'];
-                $all_attempts_data[$asmtid]['type'] = $b['type'];
-                $all_attempts_data[$asmtid]['scores'][] = (float)$b['score_pct'];
+        foreach ($students as $student) {
+            if (!isset($student_comp_map[$student->id])) {
+                continue;
+            }
+            $s_scores = $student_comp_map[$student->id];
+            $student_sum = 0.0;
+            $student_count = 0;
+
+            foreach ($comp_records as $cid => $comp) {
+                if (isset($s_scores[$cid])) {
+                    $pct = $s_scores[$cid];
+                    $shortname = html_entity_decode(format_string($comp->shortname), ENT_QUOTES, 'UTF-8');
+                    $comp_scores[$cid]['shortname'] = $shortname;
+                    $comp_scores[$cid]['scores'][]  = $pct;
+
+                    $student_sum += $pct;
+                    $student_count++;
+                }
+            }
+
+            if ($student_count > 0) {
+                $student_overall_averages[] = $student_sum / $student_count;
             }
         }
     }
+} else {
+    // Course-wide overall weighted calculation (across ALL assessments).
+    foreach ($students as $student) {
+        $scores = $calculator->get_student_scores((int)$student->id);
+        if (empty($scores)) {
+            continue;
+        }
 
-    if ($student_count > 0) {
-        $student_overall_averages[] = $student_sum / $student_count;
+        $student_sum = 0.0;
+        $student_count = 0;
+
+        foreach ($scores as $compid => $data) {
+            $comp_scores[$compid]['shortname'] = html_entity_decode(format_string($data['competency']->shortname), ENT_QUOTES, 'UTF-8');
+            $comp_scores[$compid]['scores'][] = (float)$data['percent'];
+
+            $student_sum += (float)$data['percent'];
+            $student_count++;
+
+            if (!empty($data['breakdown'])) {
+                foreach ($data['breakdown'] as $b) {
+                    $asmtid = (int)$b['assessmentid'];
+                    $all_attempts_data[$asmtid]['name'] = $b['name'];
+                    $all_attempts_data[$asmtid]['type'] = $b['type'];
+                    $all_attempts_data[$asmtid]['scores'][] = (float)$b['score_pct'];
+                }
+            }
+        }
+
+        if ($student_count > 0) {
+            $student_overall_averages[] = $student_sum / $student_count;
+        }
     }
 }
 

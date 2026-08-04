@@ -42,7 +42,7 @@
         <input type="hidden" name="courseid" value="{{courseid}}">
         <div class="form-group mr-3">
             <label class="font-weight-bold mr-2 mb-0"><i class="fa fa-users mr-1"></i> {{#str}}group, local_comp_report_ext{{/str}}</label>
-            <select name="groupid" class="form-control">
+            <select name="groupid" class="form-control" onchange="this.form.submit()">
                 {{#groups}}
                     <option value="{{id}}" {{#selected}}selected{{/selected}}>{{name}}</option>
                 {{/groups}}
@@ -52,7 +52,7 @@
         {{#quizzes.0}}
         <div class="form-group mr-3">
             <label class="font-weight-bold mr-2 mb-0"><i class="fa fa-graduation-cap mr-1"></i> {{#str}}selectquiz, local_comp_report_ext{{/str}}</label>
-            <select name="quizid" class="form-control">
+            <select name="quizid" class="form-control" onchange="this.form.submit()">
                 {{#quizzes}}
                     <option value="{{id}}" {{#selected}}selected{{/selected}}>{{name}}</option>
                 {{/quizzes}}

@@ -63,13 +63,13 @@
     <form method="get" class="form-inline mb-4">
         <input type="hidden" name="courseid" value="{{courseid}}">
         
-        <select name="groupid" class="form-control mr-2">
+        <select name="groupid" class="form-control mr-2" onchange="this.form.submit()">
             {{#groups}}
                 <option value="{{id}}" {{#selected}}selected{{/selected}}>{{name}}</option>
             {{/groups}}
         </select>
 
-        <select name="quizid" class="form-control mr-2">
+        <select name="quizid" class="form-control mr-2" onchange="this.form.submit()">
             {{#quizzes}}
                 <option value="{{id}}" {{#selected}}selected{{/selected}}>{{name}}</option>
             {{/quizzes}}
