@@ -90,6 +90,7 @@
                 <thead>
                     <tr>
                         <th>{{#str}}student, local_comp_report_ext{{/str}}</th>
+                        <th class="text-center">{{#str}}grade, local_comp_report_ext{{/str}} / {{quiz_maxgrade}}</th>
                         {{#competencies}}
                             <th class="text-center">{{shortname}}</th>
                         {{/competencies}}
@@ -99,6 +100,10 @@
                     {{#students}}
                         <tr>
                             <td>{{{studentlink}}}</td>
+                            <td class="text-center" style="color: {{quiz_grade_color}}; font-weight: bold;">
+                                {{#quiz_grade}}{{quiz_grade}} / {{quiz_maxgrade}}{{/quiz_grade}}
+                                {{^quiz_grade}}-{{/quiz_grade}}
+                            </td>
                             {{#scores}}
                                 <td class="text-center" style="color: {{color}}; font-weight: bold;">
                                     {{#rate}}%{{rate}}{{/rate}}
@@ -111,6 +116,10 @@
                 <tfoot>
                     <tr class="table-secondary font-weight-bold">
                         <td>{{#str}}total, local_comp_report_ext{{/str}}</td>
+                        <td class="text-center" style="color: {{avg_grade_color}};">
+                            {{#avg_grade}}{{avg_grade}} / {{quiz_maxgrade}}{{/avg_grade}}
+                            {{^avg_grade}}-{{/avg_grade}}
+                        </td>
                         {{#totals}}
                             <td class="text-center" style="color: {{color}};">
                                 {{#rate}}%{{rate}}{{/rate}}

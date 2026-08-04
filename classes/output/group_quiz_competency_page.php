@@ -81,11 +81,14 @@ class group_quiz_competency_page implements renderable, templatable {
         // groupid=0 means "All Groups" which is valid; only a quiz selection is required.
         $export->has_data = ($this->quizid > 0);
 
-        $export->groups = !empty($this->data->groups) ? array_values((array)$this->data->groups) : [];
-        $export->quizzes = !empty($this->data->quizzes) ? array_values((array)$this->data->quizzes) : [];
+        $export->groups       = !empty($this->data->groups) ? array_values((array)$this->data->groups) : [];
+        $export->quizzes      = !empty($this->data->quizzes) ? array_values((array)$this->data->quizzes) : [];
         $export->competencies = !empty($this->data->competencies) ? array_values((array)$this->data->competencies) : [];
-        $export->students = !empty($this->data->students) ? array_values((array)$this->data->students) : [];
-        $export->totals = !empty($this->data->totals) ? array_values((array)$this->data->totals) : [];
+        $export->students     = !empty($this->data->students) ? array_values((array)$this->data->students) : [];
+        $export->totals       = !empty($this->data->totals) ? array_values((array)$this->data->totals) : [];
+        $export->quiz_maxgrade    = $this->data->quiz_maxgrade ?? '';
+        $export->avg_grade        = $this->data->avg_grade ?? null;
+        $export->avg_grade_color  = $this->data->avg_grade_color ?? '';
 
         return $export;
     }

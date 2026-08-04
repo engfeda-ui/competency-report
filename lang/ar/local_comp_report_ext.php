@@ -158,6 +158,7 @@ $string['teacherstudentcompetency'] = 'تحليل كفايات الطالب';
 $string['timeline'] = 'الجدول الزمني';
 $string['timelineheading'] = 'تطور الكفايات عبر الزمن';
 $string['total'] = 'الإجمالي';
+$string['grade'] = 'الدرجة';
 $string['user'] = 'طالب';
 $string['viewattempt'] = 'مراجعة';
 $string['visual_report'] = 'التقرير المرئي';

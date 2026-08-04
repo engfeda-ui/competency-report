@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.9.4-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.9.5-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -299,7 +299,12 @@ npx grunt amd --files=local/competency_report
 
 ## 📋 Changelog
 
-### v3.9.4 (2026080404) — 2026-08-04
+### v3.9.5 (2026080405) — 2026-08-04
+- **Enhancement:** `group_quiz_competency.php` now fetches only users with the `student` role (via `get_role_users()`) instead of all enrolled users. This excludes trainers/teachers (e.g. Ahmed, Marwan) who were incorrectly appearing in the report.
+- **Feature:** Added **Grade column** to the By Exam/Quiz report table. Each student row now shows their best quiz grade (from `quiz_grades` table) alongside their competency rates. The footer row shows the group average grade. Both the grade cell and footer use the standard colour scheme (green/blue/orange/red).
+- **i18n:** Added `grade` / `الدرجة` language strings to English and Arabic lang files.
+
+
 - **Bug Fix:** Fixed `Parse error: Unclosed '{'` in `group_quiz_competency.php` caused by using `$DB` before `global $DB` was declared (the declaration was incorrectly placed inside the `if ($quizid > 0)` block while `$DB->get_records('quiz')` was called before the block).
 - **Bug Fix:** Fixed **All Groups** option showing no data in the By Course Competency report — `group_competency_page::export_for_template()` was setting `has_group = (groupid > 0)`, excluding the valid groupid=0 (All Groups) case. Now reads `has_group` from the controller's render data.
 - **Bug Fix:** Fixed **All Groups** option showing no data in the By Exam/Quiz report — `group_quiz_competency_page::export_for_template()` required both `groupid > 0 && quizid > 0`, blocking All Groups. Now only requires `quizid > 0`.

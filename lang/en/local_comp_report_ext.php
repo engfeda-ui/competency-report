@@ -159,6 +159,7 @@ $string['teacherstudentcompetency'] = 'Student Competency Analysis';
 $string['timeline'] = 'Timeline';
 $string['timelineheading'] = 'Competency Progress Over Time';
 $string['total'] = 'TOTAL';
+$string['grade'] = 'Grade';
 $string['user'] = 'Student';
 $string['viewattempt'] = 'Review';
 $string['visual_report'] = 'Visual report';

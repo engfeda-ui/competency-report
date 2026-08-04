@@ -82,17 +82,20 @@ foreach ($quizzes as $q) {
 }
 
 if ($quizid > 0) {
-    // Fetch Students (Filtering by selected group or all enrolled students if groupid=0).
-    $students = (array) get_enrolled_users(
-        $context,
-        '',
-        $groupid,
-        'u.*',
-        'u.idnumber ASC, u.lastname ASC, u.firstname ASC',
-        0,
-        0,
-        true
-    );
+    // Fetch STUDENTS ONLY — filter by role shortname 'student' to exclude teachers/trainers.
+    $studentrole = $DB->get_record('role', ['shortname' => 'student'], 'id');
+    $students = [];
+    if ($studentrole) {
+        $students = (array) get_role_users(
+            $studentrole->id,
+            $context,
+            false,
+            'u.*',
+            'u.idnumber ASC, u.lastname ASC, u.firstname ASC',
+            true,
+            ($groupid > 0 ? $groupid : '')
+        );
+    }
 
     $renderdata->has_data = !empty($students);
 
@@ -137,25 +140,56 @@ if ($quizid > 0) {
             $scoremap[$rs->userid][$rs->competencyid] = ['att' => $rs->total_max, 'cor' => $rs->total_fraction];
         }
 
+        // Fetch quiz max grade and per-student grades from quiz_grades table.
+        $quizrecord = $DB->get_record('quiz', ['id' => $quizid], 'id, grade');
+        $maxgrade = (float)($quizrecord->grade ?? 0);
+        $renderdata->quiz_maxgrade = number_format($maxgrade, 1);
+
+        list($ginsql, $ginparams) = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'gid');
+        $ginparams['gquizid'] = $quizid;
+        $graderecords = $DB->get_records_sql(
+            "SELECT userid, grade FROM {quiz_grades} WHERE quiz = :gquizid AND userid $ginsql",
+            $ginparams
+        );
+
         // Process rows for each student and their competency rates.
         $renderdata->students = [];
-        $grouptotals = [];
+        $grouptotals  = [];
+        $totalgradesum = 0;
+        $gradedcount   = 0;
+
         foreach ($students as $s) {
             $row = new stdClass();
             $detailurl = new moodle_url('/local/comp_report_ext/student_competency_detail.php', [
                 'courseid' => $courseid,
-                'userid' => $s->id,
+                'userid'   => $s->id,
             ]);
             $row->studentlink = html_writer::link($detailurl, fullname($s), ['target' => '_blank']);
             $row->scores = [];
 
+            // Quiz grade column.
+            if (isset($graderecords[$s->id]) && $maxgrade > 0) {
+                $sgrade            = (float)$graderecords[$s->id]->grade;
+                $sgradepct         = ($sgrade / $maxgrade) * 100;
+                $row->quiz_grade       = number_format($sgrade, 1);
+                $row->quiz_maxgrade    = number_format($maxgrade, 1);
+                $row->quiz_grade_color = ($sgradepct >= 80) ? 'green'
+                    : (($sgradepct >= 60) ? 'blue'
+                    : (($sgradepct >= 40) ? 'orange' : 'red'));
+                $totalgradesum += $sgrade;
+                $gradedcount++;
+            } else {
+                $row->quiz_grade    = null;
+                $row->quiz_maxgrade = number_format($maxgrade, 1);
+            }
+
             foreach ($renderdata->competencies as $c) {
                 $scoreobj = new stdClass();
                 if (isset($scoremap[$s->id][$c->id])) {
-                    $att = $scoremap[$s->id][$c->id]['att'];
-                    $cor = $scoremap[$s->id][$c->id]['cor'];
+                    $att  = $scoremap[$s->id][$c->id]['att'];
+                    $cor  = $scoremap[$s->id][$c->id]['cor'];
                     $rate = ($att > 0) ? number_format(($cor / $att) * 100, 1) : 0;
-                    $scoreobj->rate = $rate;
+                    $scoreobj->rate  = $rate;
                     $scoreobj->color = ($rate >= 80) ? 'green' : (($rate >= 60) ? 'blue' : (($rate >= 40) ? 'orange' : 'red'));
 
                     $grouptotals[$c->id]['att'] = ($grouptotals[$c->id]['att'] ?? 0) + $att;
@@ -168,15 +202,26 @@ if ($quizid > 0) {
             $renderdata->students[] = $row;
         }
 
-        // Finalize report totals for the table footer.
+        // Average grade for the footer.
+        if ($gradedcount > 0 && $maxgrade > 0) {
+            $avggradepct               = ($totalgradesum / $gradedcount / $maxgrade) * 100;
+            $renderdata->avg_grade       = number_format($totalgradesum / $gradedcount, 1);
+            $renderdata->avg_grade_color = ($avggradepct >= 80) ? 'green'
+                : (($avggradepct >= 60) ? 'blue'
+                : (($avggradepct >= 40) ? 'orange' : 'red'));
+        } else {
+            $renderdata->avg_grade = null;
+        }
+
+        // Finalize competency totals for the table footer.
         $renderdata->totals = [];
         foreach ($renderdata->competencies as $c) {
-            $total = new stdClass();
+            $total    = new stdClass();
             $totalatt = $grouptotals[$c->id]['att'] ?? 0;
             $totalcor = $grouptotals[$c->id]['cor'] ?? 0;
             if ($totalatt > 0) {
-                $trate = number_format(($totalcor / $totalatt) * 100, 1);
-                $total->rate = $trate;
+                $trate        = number_format(($totalcor / $totalatt) * 100, 1);
+                $total->rate  = $trate;
                 $total->color = ($trate >= 80) ? 'green' : (($trate >= 60) ? 'blue' : (($trate >= 40) ? 'orange' : 'red'));
             } else {
                 $total->rate = null;
