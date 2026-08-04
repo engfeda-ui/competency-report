@@ -102,6 +102,8 @@ $student_overall_averages = [];
 
 $threshold = (int)(get_config('local_comp_report_ext', 'success_threshold') ?: 60);
 
+$student_list = [];
+
 // Calculate student scores based on configured Assessment Weights.
 foreach ($students as $student) {
     $scores = $calculator->get_student_scores((int)$student->id);
@@ -122,7 +124,46 @@ foreach ($students as $student) {
     }
 
     if ($student_count > 0) {
-        $student_overall_averages[] = $student_sum / $student_count;
+        $avg_pct = round($student_sum / $student_count, 1);
+        $student_overall_averages[] = $avg_pct;
+
+        if ($avg_pct < 40) {
+            $tier = 'critical';
+            $tier_name = get_string('critical_tier', 'local_comp_report_ext') ?: 'Critical (< 40%)';
+            $badge_class = 'badge-danger';
+        } else if ($avg_pct < 60) {
+            $tier = 'developing';
+            $tier_name = get_string('developing_tier', 'local_comp_report_ext') ?: 'Developing (40-59%)';
+            $badge_class = 'badge-warning';
+        } else if ($avg_pct < 80) {
+            $tier = 'proficient';
+            $tier_name = get_string('proficient_tier', 'local_comp_report_ext') ?: 'Proficient (60-79%)';
+            $badge_class = 'badge-primary';
+        } else {
+            $tier = 'exemplary';
+            $tier_name = get_string('exemplary_tier', 'local_comp_report_ext') ?: 'Exemplary (80-100%)';
+            $badge_class = 'badge-success';
+        }
+
+        $needs_remediation = ($avg_pct < $threshold);
+
+        $decile_bin = min(9, (int)floor($avg_pct / 10));
+
+        $student_list[] = [
+            'id'                => (int)$student->id,
+            'fullname'          => fullname($student),
+            'average'           => number_format($avg_pct, 1),
+            'average_raw'       => $avg_pct,
+            'tier'              => $tier,
+            'tier_name'         => $tier_name,
+            'badge_class'       => $badge_class,
+            'needs_remediation' => $needs_remediation,
+            'decile_bin'        => $decile_bin,
+            'detail_url'        => (new moodle_url('/local/comp_report_ext/student_competency_detail.php', [
+                'courseid' => $courseid,
+                'userid'   => $student->id,
+            ]))->out(false),
+        ];
     }
 }
 
@@ -275,6 +316,9 @@ $renderdata->histogram_data_json   = json_encode($score_histogram);
 $renderdata->gap_labels_json    = json_encode($radar_labels);
 $renderdata->gap_theory_json    = json_encode($theory_data);
 $renderdata->gap_practice_json  = json_encode($practice_data);
+
+$renderdata->student_list      = $student_list;
+$renderdata->student_list_json = json_encode($student_list);
 
 // Output rendering.
 echo $OUTPUT->header();

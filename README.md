@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.10.1-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.11.0-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -299,7 +299,10 @@ npx grunt amd --files=local/competency_report
 
 ## 📋 Changelog
 
-### v3.10.1 (2026080411) — 2026-08-04
+### v3.11.0 (2026080412) — 2026-08-04
+- **Feature & Enhancement:** Added **Interactive Student Modal Drill-Down** and **Student Cohort Roster Breakdown Table** to the Analytics Dashboard (`group_analytics_dashboard.php`). Instructors can now click on KPI cards (e.g. *Students Requiring Remediation*) or click on any bar in *Mastery Distribution* or *Score Distribution Histogram* to instantly open a popup modal listing those exact students, their overall scores, performance status badges, and direct links to their detailed individual reports. Added instant tier filter buttons for the cohort table.
+
+
 - **Enhancement:** Granular 10-bin Score Distribution Histogram in `group_analytics_dashboard.php` (`0–10%`, `11–20%`, `21–30%`, ..., `91–100%`) with a smooth 10-color gradient for precise cohort score distribution analysis.
 
 

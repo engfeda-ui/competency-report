@@ -73,6 +73,9 @@ class group_analytics_dashboard_page implements renderable, templatable {
         $d->gap_theory_json       = $this->data->gap_theory_json;
         $d->gap_practice_json     = $this->data->gap_practice_json;
 
+        $d->student_list          = $this->data->student_list;
+        $d->student_list_json     = $this->data->student_list_json;
+
         // Common strings.
         $d->strselectgroup     = get_string('selectgroup', 'local_comp_report_ext');
         $d->strshowstudents    = get_string('showstudents', 'local_comp_report_ext');

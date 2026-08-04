@@ -66,29 +66,31 @@
 
     {{#has_data}}
     <div id="analytics-dashboard-content">
-    <!-- KPI Overview Cards -->
+    <!-- KPI Overview Cards (Clickable for Drill-down) -->
     <div class="row mb-4">
         <!-- Average Mastery Card -->
         <div class="col-md-3 mb-3">
-            <div class="card h-100 border-0 shadow-sm kpi-card bg-mastery text-white">
+            <div class="card h-100 border-0 shadow-sm kpi-card bg-mastery text-white" id="btn-kpi-all-students" style="cursor: pointer;" title="Click to view all student scores">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <span class="text-uppercase small font-weight-bold opacity-75">{{#str}}average_mastery_rate, local_comp_report_ext{{/str}}</span>
                         <i class="fa fa-graduation-cap fa-lg opacity-75"></i>
                     </div>
                     <h2 class="mb-0 font-weight-bold">{{avg_mastery}}%</h2>
+                    <small class="opacity-75 d-block mt-2"><i class="fa fa-search-plus mr-1"></i> Click for student roster</small>
                 </div>
             </div>
         </div>
         <!-- Remediation Card -->
         <div class="col-md-3 mb-3">
-            <div class="card h-100 border-0 shadow-sm kpi-card bg-remediation text-white">
+            <div class="card h-100 border-0 shadow-sm kpi-card bg-remediation text-white" id="btn-kpi-remediation" style="cursor: pointer;" title="Click to view students needing remediation">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <span class="text-uppercase small font-weight-bold opacity-75">{{#str}}remediation_rate, local_comp_report_ext{{/str}}</span>
                         <i class="fa fa-exclamation-triangle fa-lg opacity-75"></i>
                     </div>
                     <h2 class="mb-0 font-weight-bold">{{remediation_rate}}%</h2>
+                    <small class="opacity-75 d-block mt-2"><i class="fa fa-user-times mr-1"></i> Click for remediation list</small>
                 </div>
             </div>
         </div>
@@ -132,11 +134,12 @@
         </div>
         <div class="col-md-6 mb-4">
             <div class="card shadow-sm h-100">
-                <div class="card-header bg-white font-weight-bold border-bottom-0 pb-0 pt-3">
-                    <i class="fa fa-pie-chart text-info mr-1"></i> {{#str}}mastery_distribution, local_comp_report_ext{{/str}}
+                <div class="card-header bg-white font-weight-bold border-bottom-0 pb-0 pt-3 d-flex justify-content-between align-items-center">
+                    <span><i class="fa fa-pie-chart text-info mr-1"></i> {{#str}}mastery_distribution, local_comp_report_ext{{/str}}</span>
+                    <small class="text-muted"><i class="fa fa-hand-pointer-o mr-1"></i> Click any bar to drill down</small>
                 </div>
                 <div class="card-body d-flex justify-content-center align-items-center" style="min-height:350px">
-                    <canvas id="chart-mastery-distribution"></canvas>
+                    <canvas id="chart-mastery-distribution" style="cursor:pointer;"></canvas>
                 </div>
             </div>
         </div>
@@ -146,11 +149,12 @@
     <div class="row">
         <div class="col-md-6 mb-4">
             <div class="card shadow-sm h-100">
-                <div class="card-header bg-white font-weight-bold border-bottom-0 pb-0 pt-3">
-                    <i class="fa fa-bar-chart text-success mr-1"></i> {{#str}}score_distribution_histogram, local_comp_report_ext{{/str}}
+                <div class="card-header bg-white font-weight-bold border-bottom-0 pb-0 pt-3 d-flex justify-content-between align-items-center">
+                    <span><i class="fa fa-bar-chart text-success mr-1"></i> {{#str}}score_distribution_histogram, local_comp_report_ext{{/str}}</span>
+                    <small class="text-muted"><i class="fa fa-hand-pointer-o mr-1"></i> Click any bar to drill down</small>
                 </div>
                 <div class="card-body d-flex justify-content-center align-items-center" style="min-height:350px">
-                    <canvas id="chart-learning-progress"></canvas>
+                    <canvas id="chart-learning-progress" style="cursor:pointer;"></canvas>
                 </div>
             </div>
         </div>
@@ -166,6 +170,65 @@
         </div>
     </div>
 
+    <!-- Student Cohort Roster & Interactive Breakdown Table -->
+    <div class="card shadow-sm mt-4 border-0 mb-4" id="section-student-roster">
+        <div class="card-header bg-white border-bottom-0 pt-4 pb-2 d-flex justify-content-between align-items-center flex-wrap">
+            <h5 class="font-weight-bold text-dark mb-2">
+                <i class="fa fa-users text-primary mr-2"></i> Student Roster & Performance Breakdown
+            </h5>
+            <!-- Filter Buttons -->
+            <div class="btn-group btn-group-sm mb-2" id="roster-filter-group" role="group">
+                <button type="button" class="btn btn-outline-secondary active" data-filter="all">All</button>
+                <button type="button" class="btn btn-outline-danger" data-filter="remediation"><i class="fa fa-exclamation-triangle mr-1"></i> Remediation Required</button>
+                <button type="button" class="btn btn-outline-danger" data-filter="critical">Critical (&lt;40%)</button>
+                <button type="button" class="btn btn-outline-warning" data-filter="developing">Developing (40–59%)</button>
+                <button type="button" class="btn btn-outline-primary" data-filter="proficient">Proficient (60–79%)</button>
+                <button type="button" class="btn btn-outline-success" data-filter="exemplary">Exemplary (80–100%)</button>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover table-striped mb-0" id="table-student-roster">
+                    <thead class="thead-light">
+                        <tr>
+                            <th class="pl-4">#</th>
+                            <th>Student Name</th>
+                            <th class="text-center">Average Mastery (%)</th>
+                            <th class="text-center">Performance Status</th>
+                            <th class="text-center">Remediation Status</th>
+                            <th class="text-right pr-4">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{#student_list}}
+                        <tr class="roster-row" data-tier="{{tier}}" data-remediation="{{#needs_remediation}}1{{/needs_remediation}}{{^needs_remediation}}0{{/needs_remediation}}" data-decile="{{decile_bin}}">
+                            <td class="pl-4 align-middle text-muted small">{{@index_1}}</td>
+                            <td class="font-weight-bold align-middle">{{fullname}}</td>
+                            <td class="text-center align-middle font-weight-bold" style="font-size: 1.05rem;">{{average}}%</td>
+                            <td class="text-center align-middle">
+                                <span class="badge {{badge_class}} px-2 py-1" style="font-size: 0.85rem;">{{tier_name}}</span>
+                            </td>
+                            <td class="text-center align-middle">
+                                {{#needs_remediation}}
+                                    <span class="badge badge-danger px-2 py-1" style="font-size: 0.85rem;"><i class="fa fa-exclamation-triangle mr-1"></i> Remediation Required</span>
+                                {{/needs_remediation}}
+                                {{^needs_remediation}}
+                                    <span class="badge badge-success px-2 py-1" style="font-size: 0.85rem;"><i class="fa fa-check mr-1"></i> On Track</span>
+                                {{/needs_remediation}}
+                            </td>
+                            <td class="text-right pr-4 align-middle">
+                                <a href="{{detail_url}}" class="btn btn-sm btn-outline-primary font-weight-bold">
+                                    <i class="fa fa-file-text-o mr-1"></i> View Report
+                                </a>
+                            </td>
+                        </tr>
+                        {{/student_list}}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
     <!-- AI Commentary Widget -->
     {{#has_data}}
         {{> local_comp_report_ext/ai_commentary_widget }}
@@ -174,13 +237,50 @@
     {{/has_data}}
 </div>
 
+<!-- Student Drill-down Modal -->
+<div class="modal fade" id="modal-student-drilldown" tabindex="-1" role="dialog" aria-labelledby="modalDrilldownLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content shadow-lg border-0" style="border-radius: 12px; overflow: hidden;">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title font-weight-bold" id="modalDrilldownLabel">
+                    <i class="fa fa-users mr-2"></i> <span id="modal-drilldown-title">Student Drill-down</span>
+                </h5>
+                <button type="button" class="close text-white opacity-100" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0">
+                        <thead class="thead-light">
+                            <tr>
+                                <th class="pl-4">Student Name</th>
+                                <th class="text-center">Average Score</th>
+                                <th class="text-center">Performance Status</th>
+                                <th class="text-right pr-4">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modal-drilldown-tbody">
+                            <!-- Populated dynamically via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary font-weight-bold" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <style>
 .local_comp_report_ext_analytics_dashboard .kpi-card {
     border-radius: 12px;
-    transition: transform 0.2s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 .local_comp_report_ext_analytics_dashboard .kpi-card:hover {
-    transform: translateY(-3px);
+    transform: translateY(-4px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important;
 }
 .local_comp_report_ext_analytics_dashboard .bg-mastery {
     background: linear-gradient(135deg, #10B981, #059669);
@@ -200,7 +300,69 @@
 {{#js}}
 require(['core/chartjs', 'jquery'], function(Chart, $) {
 
-    // PDF export — convert HTML5 canvases to PNG images and submit via POST.
+    var studentsData = {{{student_list_json}}};
+
+    // Modal Helper Function
+    function openDrilldownModal(title, filteredStudents) {
+        $('#modal-drilldown-title').text(title);
+        var tbody = $('#modal-drilldown-tbody');
+        tbody.empty();
+
+        if (!filteredStudents || filteredStudents.length === 0) {
+            tbody.append('<tr><td colspan="4" class="text-center text-muted py-4"><i class="fa fa-info-circle mr-1"></i> No students found in this category.</td></tr>');
+        } else {
+            $.each(filteredStudents, function(i, s) {
+                var row = $('<tr>');
+                row.append('<td class="pl-4 font-weight-bold align-middle">' + s.fullname + '</td>');
+                row.append('<td class="text-center align-middle font-weight-bold">' + s.average + '%</td>');
+                row.append('<td class="text-center align-middle"><span class="badge ' + s.badge_class + ' px-2 py-1">' + s.tier_name + '</span></td>');
+                row.append('<td class="text-right pr-4 align-middle"><a href="' + s.detail_url + '" class="btn btn-sm btn-outline-primary font-weight-bold"><i class="fa fa-file-text-o mr-1"></i> View Report</a></td>');
+                tbody.append(row);
+            });
+        }
+
+        $('#modal-student-drilldown').modal('show');
+    }
+
+    // Roster Filter Helper
+    function filterRosterTable(filterType) {
+        $('#roster-filter-group button').removeClass('active');
+        $('#roster-filter-group button[data-filter="' + filterType + '"]').addClass('active');
+
+        $('.roster-row').each(function() {
+            var $row = $(this);
+            if (filterType === 'all') {
+                $row.show();
+            } else if (filterType === 'remediation') {
+                if ($row.data('remediation') == 1) { $row.show(); } else { $row.hide(); }
+            } else if (filterType.indexOf('decile_') === 0) {
+                var decile = filterType.replace('decile_', '');
+                if ($row.data('decile') == decile) { $row.show(); } else { $row.hide(); }
+            } else {
+                if ($row.data('tier') === filterType) { $row.show(); } else { $row.hide(); }
+            }
+        });
+    }
+
+    // Filter Button Click Handlers
+    $('#roster-filter-group button').on('click', function() {
+        var filter = $(this).data('filter');
+        filterRosterTable(filter);
+    });
+
+    // KPI Cards Click Handlers
+    $('#btn-kpi-remediation').on('click', function() {
+        var list = studentsData.filter(function(s) { return s.needs_remediation; });
+        openDrilldownModal('Students Requiring Remediation (' + list.length + ')', list);
+        filterRosterTable('remediation');
+    });
+
+    $('#btn-kpi-all-students').on('click', function() {
+        openDrilldownModal('All Students (' + studentsData.length + ')', studentsData);
+        filterRosterTable('all');
+    });
+
+    // PDF export
     $('#btn-export-analytics-pdf').on('click', function(e) {
         e.preventDefault();
         var editedHtml = '';
@@ -273,7 +435,7 @@ require(['core/chartjs', 'jquery'], function(Chart, $) {
         }
     });
 
-    // 2. Mastery Distribution Bar Chart
+    // 2. Mastery Distribution Bar Chart with Click Drill-down
     var distCtx = document.getElementById('chart-mastery-distribution').getContext('2d');
     new Chart(distCtx, {
         type: 'bar',
@@ -287,10 +449,10 @@ require(['core/chartjs', 'jquery'], function(Chart, $) {
             datasets: [{
                 data: {{{dist_data_json}}},
                 backgroundColor: [
-                    'rgba(239, 68, 68, 0.7)',
-                    'rgba(245, 158, 11, 0.7)',
-                    'rgba(59, 130, 246, 0.7)',
-                    'rgba(16, 185, 129, 0.7)'
+                    'rgba(239, 68, 68, 0.75)',
+                    'rgba(245, 158, 11, 0.75)',
+                    'rgba(59, 130, 246, 0.75)',
+                    'rgba(16, 185, 129, 0.75)'
                 ],
                 borderColor: [
                     '#EF4444',
@@ -314,11 +476,24 @@ require(['core/chartjs', 'jquery'], function(Chart, $) {
                         stepSize: 1
                     }
                 }
+            },
+            onClick: function(evt, activeElements) {
+                if (activeElements && activeElements.length > 0) {
+                    var index = activeElements[0].index;
+                    var tiers = ['critical', 'developing', 'proficient', 'exemplary'];
+                    var tierTitles = ['Critical Students (< 40%)', 'Developing Students (40–59%)', 'Proficient Students (60–79%)', 'Exemplary Students (80–100%)'];
+                    var targetTier = tiers[index];
+                    var title = tierTitles[index];
+
+                    var list = studentsData.filter(function(s) { return s.tier === targetTier; });
+                    openDrilldownModal(title + ' (' + list.length + ')', list);
+                    filterRosterTable(targetTier);
+                }
             }
         }
     });
 
-    // 3. Score Distribution Histogram Bar Chart (10 Deciles)
+    // 3. Score Distribution Histogram Bar Chart with Click Drill-down
     var progressCtx = document.getElementById('chart-learning-progress').getContext('2d');
     new Chart(progressCtx, {
         type: 'bar',
@@ -328,16 +503,16 @@ require(['core/chartjs', 'jquery'], function(Chart, $) {
                 label: '{{#str}}user, local_comp_report_ext{{/str}}',
                 data: {{{histogram_data_json}}},
                 backgroundColor: [
-                    'rgba(220, 38, 38, 0.75)',   // 0-10% Deep Red
-                    'rgba(239, 68, 68, 0.75)',   // 11-20% Red
-                    'rgba(249, 115, 22, 0.75)',  // 21-30% Orange-Red
-                    'rgba(245, 158, 11, 0.75)',  // 31-40% Orange
-                    'rgba(234, 179, 8, 0.75)',   // 41-50% Amber
-                    'rgba(202, 138, 4, 0.75)',   // 51-60% Yellow-Green
-                    'rgba(59, 130, 246, 0.75)',  // 61-70% Blue
-                    'rgba(37, 99, 235, 0.75)',   // 71-80% Royal Blue
-                    'rgba(16, 185, 129, 0.75)',  // 81-90% Emerald Green
-                    'rgba(5, 150, 105, 0.75)'    // 91-100% Dark Green
+                    'rgba(220, 38, 38, 0.75)',
+                    'rgba(239, 68, 68, 0.75)',
+                    'rgba(249, 115, 22, 0.75)',
+                    'rgba(245, 158, 11, 0.75)',
+                    'rgba(234, 179, 8, 0.75)',
+                    'rgba(202, 138, 4, 0.75)',
+                    'rgba(59, 130, 246, 0.75)',
+                    'rgba(37, 99, 235, 0.75)',
+                    'rgba(16, 185, 129, 0.75)',
+                    'rgba(5, 150, 105, 0.75)'
                 ],
                 borderColor: [
                     '#DC2626',
@@ -366,6 +541,17 @@ require(['core/chartjs', 'jquery'], function(Chart, $) {
                     ticks: {
                         stepSize: 1
                     }
+                }
+            },
+            onClick: function(evt, activeElements) {
+                if (activeElements && activeElements.length > 0) {
+                    var index = activeElements[0].index;
+                    var labels = ['0-10%', '11-20%', '21-30%', '31-40%', '41-50%', '51-60%', '61-70%', '71-80%', '81-90%', '91-100%'];
+                    var binLabel = labels[index];
+
+                    var list = studentsData.filter(function(s) { return s.decile_bin === index; });
+                    openDrilldownModal('Students with Score ' + binLabel + ' (' + list.length + ')', list);
+                    filterRosterTable('decile_' + index);
                 }
             }
         }
