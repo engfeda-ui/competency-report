@@ -64,17 +64,20 @@ foreach ($groups as $g) {
 
 global $DB;
 
-// 2. Retrieve student list (Filtered by group or all enrolled students if groupid=0).
-$students = (array) get_enrolled_users(
-    $context,
-    '',
-    $groupid,
-    'u.*',
-    'u.idnumber ASC, u.lastname ASC, u.firstname ASC',
-    0,
-    0,
-    true
-);
+// 2. Retrieve STUDENTS ONLY — filter by role shortname 'student' to exclude teachers/trainers.
+$studentrole = $DB->get_record('role', ['shortname' => 'student'], 'id');
+$students = [];
+if ($studentrole) {
+    $students = (array) get_role_users(
+        $studentrole->id,
+        $context,
+        false,
+        'u.*',
+        'u.idnumber ASC, u.lastname ASC, u.firstname ASC',
+        true,
+        ($groupid > 0 ? $groupid : '')
+    );
+}
 
 $renderdata->has_group = true;
 
