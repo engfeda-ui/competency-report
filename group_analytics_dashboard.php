@@ -69,40 +69,40 @@ foreach ($groups as $g) {
 
 // Query students (Filtering by selected group and student role).
 if ($groupid > 0) {
-    $students = $DB->get_records_sql("
-        SELECT DISTINCT u.id, u.firstname, u.lastname
-          FROM {groups_members} gm
-          JOIN {user} u ON u.id = gm.userid
-          JOIN {role_assignments} ra ON ra.userid = u.id
-          JOIN {context} ctx ON ctx.id = ra.contextid
-         WHERE gm.groupid = :groupid
-           AND ctx.instanceid = :courseid
-           AND ra.roleid = (SELECT id FROM {role} WHERE shortname = 'student')
-           AND u.deleted = 0",
+    $students = $DB->get_records_sql(
+        "SELECT DISTINCT u.id, u.firstname, u.lastname
+           FROM {groups_members} gm
+           JOIN {user} u ON u.id = gm.userid
+           JOIN {role_assignments} ra ON ra.userid = u.id
+           JOIN {context} ctx ON ctx.id = ra.contextid
+          WHERE gm.groupid = :groupid
+            AND ctx.instanceid = :courseid
+            AND ra.roleid = (SELECT id FROM {role} WHERE shortname = 'student')
+            AND u.deleted = 0",
         ['groupid' => $groupid, 'courseid' => $courseid]
     );
 } else {
-    $students = $DB->get_records_sql("
-        SELECT DISTINCT u.id, u.firstname, u.lastname
-          FROM {role_assignments} ra
-          JOIN {role} r ON r.id = ra.roleid
-          JOIN {context} ctx ON ctx.id = ra.contextid
-          JOIN {user} u ON u.id = ra.userid
-         WHERE ctx.instanceid = :courseid
-           AND ctx.contextlevel = 50
-           AND r.shortname = 'student'
-           AND u.deleted = 0",
+    $students = $DB->get_records_sql(
+        "SELECT DISTINCT u.id, u.firstname, u.lastname
+           FROM {role_assignments} ra
+           JOIN {role} r ON r.id = ra.roleid
+           JOIN {context} ctx ON ctx.id = ra.contextid
+           JOIN {user} u ON u.id = ra.userid
+          WHERE ctx.instanceid = :courseid
+            AND ctx.contextlevel = 50
+            AND r.shortname = 'student'
+            AND u.deleted = 0",
         ['courseid' => $courseid]
     );
 }
 
 $calculator = new \local_comp_report_ext\competency_calculator($courseid);
-$comp_scores = [];
-$student_overall_averages = [];
+$compscores = [];
+$studentaverages = [];
 
 $threshold = (int)(get_config('local_comp_report_ext', 'success_threshold') ?: 60);
 
-$student_list = [];
+$studentlist = [];
 
 // Calculate student scores based on configured Assessment Weights.
 foreach ($students as $student) {
@@ -111,55 +111,55 @@ foreach ($students as $student) {
         continue;
     }
 
-    $student_sum = 0.0;
-    $student_count = 0;
+    $studentsum = 0.0;
+    $studentcount = 0;
 
     foreach ($scores as $compid => $data) {
         $shortname = html_entity_decode(format_string($data['competency']->shortname), ENT_QUOTES, 'UTF-8');
-        $comp_scores[$compid]['shortname'] = $shortname;
-        $comp_scores[$compid]['scores'][]  = (float)$data['percent'];
+        $compscores[$compid]['shortname'] = $shortname;
+        $compscores[$compid]['scores'][]  = (float)$data['percent'];
 
-        $student_sum += (float)$data['percent'];
-        $student_count++;
+        $studentsum += (float)$data['percent'];
+        $studentcount++;
     }
 
-    if ($student_count > 0) {
-        $avg_pct = round($student_sum / $student_count, 1);
-        $student_overall_averages[] = $avg_pct;
+    if ($studentcount > 0) {
+        $avgpct = round($studentsum / $studentcount, 1);
+        $studentaverages[] = $avgpct;
 
-        if ($avg_pct < 40) {
+        if ($avgpct < 40) {
             $tier = 'critical';
-            $tier_name = get_string('critical_tier', 'local_comp_report_ext') ?: 'Critical (< 40%)';
-            $badge_class = 'badge-danger';
-        } else if ($avg_pct < 60) {
+            $tiername = get_string('critical_tier', 'local_comp_report_ext') ?: 'Critical (< 40%)';
+            $badgeclass = 'badge-danger';
+        } else if ($avgpct < 60) {
             $tier = 'developing';
-            $tier_name = get_string('developing_tier', 'local_comp_report_ext') ?: 'Developing (40-59%)';
-            $badge_class = 'badge-warning';
-        } else if ($avg_pct < 80) {
+            $tiername = get_string('developing_tier', 'local_comp_report_ext') ?: 'Developing (40-59%)';
+            $badgeclass = 'badge-warning';
+        } else if ($avgpct < 80) {
             $tier = 'proficient';
-            $tier_name = get_string('proficient_tier', 'local_comp_report_ext') ?: 'Proficient (60-79%)';
-            $badge_class = 'badge-primary';
+            $tiername = get_string('proficient_tier', 'local_comp_report_ext') ?: 'Proficient (60-79%)';
+            $badgeclass = 'badge-primary';
         } else {
             $tier = 'exemplary';
-            $tier_name = get_string('exemplary_tier', 'local_comp_report_ext') ?: 'Exemplary (80-100%)';
-            $badge_class = 'badge-success';
+            $tiername = get_string('exemplary_tier', 'local_comp_report_ext') ?: 'Exemplary (80-100%)';
+            $badgeclass = 'badge-success';
         }
 
-        $needs_remediation = ($avg_pct < $threshold);
+        $needsremediation = ($avgpct < $threshold);
 
-        $decile_bin = min(9, (int)floor($avg_pct / 10));
+        $decilebin = min(9, (int)floor($avgpct / 10));
 
-        $student_list[] = [
-            'index'             => count($student_list) + 1,
+        $studentlist[] = [
+            'index'             => count($studentlist) + 1,
             'id'                => (int)$student->id,
             'fullname'          => fullname($student),
-            'average'           => number_format($avg_pct, 1),
-            'average_raw'       => $avg_pct,
+            'average'           => number_format($avgpct, 1),
+            'average_raw'       => $avgpct,
             'tier'              => $tier,
-            'tier_name'         => $tier_name,
-            'badge_class'       => $badge_class,
-            'needs_remediation' => $needs_remediation,
-            'decile_bin'        => $decile_bin,
+            'tier_name'         => $tiername,
+            'badge_class'       => $badgeclass,
+            'needs_remediation' => $needsremediation,
+            'decile_bin'        => $decilebin,
             'detail_url'        => (new moodle_url('/local/comp_report_ext/student_competency_detail.php', [
                 'courseid' => $courseid,
                 'userid'   => $student->id,
@@ -169,67 +169,70 @@ foreach ($students as $student) {
 }
 
 // Calculate Dashboard KPIs.
-$has_data = !empty($student_overall_averages);
-$avg_mastery = 0.0;
-$remediation_percent = 0.0;
-$top_strength = '—';
-$critical_gap = '—';
+$hasdata = !empty($studentaverages);
+$avgmastery = 0.0;
+$remediationpercent = 0.0;
+$topstrength = '—';
+$criticalgap = '—';
 
 // Mastery distribution tiers.
 $distribution = ['critical' => 0, 'developing' => 0, 'proficient' => 0, 'exemplary' => 0];
 
 // Radar chart labels & data.
-$radar_labels = [];
-$radar_data = [];
+$radarlabels = [];
+$radardata = [];
 
 // Score Distribution Histogram labels & data (10 detailed decile bins).
-$histogram_labels = ['0-10%', '11-20%', '21-30%', '31-40%', '41-50%', '51-60%', '61-70%', '71-80%', '81-90%', '91-100%'];
-$score_histogram  = array_fill(0, 10, 0);
+$histogramlabels = ['0-10%', '11-20%', '21-30%', '31-40%', '41-50%', '51-60%', '61-70%', '71-80%', '81-90%', '91-100%'];
+$scorehistogram  = array_fill(0, 10, 0);
 
 // Theory vs Practice labels & data.
-$theory_data = [];
-$practice_data = [];
+$theorydata = [];
+$practicedata = [];
 
-if ($has_data) {
-    // 1. Average Mastery
-    $avg_mastery = round(array_sum($student_overall_averages) / count($student_overall_averages), 1);
+if ($hasdata) {
+    // 1. Average Mastery.
+    $avgmastery = round(array_sum($studentaverages) / count($studentaverages), 1);
 
-    // 2. Remediation rate
-    $remediation_count = 0;
-    foreach ($student_overall_averages as $avg) {
+    // 2. Remediation rate.
+    $remediationcount = 0;
+    foreach ($studentaverages as $avg) {
         if ($avg < $threshold) {
-            $remediation_count++;
+            $remediationcount++;
         }
     }
-    $remediation_percent = round(($remediation_count / count($student_overall_averages)) * 100, 1);
+    $remediationpercent = round(($remediationcount / count($studentaverages)) * 100, 1);
 
-    // 3. Strengths and gaps
-    $comp_averages = [];
-    foreach ($comp_scores as $compid => $cdata) {
-        $avg_score = round(array_sum($cdata['scores']) / count($cdata['scores']), 1);
-        $comp_averages[$compid] = [
+    // 3. Strengths and gaps.
+    $compaverages = [];
+    foreach ($compscores as $compid => $cdata) {
+        $avgscore = round(array_sum($cdata['scores']) / count($cdata['scores']), 1);
+        $compaverages[$compid] = [
             'shortname' => $cdata['shortname'],
-            'average'   => $avg_score,
+            'average'   => $avgscore,
         ];
-        // Populate radar chart
-        $radar_labels[] = $cdata['shortname'];
-        $radar_data[]   = $avg_score;
+        // Populate radar chart.
+        $radarlabels[] = $cdata['shortname'];
+        $radardata[]   = $avgscore;
     }
-    uasort($comp_averages, function ($a, $b) {
+    uasort($compaverages, function ($a, $b) {
         return $a['average'] <=> $b['average'];
     });
 
-    if (!empty($comp_averages)) {
-        $keys = array_keys($comp_averages);
-        $first_comp = $comp_averages[$keys[0]];
-        $last_comp = $comp_averages[$keys[count($keys) - 1]];
+    if (!empty($compaverages)) {
+        $keys = array_keys($compaverages);
+        $firstcomp = $compaverages[$keys[0]];
+        $lastcomp = $compaverages[$keys[count($keys) - 1]];
 
-        $critical_gap = html_entity_decode($first_comp['shortname'], ENT_QUOTES, 'UTF-8') . ' (' . number_format($first_comp['average'], 1) . '%)';
-        $top_strength = html_entity_decode($last_comp['shortname'], ENT_QUOTES, 'UTF-8') . ' (' . number_format($last_comp['average'], 1) . '%)';
+        $gapname = html_entity_decode($firstcomp['shortname'], ENT_QUOTES, 'UTF-8');
+        $criticalgap = $gapname . ' (' . number_format($firstcomp['average'], 1) . '%)';
+
+        $strname = html_entity_decode($lastcomp['shortname'], ENT_QUOTES, 'UTF-8');
+        $topstrength = $strname . ' (' . number_format($lastcomp['average'], 1) . '%)';
     }
 
-    // 4. Mastery Distribution
-    foreach ($student_overall_averages as $avg) {
+    // 4. Mastery Distribution.
+    foreach ($studentaverages as $avg) {
         if ($avg < 40) {
             $distribution['critical']++;
         } else if ($avg < 60) {
@@ -241,51 +244,51 @@ if ($has_data) {
         }
     }
 
-    // 5. Score Distribution Histogram (10 decile bins)
-    foreach ($student_overall_averages as $avg) {
+    // 5. Score Distribution Histogram (10 decile bins).
+    foreach ($studentaverages as $avg) {
         if ($avg <= 10) {
-            $score_histogram[0]++;
+            $scorehistogram[0]++;
         } else if ($avg <= 20) {
-            $score_histogram[1]++;
+            $scorehistogram[1]++;
         } else if ($avg <= 30) {
-            $score_histogram[2]++;
+            $scorehistogram[2]++;
         } else if ($avg <= 40) {
-            $score_histogram[3]++;
+            $scorehistogram[3]++;
         } else if ($avg <= 50) {
-            $score_histogram[4]++;
+            $scorehistogram[4]++;
         } else if ($avg <= 60) {
-            $score_histogram[5]++;
+            $scorehistogram[5]++;
         } else if ($avg <= 70) {
-            $score_histogram[6]++;
+            $scorehistogram[6]++;
         } else if ($avg <= 80) {
-            $score_histogram[7]++;
+            $scorehistogram[7]++;
         } else if ($avg <= 90) {
-            $score_histogram[8]++;
+            $scorehistogram[8]++;
         } else {
-            $score_histogram[9]++;
+            $scorehistogram[9]++;
         }
     }
 
-    // 6. Theory vs Practice Gap Analysis
-    foreach ($comp_scores as $compid => $cdata) {
-        $t_scores = [];
-        $p_scores = [];
+    // 6. Theory vs Practice Gap Analysis.
+    foreach ($compscores as $compid => $cdata) {
+        $tscores = [];
+        $pscores = [];
 
         foreach ($students as $student) {
-            $student_scores = $calculator->get_student_scores((int)$student->id, $compid);
-            if (!empty($student_scores[$compid]['breakdown'])) {
-                foreach ($student_scores[$compid]['breakdown'] as $b) {
+            $studentscores = $calculator->get_student_scores((int)$student->id, $compid);
+            if (!empty($studentscores[$compid]['breakdown'])) {
+                foreach ($studentscores[$compid]['breakdown'] as $b) {
                     if ($b['type'] === 'quiz') {
-                        $t_scores[] = (float)$b['score_pct'];
+                        $tscores[] = (float)$b['score_pct'];
                     } else if ($b['type'] === 'practical') {
-                        $p_scores[] = (float)$b['score_pct'];
+                        $pscores[] = (float)$b['score_pct'];
                     }
                 }
             }
         }
 
-        $theory_data[]   = !empty($t_scores) ? round(array_sum($t_scores) / count($t_scores), 1) : 0.0;
-        $practice_data[] = !empty($p_scores) ? round(array_sum($p_scores) / count($p_scores), 1) : 0.0;
+        $theorydata[]   = !empty($tscores) ? round(array_sum($tscores) / count($tscores), 1) : 0.0;
+        $practicedata[] = !empty($pscores) ? round(array_sum($pscores) / count($pscores), 1) : 0.0;
     }
 }
 
@@ -294,32 +297,32 @@ $renderdata = new stdClass();
 $renderdata->courseid          = $courseid;
 $renderdata->groupid           = $groupid;
 $renderdata->groups            = $groupoptions;
-$renderdata->has_data          = $has_data;
-$renderdata->avg_mastery       = number_format($avg_mastery, 1);
-$renderdata->remediation_rate  = number_format($remediation_percent, 1);
-$renderdata->top_strength      = $top_strength;
-$renderdata->critical_gap      = $critical_gap;
+$renderdata->has_data          = $hasdata;
+$renderdata->avg_mastery       = number_format($avgmastery, 1);
+$renderdata->remediation_rate  = number_format($remediationpercent, 1);
+$renderdata->top_strength      = $topstrength;
+$renderdata->critical_gap      = $criticalgap;
 
-// JSON strings for Chart.js rendering scripts
-$renderdata->radar_labels_json = json_encode($radar_labels);
-$renderdata->radar_data_json   = json_encode($radar_data);
+// JSON strings for Chart.js rendering scripts.
+$renderdata->radar_labels_json = json_encode($radarlabels);
+$renderdata->radar_data_json   = json_encode($radardata);
 
 $renderdata->dist_data_json    = json_encode([
     $distribution['critical'],
     $distribution['developing'],
     $distribution['proficient'],
-    $distribution['exemplary']
+    $distribution['exemplary'],
 ]);
 
-$renderdata->histogram_labels_json = json_encode($histogram_labels);
-$renderdata->histogram_data_json   = json_encode($score_histogram);
+$renderdata->histogram_labels_json = json_encode($histogramlabels);
+$renderdata->histogram_data_json   = json_encode($scorehistogram);
 
-$renderdata->gap_labels_json    = json_encode($radar_labels);
-$renderdata->gap_theory_json    = json_encode($theory_data);
-$renderdata->gap_practice_json  = json_encode($practice_data);
+$renderdata->gap_labels_json    = json_encode($radarlabels);
+$renderdata->gap_theory_json    = json_encode($theorydata);
+$renderdata->gap_practice_json  = json_encode($practicedata);
 
-$renderdata->student_list      = $student_list;
-$renderdata->student_list_json = json_encode($student_list);
+$renderdata->student_list      = $studentlist;
+$renderdata->student_list_json = json_encode($studentlist);
 
 // Output rendering.
 echo $OUTPUT->header();

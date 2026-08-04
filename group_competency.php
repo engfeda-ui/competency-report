@@ -94,7 +94,7 @@ if (!empty($students)) {
 
     // 4. Performance data query optimized with unique key for easier mapping.
     $studentids = array_keys($students);
-    list($insql, $inparams) = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'uid');
+    [$insql, $inparams] = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'uid');
 
     $scoremap = [];
     $rawscores = (array) $DB->get_records_sql("

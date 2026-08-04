@@ -76,7 +76,7 @@ if (empty($competencies)) {
 $scoremap = [];
 if (!empty($students)) {
     $studentids = array_keys($students);
-    list($insql, $inparams) = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'uid');
+    [$insql, $inparams] = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'uid');
 
     $rawscores = (array) $DB->get_records_sql("
         SELECT
