@@ -54,7 +54,7 @@ $renderdata->courseid = $courseid;
 $groups = groups_get_all_groups($courseid);
 $renderdata->groups = [[
     'id' => 0,
-    'name' => get_string('selectgroup', 'local_comp_report_ext'),
+    'name' => get_string('allgroups', 'local_comp_report_ext'),
     'selected' => ($groupid == 0),
 ]];
 foreach ($groups as $g) {
@@ -80,51 +80,74 @@ foreach ($quizzes as $q) {
     ];
 }
 
-if ($groupid && $quizid) {
+if ($quizid > 0) {
     global $DB;
 
-    // Fetch Students (Filtering by selected group and student role).
-    $students = (array)$DB->get_records_sql("
-        SELECT u.*
-        FROM {groups_members} gm
-        JOIN {user} u ON u.id = gm.userid
-        JOIN {role_assignments} ra ON ra.userid = u.id
-        JOIN {context} ctx ON ctx.id = ra.contextid
-        WHERE gm.groupid = :groupid
-          AND ctx.instanceid = :courseid
-          AND ra.roleid = (SELECT id FROM {role} WHERE shortname = 'student')
-        ORDER BY u.idnumber ASC", ['groupid' => $groupid, 'courseid' => $courseid]);
+    // Fetch Students (Filtering by selected group or all students if groupid=0).
+    if ($groupid > 0) {
+        $students = (array)$DB->get_records_sql("
+            SELECT u.*
+            FROM {groups_members} gm
+            JOIN {user} u ON u.id = gm.userid
+            JOIN {role_assignments} ra ON ra.userid = u.id
+            JOIN {context} ctx ON ctx.id = ra.contextid
+            WHERE gm.groupid = :groupid
+              AND ctx.instanceid = :courseid
+              AND ra.roleid = (SELECT id FROM {role} WHERE shortname = 'student')
+              AND u.deleted = 0
+            ORDER BY u.idnumber ASC", ['groupid' => $groupid, 'courseid' => $courseid]);
+    } else {
+        $students = (array)$DB->get_records_sql("
+            SELECT u.*
+            FROM {role_assignments} ra
+            JOIN {role} r ON r.id = ra.roleid
+            JOIN {context} ctx ON ctx.id = ra.contextid
+            JOIN {user} u ON u.id = ra.userid
+            WHERE ctx.instanceid = :courseid
+              AND ctx.contextlevel = 50
+              AND r.shortname = 'student'
+              AND u.deleted = 0
+            ORDER BY u.idnumber ASC", ['courseid' => $courseid]);
+    }
 
-    // Fetch Competencies linked to the specific quiz questions.
-    $competencies = (array)$DB->get_records_sql("
-        SELECT DISTINCT c.id, c.shortname
-        FROM {quiz_attempts} quiza
-        JOIN {question_usages} qu ON qu.id = quiza.uniqueid
-        JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-        JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
-        JOIN {competency} c ON c.id = m.competencyid
-        WHERE quiza.quiz = :quizid
-        ORDER BY c.shortname", ['quizid' => $quizid]);
-    $renderdata->competencies = array_values($competencies);
+    $renderdata->has_data = !empty($students);
 
-    // Performance Data Calculation.
-    $scoremap = [];
-    $rawscores = (array)$DB->get_records_sql("
-        SELECT
-            CONCAT(quiza.userid, '_', m.competencyid) as unique_key,
-            quiza.userid, m.competencyid,
-            SUM(qa.maxfraction) AS total_max, SUM(qas.fraction) AS total_fraction
-        FROM {quiz_attempts} quiza
-        JOIN {question_usages} qu ON qu.id = quiza.uniqueid
-        JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-        JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
-        JOIN (
-            SELECT questionattemptid, MAX(fraction) AS fraction
-            FROM {question_attempt_steps}
-            GROUP BY questionattemptid
-        ) qas ON qas.questionattemptid = qa.id
-        WHERE quiza.quiz = :quizid AND quiza.state = 'finished'
-        GROUP BY quiza.userid, m.competencyid", ['quizid' => $quizid]);
+    if (!empty($students)) {
+        // Fetch Competencies linked to the specific quiz questions.
+        $competencies = (array)$DB->get_records_sql("
+            SELECT DISTINCT c.id, c.shortname
+            FROM {quiz_attempts} quiza
+            JOIN {question_usages} qu ON qu.id = quiza.uniqueid
+            JOIN {question_attempts} qa ON qa.questionusageid = qu.id
+            JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
+            JOIN {competency} c ON c.id = m.competencyid
+            WHERE quiza.quiz = :quizid
+            ORDER BY c.shortname", ['quizid' => $quizid]);
+        $renderdata->competencies = array_values($competencies);
+
+        // Performance Data Calculation.
+        $studentids = array_keys($students);
+        list($insql, $inparams) = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'uid');
+        $inparams['quizid'] = $quizid;
+
+        $scoremap = [];
+        $rawscores = (array)$DB->get_records_sql("
+            SELECT
+                CONCAT(quiza.userid, '_', m.competencyid) as unique_key,
+                quiza.userid, m.competencyid,
+                SUM(qa.maxfraction) AS total_max, SUM(qas.fraction) AS total_fraction
+            FROM {quiz_attempts} quiza
+            JOIN {question_usages} qu ON qu.id = quiza.uniqueid
+            JOIN {question_attempts} qa ON qa.questionusageid = qu.id
+            JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
+            JOIN (
+                SELECT questionattemptid, MAX(fraction) AS fraction
+                FROM {question_attempt_steps}
+                GROUP BY questionattemptid
+            ) qas ON qas.questionattemptid = qa.id
+            WHERE quiza.quiz = :quizid AND quiza.state = 'finished'
+              AND quiza.userid $insql
+            GROUP BY quiza.userid, m.competencyid", $inparams);
 
     foreach ($rawscores as $rs) {
         $scoremap[$rs->userid][$rs->competencyid] = ['att' => $rs->total_max, 'cor' => $rs->total_fraction];

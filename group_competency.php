@@ -49,15 +49,23 @@ $renderdata->groupid = $groupid;
 
 // 1. Fetch available groups for the selection filter.
 $groups = groups_get_all_groups($courseid);
-$renderdata->groups = $groups ? array_values($groups) : [];
-foreach ($renderdata->groups as $g) {
-    $g->selected = ($g->id == $groupid);
+$renderdata->groups = [[
+    'id' => 0,
+    'name' => get_string('allgroups', 'local_comp_report_ext'),
+    'selected' => ($groupid == 0),
+]];
+foreach ($groups as $g) {
+    $renderdata->groups[] = [
+        'id' => $g->id,
+        'name' => format_string($g->name),
+        'selected' => ($g->id == $groupid),
+    ];
 }
 
-if ($groupid) {
-    global $DB;
+global $DB;
 
-    // 2. Retrieve student list (Filtered by the selected group and student role).
+// 2. Retrieve student list (Filtered by the selected group or all students if groupid=0).
+if ($groupid > 0) {
     $students = (array) $DB->get_records_sql("
         SELECT u.*
         FROM {groups_members} gm
@@ -67,9 +75,27 @@ if ($groupid) {
         WHERE gm.groupid = :groupid
           AND ctx.instanceid = :courseid
           AND ra.roleid = (SELECT id FROM {role} WHERE shortname = 'student')
+          AND u.deleted = 0
         ORDER BY u.idnumber ASC
     ", ['groupid' => $groupid, 'courseid' => $courseid]);
+} else {
+    $students = (array) $DB->get_records_sql("
+        SELECT u.*
+        FROM {role_assignments} ra
+        JOIN {role} r ON r.id = ra.roleid
+        JOIN {context} ctx ON ctx.id = ra.contextid
+        JOIN {user} u ON u.id = ra.userid
+        WHERE ctx.instanceid = :courseid
+          AND ctx.contextlevel = 50
+          AND r.shortname = 'student'
+          AND u.deleted = 0
+        ORDER BY u.idnumber ASC
+    ", ['courseid' => $courseid]);
+}
 
+$renderdata->has_group = true;
+
+if (!empty($students)) {
     // 3. Fetch mapped competencies list — scoped to this course.
     $competencies = (array) $DB->get_records_sql("
         SELECT DISTINCT c.id, c.shortname
@@ -81,6 +107,9 @@ if ($groupid) {
     $renderdata->competencies = array_values($competencies);
 
     // 4. Performance data query optimized with unique key for easier mapping.
+    $studentids = array_keys($students);
+    list($insql, $inparams) = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'uid');
+
     $scoremap = [];
     $rawscores = (array) $DB->get_records_sql("
         SELECT
@@ -99,9 +128,9 @@ if ($groupid) {
             GROUP BY questionattemptid
         ) qas ON qas.questionattemptid = qa.id
         WHERE quiza.state = 'finished'
-          AND quiza.userid IN (SELECT userid FROM {groups_members} WHERE groupid = :groupid)
+          AND quiza.userid $insql
         GROUP BY quiza.userid, m.competencyid
-    ", ['groupid' => $groupid]);
+    ", $inparams);
 
     // Construct the score map: $scoremap[userid][competencyid].
     foreach ($rawscores as $rs) {

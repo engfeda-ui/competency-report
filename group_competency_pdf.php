@@ -27,7 +27,7 @@ require_once($CFG->libdir . '/tcpdf/tcpdf.php');
 require_once(__DIR__ . '/lib.php');
 
 $courseid = required_param('courseid', PARAM_INT);
-$groupid  = required_param('groupid', PARAM_INT);
+$groupid  = optional_param('groupid', 0, PARAM_INT);
 $pdfcontent = optional_param('pdf_content', '', PARAM_RAW);
 
 require_login($courseid);
@@ -41,20 +41,36 @@ if (!$canviewext && !$canviewold) {
 global $DB;
 
 $course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
-$group  = $DB->get_record('groups', ['id' => $groupid, 'courseid' => $courseid], '*', MUST_EXIST);
-
-// 1. Retrieve student list (Filtered by group and role).
-$students = (array) $DB->get_records_sql("
-    SELECT u.*
-    FROM {groups_members} gm
-    JOIN {user} u ON u.id = gm.userid
-    JOIN {role_assignments} ra ON ra.userid = u.id
-    JOIN {context} ctx ON ctx.id = ra.contextid
-    WHERE gm.groupid = :groupid
-      AND ctx.instanceid = :courseid
-      AND ra.roleid = (SELECT id FROM {role} WHERE shortname = 'student')
-    ORDER BY u.idnumber ASC
-", ['groupid' => $groupid, 'courseid' => $courseid]);
+if ($groupid > 0) {
+    $grouprow  = $DB->get_record('groups', ['id' => $groupid, 'courseid' => $courseid]);
+    $groupname = $grouprow ? format_string($grouprow->name) : get_string('allgroups', 'local_comp_report_ext');
+    $students  = (array) $DB->get_records_sql("
+        SELECT u.*
+        FROM {groups_members} gm
+        JOIN {user} u ON u.id = gm.userid
+        JOIN {role_assignments} ra ON ra.userid = u.id
+        JOIN {context} ctx ON ctx.id = ra.contextid
+        WHERE gm.groupid = :groupid
+          AND ctx.instanceid = :courseid
+          AND ra.roleid = (SELECT id FROM {role} WHERE shortname = 'student')
+          AND u.deleted = 0
+        ORDER BY u.idnumber ASC
+    ", ['groupid' => $groupid, 'courseid' => $courseid]);
+} else {
+    $groupname = get_string('allgroups', 'local_comp_report_ext');
+    $students  = (array) $DB->get_records_sql("
+        SELECT u.*
+        FROM {role_assignments} ra
+        JOIN {role} r ON r.id = ra.roleid
+        JOIN {context} ctx ON ctx.id = ra.contextid
+        JOIN {user} u ON u.id = ra.userid
+        WHERE ctx.instanceid = :courseid
+          AND ctx.contextlevel = 50
+          AND r.shortname = 'student'
+          AND u.deleted = 0
+        ORDER BY u.idnumber ASC
+    ", ['courseid' => $courseid]);
+}
 
 // 2. Fetch mapped competencies list - scoped to course.
 $competencies = (array) $DB->get_records_sql("
@@ -71,32 +87,37 @@ if (empty($competencies)) {
 
 // 3. Performance data query.
 $scoremap = [];
-$rawscores = (array) $DB->get_records_sql("
-    SELECT
-        CONCAT(quiza.userid, '_', m.competencyid) as unique_key,
-        quiza.userid,
-        m.competencyid,
-        SUM(qa.maxfraction) AS total_max,
-        SUM(qas.fraction) AS total_fraction
-    FROM {quiz_attempts} quiza
-    JOIN {question_usages} qu ON qu.id = quiza.uniqueid
-    JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-    JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
-    JOIN (
-        SELECT questionattemptid, MAX(fraction) AS fraction
-        FROM {question_attempt_steps}
-        GROUP BY questionattemptid
-    ) qas ON qas.questionattemptid = qa.id
-    WHERE quiza.state = 'finished'
-      AND quiza.userid IN (SELECT userid FROM {groups_members} WHERE groupid = :groupid)
-    GROUP BY quiza.userid, m.competencyid
-", ['groupid' => $groupid]);
+if (!empty($students)) {
+    $studentids = array_keys($students);
+    list($insql, $inparams) = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'uid');
 
-foreach ($rawscores as $rs) {
-    $scoremap[$rs->userid][$rs->competencyid] = [
-        'att' => (float)$rs->total_max,
-        'cor' => (float)$rs->total_fraction,
-    ];
+    $rawscores = (array) $DB->get_records_sql("
+        SELECT
+            CONCAT(quiza.userid, '_', m.competencyid) as unique_key,
+            quiza.userid,
+            m.competencyid,
+            SUM(qa.maxfraction) AS total_max,
+            SUM(qas.fraction) AS total_fraction
+        FROM {quiz_attempts} quiza
+        JOIN {question_usages} qu ON qu.id = quiza.uniqueid
+        JOIN {question_attempts} qa ON qa.questionusageid = qu.id
+        JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
+        JOIN (
+            SELECT questionattemptid, MAX(fraction) AS fraction
+            FROM {question_attempt_steps}
+            GROUP BY questionattemptid
+        ) qas ON qas.questionattemptid = qa.id
+        WHERE quiza.state = 'finished'
+          AND quiza.userid $insql
+        GROUP BY quiza.userid, m.competencyid
+    ", $inparams);
+
+    foreach ($rawscores as $rs) {
+        $scoremap[$rs->userid][$rs->competencyid] = [
+            'att' => (float)$rs->total_max,
+            'cor' => (float)$rs->total_fraction,
+        ];
+    }
 }
 
 // 4. Calculate Column Widths dynamically.

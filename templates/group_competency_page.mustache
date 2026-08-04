@@ -59,7 +59,6 @@
     <form method="get" class="mb-3 d-flex align-items-center flex-wrap">
         <input type="hidden" name="courseid" value="{{courseid}}">
         <select name="groupid" class="custom-select w-auto mr-2">
-            <option value="0">{{#str}}selectgroup, local_comp_report_ext{{/str}}</option>
             {{#groups}}
                 <option value="{{id}}" {{#selected}}selected{{/selected}}>{{name}}</option>
             {{/groups}}
