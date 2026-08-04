@@ -132,7 +132,7 @@ class ai extends external_api {
             );
         } else {
             $calc = new \local_comp_report_ext\competency_calculator($params['courseid']);
-            $compdata = $calc->get_all_competencies_data();
+            $compdata = $calc->get_all_competencies_data($params['groupid']);
             foreach ($compdata as $row) {
                 $rates[] = [
                     'competencyid' => $row->competency->id,

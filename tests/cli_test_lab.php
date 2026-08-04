@@ -118,6 +118,25 @@ run_test("[local_comp_report_ext] Calculator Thresholds (rate_color)", function 
     return true;
 });
 
+run_test("[local_comp_report_ext] Calculator get_all_competencies_data", function () {
+    global $DB;
+    $course = $DB->get_record('course', ['id' => 2]);
+    if (!$course) {
+        $course = $DB->get_record_sql("SELECT * FROM {course} WHERE id > 1 ORDER BY id ASC", [], IGNORE_MISSING);
+    }
+    $courseid = $course ? $course->id : 1;
+
+    $calc = new \local_comp_report_ext\competency_calculator($courseid);
+    if (!method_exists($calc, 'get_all_competencies_data')) {
+        return "Method get_all_competencies_data does not exist";
+    }
+    $data = $calc->get_all_competencies_data();
+    if (!is_array($data)) {
+        return "get_all_competencies_data should return an array";
+    }
+    return true;
+});
+
 run_test("[local_comp_report_ext] AI Comment Generator & Prompts", function () {
     $rates = [
         'COMP101' => [

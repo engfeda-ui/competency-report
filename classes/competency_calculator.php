@@ -353,4 +353,84 @@ class competency_calculator {
         }
         return 'red';
     }
+
+    /**
+     * Calculate aggregate competency rates for all students in the course (or a specific group).
+     *
+     * Returns an array of objects keyed by competency ID:
+     *   [
+     *     competencyid => (object)[
+     *       'competency'  => stdClass (id, shortname, description...),
+     *       'course_rate' => float (average score percentage 0-100),
+     *     ],
+     *   ]
+     *
+     * @param int|null $groupid Optional group ID to filter students.
+     * @return array
+     */
+    public function get_all_competencies_data(?int $groupid = 0): array {
+        global $DB;
+
+        if ($groupid && $groupid > 0) {
+            $students = $DB->get_records_sql("
+                SELECT DISTINCT u.id
+                  FROM {groups_members} gm
+                  JOIN {user} u ON u.id = gm.userid
+                  JOIN {role_assignments} ra ON ra.userid = u.id
+                  JOIN {context} ctx ON ctx.id = ra.contextid
+                 WHERE gm.groupid = :groupid
+                   AND ctx.instanceid = :courseid
+                   AND ra.roleid = (SELECT id FROM {role} WHERE shortname = 'student')
+                   AND u.deleted = 0",
+                ['groupid' => $groupid, 'courseid' => $this->courseid]
+            );
+        } else {
+            $students = $DB->get_records_sql("
+                SELECT DISTINCT u.id
+                  FROM {role_assignments} ra
+                  JOIN {role} r ON r.id = ra.roleid
+                  JOIN {context} ctx ON ctx.id = ra.contextid
+                  JOIN {user} u ON u.id = ra.userid
+                 WHERE ctx.instanceid = :courseid
+                   AND ctx.contextlevel = 50
+                   AND r.shortname = 'student'
+                   AND u.deleted = 0",
+                ['courseid' => $this->courseid]
+            );
+        }
+
+        if (empty($students)) {
+            return [];
+        }
+
+        $compscores = [];
+        $compobjects = [];
+
+        foreach ($students as $student) {
+            $scores = $this->get_student_scores((int)$student->id);
+            foreach ($scores as $compid => $data) {
+                if (!isset($compobjects[$compid])) {
+                    $compobjects[$compid] = (object)[
+                        'id' => $compid,
+                        'shortname' => is_object($data['competency']) ? $data['competency']->shortname : ($data['competency']['shortname'] ?? 'Comp ' . $compid),
+                    ];
+                }
+                $compscores[$compid][] = (float)$data['percent'];
+            }
+        }
+
+        $result = [];
+        foreach ($compscores as $compid => $scores) {
+            if (empty($scores)) {
+                continue;
+            }
+            $avgrate = round(array_sum($scores) / count($scores), 1);
+            $item = new \stdClass();
+            $item->competency = $compobjects[$compid];
+            $item->course_rate = $avgrate;
+            $result[$compid] = $item;
+        }
+
+        return $result;
+    }
 }
