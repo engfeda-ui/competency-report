@@ -288,6 +288,7 @@ $string['tab_assessment_distribution']     = 'حسب أوزان التقييما
 $string['selectassessments']               = 'اختر التقييمات';
 $string['allgroups']                       = 'كل المجموعات';
 $string['allquizzes']                      = 'جميع الاختبارات';
+$string['score_distribution_histogram']     = 'المدرج التكراري لتوزيع درجات الطلاب الإجمالية';
 $string['group']                           = 'المجموعة';
 $string['competency']                      = 'الكفاية';
 $string['weightedtotal']                   = 'المجموع المرجح';

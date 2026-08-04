@@ -307,15 +307,31 @@ if ($has_data) {
         }
     }
 
-    // 5. Learning Progress Curve (Assessments in order of setup configuration)
-    $asmts_list = $DB->get_records('local_comp_report_ext_asmt', ['courseid' => $courseid], 'id ASC');
-    foreach ($asmts_list as $asmt) {
-        if (isset($all_attempts_data[$asmt->id])) {
-            $progress_labels[] = html_entity_decode(format_string($asmt->name), ENT_QUOTES, 'UTF-8');
-            $scores = $all_attempts_data[$asmt->id]['scores'];
-            $progress_data[] = round(array_sum($scores) / count($scores), 1);
+    // 5. Score Distribution Histogram (5 grade bins: 0-20%, 21-40%, 41-60%, 61-80%, 81-100%)
+    $score_histogram = [
+        '0–20%'   => 0,
+        '21–40%'  => 0,
+        '41–60%'  => 0,
+        '61–80%'  => 0,
+        '81–100%' => 0,
+    ];
+
+    foreach ($student_overall_averages as $avg) {
+        if ($avg <= 20) {
+            $score_histogram['0–20%']++;
+        } else if ($avg <= 40) {
+            $score_histogram['21–40%']++;
+        } else if ($avg <= 60) {
+            $score_histogram['41–60%']++;
+        } else if ($avg <= 80) {
+            $score_histogram['61–80%']++;
+        } else {
+            $score_histogram['81–100%']++;
         }
     }
+
+    $histogram_labels = array_keys($score_histogram);
+    $histogram_data   = array_values($score_histogram);
 
     // 6. Theory vs Practice Gap Analysis
     foreach ($comp_scores as $compid => $cdata) {
@@ -516,8 +532,8 @@ $renderdata->dist_data_json    = json_encode([
     $distribution['exemplary']
 ]);
 
-$renderdata->progress_labels_json = json_encode($progress_labels);
-$renderdata->progress_data_json   = json_encode($progress_data);
+$renderdata->histogram_labels_json = json_encode($histogram_labels);
+$renderdata->histogram_data_json   = json_encode($histogram_data);
 
 $renderdata->gap_labels_json    = json_encode($radar_labels);
 $renderdata->gap_theory_json    = json_encode($theory_data);

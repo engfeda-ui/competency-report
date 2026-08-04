@@ -155,11 +155,11 @@
     </div>
 
     <div class="row">
-        <!-- Learning Progress Curve & Theory vs Practice -->
+        <!-- Score Distribution Histogram & Theory vs Practice -->
         <div class="col-md-6 mb-4">
             <div class="card shadow-sm h-100">
                 <div class="card-header bg-white font-weight-bold border-bottom-0 pb-0 pt-3">
-                    <i class="fa fa-line-chart text-success mr-1"></i> {{#str}}learning_progress_curve, local_comp_report_ext{{/str}}
+                    <i class="fa fa-bar-chart text-success mr-1"></i> {{#str}}score_distribution_histogram, local_comp_report_ext{{/str}}
                 </div>
                 <div class="card-body d-flex justify-content-center align-items-center" style="min-height:350px">
                     <canvas id="chart-learning-progress"></canvas>
@@ -432,33 +432,43 @@ require(['core/chartjs', 'jquery'], function(Chart, $) {
         }
     });
 
-    // 3. Learning Progress Line Chart
+    // 3. Score Distribution Histogram Bar Chart
     var progressCtx = document.getElementById('chart-learning-progress').getContext('2d');
     new Chart(progressCtx, {
-        type: 'line',
+        type: 'bar',
         data: {
-            labels: {{{progress_labels_json}}},
+            labels: {{{histogram_labels_json}}},
             datasets: [{
-                label: '{{#str}}average_mastery_rate, local_comp_report_ext{{/str}} (%)',
-                data: {{{progress_data_json}}},
-                backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                borderColor: '#10B981',
-                borderWidth: 3,
-                pointBackgroundColor: '#059669',
-                pointRadius: 4,
-                fill: true,
-                lineTension: 0.3
+                label: '{{#str}}user, local_comp_report_ext{{/str}}',
+                data: {{{histogram_data_json}}},
+                backgroundColor: [
+                    'rgba(239, 68, 68, 0.75)',
+                    'rgba(245, 158, 11, 0.75)',
+                    'rgba(234, 179, 8, 0.75)',
+                    'rgba(59, 130, 246, 0.75)',
+                    'rgba(16, 185, 129, 0.75)'
+                ],
+                borderColor: [
+                    '#EF4444',
+                    '#F59E0B',
+                    '#EAB308',
+                    '#3B82F6',
+                    '#10B981'
+                ],
+                borderWidth: 1
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
             scales: {
                 y: {
-                    min: 0,
-                    max: 100,
+                    beginAtZero: true,
                     ticks: {
-                        stepSize: 20
+                        stepSize: 1
                     }
                 }
             }
