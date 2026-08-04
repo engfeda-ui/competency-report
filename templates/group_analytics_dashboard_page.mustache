@@ -49,17 +49,6 @@
             </select>
         </div>
 
-        {{#quizzes.0}}
-        <div class="form-group mr-3">
-            <label class="font-weight-bold mr-2 mb-0"><i class="fa fa-graduation-cap mr-1"></i> {{#str}}selectquiz, local_comp_report_ext{{/str}}</label>
-            <select name="quizid" class="form-control" onchange="this.form.submit()">
-                {{#quizzes}}
-                    <option value="{{id}}" {{#selected}}selected{{/selected}}>{{name}}</option>
-                {{/quizzes}}
-            </select>
-        </div>
-        {{/quizzes.0}}
-
         <button type="submit" class="btn btn-primary"><i class="fa fa-eye mr-1"></i> {{strshowstudents}}</button>
         {{#has_data}}
         <button id="btn-export-analytics-pdf" type="button" class="btn btn-outline-danger font-weight-bold shadow-sm ml-2">
@@ -107,11 +96,11 @@
         <div class="col-md-3 mb-3">
             <div class="card h-100 border-0 shadow-sm kpi-card bg-strength text-white">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
                         <span class="text-uppercase small font-weight-bold opacity-75">{{#str}}top_strength, local_comp_report_ext{{/str}}</span>
-                        <i class="fa fa-thumbs-up fa-lg opacity-75"></i>
+                        <i class="fa fa-thumbs-o-up fa-lg opacity-75"></i>
                     </div>
-                    <h5 class="mb-0 font-weight-bold" style="font-size: 1.05rem; line-height: 1.4;" title="{{top_strength}}">{{top_strength}}</h5>
+                    <h5 class="mb-0 font-weight-bold text-truncate" title="{{top_strength}}">{{top_strength}}</h5>
                 </div>
             </div>
         </div>
@@ -119,19 +108,18 @@
         <div class="col-md-3 mb-3">
             <div class="card h-100 border-0 shadow-sm kpi-card bg-gap text-white">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="text-uppercase small font-weight-bold opacity-75">{{#str}}critical_skill_gap, local_comp_report_ext{{/str}}</span>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-uppercase small font-weight-bold opacity-75">{{#str}}critical_gap, local_comp_report_ext{{/str}}</span>
                         <i class="fa fa-bolt fa-lg opacity-75"></i>
                     </div>
-                    <h5 class="mb-0 font-weight-bold" style="font-size: 1.05rem; line-height: 1.4;" title="{{critical_gap}}">{{critical_gap}}</h5>
+                    <h5 class="mb-0 font-weight-bold text-truncate" title="{{critical_gap}}">{{critical_gap}}</h5>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Charts Section -->
+    <!-- Charts Row 1: Competency Mastery Radar & Mastery Distribution -->
     <div class="row">
-        <!-- Radar Chart & Mastery Distribution -->
         <div class="col-md-6 mb-4">
             <div class="card shadow-sm h-100">
                 <div class="card-header bg-white font-weight-bold border-bottom-0 pb-0 pt-3">
@@ -154,8 +142,8 @@
         </div>
     </div>
 
+    <!-- Charts Row 2: Score Distribution Histogram & Theory vs Practice -->
     <div class="row">
-        <!-- Score Distribution Histogram & Theory vs Practice -->
         <div class="col-md-6 mb-4">
             <div class="card shadow-sm h-100">
                 <div class="card-header bg-white font-weight-bold border-bottom-0 pb-0 pt-3">
@@ -178,97 +166,6 @@
         </div>
     </div>
 
-    <!-- Final Exam & Quiz Psychometric Grade Analytics -->
-    {{#has_quiz_data}}
-    <div class="mt-4 mb-4 pt-3 border-top">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h4 class="font-weight-bold text-dark mb-0">
-                <i class="fa fa-graduation-cap text-primary mr-2"></i> {{#str}}exam_analytics_section, local_comp_report_ext{{/str}}
-                <span class="badge badge-primary font-weight-normal align-middle ml-2" style="font-size:0.9rem;">{{exam_name}}</span>
-            </h4>
-        </div>
-
-        <!-- Exam KPI Mini-cards -->
-        <div class="row mb-4">
-            <div class="col-md-3 mb-2">
-                <div class="card border-0 bg-light p-3 rounded shadow-sm text-center">
-                    <span class="text-muted small font-weight-bold text-uppercase">{{#str}}exam_avg_score, local_comp_report_ext{{/str}}</span>
-                    <h3 class="font-weight-bold text-primary mb-0 mt-1">{{exam_avg}}%</h3>
-                </div>
-            </div>
-            <div class="col-md-3 mb-2">
-                <div class="card border-0 bg-light p-3 rounded shadow-sm text-center">
-                    <span class="text-muted small font-weight-bold text-uppercase">{{#str}}exam_pass_rate_label, local_comp_report_ext{{/str}}</span>
-                    <h3 class="font-weight-bold text-success mb-0 mt-1">{{exam_pass_rate}}%</h3>
-                </div>
-            </div>
-            <div class="col-md-3 mb-2">
-                <div class="card border-0 bg-light p-3 rounded shadow-sm text-center">
-                    <span class="text-muted small font-weight-bold text-uppercase">{{#str}}exam_highest_score, local_comp_report_ext{{/str}}</span>
-                    <h3 class="font-weight-bold text-info mb-0 mt-1">{{exam_max}}%</h3>
-                </div>
-            </div>
-            <div class="col-md-3 mb-2">
-                <div class="card border-0 bg-light p-3 rounded shadow-sm text-center">
-                    <span class="text-muted small font-weight-bold text-uppercase">{{#str}}exam_lowest_score, local_comp_report_ext{{/str}}</span>
-                    <h3 class="font-weight-bold text-danger mb-0 mt-1">{{exam_min}}%</h3>
-                </div>
-            </div>
-        </div>
-
-        <!-- Exam Psychometric Charts Grid -->
-        <div class="row">
-            <!-- Grade Distribution Histogram -->
-            <div class="col-md-6 mb-4">
-                <div class="card shadow-sm h-100">
-                    <div class="card-header bg-white font-weight-bold border-bottom-0 pb-0 pt-3">
-                        <i class="fa fa-bar-chart text-secondary mr-1"></i> {{#str}}exam_grade_distribution, local_comp_report_ext{{/str}}
-                    </div>
-                    <div class="card-body d-flex justify-content-center align-items-center" style="min-height:300px">
-                        <canvas id="chart-exam-grade-dist"></canvas>
-                    </div>
-                </div>
-            </div>
-            <!-- Pass vs Fail Donut -->
-            <div class="col-md-6 mb-4">
-                <div class="card shadow-sm h-100">
-                    <div class="card-header bg-white font-weight-bold border-bottom-0 pb-0 pt-3">
-                        <i class="fa fa-pie-chart text-success mr-1"></i> {{#str}}exam_pass_fail_ratio, local_comp_report_ext{{/str}}
-                    </div>
-                    <div class="card-body d-flex justify-content-center align-items-center" style="min-height:300px">
-                        <canvas id="chart-exam-pass-fail"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            <!-- Question Difficulty Index (p-value) -->
-            <div class="col-md-6 mb-4">
-                <div class="card shadow-sm h-100">
-                    <div class="card-header bg-white font-weight-bold border-bottom-0 pb-0 pt-3">
-                        <i class="fa fa-tasks text-warning mr-1"></i> {{#str}}exam_item_difficulty, local_comp_report_ext{{/str}}
-                    </div>
-                    <div class="card-body d-flex justify-content-center align-items-center" style="min-height:300px">
-                        <canvas id="chart-exam-item-difficulty"></canvas>
-                    </div>
-                </div>
-            </div>
-            <!-- Question Discrimination Index (Top 27% vs Bottom 27%) -->
-            <div class="col-md-6 mb-4">
-                <div class="card shadow-sm h-100">
-                    <div class="card-header bg-white font-weight-bold border-bottom-0 pb-0 pt-3">
-                        <i class="fa fa-balance-scale text-purple mr-1"></i> {{#str}}exam_item_discrimination, local_comp_report_ext{{/str}}
-                    </div>
-                    <div class="card-body d-flex justify-content-center align-items-center" style="min-height:300px">
-                        <canvas id="chart-exam-item-discrimination"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {{/has_quiz_data}}
-
     <!-- AI Commentary Widget -->
     {{#has_data}}
         {{> local_comp_report_ext/ai_commentary_widget }}
@@ -286,7 +183,7 @@
     transform: translateY(-3px);
 }
 .local_comp_report_ext_analytics_dashboard .bg-mastery {
-    background: linear-gradient(135deg, #13B981, #059669);
+    background: linear-gradient(135deg, #10B981, #059669);
 }
 .local_comp_report_ext_analytics_dashboard .bg-remediation {
     background: linear-gradient(135deg, #EF4444, #DC2626);
@@ -317,11 +214,6 @@ require(['core/chartjs', 'jquery'], function(Chart, $) {
         var chart3 = document.getElementById('chart-learning-progress');
         var chart4 = document.getElementById('chart-theory-practice');
 
-        var chart5 = document.getElementById('chart-exam-grade-dist');
-        var chart6 = document.getElementById('chart-exam-pass-fail');
-        var chart7 = document.getElementById('chart-exam-item-difficulty');
-        var chart8 = document.getElementById('chart-exam-item-discrimination');
-
         var form = $('<form>', {
             action: M.cfg.wwwroot + '/local/comp_report_ext/group_analytics_dashboard_pdf.php',
             method: 'POST',
@@ -331,16 +223,11 @@ require(['core/chartjs', 'jquery'], function(Chart, $) {
         var params = {
             courseid: "{{courseid}}",
             groupid: "{{groupid}}",
-            quizid: "{{quizid}}",
             pdf_content: editedHtml,
             chart1: chart1 ? chart1.toDataURL('image/png') : '',
             chart2: chart2 ? chart2.toDataURL('image/png') : '',
             chart3: chart3 ? chart3.toDataURL('image/png') : '',
-            chart4: chart4 ? chart4.toDataURL('image/png') : '',
-            chart5: chart5 ? chart5.toDataURL('image/png') : '',
-            chart6: chart6 ? chart6.toDataURL('image/png') : '',
-            chart7: chart7 ? chart7.toDataURL('image/png') : '',
-            chart8: chart8 ? chart8.toDataURL('image/png') : ''
+            chart4: chart4 ? chart4.toDataURL('image/png') : ''
         };
 
         $.each(params, function(key, val) {
@@ -351,7 +238,6 @@ require(['core/chartjs', 'jquery'], function(Chart, $) {
         form.submit();
         form.remove();
     });
-
 
     // 1. Radar Chart Setup
     var radarCtx = document.getElementById('chart-competency-radar').getContext('2d');
@@ -512,128 +398,6 @@ require(['core/chartjs', 'jquery'], function(Chart, $) {
             }
         }
     });
-
-    {{#has_quiz_data}}
-    // 5. Exam Grade Distribution Bar Chart
-    var examDistEl = document.getElementById('chart-exam-grade-dist');
-    if (examDistEl) {
-        new Chart(examDistEl.getContext('2d'), {
-            type: 'bar',
-            data: {
-                labels: ['0-20%', '21-40%', '41-60%', '61-80%', '81-100%'],
-                datasets: [{
-                    label: '{{#str}}student_count, local_comp_report_ext{{/str}}',
-                    data: {{{exam_grade_dist_json}}},
-                    backgroundColor: [
-                        'rgba(239, 68, 68, 0.7)',
-                        'rgba(245, 158, 11, 0.7)',
-                        'rgba(234, 179, 8, 0.7)',
-                        'rgba(59, 130, 246, 0.7)',
-                        'rgba(16, 185, 129, 0.7)'
-                    ],
-                    borderColor: ['#EF4444', '#F59E0B', '#EAB308', '#3B82F6', '#10B981'],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: { beginAtZero: true, ticks: { stepSize: 1 } }
-                }
-            }
-        });
-    }
-
-    // 6. Exam Pass / Fail Doughnut Chart
-    var examPassFailEl = document.getElementById('chart-exam-pass-fail');
-    if (examPassFailEl) {
-        new Chart(examPassFailEl.getContext('2d'), {
-            type: 'doughnut',
-            data: {
-                labels: ['{{#str}}passed, local_comp_report_ext{{/str}}', '{{#str}}failed, local_comp_report_ext{{/str}}'],
-                datasets: [{
-                    data: {{{exam_pass_fail_json}}},
-                    backgroundColor: ['rgba(16, 185, 129, 0.8)', 'rgba(239, 68, 68, 0.8)'],
-                    borderColor: ['#10B981', '#EF4444'],
-                    borderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { position: 'bottom' } }
-            }
-        });
-    }
-
-    // 7. Item Difficulty (p-value) Horizontal Bar Chart
-    var itemDiffEl = document.getElementById('chart-exam-item-difficulty');
-    if (itemDiffEl) {
-        var itemDiffScores = {{{item_difficulty_data_json}}};
-        var bgColors = itemDiffScores.map(function(s) {
-            if (s >= 80) return 'rgba(16, 185, 129, 0.7)';
-            if (s >= 60) return 'rgba(59, 130, 246, 0.7)';
-            if (s >= 40) return 'rgba(245, 158, 11, 0.7)';
-            return 'rgba(239, 68, 68, 0.7)';
-        });
-        new Chart(itemDiffEl.getContext('2d'), {
-            type: 'bar',
-            data: {
-                labels: {{{item_difficulty_labels_json}}},
-                datasets: [{
-                    label: '{{#str}}average_score_pct, local_comp_report_ext{{/str}} (%)',
-                    data: itemDiffScores,
-                    backgroundColor: bgColors,
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                indexAxis: 'y',
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    x: { min: 0, max: 100, ticks: { stepSize: 20 } }
-                }
-            }
-        });
-    }
-
-    // 8. Item Discrimination (Top 27% vs Bottom 27%) Grouped Bar Chart
-    var itemDiscrimEl = document.getElementById('chart-exam-item-discrimination');
-    if (itemDiscrimEl) {
-        new Chart(itemDiscrimEl.getContext('2d'), {
-            type: 'bar',
-            data: {
-                labels: {{{item_difficulty_labels_json}}},
-                datasets: [
-                    {
-                        label: '{{#str}}top_performers, local_comp_report_ext{{/str}} (27%)',
-                        data: {{{item_discrim_top_json}}},
-                        backgroundColor: 'rgba(59, 130, 246, 0.7)',
-                        borderColor: '#3B82F6',
-                        borderWidth: 1
-                    },
-                    {
-                        label: '{{#str}}bottom_performers, local_comp_report_ext{{/str}} (27%)',
-                        data: {{{item_discrim_bot_json}}},
-                        backgroundColor: 'rgba(239, 68, 68, 0.7)',
-                        borderColor: '#EF4444',
-                        borderWidth: 1
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: { min: 0, max: 100, ticks: { stepSize: 20 } }
-                }
-            }
-        });
-    }
-    {{/has_quiz_data}}
 });
 {{/js}}
 {{/has_data}}

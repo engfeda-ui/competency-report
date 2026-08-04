@@ -145,62 +145,7 @@ $legend = get_string('redlegend', 'local_comp_report_ext') . ' | '
     . get_string('greenlegend', 'local_comp_report_ext');
 $pdf->Cell(0, 5, $legend, 0, 1);
 
-// Page 2: Final Exam & Psychometric Grade Analytics (if charts 5-8 present)
-$hasexamcharts = (!empty($chart5) || !empty($chart6) || !empty($chart7) || !empty($chart8));
 
-if ($hasexamcharts) {
-    $pdf->AddPage();
-    local_comp_report_ext_render_pdf_header_logos($pdf, false);
-
-    $pdf->SetFont('freeserif', 'B', 14);
-    $pdf->Cell(0, 8, get_string('exam_analytics_section', 'local_comp_report_ext') . ': ' . $exam_name, 0, 1, 'L');
-    $pdf->Ln(2);
-
-    // Exam KPI Summary Table
-    $examkpihtml = '<table border="0" cellpadding="8" width="100%"><tr>';
-    $examkpihtml .= '<td width="25%" bgcolor="#e6f2ff" align="center"><b>' . get_string('exam_avg_score', 'local_comp_report_ext') . '</b><br/><span style="font-size:16pt; color:#2563EB; font-weight:bold;">' . number_format($exam_avg, 1) . '%</span></td>';
-    $examkpihtml .= '<td width="25%" bgcolor="#e6ffec" align="center"><b>' . get_string('exam_pass_rate_label', 'local_comp_report_ext') . '</b><br/><span style="font-size:16pt; color:#059669; font-weight:bold;">' . number_format($exam_pass_rate, 1) . '%</span></td>';
-    $examkpihtml .= '<td width="25%" bgcolor="#e6f0fa" align="center"><b>' . get_string('exam_highest_score', 'local_comp_report_ext') . '</b><br/><span style="font-size:16pt; color:#0284C7; font-weight:bold;">' . number_format($exam_max, 1) . '%</span></td>';
-    $examkpihtml .= '<td width="25%" bgcolor="#ffe6e6" align="center"><b>' . get_string('exam_lowest_score', 'local_comp_report_ext') . '</b><br/><span style="font-size:16pt; color:#DC2626; font-weight:bold;">' . number_format($exam_min, 1) . '%</span></td>';
-    $examkpihtml .= '</tr></table>';
-
-    $pdf->writeHTML($examkpihtml, true, false, true, false, '');
-    $pdf->Ln(4);
-
-    $currentY = $pdf->GetY();
-    $chartWidth  = 86;
-    $chartHeight = 52;
-
-    // Row 1: Chart 5 (Grade Distribution) & Chart 6 (Pass vs Fail)
-    if (!empty($chart5)) {
-        $img5 = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $chart5));
-        if ($img5) {
-            $pdf->Image('@' . $img5, 15, $currentY, $chartWidth, $chartHeight, 'PNG');
-        }
-    }
-    if (!empty($chart6)) {
-        $img6 = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $chart6));
-        if ($img6) {
-            $pdf->Image('@' . $img6, 107, $currentY, $chartWidth, $chartHeight, 'PNG');
-        }
-    }
-
-    $currentY += $chartHeight + 4;
-
-    // Row 2: Chart 7 (Item Difficulty) & Chart 8 (Item Discrimination)
-    if (!empty($chart7)) {
-        $img7 = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $chart7));
-        if ($img7) {
-            $pdf->Image('@' . $img7, 15, $currentY, $chartWidth, $chartHeight, 'PNG');
-        }
-    }
-    if (!empty($chart8)) {
-        $img8 = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $chart8));
-        if ($img8) {
-            $pdf->Image('@' . $img8, 107, $currentY, $chartWidth, $chartHeight, 'PNG');
-        }
-    }
-}
 
 // AI Commentary page.
 if (!empty($pdfcontent)) {

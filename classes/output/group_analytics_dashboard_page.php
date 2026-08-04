@@ -57,38 +57,21 @@ class group_analytics_dashboard_page implements renderable, templatable {
         $d = new stdClass();
         $d->courseid           = $this->data->courseid;
         $d->groupid            = $this->data->groupid;
-        $d->quizid             = $this->data->quizid;
         $d->groups             = $this->data->groups;
-        $d->quizzes            = $this->data->quizzes ?? [];
         $d->has_data           = $this->data->has_data;
         $d->avg_mastery        = $this->data->avg_mastery;
         $d->remediation_rate   = $this->data->remediation_rate;
         $d->top_strength       = $this->data->top_strength;
         $d->critical_gap       = $this->data->critical_gap;
 
-        $d->radar_labels_json  = $this->data->radar_labels_json;
-        $d->radar_data_json    = $this->data->radar_data_json;
-        $d->dist_data_json     = $this->data->dist_data_json;
-        $d->progress_labels_json = $this->data->progress_labels_json;
-        $d->progress_data_json   = $this->data->progress_data_json;
-        $d->gap_labels_json    = $this->data->gap_labels_json;
-        $d->gap_theory_json    = $this->data->gap_theory_json;
-        $d->gap_practice_json  = $this->data->gap_practice_json;
-
-        // Selected Exam Analytics
-        $d->has_quiz_data            = $this->data->has_quiz_data ?? false;
-        $d->exam_name                = $this->data->exam_name ?? '—';
-        $d->exam_avg                 = $this->data->exam_avg ?? '0.0';
-        $d->exam_pass_rate           = $this->data->exam_pass_rate ?? '0.0';
-        $d->exam_max                 = $this->data->exam_max ?? '0.0';
-        $d->exam_min                 = $this->data->exam_min ?? '0.0';
-
-        $d->exam_grade_dist_json     = $this->data->exam_grade_dist_json ?? '[]';
-        $d->exam_pass_fail_json      = $this->data->exam_pass_fail_json ?? '[]';
-        $d->item_difficulty_labels_json = $this->data->item_difficulty_labels_json ?? '[]';
-        $d->item_difficulty_data_json   = $this->data->item_difficulty_data_json ?? '[]';
-        $d->item_discrim_top_json       = $this->data->item_discrim_top_json ?? '[]';
-        $d->item_discrim_bot_json       = $this->data->item_discrim_bot_json ?? '[]';
+        $d->radar_labels_json     = $this->data->radar_labels_json;
+        $d->radar_data_json       = $this->data->radar_data_json;
+        $d->dist_data_json        = $this->data->dist_data_json;
+        $d->histogram_labels_json = $this->data->histogram_labels_json;
+        $d->histogram_data_json   = $this->data->histogram_data_json;
+        $d->gap_labels_json       = $this->data->gap_labels_json;
+        $d->gap_theory_json       = $this->data->gap_theory_json;
+        $d->gap_practice_json     = $this->data->gap_practice_json;
 
         // Common strings.
         $d->strselectgroup     = get_string('selectgroup', 'local_comp_report_ext');
