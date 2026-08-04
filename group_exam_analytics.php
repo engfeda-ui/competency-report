@@ -32,7 +32,11 @@ $course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
 require_login($course);
 
 $context = context_course::instance($courseid);
-require_capability('local/comp_report_ext:view', $context);
+$canviewext = has_capability('local/comp_report_ext:viewreports', $context);
+$canviewold = has_capability('local/competency_report:viewreports', $context);
+if (!$canviewext && !$canviewold) {
+    require_capability('local/comp_report_ext:viewreports', $context);
+}
 
 $PAGE->set_url('/local/comp_report_ext/group_exam_analytics.php', ['courseid' => $courseid, 'groupid' => $groupid]);
 $PAGE->set_context($context);
