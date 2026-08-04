@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.11.1-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.12.0-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -299,7 +299,17 @@ npx grunt amd --files=local/competency_report
 
 ## 📋 Changelog
 
-### v3.11.1 (2026080413) — 2026-08-04
+### v3.12.0 (2026080414) — 2026-08-04
+- **New Feature & Tab:** Added dedicated **Analytics by Grades** dashboard (`group_exam_analytics.php`). This dashboard provides raw exam grade analytics for the main weighted quiz, including:
+  1. **KPI Summary Cards:** Exam Average Grade %, Pass Rate %, Highest Grade, and Lowest Grade.
+  2. **10-Decile Raw Exam Score Histogram:** Statistical score distribution frequency.
+  3. **Academic Performance Tiers (Doughnut Chart):** At-Risk (<60%), Satisfactory (60–74%), Very Good (75–89%), Outstanding (90–100%).
+  4. **Psychometric Question Item Difficulty (p-value):** Question difficulty analysis.
+  5. **Psychometric Question Item Discrimination Index:** High vs low performer discrimination.
+  6. **Interactive Student Roster & Drill-Down Modal:** Clickable KPI cards and chart bars to drill down to specific students.
+- **Refactor:** Renamed Tab 4 to **Analytics by Competency** and added Tab 5 **Analytics by Grades** across all group report views.
+
+
 - **Bug Fix:** Fixed Mustache parsing syntax error (`{{@index_1}}` replaced with `{{index}}`) in `group_analytics_dashboard_page.mustache` that was breaking Chart.js script execution. Restored all 4 dashboard charts, student table, and fixed missing `critical_gap` language string in EN and AR lang files.
 
 

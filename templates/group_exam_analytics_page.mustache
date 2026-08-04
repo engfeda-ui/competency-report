@@ -11,9 +11,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    @template local_comp_report_ext/group_analytics_dashboard_page
+    @template local_comp_report_ext/group_exam_analytics_page
 }}
-<div class="local_comp_report_ext_analytics_dashboard">
+<div class="local_comp_report_ext_exam_analytics">
     <!-- Navigation Tabs -->
     <ul class="nav nav-tabs mb-4">
         <li class="nav-item">
@@ -32,12 +32,12 @@
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link active font-weight-bold" href="#">
+            <a class="nav-link font-weight-bold text-muted" href="group_analytics_dashboard.php?courseid={{courseid}}">
                 <i class="fa fa-bar-chart mr-1"></i> {{#str}}tab_analytics_competency, local_comp_report_ext{{/str}}
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link font-weight-bold text-muted" href="group_exam_analytics.php?courseid={{courseid}}">
+            <a class="nav-link active font-weight-bold" href="#">
                 <i class="fa fa-line-chart mr-1"></i> {{#str}}tab_analytics_grades, local_comp_report_ext{{/str}}
             </a>
         </li>
@@ -65,131 +65,135 @@
 
     {{^has_data}}
         <div class="alert alert-info py-5 text-center shadow-sm">
-            <i class="fa fa-bar-chart fa-3x mb-3 opacity-50 d-block"></i>
+            <i class="fa fa-line-chart fa-3x mb-3 opacity-50 d-block"></i>
             <p class="mb-0">{{strnodata}}</p>
         </div>
     {{/has_data}}
 
     {{#has_data}}
-    <div id="analytics-dashboard-content">
-    <!-- KPI Overview Cards (Clickable for Drill-down) -->
+    <div id="exam-analytics-content">
+    <div class="alert alert-primary bg-light border-primary shadow-sm mb-4 py-2 px-3 d-flex align-items-center">
+        <i class="fa fa-bookmark text-primary fa-lg mr-2"></i>
+        <span><strong>Target Exam:</strong> <span class="badge badge-primary px-2 py-1 font-weight-bold">{{quiz_name}}</span></span>
+    </div>
+
+    <!-- KPI Overview Cards -->
     <div class="row mb-4">
-        <!-- Average Mastery Card -->
+        <!-- Exam Average -->
         <div class="col-md-3 mb-3">
-            <div class="card h-100 border-0 shadow-sm kpi-card bg-mastery text-white" id="btn-kpi-all-students" style="cursor: pointer;" title="Click to view all student scores">
+            <div class="card h-100 border-0 shadow-sm kpi-card bg-exam-avg text-white" id="btn-kpi-all-students" style="cursor: pointer;" title="Click to view all students">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <span class="text-uppercase small font-weight-bold opacity-75">{{#str}}average_mastery_rate, local_comp_report_ext{{/str}}</span>
-                        <i class="fa fa-graduation-cap fa-lg opacity-75"></i>
+                        <span class="text-uppercase small font-weight-bold opacity-75">{{#str}}exam_avg_score, local_comp_report_ext{{/str}}</span>
+                        <i class="fa fa-calculator fa-lg opacity-75"></i>
                     </div>
-                    <h2 class="mb-0 font-weight-bold">{{avg_mastery}}%</h2>
+                    <h2 class="mb-0 font-weight-bold">{{exam_avg}}%</h2>
                     <small class="opacity-75 d-block mt-2"><i class="fa fa-search-plus mr-1"></i> Click for student roster</small>
                 </div>
             </div>
         </div>
-        <!-- Remediation Card -->
+        <!-- Pass Rate -->
         <div class="col-md-3 mb-3">
-            <div class="card h-100 border-0 shadow-sm kpi-card bg-remediation text-white" id="btn-kpi-remediation" style="cursor: pointer;" title="Click to view students needing remediation">
+            <div class="card h-100 border-0 shadow-sm kpi-card bg-pass-rate text-white" id="btn-kpi-remediation" style="cursor: pointer;" title="Click to view at-risk students">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <span class="text-uppercase small font-weight-bold opacity-75">{{#str}}remediation_rate, local_comp_report_ext{{/str}}</span>
-                        <i class="fa fa-exclamation-triangle fa-lg opacity-75"></i>
+                        <span class="text-uppercase small font-weight-bold opacity-75">{{#str}}exam_pass_rate_label, local_comp_report_ext{{/str}}</span>
+                        <i class="fa fa-check-circle-o fa-lg opacity-75"></i>
                     </div>
-                    <h2 class="mb-0 font-weight-bold">{{remediation_rate}}%</h2>
-                    <small class="opacity-75 d-block mt-2"><i class="fa fa-user-times mr-1"></i> Click for remediation list</small>
+                    <h2 class="mb-0 font-weight-bold">{{pass_rate}}%</h2>
+                    <small class="opacity-75 d-block mt-2"><i class="fa fa-user-times mr-1"></i> Click for at-risk list</small>
                 </div>
             </div>
         </div>
-        <!-- Top Strength Card -->
+        <!-- Highest Score -->
         <div class="col-md-3 mb-3">
-            <div class="card h-100 border-0 shadow-sm kpi-card bg-strength text-white">
+            <div class="card h-100 border-0 shadow-sm kpi-card bg-highest text-white">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <span class="text-uppercase small font-weight-bold opacity-75">{{#str}}top_strength, local_comp_report_ext{{/str}}</span>
-                        <i class="fa fa-thumbs-o-up fa-lg opacity-75"></i>
+                        <span class="text-uppercase small font-weight-bold opacity-75">{{#str}}exam_highest_score, local_comp_report_ext{{/str}}</span>
+                        <i class="fa fa-trophy fa-lg opacity-75"></i>
                     </div>
-                    <h5 class="mb-0 font-weight-bold text-truncate" title="{{top_strength}}">{{top_strength}}</h5>
+                    <h2 class="mb-0 font-weight-bold">{{highest_score}}%</h2>
                 </div>
             </div>
         </div>
-        <!-- Critical Gap Card -->
+        <!-- Lowest Score -->
         <div class="col-md-3 mb-3">
-            <div class="card h-100 border-0 shadow-sm kpi-card bg-gap text-white">
+            <div class="card h-100 border-0 shadow-sm kpi-card bg-lowest text-white">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <span class="text-uppercase small font-weight-bold opacity-75">{{#str}}critical_gap, local_comp_report_ext{{/str}}</span>
-                        <i class="fa fa-bolt fa-lg opacity-75"></i>
+                        <span class="text-uppercase small font-weight-bold opacity-75">{{#str}}exam_lowest_score, local_comp_report_ext{{/str}}</span>
+                        <i class="fa fa-level-down fa-lg opacity-75"></i>
                     </div>
-                    <h5 class="mb-0 font-weight-bold text-truncate" title="{{critical_gap}}">{{critical_gap}}</h5>
+                    <h2 class="mb-0 font-weight-bold">{{lowest_score}}%</h2>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Charts Row 1: Competency Mastery Radar & Mastery Distribution -->
+    <!-- Charts Row 1: Exam Score Histogram & Performance Tiers -->
     <div class="row">
         <div class="col-md-6 mb-4">
             <div class="card shadow-sm h-100">
-                <div class="card-header bg-white font-weight-bold border-bottom-0 pb-0 pt-3">
-                    <i class="fa fa-star text-warning mr-1"></i> {{#str}}competency_mastery_radar, local_comp_report_ext{{/str}}
+                <div class="card-header bg-white font-weight-bold border-bottom-0 pb-0 pt-3 d-flex justify-content-between align-items-center">
+                    <span><i class="fa fa-bar-chart text-primary mr-1"></i> {{#str}}exam_grade_histogram, local_comp_report_ext{{/str}}</span>
+                    <small class="text-muted"><i class="fa fa-hand-pointer-o mr-1"></i> Click any bar to drill down</small>
                 </div>
                 <div class="card-body d-flex justify-content-center align-items-center" style="min-height:350px">
-                    <canvas id="chart-competency-radar"></canvas>
+                    <canvas id="chart-exam-histogram" style="cursor:pointer;"></canvas>
                 </div>
             </div>
         </div>
         <div class="col-md-6 mb-4">
             <div class="card shadow-sm h-100">
                 <div class="card-header bg-white font-weight-bold border-bottom-0 pb-0 pt-3 d-flex justify-content-between align-items-center">
-                    <span><i class="fa fa-pie-chart text-info mr-1"></i> {{#str}}mastery_distribution, local_comp_report_ext{{/str}}</span>
-                    <small class="text-muted"><i class="fa fa-hand-pointer-o mr-1"></i> Click any bar to drill down</small>
+                    <span><i class="fa fa-pie-chart text-success mr-1"></i> {{#str}}academic_performance_tiers, local_comp_report_ext{{/str}}</span>
+                    <small class="text-muted"><i class="fa fa-hand-pointer-o mr-1"></i> Click any tier to drill down</small>
                 </div>
                 <div class="card-body d-flex justify-content-center align-items-center" style="min-height:350px">
-                    <canvas id="chart-mastery-distribution" style="cursor:pointer;"></canvas>
+                    <canvas id="chart-exam-tiers" style="cursor:pointer;"></canvas>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Charts Row 2: Score Distribution Histogram & Theory vs Practice -->
+    <!-- Charts Row 2: Question Item Difficulty Analysis & Discrimination Index -->
     <div class="row">
         <div class="col-md-6 mb-4">
             <div class="card shadow-sm h-100">
-                <div class="card-header bg-white font-weight-bold border-bottom-0 pb-0 pt-3 d-flex justify-content-between align-items-center">
-                    <span><i class="fa fa-bar-chart text-success mr-1"></i> {{#str}}score_distribution_histogram, local_comp_report_ext{{/str}}</span>
-                    <small class="text-muted"><i class="fa fa-hand-pointer-o mr-1"></i> Click any bar to drill down</small>
+                <div class="card-header bg-white font-weight-bold border-bottom-0 pb-0 pt-3">
+                    <i class="fa fa-tasks text-info mr-1"></i> {{#str}}question_item_difficulty, local_comp_report_ext{{/str}}
                 </div>
                 <div class="card-body d-flex justify-content-center align-items-center" style="min-height:350px">
-                    <canvas id="chart-learning-progress" style="cursor:pointer;"></canvas>
+                    <canvas id="chart-item-difficulty"></canvas>
                 </div>
             </div>
         </div>
         <div class="col-md-6 mb-4">
             <div class="card shadow-sm h-100">
                 <div class="card-header bg-white font-weight-bold border-bottom-0 pb-0 pt-3">
-                    <i class="fa fa-columns text-primary mr-1"></i> {{#str}}theory_vs_practice, local_comp_report_ext{{/str}}
+                    <i class="fa fa-sliders text-warning mr-1"></i> {{#str}}question_item_discrimination, local_comp_report_ext{{/str}}
                 </div>
                 <div class="card-body d-flex justify-content-center align-items-center" style="min-height:350px">
-                    <canvas id="chart-theory-practice"></canvas>
+                    <canvas id="chart-item-discrimination"></canvas>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Student Cohort Roster & Interactive Breakdown Table -->
+    <!-- Student Cohort Exam Grade Table -->
     <div class="card shadow-sm mt-4 border-0 mb-4" id="section-student-roster">
         <div class="card-header bg-white border-bottom-0 pt-4 pb-2 d-flex justify-content-between align-items-center flex-wrap">
             <h5 class="font-weight-bold text-dark mb-2">
-                <i class="fa fa-users text-primary mr-2"></i> Student Roster & Performance Breakdown
+                <i class="fa fa-users text-primary mr-2"></i> Student Exam Scores Roster
             </h5>
             <!-- Filter Buttons -->
             <div class="btn-group btn-group-sm mb-2" id="roster-filter-group" role="group">
                 <button type="button" class="btn btn-outline-secondary active" data-filter="all">All</button>
-                <button type="button" class="btn btn-outline-danger" data-filter="remediation"><i class="fa fa-exclamation-triangle mr-1"></i> Remediation Required</button>
-                <button type="button" class="btn btn-outline-danger" data-filter="critical">Critical (&lt;40%)</button>
-                <button type="button" class="btn btn-outline-warning" data-filter="developing">Developing (40–59%)</button>
-                <button type="button" class="btn btn-outline-primary" data-filter="proficient">Proficient (60–79%)</button>
-                <button type="button" class="btn btn-outline-success" data-filter="exemplary">Exemplary (80–100%)</button>
+                <button type="button" class="btn btn-outline-danger" data-filter="failed"><i class="fa fa-exclamation-triangle mr-1"></i> At-Risk (&lt;60%)</button>
+                <button type="button" class="btn btn-outline-warning" data-filter="passing">Satisfactory (60–74%)</button>
+                <button type="button" class="btn btn-outline-info" data-filter="verygood">Very Good (75–89%)</button>
+                <button type="button" class="btn btn-outline-success" data-filter="outstanding">Outstanding (90–100%)</button>
             </div>
         </div>
         <div class="card-body p-0">
@@ -199,7 +203,7 @@
                         <tr>
                             <th class="pl-4">#</th>
                             <th>Student Name</th>
-                            <th class="text-center">Average Mastery (%)</th>
+                            <th class="text-center">Raw Exam Score (%)</th>
                             <th class="text-center">Performance Status</th>
                             <th class="text-center">Remediation Status</th>
                             <th class="text-right pr-4">Action</th>
@@ -219,7 +223,7 @@
                                     <span class="badge badge-danger px-2 py-1" style="font-size: 0.85rem;"><i class="fa fa-exclamation-triangle mr-1"></i> Remediation Required</span>
                                 {{/needs_remediation}}
                                 {{^needs_remediation}}
-                                    <span class="badge badge-success px-2 py-1" style="font-size: 0.85rem;"><i class="fa fa-check mr-1"></i> On Track</span>
+                                    <span class="badge badge-success px-2 py-1" style="font-size: 0.85rem;"><i class="fa fa-check mr-1"></i> Passed</span>
                                 {{/needs_remediation}}
                             </td>
                             <td class="text-right pr-4 align-middle">
@@ -239,7 +243,7 @@
     {{#has_data}}
         {{> local_comp_report_ext/ai_commentary_widget }}
     {{/has_data}}
-    </div><!-- /#analytics-dashboard-content -->
+    </div><!-- /#exam-analytics-content -->
     {{/has_data}}
 </div>
 
@@ -261,7 +265,7 @@
                         <thead class="thead-light">
                             <tr>
                                 <th class="pl-4">Student Name</th>
-                                <th class="text-center">Average Score</th>
+                                <th class="text-center">Raw Exam Score</th>
                                 <th class="text-center">Performance Status</th>
                                 <th class="text-right pr-4">Action</th>
                             </tr>
@@ -280,25 +284,25 @@
 </div>
 
 <style>
-.local_comp_report_ext_analytics_dashboard .kpi-card {
+.local_comp_report_ext_exam_analytics .kpi-card {
     border-radius: 12px;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-.local_comp_report_ext_analytics_dashboard .kpi-card:hover {
+.local_comp_report_ext_exam_analytics .kpi-card:hover {
     transform: translateY(-4px);
     box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important;
 }
-.local_comp_report_ext_analytics_dashboard .bg-mastery {
-    background: linear-gradient(135deg, #10B981, #059669);
+.local_comp_report_ext_exam_analytics .bg-exam-avg {
+    background: linear-gradient(135deg, #2563EB, #1D4ED8);
 }
-.local_comp_report_ext_analytics_dashboard .bg-remediation {
-    background: linear-gradient(135deg, #EF4444, #DC2626);
+.local_comp_report_ext_exam_analytics .bg-pass-rate {
+    background: linear-gradient(135deg, #059669, #047857);
 }
-.local_comp_report_ext_analytics_dashboard .bg-strength {
-    background: linear-gradient(135deg, #3B82F6, #2563EB);
+.local_comp_report_ext_exam_analytics .bg-highest {
+    background: linear-gradient(135deg, #0284C7, #0369A1);
 }
-.local_comp_report_ext_analytics_dashboard .bg-gap {
-    background: linear-gradient(135deg, #F59E0B, #D97706);
+.local_comp_report_ext_exam_analytics .bg-lowest {
+    background: linear-gradient(135deg, #DC2626, #B91C1C);
 }
 </style>
 
@@ -339,7 +343,7 @@ require(['core/chartjs', 'jquery'], function(Chart, $) {
             var $row = $(this);
             if (filterType === 'all') {
                 $row.show();
-            } else if (filterType === 'remediation') {
+            } else if (filterType === 'remediation' || filterType === 'failed') {
                 if ($row.data('remediation') == 1) { $row.show(); } else { $row.hide(); }
             } else if (filterType.indexOf('decile_') === 0) {
                 var decile = filterType.replace('decile_', '');
@@ -359,7 +363,7 @@ require(['core/chartjs', 'jquery'], function(Chart, $) {
     // KPI Cards Click Handlers
     $('#btn-kpi-remediation').on('click', function() {
         var list = studentsData.filter(function(s) { return s.needs_remediation; });
-        openDrilldownModal('Students Requiring Remediation (' + list.length + ')', list);
+        openDrilldownModal('At-Risk Students (' + list.length + ')', list);
         filterRosterTable('remediation');
     });
 
@@ -368,140 +372,9 @@ require(['core/chartjs', 'jquery'], function(Chart, $) {
         filterRosterTable('all');
     });
 
-    // PDF export
-    $('#btn-export-analytics-pdf').on('click', function(e) {
-        e.preventDefault();
-        var editedHtml = '';
-        var aiContent = $('.ai-content-html');
-        if (aiContent.length && aiContent.html().trim() !== '') {
-            editedHtml = aiContent.html();
-        }
-
-        var chart1 = document.getElementById('chart-competency-radar');
-        var chart2 = document.getElementById('chart-mastery-distribution');
-        var chart3 = document.getElementById('chart-learning-progress');
-        var chart4 = document.getElementById('chart-theory-practice');
-
-        var form = $('<form>', {
-            action: M.cfg.wwwroot + '/local/comp_report_ext/group_analytics_dashboard_pdf.php',
-            method: 'POST',
-            target: '_blank'
-        });
-
-        var params = {
-            courseid: "{{courseid}}",
-            groupid: "{{groupid}}",
-            pdf_content: editedHtml,
-            chart1: chart1 ? chart1.toDataURL('image/png') : '',
-            chart2: chart2 ? chart2.toDataURL('image/png') : '',
-            chart3: chart3 ? chart3.toDataURL('image/png') : '',
-            chart4: chart4 ? chart4.toDataURL('image/png') : ''
-        };
-
-        $.each(params, function(key, val) {
-            form.append($('<input>', { type: 'hidden', name: key, value: val }));
-        });
-
-        $('body').append(form);
-        form.submit();
-        form.remove();
-    });
-
-    // 1. Radar Chart Setup
-    var radarCtx = document.getElementById('chart-competency-radar').getContext('2d');
-    new Chart(radarCtx, {
-        type: 'radar',
-        data: {
-            labels: {{{radar_labels_json}}},
-            datasets: [{
-                label: '{{#str}}average_mastery_rate, local_comp_report_ext{{/str}} (%)',
-                data: {{{radar_data_json}}},
-                backgroundColor: 'rgba(59, 130, 246, 0.2)',
-                borderColor: '#3B82F6',
-                borderWidth: 2,
-                pointBackgroundColor: '#2563EB',
-                pointBorderColor: '#fff',
-                pointHoverBackgroundColor: '#fff',
-                pointHoverBorderColor: '#2563EB'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                r: {
-                    min: 0,
-                    max: 100,
-                    ticks: {
-                        beginAtZero: true,
-                        stepSize: 20
-                    }
-                }
-            }
-        }
-    });
-
-    // 2. Mastery Distribution Bar Chart with Click Drill-down
-    var distCtx = document.getElementById('chart-mastery-distribution').getContext('2d');
-    new Chart(distCtx, {
-        type: 'bar',
-        data: {
-            labels: [
-                '{{#str}}critical_tier, local_comp_report_ext{{/str}}',
-                '{{#str}}developing_tier, local_comp_report_ext{{/str}}',
-                '{{#str}}proficient_tier, local_comp_report_ext{{/str}}',
-                '{{#str}}exemplary_tier, local_comp_report_ext{{/str}}'
-            ],
-            datasets: [{
-                data: {{{dist_data_json}}},
-                backgroundColor: [
-                    'rgba(239, 68, 68, 0.75)',
-                    'rgba(245, 158, 11, 0.75)',
-                    'rgba(59, 130, 246, 0.75)',
-                    'rgba(16, 185, 129, 0.75)'
-                ],
-                borderColor: [
-                    '#EF4444',
-                    '#F59E0B',
-                    '#3B82F6',
-                    '#10B981'
-                ],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        stepSize: 1
-                    }
-                }
-            },
-            onClick: function(evt, activeElements) {
-                if (activeElements && activeElements.length > 0) {
-                    var index = activeElements[0].index;
-                    var tiers = ['critical', 'developing', 'proficient', 'exemplary'];
-                    var tierTitles = ['Critical Students (< 40%)', 'Developing Students (40–59%)', 'Proficient Students (60–79%)', 'Exemplary Students (80–100%)'];
-                    var targetTier = tiers[index];
-                    var title = tierTitles[index];
-
-                    var list = studentsData.filter(function(s) { return s.tier === targetTier; });
-                    openDrilldownModal(title + ' (' + list.length + ')', list);
-                    filterRosterTable(targetTier);
-                }
-            }
-        }
-    });
-
-    // 3. Score Distribution Histogram Bar Chart with Click Drill-down
-    var progressCtx = document.getElementById('chart-learning-progress').getContext('2d');
-    new Chart(progressCtx, {
+    // 1. Raw Exam Score Decile Histogram Bar Chart
+    var histCtx = document.getElementById('chart-exam-histogram').getContext('2d');
+    new Chart(histCtx, {
         type: 'bar',
         data: {
             labels: {{{histogram_labels_json}}},
@@ -544,9 +417,7 @@ require(['core/chartjs', 'jquery'], function(Chart, $) {
             scales: {
                 y: {
                     beginAtZero: true,
-                    ticks: {
-                        stepSize: 1
-                    }
+                    ticks: { stepSize: 1 }
                 }
             },
             onClick: function(evt, activeElements) {
@@ -563,40 +434,93 @@ require(['core/chartjs', 'jquery'], function(Chart, $) {
         }
     });
 
-    // 4. Theory vs Practice Bar Chart
-    var gapCtx = document.getElementById('chart-theory-practice').getContext('2d');
-    new Chart(gapCtx, {
+    // 2. Academic Grade Performance Tiers Doughnut Chart
+    var tierCtx = document.getElementById('chart-exam-tiers').getContext('2d');
+    new Chart(tierCtx, {
+        type: 'doughnut',
+        data: {
+            labels: [
+                '{{#str}}grade_tier_failed, local_comp_report_ext{{/str}}',
+                '{{#str}}grade_tier_passing, local_comp_report_ext{{/str}}',
+                '{{#str}}grade_tier_verygood, local_comp_report_ext{{/str}}',
+                '{{#str}}grade_tier_outstanding, local_comp_report_ext{{/str}}'
+            ],
+            datasets: [{
+                data: {{{tier_data_json}}},
+                backgroundColor: [
+                    'rgba(239, 68, 68, 0.85)',
+                    'rgba(245, 158, 11, 0.85)',
+                    'rgba(59, 130, 246, 0.85)',
+                    'rgba(16, 185, 129, 0.85)'
+                ],
+                borderColor: '#ffffff',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' }
+            },
+            onClick: function(evt, activeElements) {
+                if (activeElements && activeElements.length > 0) {
+                    var index = activeElements[0].index;
+                    var tiers = ['failed', 'passing', 'verygood', 'outstanding'];
+                    var tierTitles = ['At-Risk Students (< 60%)', 'Satisfactory Students (60-74%)', 'Very Good Students (75-89%)', 'Outstanding Students (90-100%)'];
+                    var targetTier = tiers[index];
+                    var title = tierTitles[index];
+
+                    var list = studentsData.filter(function(s) { return s.tier === targetTier; });
+                    openDrilldownModal(title + ' (' + list.length + ')', list);
+                    filterRosterTable(targetTier);
+                }
+            }
+        }
+    });
+
+    // 3. Question Item Difficulty p-value Chart
+    var diffCtx = document.getElementById('chart-item-difficulty').getContext('2d');
+    new Chart(diffCtx, {
         type: 'bar',
         data: {
-            labels: {{{gap_labels_json}}},
-            datasets: [
-                {
-                    label: '{{#str}}tab_by_quiz, local_comp_report_ext{{/str}} (%)',
-                    data: {{{gap_theory_json}}},
-                    backgroundColor: 'rgba(59, 130, 246, 0.7)',
-                    borderColor: '#3B82F6',
-                    borderWidth: 1
-                },
-                {
-                    label: '{{#str}}practicalentry, local_comp_report_ext{{/str}} (%)',
-                    data: {{{gap_practice_json}}},
-                    backgroundColor: 'rgba(16, 185, 129, 0.7)',
-                    borderColor: '#10B981',
-                    borderWidth: 1
-                }
-            ]
+            labels: {{{item_labels_json}}},
+            datasets: [{
+                label: 'Difficulty Index (p-value %)',
+                data: {{{item_difficulty_json}}},
+                backgroundColor: 'rgba(59, 130, 246, 0.75)',
+                borderColor: '#2563EB',
+                borderWidth: 1
+            }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             scales: {
-                y: {
-                    min: 0,
-                    max: 100,
-                    ticks: {
-                        stepSize: 20
-                    }
-                }
+                y: { min: 0, max: 100, ticks: { stepSize: 20 } }
+            }
+        }
+    });
+
+    // 4. Question Item Discrimination Index Chart
+    var discCtx = document.getElementById('chart-item-discrimination').getContext('2d');
+    new Chart(discCtx, {
+        type: 'bar',
+        data: {
+            labels: {{{item_labels_json}}},
+            datasets: [{
+                label: 'Discrimination Index (%)',
+                data: {{{item_discrim_json}}},
+                backgroundColor: 'rgba(16, 185, 129, 0.75)',
+                borderColor: '#059669',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { min: 0, max: 100, ticks: { stepSize: 20 } }
             }
         }
     });
