@@ -44,33 +44,20 @@ $course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
 if ($groupid > 0) {
     $grouprow  = $DB->get_record('groups', ['id' => $groupid, 'courseid' => $courseid]);
     $groupname = $grouprow ? format_string($grouprow->name) : get_string('allgroups', 'local_comp_report_ext');
-    $students  = (array) $DB->get_records_sql("
-        SELECT u.*
-        FROM {groups_members} gm
-        JOIN {user} u ON u.id = gm.userid
-        JOIN {role_assignments} ra ON ra.userid = u.id
-        JOIN {context} ctx ON ctx.id = ra.contextid
-        WHERE gm.groupid = :groupid
-          AND ctx.instanceid = :courseid
-          AND ra.roleid = (SELECT id FROM {role} WHERE shortname = 'student')
-          AND u.deleted = 0
-        ORDER BY u.idnumber ASC
-    ", ['groupid' => $groupid, 'courseid' => $courseid]);
 } else {
     $groupname = get_string('allgroups', 'local_comp_report_ext');
-    $students  = (array) $DB->get_records_sql("
-        SELECT u.*
-        FROM {role_assignments} ra
-        JOIN {role} r ON r.id = ra.roleid
-        JOIN {context} ctx ON ctx.id = ra.contextid
-        JOIN {user} u ON u.id = ra.userid
-        WHERE ctx.instanceid = :courseid
-          AND ctx.contextlevel = 50
-          AND r.shortname = 'student'
-          AND u.deleted = 0
-        ORDER BY u.idnumber ASC
-    ", ['courseid' => $courseid]);
 }
+
+$students = (array) get_enrolled_users(
+    $context,
+    '',
+    $groupid,
+    'u.*',
+    'u.idnumber ASC, u.lastname ASC, u.firstname ASC',
+    0,
+    0,
+    true
+);
 
 // 2. Fetch mapped competencies list - scoped to course.
 $competencies = (array) $DB->get_records_sql("

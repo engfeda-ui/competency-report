@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.9.2-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.9.3-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -81,6 +81,9 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 ---
 
 ## 📋 Changelog
+
+### v3.9.3 — 2026-08-04
+- **Bug Fix:** Fixed `Unclosed '{'` syntax error in `group_quiz_competency.php`. Replaced custom SQL student query with Moodle's native `get_enrolled_users($context, '', $groupid)` across all group competency report pages and PDF generators (`group_competency.php`, `group_quiz_competency.php`, `group_competency_pdf.php`, `group_quiz_competency_pdf.php`), ensuring accurate student fetching when selecting **All Groups** (`groupid=0`) or individual groups regardless of enrolment method or role assignment context.
 
 ### v3.9.2 — 2026-08-04
 - **New Feature:** Added **All Groups** (`groupid=0`) option to Group Competency Analysis (`group_competency.php`) and Group Quiz Competency Analysis (`group_quiz_competency.php`) reports and their respective PDF exports, allowing teachers to view course-wide competency reports across all enrolled students simultaneously.

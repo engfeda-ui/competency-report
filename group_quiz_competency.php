@@ -83,32 +83,17 @@ foreach ($quizzes as $q) {
 if ($quizid > 0) {
     global $DB;
 
-    // Fetch Students (Filtering by selected group or all students if groupid=0).
-    if ($groupid > 0) {
-        $students = (array)$DB->get_records_sql("
-            SELECT u.*
-            FROM {groups_members} gm
-            JOIN {user} u ON u.id = gm.userid
-            JOIN {role_assignments} ra ON ra.userid = u.id
-            JOIN {context} ctx ON ctx.id = ra.contextid
-            WHERE gm.groupid = :groupid
-              AND ctx.instanceid = :courseid
-              AND ra.roleid = (SELECT id FROM {role} WHERE shortname = 'student')
-              AND u.deleted = 0
-            ORDER BY u.idnumber ASC", ['groupid' => $groupid, 'courseid' => $courseid]);
-    } else {
-        $students = (array)$DB->get_records_sql("
-            SELECT u.*
-            FROM {role_assignments} ra
-            JOIN {role} r ON r.id = ra.roleid
-            JOIN {context} ctx ON ctx.id = ra.contextid
-            JOIN {user} u ON u.id = ra.userid
-            WHERE ctx.instanceid = :courseid
-              AND ctx.contextlevel = 50
-              AND r.shortname = 'student'
-              AND u.deleted = 0
-            ORDER BY u.idnumber ASC", ['courseid' => $courseid]);
-    }
+    // Fetch Students (Filtering by selected group or all enrolled students if groupid=0).
+    $students = (array) get_enrolled_users(
+        $context,
+        '',
+        $groupid,
+        'u.*',
+        'u.idnumber ASC, u.lastname ASC, u.firstname ASC',
+        0,
+        0,
+        true
+    );
 
     $renderdata->has_data = !empty($students);
 
@@ -149,55 +134,56 @@ if ($quizid > 0) {
               AND quiza.userid $insql
             GROUP BY quiza.userid, m.competencyid", $inparams);
 
-    foreach ($rawscores as $rs) {
-        $scoremap[$rs->userid][$rs->competencyid] = ['att' => $rs->total_max, 'cor' => $rs->total_fraction];
-    }
+        foreach ($rawscores as $rs) {
+            $scoremap[$rs->userid][$rs->competencyid] = ['att' => $rs->total_max, 'cor' => $rs->total_fraction];
+        }
 
-    // Process rows for each student and their competency rates.
-    $renderdata->students = [];
-    $grouptotals = [];
-    foreach ($students as $s) {
-        $row = new stdClass();
-        $detailurl = new moodle_url('/local/comp_report_ext/student_competency_detail.php', [
-            'courseid' => $courseid,
-            'userid' => $s->id,
-        ]);
-        $row->studentlink = html_writer::link($detailurl, fullname($s), ['target' => '_blank']);
-        $row->scores = [];
+        // Process rows for each student and their competency rates.
+        $renderdata->students = [];
+        $grouptotals = [];
+        foreach ($students as $s) {
+            $row = new stdClass();
+            $detailurl = new moodle_url('/local/comp_report_ext/student_competency_detail.php', [
+                'courseid' => $courseid,
+                'userid' => $s->id,
+            ]);
+            $row->studentlink = html_writer::link($detailurl, fullname($s), ['target' => '_blank']);
+            $row->scores = [];
 
-        foreach ($renderdata->competencies as $c) {
-            $scoreobj = new stdClass();
-            if (isset($scoremap[$s->id][$c->id])) {
-                $att = $scoremap[$s->id][$c->id]['att'];
-                $cor = $scoremap[$s->id][$c->id]['cor'];
-                $rate = ($att > 0) ? number_format(($cor / $att) * 100, 1) : 0;
-                $scoreobj->rate = $rate;
-                $scoreobj->color = ($rate >= 80) ? 'green' : (($rate >= 60) ? 'blue' : (($rate >= 40) ? 'orange' : 'red'));
+            foreach ($renderdata->competencies as $c) {
+                $scoreobj = new stdClass();
+                if (isset($scoremap[$s->id][$c->id])) {
+                    $att = $scoremap[$s->id][$c->id]['att'];
+                    $cor = $scoremap[$s->id][$c->id]['cor'];
+                    $rate = ($att > 0) ? number_format(($cor / $att) * 100, 1) : 0;
+                    $scoreobj->rate = $rate;
+                    $scoreobj->color = ($rate >= 80) ? 'green' : (($rate >= 60) ? 'blue' : (($rate >= 40) ? 'orange' : 'red'));
 
-                $grouptotals[$c->id]['att'] = ($grouptotals[$c->id]['att'] ?? 0) + $att;
-                $grouptotals[$c->id]['cor'] = ($grouptotals[$c->id]['cor'] ?? 0) + $cor;
-            } else {
-                $scoreobj->rate = null;
+                    $grouptotals[$c->id]['att'] = ($grouptotals[$c->id]['att'] ?? 0) + $att;
+                    $grouptotals[$c->id]['cor'] = ($grouptotals[$c->id]['cor'] ?? 0) + $cor;
+                } else {
+                    $scoreobj->rate = null;
+                }
+                $row->scores[] = $scoreobj;
             }
-            $row->scores[] = $scoreobj;
+            $renderdata->students[] = $row;
         }
-        $renderdata->students[] = $row;
-    }
 
-    // Finalize report totals for the table footer.
-    $renderdata->totals = [];
-    foreach ($renderdata->competencies as $c) {
-        $total = new stdClass();
-        $totalatt = $grouptotals[$c->id]['att'] ?? 0;
-        $totalcor = $grouptotals[$c->id]['cor'] ?? 0;
-        if ($totalatt > 0) {
-            $trate = number_format(($totalcor / $totalatt) * 100, 1);
-            $total->rate = $trate;
-            $total->color = ($trate >= 80) ? 'green' : (($trate >= 60) ? 'blue' : (($trate >= 40) ? 'orange' : 'red'));
-        } else {
-            $total->rate = null;
+        // Finalize report totals for the table footer.
+        $renderdata->totals = [];
+        foreach ($renderdata->competencies as $c) {
+            $total = new stdClass();
+            $totalatt = $grouptotals[$c->id]['att'] ?? 0;
+            $totalcor = $grouptotals[$c->id]['cor'] ?? 0;
+            if ($totalatt > 0) {
+                $trate = number_format(($totalcor / $totalatt) * 100, 1);
+                $total->rate = $trate;
+                $total->color = ($trate >= 80) ? 'green' : (($trate >= 60) ? 'blue' : (($trate >= 40) ? 'orange' : 'red'));
+            } else {
+                $total->rate = null;
+            }
+            $renderdata->totals[] = $total;
         }
-        $renderdata->totals[] = $total;
     }
 }
 

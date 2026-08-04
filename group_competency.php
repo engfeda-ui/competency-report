@@ -64,34 +64,17 @@ foreach ($groups as $g) {
 
 global $DB;
 
-// 2. Retrieve student list (Filtered by the selected group or all students if groupid=0).
-if ($groupid > 0) {
-    $students = (array) $DB->get_records_sql("
-        SELECT u.*
-        FROM {groups_members} gm
-        JOIN {user} u ON u.id = gm.userid
-        JOIN {role_assignments} ra ON ra.userid = u.id
-        JOIN {context} ctx ON ctx.id = ra.contextid
-        WHERE gm.groupid = :groupid
-          AND ctx.instanceid = :courseid
-          AND ra.roleid = (SELECT id FROM {role} WHERE shortname = 'student')
-          AND u.deleted = 0
-        ORDER BY u.idnumber ASC
-    ", ['groupid' => $groupid, 'courseid' => $courseid]);
-} else {
-    $students = (array) $DB->get_records_sql("
-        SELECT u.*
-        FROM {role_assignments} ra
-        JOIN {role} r ON r.id = ra.roleid
-        JOIN {context} ctx ON ctx.id = ra.contextid
-        JOIN {user} u ON u.id = ra.userid
-        WHERE ctx.instanceid = :courseid
-          AND ctx.contextlevel = 50
-          AND r.shortname = 'student'
-          AND u.deleted = 0
-        ORDER BY u.idnumber ASC
-    ", ['courseid' => $courseid]);
-}
+// 2. Retrieve student list (Filtered by group or all enrolled students if groupid=0).
+$students = (array) get_enrolled_users(
+    $context,
+    '',
+    $groupid,
+    'u.*',
+    'u.idnumber ASC, u.lastname ASC, u.firstname ASC',
+    0,
+    0,
+    true
+);
 
 $renderdata->has_group = true;
 
