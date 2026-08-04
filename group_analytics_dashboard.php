@@ -140,9 +140,9 @@ $distribution = ['critical' => 0, 'developing' => 0, 'proficient' => 0, 'exempla
 $radar_labels = [];
 $radar_data = [];
 
-// Score Distribution Histogram labels & data.
-$histogram_labels = ['0-20%', '21-40%', '41-60%', '61-80%', '81-100%'];
-$score_histogram  = [0, 0, 0, 0, 0];
+// Score Distribution Histogram labels & data (10 detailed decile bins).
+$histogram_labels = ['0-10%', '11-20%', '21-30%', '31-40%', '41-50%', '51-60%', '61-70%', '71-80%', '81-90%', '91-100%'];
+$score_histogram  = array_fill(0, 10, 0);
 
 // Theory vs Practice labels & data.
 $theory_data = [];
@@ -199,18 +199,28 @@ if ($has_data) {
         }
     }
 
-    // 5. Score Distribution Histogram (5 grade bins)
+    // 5. Score Distribution Histogram (10 decile bins)
     foreach ($student_overall_averages as $avg) {
-        if ($avg <= 20) {
+        if ($avg <= 10) {
             $score_histogram[0]++;
-        } else if ($avg <= 40) {
+        } else if ($avg <= 20) {
             $score_histogram[1]++;
-        } else if ($avg <= 60) {
+        } else if ($avg <= 30) {
             $score_histogram[2]++;
-        } else if ($avg <= 80) {
+        } else if ($avg <= 40) {
             $score_histogram[3]++;
-        } else {
+        } else if ($avg <= 50) {
             $score_histogram[4]++;
+        } else if ($avg <= 60) {
+            $score_histogram[5]++;
+        } else if ($avg <= 70) {
+            $score_histogram[6]++;
+        } else if ($avg <= 80) {
+            $score_histogram[7]++;
+        } else if ($avg <= 90) {
+            $score_histogram[8]++;
+        } else {
+            $score_histogram[9]++;
         }
     }
 

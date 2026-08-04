@@ -318,7 +318,7 @@ require(['core/chartjs', 'jquery'], function(Chart, $) {
         }
     });
 
-    // 3. Score Distribution Histogram Bar Chart
+    // 3. Score Distribution Histogram Bar Chart (10 Deciles)
     var progressCtx = document.getElementById('chart-learning-progress').getContext('2d');
     new Chart(progressCtx, {
         type: 'bar',
@@ -328,18 +328,28 @@ require(['core/chartjs', 'jquery'], function(Chart, $) {
                 label: '{{#str}}user, local_comp_report_ext{{/str}}',
                 data: {{{histogram_data_json}}},
                 backgroundColor: [
-                    'rgba(239, 68, 68, 0.75)',
-                    'rgba(245, 158, 11, 0.75)',
-                    'rgba(234, 179, 8, 0.75)',
-                    'rgba(59, 130, 246, 0.75)',
-                    'rgba(16, 185, 129, 0.75)'
+                    'rgba(220, 38, 38, 0.75)',   // 0-10% Deep Red
+                    'rgba(239, 68, 68, 0.75)',   // 11-20% Red
+                    'rgba(249, 115, 22, 0.75)',  // 21-30% Orange-Red
+                    'rgba(245, 158, 11, 0.75)',  // 31-40% Orange
+                    'rgba(234, 179, 8, 0.75)',   // 41-50% Amber
+                    'rgba(202, 138, 4, 0.75)',   // 51-60% Yellow-Green
+                    'rgba(59, 130, 246, 0.75)',  // 61-70% Blue
+                    'rgba(37, 99, 235, 0.75)',   // 71-80% Royal Blue
+                    'rgba(16, 185, 129, 0.75)',  // 81-90% Emerald Green
+                    'rgba(5, 150, 105, 0.75)'    // 91-100% Dark Green
                 ],
                 borderColor: [
+                    '#DC2626',
                     '#EF4444',
+                    '#F97316',
                     '#F59E0B',
                     '#EAB308',
+                    '#CA8A04',
                     '#3B82F6',
-                    '#10B981'
+                    '#2563EB',
+                    '#10B981',
+                    '#059669'
                 ],
                 borderWidth: 1
             }]
