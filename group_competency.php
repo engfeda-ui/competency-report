@@ -38,8 +38,8 @@ if (!$canviewext && !$canviewold) {
 
 // Page definitions and navigation.
 $PAGE->set_url('/local/comp_report_ext/group_competency.php', ['courseid' => $courseid]);
-$PAGE->set_title(get_string('groupcompetency', 'local_comp_report_ext'));
-$PAGE->set_heading(get_string('groupcompetency', 'local_comp_report_ext'));
+$PAGE->set_title(get_string('groupperformance', 'local_comp_report_ext'));
+$PAGE->set_heading(format_string($course->fullname) . ' — ' . get_string('groupperformance', 'local_comp_report_ext'));
 $PAGE->set_pagelayout('course');
 $PAGE->set_context($context);
 

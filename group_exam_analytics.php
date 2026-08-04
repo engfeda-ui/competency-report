@@ -36,8 +36,8 @@ require_capability('local/comp_report_ext:view', $context);
 
 $PAGE->set_url('/local/comp_report_ext/group_exam_analytics.php', ['courseid' => $courseid, 'groupid' => $groupid]);
 $PAGE->set_context($context);
-$PAGE->set_title(get_string('group_exam_analytics', 'local_comp_report_ext') . ': ' . format_string($course->fullname));
-$PAGE->set_heading(format_string($course->fullname) . ' — ' . get_string('group_exam_analytics', 'local_comp_report_ext'));
+$PAGE->set_title(get_string('groupperformance', 'local_comp_report_ext'));
+$PAGE->set_heading(format_string($course->fullname) . ' — ' . get_string('groupperformance', 'local_comp_report_ext'));
 
 // Build Group Options
 $groups = groups_get_all_groups($courseid);

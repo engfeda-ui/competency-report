@@ -45,8 +45,8 @@ $PAGE->set_url('/local/comp_report_ext/group_analytics_dashboard.php', [
     'courseid' => $courseid,
     'groupid'  => $groupid,
 ]);
-$PAGE->set_title(get_string('group_analytics_dashboard', 'local_comp_report_ext'));
-$PAGE->set_heading($course->fullname . ' — ' . get_string('group_analytics_dashboard', 'local_comp_report_ext'));
+$PAGE->set_title(get_string('groupperformance', 'local_comp_report_ext'));
+$PAGE->set_heading(format_string($course->fullname) . ' — ' . get_string('groupperformance', 'local_comp_report_ext'));
 $PAGE->set_pagelayout('course');
 $PAGE->set_context($context);
 

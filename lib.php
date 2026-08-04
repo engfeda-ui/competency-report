@@ -77,29 +77,6 @@ function local_comp_report_ext_extend_navigation_course($navigation, $course, $c
                     null,
                     'groupcompetency',
                     new pix_icon('i/group', '')
-                );
-            }
-            if (!$navigation->find('groupassessmentdistribution', navigation_node::TYPE_SETTING)) {
-                $url = new moodle_url('/local/comp_report_ext/group_assessment_distribution.php', ['courseid' => $course->id]);
-                $navigation->add(
-                    get_string('groupassessmentdistribution', 'local_comp_report_ext'),
-                    $url,
-                    navigation_node::TYPE_SETTING,
-                    null,
-                    'groupassessmentdistribution',
-                    new pix_icon('i/report', '')
-                );
-            }
-            if (!$navigation->find('groupanalyticsdashboard', navigation_node::TYPE_SETTING)) {
-                $url = new moodle_url('/local/comp_report_ext/group_analytics_dashboard.php', ['courseid' => $course->id]);
-                $navigation->add(
-                    get_string('group_analytics_dashboard', 'local_comp_report_ext'),
-                    $url,
-                    navigation_node::TYPE_SETTING,
-                    null,
-                    'groupanalyticsdashboard',
-                    new pix_icon('i/stats', '')
-                );
             }
         }
 
