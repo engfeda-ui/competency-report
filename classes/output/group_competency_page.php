@@ -70,7 +70,8 @@ class group_competency_page implements renderable, templatable {
     public function export_for_template(renderer_base $output) {
         $export = new stdClass();
         $export->courseid = $this->courseid;
-        $export->has_group = $this->groupid > 0;
+        // has_group is true whenever the page is rendered (All Groups = groupid 0 is valid).
+        $export->has_group = !empty($this->data->has_group);
 
         $export->groups = !empty($this->data->groups) ? array_values((array)$this->data->groups) : [];
         $export->competencies = !empty($this->data->competencies) ? array_values((array)$this->data->competencies) : [];

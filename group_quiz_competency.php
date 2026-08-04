@@ -47,6 +47,7 @@ $PAGE->set_pagelayout('course');
 $PAGE->set_context($context);
 
 // 4. Data Preparation Logic.
+global $DB;
 $renderdata = new stdClass();
 $renderdata->courseid = $courseid;
 
@@ -81,8 +82,6 @@ foreach ($quizzes as $q) {
 }
 
 if ($quizid > 0) {
-    global $DB;
-
     // Fetch Students (Filtering by selected group or all enrolled students if groupid=0).
     $students = (array) get_enrolled_users(
         $context,
