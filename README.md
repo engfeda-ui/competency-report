@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.13.3-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.13.4-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -298,6 +298,9 @@ npx grunt amd --files=local/competency_report
 ---
 
 ## 📋 Changelog
+
+### v3.13.4 (2026080419) — 2026-08-04
+- **Fix:** Fixed a syntax error (missing closing brace) in `group_exam_analytics.php` introduced in previous release.
 
 ### v3.13.3 (2026080418) — 2026-08-04
 - **Fix:** Refactored SQL queries in `group_exam_analytics.php` to fix Moodle database errors (`Error reading from database`). Replaced legacy `quiz_slots.questionid` joins (deprecated in Moodle 4.0+) with `question_attempts` joins and added explicit row limits for multi-record fallback queries.

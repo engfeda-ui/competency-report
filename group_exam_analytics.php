@@ -185,6 +185,7 @@ if ($quiz && !empty($students)) {
                     'userid'   => $student->id,
                 ]))->out(false),
             ];
+            }
         }
     }
 }
