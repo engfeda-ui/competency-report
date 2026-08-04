@@ -301,6 +301,7 @@ $string['tab_group_analytics'] = 'Analytics Dashboard';
 $string['average_mastery_rate'] = 'Average Mastery Rate';
 $string['remediation_rate'] = 'Students Requiring Remediation';
 $string['top_strength'] = 'Top Strength';
+$string['critical_gap'] = 'Critical Skill Gap';
 $string['critical_skill_gap'] = 'Critical Skill Gap';
 $string['competency_mastery_radar'] = 'Competency Mastery Radar';
 $string['mastery_distribution'] = 'Mastery Distribution';

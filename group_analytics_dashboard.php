@@ -150,6 +150,7 @@ foreach ($students as $student) {
         $decile_bin = min(9, (int)floor($avg_pct / 10));
 
         $student_list[] = [
+            'index'             => count($student_list) + 1,
             'id'                => (int)$student->id,
             'fullname'          => fullname($student),
             'average'           => number_format($avg_pct, 1),

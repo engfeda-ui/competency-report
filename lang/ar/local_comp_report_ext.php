@@ -300,6 +300,7 @@ $string['tab_group_analytics'] = 'لوحة التحليلات البيانية';
 $string['average_mastery_rate'] = 'نسبة الإتقان العامة';
 $string['remediation_rate'] = 'الطلاب المتعثرون (بحاجة لمراجعة)';
 $string['top_strength'] = 'نقطة القوة الرئيسية';
+$string['critical_gap'] = 'فجوة المهارات الحرجة';
 $string['critical_skill_gap'] = 'فجوة المهارات الحرجة';
 $string['competency_mastery_radar'] = 'منحنى خريطة الكفايات الإجمالية';
 $string['mastery_distribution'] = 'توزيع مستويات الإتقان';
