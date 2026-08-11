@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.15.0-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.16.0-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -81,6 +81,13 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 ---
 
 ## 📋 Changelog
+
+### v3.16.0 — 2026-08-11
+- **Major Enhancement:** Completely redesigned the **AI Personalized Study Plan** to be driven by the student's actual incorrect quiz answers rather than competency percentages alone.
+  - **New SQL in `build_context_details()`:** Added a rich query joining `{qbank_comp_ext_qmap}` that returns up to 5 missed questions **per competency** with question name, score percentage, and competency code. Supports optional `quizid` filter to scope missed questions to a specific quiz.
+  - **Enriched Prompt in `build_studyplan_prompt()`:** The AI now receives a dedicated `SPECIFIC QUESTIONS THE STUDENT ANSWERED INCORRECTLY` section listing each wrong question (with full or partial miss label) grouped by competency. The AI is instructed that every session in the schedule table **MUST** reference the exact missed question it targets — eliminating generic advice.
+  - **New Session Table Column:** Sessions table now requires a `Missed Question Addressed` column quoting the exact question text, a 30-min teach / 20-min practice / 10-min quiz activity structure, and measurable re-test milestones specifying which missed questions will be re-tested.
+  - **`quizid` propagation:** Added optional `quizid` parameter to `classes/external/studyplan.php`, `ajax_studyplan.php`, and the AJAX call + PDF form in `ai_commentary_widget.mustache`, so the report page's current quiz context flows into the missed-question SQL for hyper-targeted plans.
 
 ### v3.15.0 — 2026-08-11
 - **Fix (CRITICAL):** Added missing `local_comp_report_ext_build_studyplan_prompt()` to `lib.php`. This function was called by `classes/external/studyplan.php` (the AJAX study plan endpoint) but was never defined anywhere, causing every AJAX-triggered **AI Personalized Study Plan** generation to fail with `Call to undefined function`. The prompt-building logic has been extracted from `studyplan_pdf.php` into this single shared function so both the AJAX widget and the PDF export produce identical prompts.

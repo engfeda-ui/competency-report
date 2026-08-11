@@ -30,16 +30,18 @@ require_once(__DIR__ . '/lib.php');
 require_once(__DIR__ . '/ai.php');
 
 $courseid = required_param('courseid', PARAM_INT);
-$userid   = optional_param('userid', 0, PARAM_INT);
+$userid   = optional_param('userid',   0, PARAM_INT);
 $language = optional_param('language', 'ar', PARAM_ALPHAEXT);
 $sessions = optional_param('sessions', 4, PARAM_INT);
+$quizid   = optional_param('quizid',   0, PARAM_INT);
 
 try {
     $res = \local_comp_report_ext\external\studyplan::generate_study_plan(
         $courseid,
         $userid,
         $language,
-        $sessions
+        $sessions,
+        $quizid
     );
 
     header('Content-Type: application/json');

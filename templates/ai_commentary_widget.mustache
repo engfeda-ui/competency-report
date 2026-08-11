@@ -341,7 +341,8 @@ require(['jquery'], function($) {
                 courseid: '{{courseid}}',
                 userid: uid,
                 language: selectedLang,
-                sessions: selectedSessions
+                sessions: selectedSessions,
+                quizid: '{{quizid}}'
             },
             success: function(data) {
                 loadingPlan.removeClass('d-flex').addClass('d-none');
@@ -365,6 +366,7 @@ require(['jquery'], function($) {
                             userid: uid,
                             language: selectedLang,
                             sessions: selectedSessions,
+                            quizid: '{{quizid}}',
                             pdf_content: editedHtml
                         };
 

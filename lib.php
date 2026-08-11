@@ -476,6 +476,94 @@ function local_comp_report_ext_build_context_details($courseid, $userid = 0, $qu
         if (!empty($mastered)) {
             $contextdetails['mastered_questions'] = $mastered;
         }
+
+        // Fetch missed questions grouped BY competency for enriched study-plan prompt.
+        // Joins qbank_comp_ext_qmap so each wrong answer is tied to its competency code.
+        $missedbycomp = [];
+        $maxpercomp   = 5; // Cap per competency to keep prompt concise.
+
+        if ($quizid > 0) {
+            $mqsql = "SELECT q.id, q.name,
+                             qas.fraction     AS earned,
+                             qa.maxfraction,
+                             c.shortname      AS comp_shortname
+                        FROM {quiz_attempts} quiza
+                        JOIN {quiz}               quiz ON quiz.id         = quiza.quiz
+                        JOIN {question_usages}    qu   ON qu.id           = quiza.uniqueid
+                        JOIN {question_attempts}  qa   ON qa.questionusageid = qu.id
+                        JOIN {question}           q    ON q.id            = qa.questionid
+                        JOIN {qbank_comp_ext_qmap} m   ON m.questionid    = qa.questionid
+                        JOIN {competency}         c    ON c.id            = m.competencyid
+                        JOIN (
+                            SELECT MAX(fraction) AS fraction, questionattemptid
+                              FROM {question_attempt_steps}
+                             GROUP BY questionattemptid
+                        ) qas ON qas.questionattemptid = qa.id
+                       WHERE quiz.id      = :quizid
+                         AND quiz.course  = :courseid
+                         AND quiza.userid = :userid
+                         AND quiza.state  = 'finished'
+                         AND qas.fraction < 1.0
+                       ORDER BY c.shortname, qas.fraction ASC";
+            $mqparams = ['quizid' => $quizid, 'courseid' => $courseid, 'userid' => $userid];
+        } else {
+            $mqsql = "SELECT q.id, q.name,
+                             qas.fraction     AS earned,
+                             qa.maxfraction,
+                             c.shortname      AS comp_shortname
+                        FROM {quiz_attempts} quiza
+                        JOIN {quiz}               quiz ON quiz.id         = quiza.quiz
+                        JOIN {question_usages}    qu   ON qu.id           = quiza.uniqueid
+                        JOIN {question_attempts}  qa   ON qa.questionusageid = qu.id
+                        JOIN {question}           q    ON q.id            = qa.questionid
+                        JOIN {qbank_comp_ext_qmap} m   ON m.questionid    = qa.questionid
+                        JOIN {competency}         c    ON c.id            = m.competencyid
+                        JOIN (
+                            SELECT MAX(fraction) AS fraction, questionattemptid
+                              FROM {question_attempt_steps}
+                             GROUP BY questionattemptid
+                        ) qas ON qas.questionattemptid = qa.id
+                       WHERE quiz.course  = :courseid
+                         AND quiza.userid = :userid
+                         AND quiza.state  = 'finished'
+                         AND qas.fraction < 1.0
+                       ORDER BY c.shortname, qas.fraction ASC";
+            $mqparams = ['courseid' => $courseid, 'userid' => $userid];
+        }
+
+        $mqrows = $DB->get_records_sql($mqsql, $mqparams);
+        foreach ($mqrows as $mq) {
+            $ccode = $mq->comp_shortname;
+            if (!isset($missedbycomp[$ccode])) {
+                $missedbycomp[$ccode] = [];
+            }
+            if (count($missedbycomp[$ccode]) >= $maxpercomp) {
+                continue;
+            }
+            $cleanqname = clean_param(strip_tags($mq->name), PARAM_TEXT);
+            if (empty($cleanqname)) {
+                continue;
+            }
+            if (strlen($cleanqname) > 120) {
+                $cleanqname = substr($cleanqname, 0, 117) . '...';
+            }
+            // Percentage earned on this question (0 = full miss, 50 = half credit, etc.).
+            $pct = ($mq->maxfraction > 0) ? round(($mq->earned / $mq->maxfraction) * 100) : 0;
+            // Deduplicate by name within the same competency.
+            $already = false;
+            foreach ($missedbycomp[$ccode] as $existing) {
+                if ($existing['name'] === $cleanqname) {
+                    $already = true;
+                    break;
+                }
+            }
+            if (!$already) {
+                $missedbycomp[$ccode][] = ['name' => $cleanqname, 'pct' => $pct];
+            }
+        }
+        if (!empty($missedbycomp)) {
+            $contextdetails['missed_questions_by_competency'] = $missedbycomp;
+        }
     }
 
     $contextdetails['lang'] = current_language();
@@ -502,26 +590,30 @@ function local_comp_report_ext_build_studyplan_prompt(
     int $numsessions,
     array $contextdetails
 ): string {
+    // ---- Configuration ------------------------------------------------
     $threshold   = (int)(get_config('local_comp_report_ext', 'success_threshold') ?: 60);
     $numsessions = max(1, min(60, $numsessions));
-    $maxwords    = max(200, min(1200, $numsessions * 60));
+    $maxwords    = max(300, min(1500, $numsessions * 80));
     $midpoint    = (int)round($numsessions / 2);
 
     $studentname = $contextdetails['studentname'] ?? '';
     $coursename  = $contextdetails['coursename']  ?? ($contextdetails['course_fullname'] ?? '');
+    $quizname    = $contextdetails['quizname']    ?? ($contextdetails['quiz_name'] ?? '');
 
-    // Normalise $rates to [shortname => ['desc' => string, 'rate' => float]].
+    // Missed questions per competency from build_context_details().
+    // Structure: [comp_shortname => [['name' => string, 'pct' => int], ...]]
+    $missedbycomp = $contextdetails['missed_questions_by_competency'] ?? [];
+
+    // ---- Normalise rates to [shortname => ['desc' => string, 'rate' => float]] ----
     $normrates = [];
     foreach ($rates as $key => $value) {
         if (is_array($value) && isset($value['competency'])) {
-            // Format returned by competency_calculator::get_student_scores().
-            $comp   = $value['competency'];
-            $sname  = is_object($comp) ? $comp->shortname : ($comp['shortname'] ?? '#' . $key);
-            $desc   = is_object($comp) ? ($comp->description ?? '') : ($comp['description'] ?? '');
-            $desc   = html_entity_decode(strip_tags($desc), ENT_QUOTES, 'UTF-8');
-            $pct    = (float)$value['percent'];
+            $comp  = $value['competency'];
+            $sname = is_object($comp) ? $comp->shortname : ($comp['shortname'] ?? '#' . $key);
+            $desc  = is_object($comp) ? ($comp->description ?? '') : ($comp['description'] ?? '');
+            $desc  = html_entity_decode(strip_tags($desc), ENT_QUOTES, 'UTF-8');
+            $pct   = (float)$value['percent'];
         } else if (is_numeric($value)) {
-            // Simple [shortname => percent] format (returned by competency_sync).
             $sname = (string)$key;
             $desc  = '';
             $pct   = (float)$value;
@@ -541,8 +633,9 @@ function local_comp_report_ext_build_studyplan_prompt(
         }
     }
 
-    $prompt = "You are an expert educational psychologist and pedagogical coach.\n"
-        . "Create a highly structured, actionable, personalized remedial study plan";
+    // ---- Build prompt header ----------------------------------------
+    $prompt = "You are an expert educational psychologist and remedial learning coach.\n"
+        . "Your task: create a HIGHLY SPECIFIC, question-driven, personalized remedial study plan";
 
     if (!empty($studentname)) {
         $prompt .= " for the student \"{$studentname}\"";
@@ -550,56 +643,101 @@ function local_comp_report_ext_build_studyplan_prompt(
     if (!empty($coursename)) {
         $prompt .= " enrolled in the course \"{$coursename}\"";
     }
-    $prompt .= ".\n\n"
-        . "PLAN PARAMETERS:\n"
-        . "- Total sessions available: {$numsessions} sessions\n"
-        . "- Duration per session: 1 hour (60 minutes)\n"
-        . "- Each session is an independent 1-hour block to be scheduled by the teacher/student\n\n"
-        . "STUDENT PERFORMANCE DATA:\n";
+    if (!empty($quizname)) {
+        $prompt .= " (based on assessment: \"{$quizname}\")";
+    }
+    $prompt .= ".\n\n";
+
+    // ---- Plan parameters -------------------------------------------
+    $prompt .= "PLAN PARAMETERS:\n"
+        . "- Total sessions: {$numsessions} x 1-hour blocks\n"
+        . "- Each session is self-contained and independently schedulable\n"
+        . "- Priority: weakest competencies get the most sessions\n\n";
+
+    // ---- Competency performance data --------------------------------
+    $prompt .= "=== COMPETENCY PERFORMANCE DATA ===\n";
 
     if (!empty($weak)) {
-        $prompt .= "\nCOMPETENCIES NEEDING INTENSIVE REMEDIATION (below {$threshold}% mastery):\n";
+        $prompt .= "\nCOMPETENCIES REQUIRING REMEDIATION (below {$threshold}% mastery):\n";
         foreach ($weak as $code => $info) {
-            $descpart = !empty($info['desc']) ? " {$info['desc']}" : '';
-            $prompt  .= "  - [{$code}]{$descpart} — Current mastery: {$info['rate']}%\n";
+            $descpart = !empty($info['desc']) ? " — {$info['desc']}" : '';
+            $prompt  .= "  [{$code}]{$descpart}: {$info['rate']}% mastery\n";
         }
     }
     if (!empty($strong)) {
-        $prompt .= "\nCOMPETENCIES ALREADY STRONG (above {$threshold}% mastery — for review only):\n";
+        $prompt .= "\nCOMPETENCIES ALREADY MASTERED (above {$threshold}% — review only):\n";
         foreach ($strong as $code => $info) {
-            $descpart = !empty($info['desc']) ? " {$info['desc']}" : '';
-            $prompt  .= "  - [{$code}]{$descpart} — Current mastery: {$info['rate']}%\n";
+            $prompt .= "  [{$code}]: {$info['rate']}% mastery\n";
         }
     }
 
+    // ---- CORE SECTION: Specific wrong answers per competency --------
+    // This is the most important input — real quiz questions the student
+    // got wrong, linked to their competency. The AI MUST base each
+    // session's activities on these exact questions.
+    if (!empty($missedbycomp)) {
+        $prompt .= "\n=== SPECIFIC QUESTIONS THE STUDENT ANSWERED INCORRECTLY ==="
+            . " (THIS IS THE PRIMARY DATA — USE IT TO BUILD EVERY SESSION) ===\n";
+        $prompt .= "Each session in the schedule MUST target the exact concept behind"
+            . " at least one of these questions.\n\n";
+
+        foreach ($missedbycomp as $ccode => $questions) {
+            // Only show competencies that are weak or present in wrong answers.
+            $masteryinfo = '';
+            if (isset($normrates[$ccode])) {
+                $masteryinfo = " ({$normrates[$ccode]['rate']}% mastery)";
+            }
+            $prompt .= "[{$ccode}]{$masteryinfo}:\n";
+            foreach ($questions as $i => $q) {
+                $num     = $i + 1;
+                $label   = ($q['pct'] === 0) ? 'Full miss — 0%' : "Partial — {$q['pct']}% earned";
+                $prompt .= "  Q{$num}: \"{$q['name']}\" ({$label})\n";
+            }
+        }
+    } else {
+        // Fallback when no question-level data is available (questions not mapped).
+        $prompt .= "\nNote: No question-level data available — base the plan on competency"
+            . " percentages above and typical assessment items for this domain.\n";
+    }
+
+    // ---- Strict output requirements ---------------------------------
     $prompt .= "
-STRICT REQUIREMENTS:
+=== STRICT OUTPUT REQUIREMENTS ===
 1. Write ENTIRELY in {$language}. No preamble, no meta-commentary.
-2. Output clean HTML only (headings, lists, and one schedule table).
-3. MANDATORY SECTIONS IN THIS ORDER:
+2. Output ONLY clean HTML (h4 headings, ul/ol lists, one HTML table). No markdown.
+3. MANDATORY SECTIONS IN THIS EXACT ORDER:
 
-   <h4><strong>\xf0\x9f\x93\x8a Performance Summary</strong></h4>
-   2 sentences: overall performance diagnosis and main priority.
+   <h4><strong>Performance Diagnosis</strong></h4>
+   3 sentences: current overall level, the most critical gap competency, and WHY it matters for this course.
 
-   <h4><strong>\xf0\x9f\x8e\xaf Priority Focus Areas</strong></h4>
-   Ranked bullet list of weak competencies — one sentence per item explaining WHY it is critical.
+   <h4><strong>Priority Focus Areas</strong></h4>
+   Bullet list ranking each weak competency — for EACH one:
+   - Competency code + name
+   - Specific concept gap identified FROM THE MISSED QUESTIONS above
+   - Why this gap is critical in a real-world context
 
-   <h4><strong>\xf0\x9f\x93\x85 Session-by-Session Study Schedule ({$numsessions} Sessions x 1 Hour Each)</strong></h4>
-   An HTML <table> with these columns:
-   | Session # | Competency Code | Session Goal | Suggested Activities | Time Allocation |
-   - Distribute the {$numsessions} sessions across ALL weak competencies by priority (weakest gets more sessions).
-   - Weaker competencies get more sessions proportionally.
-   - Every session must be exactly 1 hour and self-contained (schedulable by the teacher).
+   <h4><strong>Session-by-Session Schedule ({$numsessions} Sessions x 1 Hour)</strong></h4>
+   HTML <table> with EXACTLY these columns:
+   | Session # | Competency | Session Goal | Missed Question Addressed | Activities (30+20+10 min) | Success Indicator |
+   RULES:
+   - "Missed Question Addressed" column MUST quote the EXACT question text from the data above.
+   - If a session has no direct missed question, write "Review & consolidation".
+   - Distribute sessions: weakest competency gets the most sessions.
+   - Activities must follow a 30-min teach / 20-min practice / 10-min quiz structure.
 
-   <h4><strong>\xf0\x9f\x93\x9d Learning Strategies per Competency</strong></h4>
-   For EACH weak competency: 2-3 specific, named techniques (e.g., spaced repetition, worked examples, retrieval practice).
+   <h4><strong>Concept-Specific Learning Strategies</strong></h4>
+   For EACH weak competency, list 2-3 NAMED techniques (e.g., worked examples, error analysis,
+   concept mapping) tied to the SPECIFIC missed questions.
 
-   <h4><strong>\xe2\x9c\x85 Milestone Checkpoints</strong></h4>
-   Define 2-3 measurable checkpoints at Sessions {$midpoint} and {$numsessions} to assess progress.
+   <h4><strong>Progress Milestones</strong></h4>
+   Define measurable re-test targets at Session {$midpoint} and Session {$numsessions}.
+   For each milestone, specify WHICH missed questions will be re-tested.
 
-4. Be SPECIFIC and ACTIONABLE — no generic advice.
-5. Maximum {$maxwords} words total.
+4. Be SPECIFIC — every activity must reference a real concept from the missed questions.
+5. No generic advice (e.g., \"review the chapter\"). Every recommendation must be question-driven.
+6. Maximum {$maxwords} words.
 ";
 
     return $prompt;
 }
+

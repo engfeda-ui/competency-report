@@ -67,10 +67,11 @@ class studyplan extends external_api {
      */
     public static function generate_study_plan_parameters(): external_function_parameters {
         return new external_function_parameters([
-            'courseid'   => new external_value(PARAM_INT, 'Course ID'),
-            'userid'     => new external_value(PARAM_INT, 'User ID'),
-            'language'   => new external_value(PARAM_ALPHAEXT, 'Language code (ar/en)', VALUE_DEFAULT, 'ar'),
+            'courseid'    => new external_value(PARAM_INT, 'Course ID'),
+            'userid'      => new external_value(PARAM_INT, 'User ID'),
+            'language'    => new external_value(PARAM_ALPHAEXT, 'Language code (ar/en)', VALUE_DEFAULT, 'ar'),
             'numsessions' => new external_value(PARAM_INT, 'Number of 1-hour sessions', VALUE_DEFAULT, 4),
+            'quizid'      => new external_value(PARAM_INT, 'Optional: filter missed-question data to this quiz', VALUE_DEFAULT, 0),
         ]);
     }
 
@@ -87,13 +88,15 @@ class studyplan extends external_api {
         int $courseid,
         int $userid,
         string $language = 'ar',
-        int $numsessions = 4
+        int $numsessions = 4,
+        int $quizid = 0
     ): array {
         $params = self::validate_parameters(self::generate_study_plan_parameters(), [
-            'courseid'   => $courseid,
-            'userid'     => $userid,
-            'language'   => $language,
+            'courseid'    => $courseid,
+            'userid'      => $userid,
+            'language'    => $language,
             'numsessions' => $numsessions,
+            'quizid'      => $quizid,
         ]);
 
         $context = context_course::instance($params['courseid']);
@@ -108,7 +111,12 @@ class studyplan extends external_api {
             $graderid
         );
 
-        $contextdetails = local_comp_report_ext_build_context_details($params['courseid'], $params['userid']);
+        // Pass quizid so build_context_details fetches missed questions for that specific quiz.
+        $contextdetails = local_comp_report_ext_build_context_details(
+            $params['courseid'],
+            $params['userid'],
+            $params['quizid']
+        );
         $fullprompt     = local_comp_report_ext_build_studyplan_prompt(
             $rates,
             $params['language'],
