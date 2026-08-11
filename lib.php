@@ -720,8 +720,8 @@ function local_comp_report_ext_build_studyplan_prompt(
    HTML <table> with EXACTLY these columns:
    | Session # | Competency | Session Goal | Missed Question Addressed | Activities (30+20+10 min) | Success Indicator |
    RULES:
-   - "Missed Question Addressed" column MUST quote the EXACT question text from the data above.
-   - If a session has no direct missed question, write "Review & consolidation".
+   - \"Missed Question Addressed\" column MUST quote the EXACT question text from the data above.
+   - If a session has no direct missed question, write \"Review & consolidation\".
    - Distribute sessions: weakest competency gets the most sessions.
    - Activities must follow a 30-min teach / 20-min practice / 10-min quiz structure.
 
