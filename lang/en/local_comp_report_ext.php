@@ -181,6 +181,7 @@ $string['opt_instructions'] = 'Special Instructions (Optional):';
 $string['custom_prompt_placeholder'] = 'e.g. Write in English, keep it extremely short, focus on weaknesses...';
 $string['btn_generate_ai'] = 'Generate AI Analysis';
 $string['exportpdf'] = 'Export PDF Report';
+$string['printreport'] = 'Print Report';
 
 // PDF Header Logo Settings.
 $string['pdf_logo_heading'] = 'PDF Report Logo Settings';

@@ -57,8 +57,8 @@
 
         <button type="submit" class="btn btn-primary"><i class="fa fa-eye mr-1"></i> {{strshowstudents}}</button>
         {{#has_data}}
-        <button id="btn-export-analytics-pdf" type="button" class="btn btn-outline-danger font-weight-bold shadow-sm ml-2">
-            <i class="fa fa-file-pdf-o mr-1"></i> {{strexportpdf}}
+        <button id="btn-print-analytics" type="button" class="btn btn-outline-primary font-weight-bold shadow-sm ml-2">
+            <i class="fa fa-print mr-1"></i> {{strprintreport}}
         </button>
         {{/has_data}}
     </form>
@@ -289,16 +289,80 @@
     box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important;
 }
 .local_comp_report_ext_analytics_dashboard .bg-mastery {
-    background: linear-gradient(135deg, #10B981, #059669);
+    background: linear-gradient(135deg, #10B981, #059669) !important;
 }
 .local_comp_report_ext_analytics_dashboard .bg-remediation {
-    background: linear-gradient(135deg, #EF4444, #DC2626);
+    background: linear-gradient(135deg, #EF4444, #DC2626) !important;
 }
 .local_comp_report_ext_analytics_dashboard .bg-strength {
-    background: linear-gradient(135deg, #3B82F6, #2563EB);
+    background: linear-gradient(135deg, #3B82F6, #2563EB) !important;
 }
 .local_comp_report_ext_analytics_dashboard .bg-gap {
-    background: linear-gradient(135deg, #F59E0B, #D97706);
+    background: linear-gradient(135deg, #F59E0B, #D97706) !important;
+}
+
+@media print {
+    /* Hide navigation, headers, footers, forms and buttons */
+    #page-header, .navbar, .drawer, #nav-drawer, .nav-tabs, form.form-inline,
+    .modal, footer, #page-footer, .btn, .breadcrumb, .activity-navigation,
+    #region-main-settings-menu, .popover-region, .sr-only, #btn-print-analytics,
+    .usermenu, .nav-item, #roster-filter-group {
+        display: none !important;
+    }
+
+    body, #page, #page-content, #region-main, .local_comp_report_ext_analytics_dashboard {
+        background: #fff !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+    }
+
+    /* Preserve colors & gradients in print */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+    }
+
+    .kpi-card {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        box-shadow: none !important;
+        border: 1px solid #ddd !important;
+    }
+
+    .card {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        box-shadow: none !important;
+        border: 1px solid #e2e8f0 !important;
+        margin-bottom: 20px !important;
+    }
+
+    .row {
+        display: flex !important;
+        flex-wrap: wrap !important;
+    }
+
+    .col-md-3 {
+        flex: 0 0 25% !important;
+        max-width: 25% !important;
+    }
+
+    .col-md-6 {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+    }
+
+    .col-md-12 {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+    }
+
+    canvas {
+        max-width: 100% !important;
+        height: auto !important;
+    }
 }
 </style>
 
@@ -368,43 +432,10 @@ require(['core/chartjs', 'jquery'], function(Chart, $) {
         filterRosterTable('all');
     });
 
-    // PDF export
-    $('#btn-export-analytics-pdf').on('click', function(e) {
+    // Print Report
+    $('#btn-print-analytics').on('click', function(e) {
         e.preventDefault();
-        var editedHtml = '';
-        var aiContent = $('.ai-content-html');
-        if (aiContent.length && aiContent.html().trim() !== '') {
-            editedHtml = aiContent.html();
-        }
-
-        var chart1 = document.getElementById('chart-competency-radar');
-        var chart2 = document.getElementById('chart-mastery-distribution');
-        var chart3 = document.getElementById('chart-learning-progress');
-        var chart4 = document.getElementById('chart-theory-practice');
-
-        var form = $('<form>', {
-            action: M.cfg.wwwroot + '/local/comp_report_ext/group_analytics_dashboard_pdf.php',
-            method: 'POST',
-            target: '_blank'
-        });
-
-        var params = {
-            courseid: "{{courseid}}",
-            groupid: "{{groupid}}",
-            pdf_content: editedHtml,
-            chart1: chart1 ? chart1.toDataURL('image/png') : '',
-            chart2: chart2 ? chart2.toDataURL('image/png') : '',
-            chart3: chart3 ? chart3.toDataURL('image/png') : '',
-            chart4: chart4 ? chart4.toDataURL('image/png') : ''
-        };
-
-        $.each(params, function(key, val) {
-            form.append($('<input>', { type: 'hidden', name: key, value: val }));
-        });
-
-        $('body').append(form);
-        form.submit();
-        form.remove();
+        window.print();
     });
 
     // 1. Radar Chart Setup

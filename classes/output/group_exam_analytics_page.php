@@ -74,6 +74,7 @@ class group_exam_analytics_page implements renderable, templatable {
         $d->strselectgroup        = get_string('selectgroup', 'local_comp_report_ext');
         $d->strshowstudents       = get_string('showstudents', 'local_comp_report_ext');
         $d->strexportpdf          = get_string('group_analytics_dashboard_pdf', 'local_comp_report_ext');
+        $d->strprintreport        = get_string('printreport', 'local_comp_report_ext');
         $d->strnodata             = get_string('no_data_dashboard', 'local_comp_report_ext');
 
         return $d;

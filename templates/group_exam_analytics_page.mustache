@@ -57,8 +57,8 @@
 
         <button type="submit" class="btn btn-primary"><i class="fa fa-eye mr-1"></i> {{strshowstudents}}</button>
         {{#has_data}}
-        <button id="btn-export-analytics-pdf" type="button" class="btn btn-outline-danger font-weight-bold shadow-sm ml-2">
-            <i class="fa fa-file-pdf-o mr-1"></i> {{strexportpdf}}
+        <button id="btn-print-analytics" type="button" class="btn btn-outline-primary font-weight-bold shadow-sm ml-2">
+            <i class="fa fa-print mr-1"></i> {{strprintreport}}
         </button>
         {{/has_data}}
     </form>
@@ -293,16 +293,80 @@
     box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important;
 }
 .local_comp_report_ext_exam_analytics .bg-exam-avg {
-    background: linear-gradient(135deg, #2563EB, #1D4ED8);
+    background: linear-gradient(135deg, #2563EB, #1D4ED8) !important;
 }
 .local_comp_report_ext_exam_analytics .bg-pass-rate {
-    background: linear-gradient(135deg, #059669, #047857);
+    background: linear-gradient(135deg, #059669, #047857) !important;
 }
 .local_comp_report_ext_exam_analytics .bg-highest {
-    background: linear-gradient(135deg, #0284C7, #0369A1);
+    background: linear-gradient(135deg, #0284C7, #0369A1) !important;
 }
 .local_comp_report_ext_exam_analytics .bg-lowest {
-    background: linear-gradient(135deg, #DC2626, #B91C1C);
+    background: linear-gradient(135deg, #DC2626, #B91C1C) !important;
+}
+
+@media print {
+    /* Hide navigation, headers, footers, forms and buttons */
+    #page-header, .navbar, .drawer, #nav-drawer, .nav-tabs, form.form-inline,
+    .modal, footer, #page-footer, .btn, .breadcrumb, .activity-navigation,
+    #region-main-settings-menu, .popover-region, .sr-only, #btn-print-analytics,
+    .usermenu, .nav-item, #roster-filter-group {
+        display: none !important;
+    }
+
+    body, #page, #page-content, #region-main, .local_comp_report_ext_exam_analytics {
+        background: #fff !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+    }
+
+    /* Preserve colors & gradients in print */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+    }
+
+    .kpi-card {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        box-shadow: none !important;
+        border: 1px solid #ddd !important;
+    }
+
+    .card {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        box-shadow: none !important;
+        border: 1px solid #e2e8f0 !important;
+        margin-bottom: 20px !important;
+    }
+
+    .row {
+        display: flex !important;
+        flex-wrap: wrap !important;
+    }
+
+    .col-md-3 {
+        flex: 0 0 25% !important;
+        max-width: 25% !important;
+    }
+
+    .col-md-6 {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+    }
+
+    .col-md-12 {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+    }
+
+    canvas {
+        max-width: 100% !important;
+        height: auto !important;
+    }
 }
 </style>
 
@@ -370,6 +434,12 @@ require(['core/chartjs', 'jquery'], function(Chart, $) {
     $('#btn-kpi-all-students').on('click', function() {
         openDrilldownModal('All Students (' + studentsData.length + ')', studentsData);
         filterRosterTable('all');
+    });
+
+    // Print Report
+    $('#btn-print-analytics').on('click', function(e) {
+        e.preventDefault();
+        window.print();
     });
 
     // 1. Raw Exam Score Decile Histogram Bar Chart
