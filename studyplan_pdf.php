@@ -83,13 +83,14 @@ if (empty($rows)) {
     throw new moodle_exception('nodatafound', 'local_comp_report_ext');
 }
 
-// 5. Separate weak vs strong.
+// 5. Separate weak vs strong using configurable success threshold.
+$threshold = (int)(get_config('local_comp_report_ext', 'success_threshold') ?: 60);
 $weak   = [];
 $strong = [];
 foreach ($rows as $r) {
     $rate  = $r->questions ? round(($r->correct / $r->questions) * 100, 1) : 0;
     $clean = html_entity_decode(strip_tags($r->description), ENT_QUOTES, 'UTF-8');
-    if ($rate < 60) {
+    if ($rate < $threshold) {
         $weak[$r->shortname] = ['desc' => $clean, 'rate' => $rate];
     } else {
         $strong[$r->shortname] = ['desc' => $clean, 'rate' => $rate];
@@ -100,57 +101,22 @@ $student     = \core_user::get_user($userid);
 $studentname = fullname($student);
 $course      = $DB->get_record('course', ['id' => $courseid], 'fullname');
 
-// 6. Build session-based prompt (identical to ajax_studyplan.php).
-$prompt = "You are an expert educational psychologist and pedagogical coach.\n"
-    . "Create a highly structured, actionable, personalized remedial study plan for the student "
-    . "\"{$studentname}\" enrolled in the course \"{$course->fullname}\".\n\n"
-    . "PLAN PARAMETERS:\n"
-    . "- Total sessions available: {$sessions} sessions\n"
-    . "- Duration per session: 1 hour (60 minutes)\n"
-    . "- Each session is an independent 1-hour block to be scheduled by the teacher/student\n\n"
-    . "STUDENT PERFORMANCE DATA:\n";
+// 6. Build context + session-based prompt via shared helper (same logic as AJAX endpoint).
+$contextdetailspdf = local_comp_report_ext_build_context_details($courseid, $userid);
+$contextdetailspdf['studentname'] = $studentname;
 
-if (!empty($weak)) {
-    $prompt .= "\nCOMPETENCIES NEEDING INTENSIVE REMEDIATION (below 60% mastery):\n";
-    foreach ($weak as $code => $info) {
-        $prompt .= "  - [{$code}] {$info['desc']} — Current mastery: {$info['rate']}%\n";
-    }
-}
-if (!empty($strong)) {
-    $prompt .= "\nCOMPETENCIES ALREADY STRONG (above 60% mastery — for review only):\n";
-    foreach ($strong as $code => $info) {
-        $prompt .= "  - [{$code}] {$info['desc']} — Current mastery: {$info['rate']}%\n";
-    }
+// Build rates array from PDF rows in the format accepted by build_studyplan_prompt().
+$pdfrates = [];
+foreach ($rows as $r) {
+    $rate = $r->questions ? round(($r->correct / $r->questions) * 100, 1) : 0;
+    $clean = html_entity_decode(strip_tags($r->description), ENT_QUOTES, 'UTF-8');
+    $pdfrates[$r->shortname] = [
+        'competency' => (object)['shortname' => $r->shortname, 'description' => $clean],
+        'percent'    => $rate,
+    ];
 }
 
-$prompt .= "
-STRICT REQUIREMENTS:
-1. Write ENTIRELY in {$language}. No preamble, no meta-commentary.
-2. Output clean HTML only (headings, lists, and one schedule table).
-3. MANDATORY SECTIONS IN THIS ORDER:
-
-   <h4><strong>📊 Performance Summary</strong></h4>
-   2 sentences: overall performance diagnosis and main priority.
-
-   <h4><strong>🎯 Priority Focus Areas</strong></h4>
-   Ranked bullet list of weak competencies — one sentence per item explaining WHY it is critical.
-
-   <h4><strong>📅 Session-by-Session Study Schedule ({$sessions} Sessions × 1 Hour Each)</strong></h4>
-   An HTML <table> with these columns:
-   | Session # | Competency Code | Session Goal | Suggested Activities | Time Allocation |
-   - Distribute the {$sessions} sessions across ALL weak competencies by priority (weakest gets more sessions).
-   - Weaker competencies get more sessions proportionally.
-   - Every session must be exactly 1 hour and self-contained (schedulable by the teacher).
-
-   <h4><strong>📝 Learning Strategies per Competency</strong></h4>
-   For EACH weak competency: 2-3 specific, named techniques (e.g., spaced repetition, worked examples, retrieval practice).
-
-   <h4><strong>✅ Milestone Checkpoints</strong></h4>
-   Define 2-3 measurable checkpoints at Sessions {$midpoint} and {$sessions} to assess progress.
-
-4. Be SPECIFIC and ACTIONABLE — no generic advice.
-5. Maximum {$maxwords} words total.
-";
+$prompt = local_comp_report_ext_build_studyplan_prompt($pdfrates, $language, $sessions, $contextdetailspdf);
 
 // 7. Generate plan via AI.
 $planhtml = local_comp_report_ext_generate_study_plan($prompt);

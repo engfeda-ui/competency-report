@@ -134,11 +134,9 @@ class ai extends external_api {
             $calc = new \local_comp_report_ext\competency_calculator($params['courseid']);
             $compdata = $calc->get_all_competencies_data($params['groupid']);
             foreach ($compdata as $row) {
-                $rates[] = [
-                    'competencyid' => $row->competency->id,
-                    'shortname'    => $row->competency->shortname,
-                    'rate'         => $row->course_rate,
-                ];
+                // Normalise to flat [shortname => rate] — the format expected by generate_comment().
+                $sname = is_object($row->competency) ? $row->competency->shortname : ('#' . $row->competency->id);
+                $rates[$sname] = (float)$row->course_rate;
             }
         }
 

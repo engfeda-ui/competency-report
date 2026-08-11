@@ -481,3 +481,125 @@ function local_comp_report_ext_build_context_details($courseid, $userid = 0, $qu
     $contextdetails['lang'] = current_language();
     return $contextdetails;
 }
+
+/**
+ * Build the full studyplan prompt string from competency rates + context details.
+ *
+ * This is the single shared source of truth used by both the AJAX study plan
+ * endpoint (external\studyplan::generate_study_plan) and the PDF generator
+ * (studyplan_pdf.php) so both paths produce identical prompts.
+ *
+ * @param array  $rates          Competency rates: [shortname => percent] or
+ *                               [competencyid => ['competency' => stdClass, 'percent' => float, ...]].
+ * @param string $language       Output language string, e.g. 'English' or 'Arabic'.
+ * @param int    $numsessions    Number of 1-hour study sessions.
+ * @param array  $contextdetails Rich context from build_context_details().
+ * @return string The complete prompt string ready to send to the AI.
+ */
+function local_comp_report_ext_build_studyplan_prompt(
+    array $rates,
+    string $language,
+    int $numsessions,
+    array $contextdetails
+): string {
+    $threshold   = (int)(get_config('local_comp_report_ext', 'success_threshold') ?: 60);
+    $numsessions = max(1, min(60, $numsessions));
+    $maxwords    = max(200, min(1200, $numsessions * 60));
+    $midpoint    = (int)round($numsessions / 2);
+
+    $studentname = $contextdetails['studentname'] ?? '';
+    $coursename  = $contextdetails['coursename']  ?? ($contextdetails['course_fullname'] ?? '');
+
+    // Normalise $rates to [shortname => ['desc' => string, 'rate' => float]].
+    $normrates = [];
+    foreach ($rates as $key => $value) {
+        if (is_array($value) && isset($value['competency'])) {
+            // Format returned by competency_calculator::get_student_scores().
+            $comp   = $value['competency'];
+            $sname  = is_object($comp) ? $comp->shortname : ($comp['shortname'] ?? '#' . $key);
+            $desc   = is_object($comp) ? ($comp->description ?? '') : ($comp['description'] ?? '');
+            $desc   = html_entity_decode(strip_tags($desc), ENT_QUOTES, 'UTF-8');
+            $pct    = (float)$value['percent'];
+        } else if (is_numeric($value)) {
+            // Simple [shortname => percent] format (returned by competency_sync).
+            $sname = (string)$key;
+            $desc  = '';
+            $pct   = (float)$value;
+        } else {
+            continue;
+        }
+        $normrates[$sname] = ['desc' => $desc, 'rate' => round($pct, 1)];
+    }
+
+    $weak   = [];
+    $strong = [];
+    foreach ($normrates as $code => $info) {
+        if ($info['rate'] < $threshold) {
+            $weak[$code] = $info;
+        } else {
+            $strong[$code] = $info;
+        }
+    }
+
+    $prompt = "You are an expert educational psychologist and pedagogical coach.\n"
+        . "Create a highly structured, actionable, personalized remedial study plan";
+
+    if (!empty($studentname)) {
+        $prompt .= " for the student \"{$studentname}\"";
+    }
+    if (!empty($coursename)) {
+        $prompt .= " enrolled in the course \"{$coursename}\"";
+    }
+    $prompt .= ".\n\n"
+        . "PLAN PARAMETERS:\n"
+        . "- Total sessions available: {$numsessions} sessions\n"
+        . "- Duration per session: 1 hour (60 minutes)\n"
+        . "- Each session is an independent 1-hour block to be scheduled by the teacher/student\n\n"
+        . "STUDENT PERFORMANCE DATA:\n";
+
+    if (!empty($weak)) {
+        $prompt .= "\nCOMPETENCIES NEEDING INTENSIVE REMEDIATION (below {$threshold}% mastery):\n";
+        foreach ($weak as $code => $info) {
+            $descpart = !empty($info['desc']) ? " {$info['desc']}" : '';
+            $prompt  .= "  - [{$code}]{$descpart} — Current mastery: {$info['rate']}%\n";
+        }
+    }
+    if (!empty($strong)) {
+        $prompt .= "\nCOMPETENCIES ALREADY STRONG (above {$threshold}% mastery — for review only):\n";
+        foreach ($strong as $code => $info) {
+            $descpart = !empty($info['desc']) ? " {$info['desc']}" : '';
+            $prompt  .= "  - [{$code}]{$descpart} — Current mastery: {$info['rate']}%\n";
+        }
+    }
+
+    $prompt .= "
+STRICT REQUIREMENTS:
+1. Write ENTIRELY in {$language}. No preamble, no meta-commentary.
+2. Output clean HTML only (headings, lists, and one schedule table).
+3. MANDATORY SECTIONS IN THIS ORDER:
+
+   <h4><strong>\xf0\x9f\x93\x8a Performance Summary</strong></h4>
+   2 sentences: overall performance diagnosis and main priority.
+
+   <h4><strong>\xf0\x9f\x8e\xaf Priority Focus Areas</strong></h4>
+   Ranked bullet list of weak competencies — one sentence per item explaining WHY it is critical.
+
+   <h4><strong>\xf0\x9f\x93\x85 Session-by-Session Study Schedule ({$numsessions} Sessions x 1 Hour Each)</strong></h4>
+   An HTML <table> with these columns:
+   | Session # | Competency Code | Session Goal | Suggested Activities | Time Allocation |
+   - Distribute the {$numsessions} sessions across ALL weak competencies by priority (weakest gets more sessions).
+   - Weaker competencies get more sessions proportionally.
+   - Every session must be exactly 1 hour and self-contained (schedulable by the teacher).
+
+   <h4><strong>\xf0\x9f\x93\x9d Learning Strategies per Competency</strong></h4>
+   For EACH weak competency: 2-3 specific, named techniques (e.g., spaced repetition, worked examples, retrieval practice).
+
+   <h4><strong>\xe2\x9c\x85 Milestone Checkpoints</strong></h4>
+   Define 2-3 measurable checkpoints at Sessions {$midpoint} and {$numsessions} to assess progress.
+
+4. Be SPECIFIC and ACTIONABLE — no generic advice.
+5. Maximum {$maxwords} words total.
+";
+
+    return $prompt;
+}

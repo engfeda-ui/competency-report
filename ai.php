@@ -373,6 +373,10 @@ function local_comp_report_ext_generate_study_plan($fullprompt) {
     if ($provider === 'local' && empty($model)) {
         return get_string('ai_not_configured', 'local_comp_report_ext');
     }
+    // Cloud providers other than openai require an API key.
+    if (in_array($provider, ['openrouter', 'deepseek', 'groq']) && empty($apikey)) {
+        return get_string('ai_not_configured', 'local_comp_report_ext');
+    }
 
     $curloptions = ($provider === 'local') ? ['ignoresecurity' => true] : [];
     $curl = new \curl($curloptions);
@@ -381,9 +385,19 @@ function local_comp_report_ext_generate_study_plan($fullprompt) {
     if (!empty($apikey)) {
         $headers[] = "Authorization: Bearer {$apikey}";
     }
+    if ($provider === 'openrouter') {
+        $headers[] = 'HTTP-Referer: https://sanad.ws';
+        $headers[] = 'X-Title: Sanad Moodle Competency Report';
+    }
     $curl->setHeader($headers);
 
-    if ($provider === 'local') {
+    if ($provider === 'openrouter') {
+        $endpoint = 'https://openrouter.ai/api/v1/chat/completions';
+    } else if ($provider === 'deepseek') {
+        $endpoint = 'https://api.deepseek.com/v1/chat/completions';
+    } else if ($provider === 'groq') {
+        $endpoint = 'https://api.groq.com/openai/v1/chat/completions';
+    } else if ($provider === 'local') {
         $endpoint = get_config('local_comp_report_ext', 'local_endpoint') ?: 'http://localhost:11434/v1';
         if (strpos($endpoint, 'localhost') !== false || strpos($endpoint, 'host.docker.internal') !== false) {
             $ipfile = __DIR__ . '/host_ip.txt';

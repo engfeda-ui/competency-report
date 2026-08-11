@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.14.0-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.15.0-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -81,6 +81,13 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 ---
 
 ## 📋 Changelog
+
+### v3.15.0 — 2026-08-11
+- **Fix (CRITICAL):** Added missing `local_comp_report_ext_build_studyplan_prompt()` to `lib.php`. This function was called by `classes/external/studyplan.php` (the AJAX study plan endpoint) but was never defined anywhere, causing every AJAX-triggered **AI Personalized Study Plan** generation to fail with `Call to undefined function`. The prompt-building logic has been extracted from `studyplan_pdf.php` into this single shared function so both the AJAX widget and the PDF export produce identical prompts.
+- **Fix:** Extended `local_comp_report_ext_generate_study_plan()` in `ai.php` to support **all 5 AI providers** (OpenAI, OpenRouter, DeepSeek, Groq, Local LLM). Previously only OpenAI and Local were supported for study plan generation, causing silent failures for users of OpenRouter, DeepSeek, or Groq.
+- **Fix:** Replaced hardcoded `60%` success threshold in `studyplan_pdf.php` with a call to `get_config('local_comp_report_ext', 'success_threshold')`. Admin-configured thresholds are now correctly applied when classifying competencies as weak/strong in the study plan.
+- **Fix:** Corrected `$rates` format mismatch in `classes/external/ai.php` for non-student contexts (group/school). The multi-dimensional array format was incompatible with `generate_comment()` which expects `[shortname => rate]`. Now normalised correctly, ensuring Group AI Analysis generates accurate commentary.
+- **Refactor:** `studyplan_pdf.php` now uses the shared `build_studyplan_prompt()` function instead of duplicating prompt-building logic, ensuring PDF and AJAX study plans are always identical.
 
 ### v3.9.3 — 2026-08-04
 - **Bug Fix:** Fixed `Unclosed '{'` syntax error in `group_quiz_competency.php`. Replaced custom SQL student query with Moodle's native `get_enrolled_users($context, '', $groupid)` across all group competency report pages and PDF generators (`group_competency.php`, `group_quiz_competency.php`, `group_competency_pdf.php`, `group_quiz_competency_pdf.php`), ensuring accurate student fetching when selecting **All Groups** (`groupid=0`) or individual groups regardless of enrolment method or role assignment context.
