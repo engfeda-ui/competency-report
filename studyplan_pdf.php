@@ -141,15 +141,13 @@ $pdf->AddPage();
 local_comp_report_ext_render_pdf_header_logos($pdf);
 $pdf->SetFont('freeserif', '', 12);
 
-// Branded Header.
+// Branded Header below the logos.
 $pdf->SetFillColor(0, 90, 160);
-$pdf->Rect(0, 0, 210, 22, 'F');
 $pdf->SetTextColor(255, 255, 255);
-$pdf->SetFont('freeserif', 'B', 15);
-$pdf->SetXY(10, 5);
-$pdf->Cell(0, 12, get_string('studyplan_pdf_title', 'local_comp_report_ext'), 0, 1, $isrtl ? 'R' : 'L');
+$pdf->SetFont('freeserif', 'B', 14);
+$pdf->Cell(0, 10, get_string('studyplan_pdf_title', 'local_comp_report_ext'), 0, 1, 'C', true);
 $pdf->SetTextColor(0, 0, 0);
-$pdf->Ln(8);
+$pdf->Ln(4);
 
 // Student and Course info block.
 $pdf->SetFillColor(240, 248, 255);

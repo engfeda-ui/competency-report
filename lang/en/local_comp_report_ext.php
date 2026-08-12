@@ -340,3 +340,4 @@ $string['failed'] = 'Failed';
 $string['average_score_pct'] = 'Average Score (%)';
 $string['top_performers'] = 'Top Performers';
 $string['bottom_performers'] = 'Bottom Performers';
+$string['autodetect'] = 'Auto Detect (Default)';

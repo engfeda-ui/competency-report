@@ -339,3 +339,4 @@ $string['average_score_pct'] = 'متوسط النسبة المئوية (%)';
 $string['top_performers'] = 'أعلى الطلاب إنجازاً';
 $string['bottom_performers'] = 'أقل الطلاب إنجازاً';
 $string['printreport'] = 'طباعة التقرير';
+$string['autodetect'] = 'اكتشاف تلقائي (افتراضي)';

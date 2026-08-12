@@ -258,6 +258,7 @@ $renderdata->rows               = $rows;
 $renderdata->has_data           = !empty($rows);
 $renderdata->show_group_col     = ($groupid === 0);
 $renderdata->has_configured_asmts = $hasconfiguredasmts;
+$renderdata->context_type       = 'group';
 
 echo $OUTPUT->header();
 

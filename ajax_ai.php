@@ -36,6 +36,7 @@ $quizid       = optional_param('quizid', 0, PARAM_INT);
 $customprompt = optional_param('custom_prompt', '', PARAM_TEXT);
 $contexttype  = optional_param('context_type', 'student', PARAM_ALPHAEXT);
 $focustype    = optional_param('focus_type', 'competency', PARAM_ALPHA);
+$language     = optional_param('language', 'auto', PARAM_TEXT);
 
 try {
     $res = \local_comp_report_ext\external\ai::generate_comment(
@@ -45,7 +46,8 @@ try {
         $quizid,
         $contexttype,
         $focustype,
-        $customprompt
+        $customprompt,
+        $language
     );
 
     header('Content-Type: application/json');

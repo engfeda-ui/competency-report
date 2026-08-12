@@ -30,18 +30,30 @@
                 <i class="fa fa-magic mr-2"></i> {{#str}}generalcomment, local_comp_report_ext{{/str}} (AI Analysis)
             </h4>
 
-            <!-- Sub-tab focus buttons -->
-            <div class="mb-3">
-                <label class="font-weight-bold text-muted d-block mb-1">
-                    <i class="fa fa-crosshairs mr-1"></i> {{#str}}ai_analysis_focus, local_comp_report_ext{{/str}}
-                </label>
-                <div class="btn-group btn-group-toggle d-flex flex-wrap" data-toggle="buttons">
-                    <button type="button" class="btn btn-info active mb-2 font-weight-bold" id="btn-focus-competency-{{context_type}}" style="transition: all 0.2s ease;">
-                        <i class="fa fa-check-square-o mr-1"></i> {{#str}}ai_focus_competency, local_comp_report_ext{{/str}}
-                    </button>
-                    <button type="button" class="btn btn-outline-info mb-2 font-weight-bold" id="btn-focus-grades-{{context_type}}" style="transition: all 0.2s ease;">
-                        <i class="fa fa-bar-chart mr-1"></i> {{#str}}ai_focus_grades, local_comp_report_ext{{/str}}
-                    </button>
+            <!-- Sub-tab focus & Language controls -->
+            <div class="row mb-3">
+                <div class="col-md-7 col-sm-12 mb-2 mb-md-0">
+                    <label class="font-weight-bold text-muted d-block mb-1">
+                        <i class="fa fa-crosshairs mr-1"></i> {{#str}}ai_analysis_focus, local_comp_report_ext{{/str}}
+                    </label>
+                    <div class="btn-group btn-group-toggle d-flex flex-wrap" data-toggle="buttons">
+                        <button type="button" class="btn btn-info active mb-2 font-weight-bold" id="btn-focus-competency-{{context_type}}" style="transition: all 0.2s ease;">
+                            <i class="fa fa-check-square-o mr-1"></i> {{#str}}ai_focus_competency, local_comp_report_ext{{/str}}
+                        </button>
+                        <button type="button" class="btn btn-outline-info mb-2 font-weight-bold" id="btn-focus-grades-{{context_type}}" style="transition: all 0.2s ease;">
+                            <i class="fa fa-bar-chart mr-1"></i> {{#str}}ai_focus_grades, local_comp_report_ext{{/str}}
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-5 col-sm-12">
+                    <label for="ai-comment-lang-{{context_type}}" class="font-weight-bold text-muted d-block mb-1">
+                        <i class="fa fa-language mr-1"></i> {{#str}}studyplan_language, local_comp_report_ext{{/str}}
+                    </label>
+                    <select id="ai-comment-lang-{{context_type}}" class="form-control form-control-sm bg-white" style="border-radius: 6px; height: 38px; border: 1px solid #ced4da;">
+                        <option value="auto">🌐 {{#str}}autodetect, local_comp_report_ext{{/str}}</option>
+                        <option value="Arabic">🇸🇦 العربية (Arabic)</option>
+                        <option value="English">🇬🇧 English</option>
+                    </select>
                 </div>
             </div>
 
@@ -272,6 +284,8 @@ require(['jquery'], function($) {
         responseBox.addClass('d-none');
         btn.prop('disabled', true);
 
+        var selectedLang = $('#ai-comment-lang-' + context).val() || 'auto';
+
         $.ajax({
             url: M.cfg.wwwroot + '/local/comp_report_ext/ajax_ai.php',
             type: 'POST',
@@ -283,7 +297,8 @@ require(['jquery'], function($) {
                 quizid: "{{quizid}}",
                 custom_prompt: customPrompt,
                 context_type: context,
-                focus_type: focusType
+                focus_type: focusType,
+                language: selectedLang
             },
             success: function(data) {
                 loading.removeClass('d-flex').addClass('d-none');

@@ -166,13 +166,27 @@ function local_comp_report_ext_ai_comment(
     $quizname   = $contextdetails['quizname'] ?? '';
     $missed     = $contextdetails['missed_questions'] ?? [];
     $mastered   = $contextdetails['mastered_questions'] ?? [];
-    $lang       = $contextdetails['lang'] ?? current_language();
+    $lang = $contextdetails['lang'] ?? current_language();
+    $explicitlang = $contextdetails['language'] ?? '';
 
-    $isarabic = (strpos($lang, 'ar') === 0 || (preg_match('/[\x{0600}-\x{06FF}]/u', $coursename) > 0));
+    $isarabic = (
+        $explicitlang === 'Arabic'
+        || strpos($lang, 'ar') === 0
+        || (preg_match('/[\x{0600}-\x{06FF}]/u', $coursename) > 0)
+        || (preg_match('/[\x{0600}-\x{06FF}]/u', $customprompt) > 0)
+        || stripos($customprompt, 'arabic') !== false
+        || stripos($customprompt, 'arabi') !== false
+        || stripos($customprompt, 'عربي') !== false
+        || stripos($customprompt, 'بالعربي') !== false
+    );
+
+    if ($explicitlang === 'English') {
+        $isarabic = false;
+    }
 
     if ($isarabic) {
-        $langdirective = "CRITICAL LANGUAGE REQUIREMENT: Output the report in natural, highly professional Arabic (العربية). "
-            . "Use exact technical, industrial, and academic terminology appropriate for the course subject.";
+        $langdirective = "CRITICAL LANGUAGE REQUIREMENT: Output the report ENTIRELY in natural, highly professional Arabic (العربية). "
+            . "Use exact technical, industrial, and academic terminology appropriate for the course subject. Do NOT output in English.";
     } else {
         $langdirective = "CRITICAL LANGUAGE REQUIREMENT: Output the report in English, "
             . "using exact domain-specific technical terms suitable for the course subject.";
@@ -194,7 +208,7 @@ function local_comp_report_ext_ai_comment(
     // Configure prompt depending on focus (Competency vs. General Grades).
     if ($focustype === 'grades') {
         if ($isarabic) {
-            $struct = "   - <h4><strong>ملخص الأداء في الاختبار</strong></h4> مع شريط التقدم.\n"
+            $struct = "   - <h4><strong>ملخص الأداء في التقييمات والدرجات</strong></h4> مع شريط التقدم لكل تقييم/اختبار.\n"
                 . "   - <h4><strong>نقاط القوة والإتقان الفني</strong></h4> قائمة نقاط ترتبط بموضوعات المقرر.\n"
                 . "   - <h4><strong>التوصيات وخطوات التطوير</strong></h4> قائمة نقاط إجراءات عملية لمراجعتها.";
         } else {

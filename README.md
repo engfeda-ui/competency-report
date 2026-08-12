@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.17.0-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.18.0-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -81,6 +81,11 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 ---
 
 ## 📋 Changelog
+
+### v3.18.0 — 2026-08-12
+- **Fix (Study Plan PDF Header):** Fixed header logo occlusion in `studyplan_pdf.php`. The solid blue title banner is now positioned below the institutional logos rendered at the top, preventing the blue bar from overlapping and hiding the logos.
+- **Fix (AI General Grades & Assessment Weights):** When selecting "General Grades & Exam Results" (`focustype = grades`) or viewing Assessment Distribution reports, the AI service (`classes/external/ai.php`) now calculates actual assessment weights (`local_comp_report_ext_asmt`) and quiz grade averages instead of querying competency mastery.
+- **Enhancement (AI Language Selection & Auto-Detection):** Added explicit language selection dropdown (`Auto` / `العربية` / `English`) to the AI Commentary widget and enhanced language detection in `ai.php` to immediately honor Arabic instructions in `custom_prompt` (`WRITE IN ARABIC`, `عربي`, etc.) without system prompt language contradiction.
 
 ### v3.17.0 — 2026-08-11
 - **Feature (Print Report Replacement):** Replaced legacy PDF export in **Analytics by Competency** (`group_analytics_dashboard.php`) and **Analytics by Grades** (`group_exam_analytics.php`) with modern browser print capability (`window.print()`).
