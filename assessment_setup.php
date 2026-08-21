@@ -166,7 +166,7 @@ echo $OUTPUT->header();
 // Warning if total weight ≠ 100.
 if (!empty($assessments) && abs($totalweight - 100) > 0.01) {
     echo $OUTPUT->notification(
-        get_string('weightwarning', 'local_comp_report_ext', round($totalweight, 1)),
+        get_string('weightwarning', 'local_comp_report_ext', round($totalweight, 2)),
         \core\output\notification::NOTIFY_WARNING
     );
 }
@@ -174,7 +174,7 @@ if (!empty($assessments) && abs($totalweight - 100) > 0.01) {
 $renderdata = new stdClass();
 $renderdata->courseid     = $courseid;
 $renderdata->assessments  = $assessments;
-$renderdata->totalweight  = round($totalweight, 1);
+$renderdata->totalweight  = round($totalweight, 2);
 $renderdata->quizzes      = array_values($quizzes);
 $renderdata->assignments  = array_values($assignments);
 $renderdata->sesskey      = sesskey();

@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.19.8-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.19.9-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -352,6 +352,10 @@ npx grunt amd --files=local/competency_report
 ---
 
 ## 📋 Changelog
+
+### v3.19.9 (2026082109) — 2026-08-21
+- **UX & Validation Fix (Assessment Weights Precision):** Changed HTML5 number input validation step to `step="any"` in `templates/assessment_setup_page.mustache`, allowing teachers to enter exact decimal percentage weights (such as `42.85%`, `33.33%`, etc.) without browser validation errors.
+- **UI Enhancement:** Removed redundant duplicate percentage symbols `(%) (%)` in form labels and table headers, and updated backend rounding precision to 2 decimal places.
 
 ### v3.19.8 (2026082108) — 2026-08-21
 - **Feature & Fix (Assessment Setup Type Toggling):** Fixed issue where switching Assessment Type to "Practical Assessment" in `assessment_setup.php` failed to toggle the selector from Quiz to Assignment (`mod_assign`). Built and compiled missing `amd/build/assessment_setup.min.js` and `assessment_setup.min.js.map`, updated `amd/src/assessment_setup.js`, and added immediate zero-latency inline event fallback handlers to `templates/assessment_setup_page.mustache`.
