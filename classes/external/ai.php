@@ -172,7 +172,7 @@ class ai extends external_api {
                         } else if ($asmt->type === 'practical') {
                             list($insql, $inparams) = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED);
                             $inparams['asmtid'] = $asmt->id;
-                            $sql = "SELECT AVG(grade) AS avggrade FROM {local_comp_report_ext_prac} WHERE asmtid = :asmtid AND userid $insql";
+                            $sql = "SELECT AVG(competency_percent) AS avggrade FROM {local_comp_report_ext_prac} WHERE assessmentid = :asmtid AND studentid $insql";
                             $res = $DB->get_record_sql($sql, $inparams);
                             $rate = ($res && $res->avggrade !== null) ? round((float)$res->avggrade, 1) : 0;
                             $rates[$asmtname] = $rate;
