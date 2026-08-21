@@ -72,12 +72,12 @@ class ai extends external_api {
             'groupid'      => new external_value(PARAM_INT, 'Group ID', VALUE_DEFAULT, 0),
             'quizid'       => new external_value(PARAM_INT, 'Quiz ID', VALUE_DEFAULT, 0),
             'contexttype'  => new external_value(
-                PARAM_ALPHA,
-                'Context type: student, school, group, quiz',
+                PARAM_ALPHAEXT,
+                'Context type: student, school, group, quiz, course_master',
                 VALUE_DEFAULT,
                 'student'
             ),
-            'focustype'    => new external_value(PARAM_ALPHA, 'Focus type: competency or grades', VALUE_DEFAULT, 'competency'),
+            'focustype'    => new external_value(PARAM_ALPHAEXT, 'Focus type: competency or grades', VALUE_DEFAULT, 'competency'),
             'customprompt' => new external_value(PARAM_TEXT, 'Optional custom prompt instructions', VALUE_DEFAULT, ''),
             'language'     => new external_value(PARAM_TEXT, 'Optional language selection (Arabic, English, auto)', VALUE_DEFAULT, 'auto'),
         ]);
