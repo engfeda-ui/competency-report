@@ -183,9 +183,10 @@ if ($quiz && !empty($students)) {
             continue;
         }
         $cname = $cq->name;
-        if (preg_match('/(retake\s*1|إعادة\s*1|الدور\s*الثاني|محاولة\s*2)/iu', $cname) ||
-            (preg_match('/(retake|إعادة|دور\s*ثان)/iu', $cname) && !preg_match('/(2|الثالث)/iu', $cname))) {
+        // Match "Retake 1" / "إعادة 1" / "الدور الثاني" / "محاولة 2" → Retake 1 (2nd attempt).
+        if (preg_match('/(retake\s*1|إعادة\s*1|الدور\s*الثاني|محاولة\s*2)/iu', $cname)) {
             $retake1_quizzes[$cq->id] = $cq;
+        // Match "Retake 2" / "إعادة 2" / "الدور الثالث" / "محاولة 3" → Retake 2 (3rd attempt).
         } else if (preg_match('/(retake\s*2|إعادة\s*2|الدور\s*الثالث|محاولة\s*3)/iu', $cname)) {
             $retake2_quizzes[$cq->id] = $cq;
         }
