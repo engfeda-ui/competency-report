@@ -355,3 +355,16 @@ $string['quizexamname']               = 'اسم الاختبار / التقيي�
 $string['scoreachieved']              = 'الدرجة المحققة';
 $string['aicommentarytitle']          = 'التحليل والتعليق التربوي بالذكاء الاصطناعي';
 
+// سلاسل الصلاحيات (مطلوبة من مودل لعرض أسماء الصلاحيات في واجهة إدارة الأدوار).
+$string['comp_report_ext:manage']               = 'إدارة ربط الأسئلة بالكفايات';
+$string['comp_report_ext:viewreports']          = 'عرض تقارير الكفايات الكاملة (للمعلم/المدير)';
+$string['comp_report_ext:viewownreport']        = 'عرض تقرير الكفايات الشخصي (للطالب)';
+$string['comp_report_ext:manageassessments']    = 'إدارة أوزان التقييمات (الاختبارات والعملي)';
+$string['comp_report_ext:enterpractical']       = 'إدخال درجات الاختبار العملي للطلاب';
+
+// أسماء الصلاحيات القديمة (للتوافقية مع اسم الإضافة السابق competency_report).
+$string['competency_report:viewreports']        = 'عرض تقارير الكفايات الكاملة (قديم)';
+$string['competency_report:viewownreport']      = 'عرض تقرير الكفايات الشخصي (قديم)';
+$string['competency_report:manageassessments']  = 'إدارة أوزان التقييمات (قديم)';
+$string['competency_report:enterpractical']     = 'إدخال درجات العملي (قديم)';
+

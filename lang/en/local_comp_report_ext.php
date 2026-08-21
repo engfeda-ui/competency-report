@@ -356,3 +356,16 @@ $string['quizexamname']               = 'Quiz / Exam Name';
 $string['scoreachieved']              = 'Score achieved';
 $string['aicommentarytitle']          = 'Pedagogical AI Analysis Commentary';
 
+// Capability language strings (required by Moodle — key = shortname of capability after the plugin prefix).
+$string['comp_report_ext:manage']               = 'Manage competency-question mapping';
+$string['comp_report_ext:viewreports']          = 'View all competency reports (teacher/manager)';
+$string['comp_report_ext:viewownreport']        = 'View own competency report (student)';
+$string['comp_report_ext:manageassessments']    = 'Manage assessment weights (quizzes & practicals)';
+$string['comp_report_ext:enterpractical']       = 'Enter practical exam results for students';
+
+// Legacy capability label aliases (competency_report plugin name).
+$string['competency_report:viewreports']        = 'View all competency reports (legacy)';
+$string['competency_report:viewownreport']      = 'View own competency report (legacy)';
+$string['competency_report:manageassessments']  = 'Manage assessment weights (legacy)';
+$string['competency_report:enterpractical']     = 'Enter practical exam results (legacy)';
+
