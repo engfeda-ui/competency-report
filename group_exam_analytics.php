@@ -183,11 +183,30 @@ if ($quiz && !empty($students)) {
             continue;
         }
         $cname = $cq->name;
-        // Match "Retake 1" / "إعادة 1" / "الدور الثاني" / "محاولة 2" → Retake 1 (2nd attempt).
-        if (preg_match('/(retake\s*1|إعادة\s*1|الدور\s*الثاني|محاولة\s*2)/iu', $cname)) {
+
+        // Detect Retake 1 / 2nd Attempt.
+        // Supports: "Retake 1", "Retake-1", "1st Retake", "First Retake",
+        //           "Final Exam Retake 1", "إعادة 1", "الإعادة الأولى",
+        //           "الدور الثاني", "محاولة 2".
+        $isretake1 = preg_match(
+            '/(retake[\s\-]*1|1[\s]*st[\s]*retake|first[\s\-]*retake|'
+            . 'إعادة[\s]*1|الإعادة[\s]*الأولى|الدور[\s]*الثاني|محاولة[\s]*2)/iu',
+            $cname
+        );
+
+        // Detect Retake 2 / 3rd Attempt.
+        // Supports: "Retake 2", "Retake-2", "2nd Retake", "Second Retake",
+        //           "Final Exam Retake 2", "إعادة 2", "الإعادة الثانية",
+        //           "الدور الثالث", "محاولة 3".
+        $isretake2 = preg_match(
+            '/(retake[\s\-]*2|2[\s]*nd[\s]*retake|second[\s\-]*retake|'
+            . 'إعادة[\s]*2|الإعادة[\s]*الثانية|الدور[\s]*الثالث|محاولة[\s]*3)/iu',
+            $cname
+        );
+
+        if ($isretake1) {
             $retake1_quizzes[$cq->id] = $cq;
-        // Match "Retake 2" / "إعادة 2" / "الدور الثالث" / "محاولة 3" → Retake 2 (3rd attempt).
-        } else if (preg_match('/(retake\s*2|إعادة\s*2|الدور\s*الثالث|محاولة\s*3)/iu', $cname)) {
+        } else if ($isretake2) {
             $retake2_quizzes[$cq->id] = $cq;
         }
     }

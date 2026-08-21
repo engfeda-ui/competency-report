@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.19.13-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.19.14-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -352,6 +352,11 @@ npx grunt amd --files=local/competency_report
 ---
 
 ## 📋 Changelog
+
+### v3.19.14 (2026082114) — 2026-08-21
+- **Enhancement (Flexible Retake Quiz Name Detection):** Expanded the separate-quiz retake detection engine in `group_exam_analytics.php` to recognise all common retake naming conventions — not just `Retake 1` / `Retake 2`. The system now matches any quiz whose name contains a retake indicator combined with a number or ordinal, in any position or format:
+  - **Retake 1 patterns:** `Retake 1`, `Retake-1`, `1st Retake`, `First Retake`, `Final Exam Retake 1`, `إعادة 1`, `الإعادة الأولى`, `الدور الثاني`, `محاولة 2`
+  - **Retake 2 patterns:** `Retake 2`, `Retake-2`, `2nd Retake`, `Second Retake`, `Final Exam Retake 2`, `إعادة 2`, `الإعادة الثانية`, `الدور الثالث`, `محاولة 3`
 
 ### v3.19.13 (2026082113) — 2026-08-21
 - **Fix (Retake Quiz Detection Precision):** Simplified the separate-quiz retake detection regex in `group_exam_analytics.php`. Removed the ambiguous fallback condition that matched any quiz name containing `retake` without a number (which could incorrectly classify quizzes like `"Retake 2024"` as Retake 1). The system now requires an explicit number suffix: `Retake 1` / `إعادة 1` / `الدور الثاني` for the 2nd attempt, and `Retake 2` / `إعادة 2` / `الدور الثالث` for the 3rd attempt.
