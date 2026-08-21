@@ -312,7 +312,7 @@ require(['jquery', 'core/ajax'], function($, Ajax) {
         }).fail(function(ex) {
             loading.removeClass('d-flex').addClass('d-none');
             btn.prop('disabled', false);
-            var err = (ex && ex.message) ? ex.message : 'Connection failed. Please check local LLM / Ollama availability.';
+            var err = (ex && (ex.message || ex.error || ex.statusText)) ? (ex.message || ex.error || ex.statusText) : 'Connection or request failed. Please check your AI provider settings and try again.';
             contentHtml.html('<div class="text-danger"><i class="fa fa-exclamation-circle mr-2"></i> ' + err + '</div>');
             responseBox.removeClass('d-none');
         });
@@ -399,7 +399,7 @@ require(['jquery', 'core/ajax'], function($, Ajax) {
         }).fail(function(ex) {
             loadingPlan.removeClass('d-flex').addClass('d-none');
             btnPlan.prop('disabled', false);
-            var err = (ex && ex.message) ? ex.message : 'Connection failed. Please check your AI settings.';
+            var err = (ex && (ex.message || ex.error || ex.statusText)) ? (ex.message || ex.error || ex.statusText) : 'Connection failed. Please check your AI settings.';
             contentPlan.html('<div class="text-danger"><i class="fa fa-exclamation-circle mr-1"></i>' + err + '</div>');
             resultPlan.removeClass('d-none');
         });

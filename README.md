@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.19.5-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.19.6-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -81,6 +81,9 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 ---
 
 ## 📋 Changelog
+
+### v3.19.6 — 2026-08-21
+- **Improvement (AI Service Model Default & Enhanced JS AJAX Diagnostics):** Set default AI model to `openrouter/free` (Free Models Router) to eliminate upstream rate limit errors (`HTTP 429`). Enhanced client-side AJAX error handling in `templates/ai_commentary_widget.mustache` to extract full error details (`ex.error`, `ex.statusText`) and display clear diagnostic feedback across all report pages.
 
 ### v3.19.5 — 2026-08-21
 - **Bug Fix (Infinite Canvas Resize Loop on Analytics Dashboard & Exam Analytics Pages):** Fixed Chart.js continuous canvas expansion bug in `group_analytics_dashboard_page.mustache` and `group_exam_analytics_page.mustache`. Replaced flexible `min-height` flex containers with explicit `position: relative; height: 360px; width: 100%;` chart wrappers to prevent the Chart.js ResizeObserver from triggering recursive vertical layout growth.
