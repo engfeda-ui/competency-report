@@ -118,7 +118,7 @@
                     {{! Type selector }}
                     <div class="col-md-2">
                         <label for="new_type" class="form-label fw-bold">{{strtype}}</label>
-                        <select id="new_type" name="assessment_type" class="form-select">
+                        <select id="new_type" name="assessment_type" class="form-select" onchange="var qw=document.getElementById('quiz-selector-wrap'),aw=document.getElementById('assign-selector-wrap'),qs=document.getElementById('new_quizid'),as=document.getElementById('new_assignid');if(this.value==='practical'){if(qw)qw.style.display='none';if(aw)aw.style.display='';if(qs)qs.value='0';if(as&&as.value!='0'&&as.selectedIndex>=0){var t=as.options[as.selectedIndex].text.trim();if(t.indexOf('—')!==0&&t.indexOf('-')!==0){document.getElementById('new_name').value=t;}}}else{if(qw)qw.style.display='';if(aw)aw.style.display='none';if(as)as.value='0';if(qs&&qs.value!='0'&&qs.selectedIndex>=0){var t=qs.options[qs.selectedIndex].text.trim();if(t.indexOf('—')!==0&&t.indexOf('-')!==0){document.getElementById('new_name').value=t;}}}">
                             <option value="quiz">{{#str}}typequiz, local_comp_report_ext{{/str}}</option>
                             <option value="practical">{{#str}}typepractical, local_comp_report_ext{{/str}}</option>
                         </select>
@@ -135,7 +135,7 @@
                     {{! Quiz selector (shown only for quiz type) }}
                     <div class="col-md-3" id="quiz-selector-wrap">
                         <label for="new_quizid" class="form-label fw-bold">{{strquiz}}</label>
-                        <select id="new_quizid" name="assessment_quizid" class="form-select">
+                        <select id="new_quizid" name="assessment_quizid" class="form-select" onchange="if(this.value!='0'&&this.selectedIndex>=0){var t=this.options[this.selectedIndex].text.trim();if(t.indexOf('—')!==0&&t.indexOf('-')!==0){document.getElementById('new_name').value=t;}}">
                             <option value="0">— {{#str}}selectquiz, local_comp_report_ext{{/str}} —</option>
                             {{#quizzes}}
                             <option value="{{id}}">{{name}}</option>
@@ -146,7 +146,7 @@
                     {{! Assignment selector (shown only for practical type, initially hidden) }}
                     <div class="col-md-3" id="assign-selector-wrap" style="display: none;">
                         <label for="new_assignid" class="form-label fw-bold">{{#str}}pluginname, mod_assign{{/str}}</label>
-                        <select id="new_assignid" name="assessment_assignid" class="form-select">
+                        <select id="new_assignid" name="assessment_assignid" class="form-select" onchange="if(this.value!='0'&&this.selectedIndex>=0){var t=this.options[this.selectedIndex].text.trim();if(t.indexOf('—')!==0&&t.indexOf('-')!==0){document.getElementById('new_name').value=t;}}">
                             <option value="0">— {{#str}}selectpracticalassessment, local_comp_report_ext{{/str}} —</option>
                             {{#assignments}}
                             <option value="{{id}}">{{name}}</option>

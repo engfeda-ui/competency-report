@@ -31,20 +31,36 @@ define([], function() {
     var toggleQuizField = function(val) {
         var quizWrap = document.getElementById('quiz-selector-wrap');
         var assignWrap = document.getElementById('assign-selector-wrap');
+        var quizSelect = document.getElementById('new_quizid');
+        var assignSelect = document.getElementById('new_assignid');
+
         if (!quizWrap || !assignWrap) {
             return;
         }
+
         if (val === 'practical') {
             quizWrap.style.display = 'none';
             assignWrap.style.display = '';
+            if (quizSelect) {
+                quizSelect.value = '0';
+            }
+            if (assignSelect && assignSelect.value !== '0') {
+                autoFillName(assignSelect);
+            }
         } else {
             quizWrap.style.display = '';
             assignWrap.style.display = 'none';
+            if (assignSelect) {
+                assignSelect.value = '0';
+            }
+            if (quizSelect && quizSelect.value !== '0') {
+                autoFillName(quizSelect);
+            }
         }
     };
 
     /**
-     * Auto-fills the assessment name input if empty when an activity is selected.
+     * Auto-fills the assessment name input when an activity is selected.
      *
      * @param {HTMLSelectElement} selectEl
      */
@@ -53,9 +69,9 @@ define([], function() {
         if (!nameInput || !selectEl) {
             return;
         }
-        if (selectEl.value !== '0' && nameInput.value.trim() === '') {
-            var selectedText = selectEl.options[selectEl.selectedIndex].text;
-            if (selectedText.indexOf('—') === 0) {
+        if (selectEl.value !== '0' && selectEl.selectedIndex >= 0) {
+            var selectedText = selectEl.options[selectEl.selectedIndex].text.trim();
+            if (selectedText.indexOf('—') === 0 || selectedText.indexOf('-') === 0) {
                 return;
             }
             nameInput.value = selectedText;
@@ -89,6 +105,8 @@ define([], function() {
                     autoFillName(this);
                 });
             }
-        }
+        },
+        toggleQuizField: toggleQuizField,
+        autoFillName: autoFillName
     };
 });

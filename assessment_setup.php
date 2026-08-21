@@ -74,12 +74,7 @@ if ($action === 'add' && confirm_sesskey()) {
         }
     }
     if ($type === 'practical' && $assignid > 0) {
-        $exists = $DB->record_exists_sql(
-            "SELECT 1 FROM {assign} a JOIN {course_modules} cm ON cm.instance = a.id
-              WHERE a.id = :aid AND a.course = :cid",
-            ['aid' => $assignid, 'cid' => $courseid]
-        );
-        if (!$exists) {
+        if (!$DB->record_exists('assign', ['id' => $assignid, 'course' => $courseid])) {
             redirect(
                 new moodle_url('/local/comp_report_ext/assessment_setup.php', ['courseid' => $courseid]),
                 get_string('invaliddata', 'local_comp_report_ext'),
