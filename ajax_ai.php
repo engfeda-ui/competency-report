@@ -25,10 +25,6 @@
 
 define('AJAX_SCRIPT', true);
 require_once(__DIR__ . '/../../config.php');
-require_login();
-require_once(__DIR__ . '/lib.php');
-require_once(__DIR__ . '/ai.php');
-
 $courseid     = optional_param('courseid', 0, PARAM_INT);
 $userid       = optional_param('userid', 0, PARAM_INT);
 $groupid      = optional_param('groupid', 0, PARAM_INT);
@@ -37,6 +33,32 @@ $customprompt = optional_param('custom_prompt', '', PARAM_TEXT);
 $contexttype  = optional_param('context_type', 'student', PARAM_ALPHAEXT);
 $focustype    = optional_param('focus_type', 'competency', PARAM_ALPHA);
 $language     = optional_param('language', 'auto', PARAM_TEXT);
+
+if ($courseid > 0) {
+    require_login($courseid);
+    require_sesskey();
+    $context = context_course::instance($courseid);
+    if ($userid > 0 && $userid == $USER->id) {
+        $canview = has_capability('local/comp_report_ext:viewownreport', $context)
+            || has_capability('local/competency_report:viewownreport', $context)
+            || has_capability('local/comp_report_ext:viewreports', $context)
+            || has_capability('local/competency_report:viewreports', $context);
+        if (!$canview) {
+            require_capability('local/comp_report_ext:viewownreport', $context);
+        }
+    } else {
+        $canview = has_capability('local/comp_report_ext:viewreports', $context)
+            || has_capability('local/competency_report:viewreports', $context);
+        if (!$canview) {
+            require_capability('local/comp_report_ext:viewreports', $context);
+        }
+    }
+} else {
+    require_login();
+    require_sesskey();
+    $context = context_system::instance();
+    require_capability('moodle/site:config', $context);
+}
 
 try {
     $res = \local_comp_report_ext\external\ai::generate_comment(

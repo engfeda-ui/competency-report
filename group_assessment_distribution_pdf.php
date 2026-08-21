@@ -28,8 +28,8 @@ require_once(__DIR__ . '/lib.php');
 
 $courseid           = required_param('courseid', PARAM_INT);
 $groupid            = optional_param('groupid', 0, PARAM_INT);
-$assessmentidsjson  = optional_param('assessmentids_json', '[]', PARAM_RAW);
-$pdfcontent         = optional_param('pdf_content', '', PARAM_RAW);
+$assessmentidsjson  = optional_param('assessmentids_json', '[]', PARAM_TEXT);
+$pdfcontent         = optional_param('pdf_content', '', PARAM_CLEANHTML);
 
 require_login($courseid);
 $context = context_course::instance($courseid);

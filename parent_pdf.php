@@ -30,8 +30,8 @@ require_once(__DIR__ . '/ai.php');
 $courseid     = required_param('courseid', PARAM_INT);
 $userid       = optional_param('userid', $USER->id, PARAM_INT);
 $focustype    = optional_param('focus_type', 'competency', PARAM_ALPHA); // Focus type: competency or grades.
-$customprompt = optional_param('custom_prompt', '', PARAM_RAW);
-$pdfcontent   = optional_param('pdf_content', '', PARAM_RAW);
+$customprompt = optional_param('custom_prompt', '', PARAM_TEXT);
+$pdfcontent   = optional_param('pdf_content', '', PARAM_CLEANHTML);
 
 require_login($courseid);
 
@@ -41,7 +41,19 @@ $context = context_course::instance($courseid);
 
 // Permission check: User can view their own report, OR must have teacher capability.
 if ($userid != $USER->id) {
-    require_capability('mod/quiz:viewreports', $context);
+    $canviewext = has_capability('local/comp_report_ext:viewreports', $context);
+    $canviewold = has_capability('local/competency_report:viewreports', $context);
+    $canviewquiz = has_capability('mod/quiz:viewreports', $context);
+    if (!$canviewext && !$canviewold && !$canviewquiz) {
+        require_capability('local/comp_report_ext:viewreports', $context);
+    }
+} else {
+    $canviewext = has_capability('local/comp_report_ext:viewownreport', $context);
+    $canviewold = has_capability('local/competency_report:viewownreport', $context);
+    $canviewreports = has_capability('local/comp_report_ext:viewreports', $context);
+    if (!$canviewext && !$canviewold && !$canviewreports) {
+        require_capability('local/comp_report_ext:viewownreport', $context);
+    }
 }
 
 $course  = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
@@ -129,7 +141,7 @@ $pdf->SetFont('freeserif', '', 11);
 $pdf->Cell(0, 7, $course->fullname, 0, 1, 'L');
 
 $titletext = ($focustype === 'grades') ?
-    "General Grades and Academic Performance Card" :
+    get_string('generalgradescard', 'local_comp_report_ext') :
     get_string('studentpdfreport', 'local_comp_report_ext');
 $pdf->Cell(0, 7, $titletext, 0, 1, 'L');
 $pdf->Ln(5);
@@ -139,9 +151,9 @@ $pdf->SetFillColor(224, 224, 224);
 $pdf->SetFont('freeserif', 'B', 10);
 
 if ($focustype === 'grades') {
-    $pdf->Cell(100, 10, "Quiz / Exam Name", 1, 0, 'C', true);
-    $pdf->Cell(40, 10, "Score achieved", 1, 0, 'C', true);
-    $pdf->Cell(40, 10, "Success rate", 1, 1, 'C', true);
+    $pdf->Cell(100, 10, get_string('quizexamname', 'local_comp_report_ext'), 1, 0, 'C', true);
+    $pdf->Cell(40, 10, get_string('scoreachieved', 'local_comp_report_ext'), 1, 0, 'C', true);
+    $pdf->Cell(40, 10, get_string('successrate', 'local_comp_report_ext'), 1, 1, 'C', true);
 } else {
     $pdf->Cell(40, 10, get_string('competencycode', 'local_comp_report_ext'), 1, 0, 'C', true);
     $pdf->Cell(100, 10, get_string('competency', 'local_comp_report_ext'), 1, 0, 'C', true);
@@ -187,7 +199,7 @@ foreach ($rates as $row) {
 // AI Comment Section.
 $pdf->Ln(10);
 $pdf->SetFont('freeserif', 'B', 11);
-$pdf->Cell(0, 10, "✨ Pedagogical AI Analysis Commentary", 0, 1);
+$pdf->Cell(0, 10, " ✨ " . get_string('aicommentarytitle', 'local_comp_report_ext'), 0, 1);
 $pdf->SetFont('freeserif', '', 10);
 $pdf->writeHTML($comment, true, false, true, false, '');
 

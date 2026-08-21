@@ -27,13 +27,18 @@ require_once($CFG->libdir . '/tcpdf/tcpdf.php');
 require_once(__DIR__ . '/lib.php');
 require_once(__DIR__ . '/ai.php');
 
-$courseid   = required_param('courseid', PARAM_INT);
-$pdfcontent = optional_param('pdf_content', '', PARAM_RAW);
-$customprompt = optional_param('custom_prompt', '', PARAM_RAW);
+$courseid     = required_param('courseid', PARAM_INT);
+$pdfcontent   = optional_param('pdf_content', '', PARAM_CLEANHTML);
+$customprompt = optional_param('custom_prompt', '', PARAM_TEXT);
 
 require_login($courseid);
 $context = context_course::instance($courseid);
-require_capability('moodle/course:update', $context);
+$canviewext = has_capability('local/comp_report_ext:viewreports', $context);
+$canviewold = has_capability('local/competency_report:viewreports', $context);
+$canupdate  = has_capability('moodle/course:update', $context);
+if (!$canviewext && !$canviewold && !$canupdate) {
+    require_capability('local/comp_report_ext:viewreports', $context);
+}
 
 global $DB;
 

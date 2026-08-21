@@ -33,8 +33,8 @@ global $DB, $USER;
 $courseid     = required_param('courseid', PARAM_INT);
 $groupid      = optional_param('groupid', 0, PARAM_INT);
 $focustype    = optional_param('focus_type', 'competency', PARAM_ALPHA); // Focus type: competency or grades.
-$customprompt = optional_param('custom_prompt', '', PARAM_RAW);
-$pdfcontent   = optional_param('pdf_content', '', PARAM_RAW);
+$customprompt = optional_param('custom_prompt', '', PARAM_TEXT);
+$pdfcontent   = optional_param('pdf_content', '', PARAM_CLEANHTML);
 
 // 2. Authentication & Capability Checks.
 if ($courseid > 0) {
@@ -68,13 +68,13 @@ if ($focustype === 'grades') {
     if ($group) {
         $reporttitle = get_string('generalgradesreportgroup', 'local_comp_report_ext', $group->name);
     } else {
-        $reporttitle = "General Grades Report - Course: " . $course->fullname;
+        $reporttitle = get_string('generalgradesreportcourse', 'local_comp_report_ext', $course->fullname);
     }
 } else {
     if ($group) {
-        $reporttitle = "Detailed Competency Report - Group: " . $group->name;
+        $reporttitle = get_string('detailedreportgroup', 'local_comp_report_ext', $group->name);
     } else {
-        $reporttitle = "Detailed Competency Report - Course: " . $course->fullname;
+        $reporttitle = get_string('detailedreportcourse', 'local_comp_report_ext', $course->fullname);
     }
 }
 
@@ -121,10 +121,10 @@ if ($focustype === 'grades') {
     <table border="1" cellpadding="6">
         <thead>
             <tr bgcolor="#f2f2f2" style="font-weight: bold;">
-                <th width="45%" align="center">Quiz / Exam Name</th>
-                <th width="15%" align="center">Attempts</th>
-                <th width="24%" align="center">Average Score</th>
-                <th width="16%" align="center">Success Rate</th>
+                <th width="45%" align="center">' . get_string('quizexamname', 'local_comp_report_ext') . '</th>
+                <th width="15%" align="center">' . get_string('participantcount', 'local_comp_report_ext') . '</th>
+                <th width="24%" align="center">' . get_string('averagegrade', 'local_comp_report_ext') . '</th>
+                <th width="16%" align="center">' . get_string('successrate', 'local_comp_report_ext') . '</th>
             </tr>
         </thead>
         <tbody>';
@@ -244,9 +244,9 @@ $pdf->SetFont('freeserif', '', 11);
 $pdf->SetFont('freeserif', 'B', 16);
 $pdf->Cell(0, 10, $reporttitle, 0, 1, 'L');
 $pdf->SetFont('freeserif', '', 10);
-$pdf->Cell(0, 6, "Subject / Course: " . $course->fullname, 0, 1, 'L');
+$pdf->Cell(0, 6, get_string('subjectcourse', 'local_comp_report_ext', $course->fullname), 0, 1, 'L');
 if ($group) {
-    $pdf->Cell(0, 6, "Group / Class: " . $group->name, 0, 1, 'L');
+    $pdf->Cell(0, 6, get_string('groupclass', 'local_comp_report_ext', $group->name), 0, 1, 'L');
 }
 
 $dateconfig = get_string('strftimedatetimeshort', 'langconfig');
@@ -263,7 +263,7 @@ if (!empty($comment)) {
     $pdf->Ln(8);
     $pdf->SetFont('freeserif', 'B', 12);
     $pdf->SetFillColor(240, 240, 240);
-    $pdf->Cell(0, 10, " ✨ Pedagogical AI Analysis Commentary", 0, 1, 'L', true);
+    $pdf->Cell(0, 10, " ✨ " . get_string('aicommentarytitle', 'local_comp_report_ext'), 0, 1, 'L', true);
     $pdf->Ln(2);
 
     $pdf->SetFont('freeserif', '', 10);

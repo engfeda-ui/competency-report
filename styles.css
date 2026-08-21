@@ -1,0 +1,168 @@
+/* Styles for local_comp_report_ext */
+
+/* Assessment Setup Page */
+.quiz-badge {
+    background-color: #0d6efd;
+    color: #fff;
+}
+.practical-badge {
+    background-color: #198754;
+    color: #fff;
+}
+.local-competency-assessment-setup .card {
+    border-radius: 0.75rem;
+    overflow: hidden;
+}
+
+/* Practical Entry Page */
+.local-competency-practical-entry .card {
+    border-radius: 0.75rem;
+    overflow: hidden;
+}
+.local-competency-practical-entry .table th {
+    font-size: .85rem;
+}
+
+/* Course Master Report Page */
+.master-stat-card {
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    border: none !important;
+}
+.master-stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08) !important;
+}
+.matrix-cell-green {
+    background-color: #e6ffec !important;
+    color: #155724 !important;
+    font-weight: bold;
+}
+.matrix-cell-blue {
+    background-color: #e6f2ff !important;
+    color: #004085 !important;
+    font-weight: bold;
+}
+.matrix-cell-orange {
+    background-color: #fff9e6 !important;
+    color: #856404 !important;
+    font-weight: bold;
+}
+.matrix-cell-red {
+    background-color: #ffe6e6 !important;
+    color: #721c24 !important;
+    font-weight: bold;
+}
+.matrix-cell-muted {
+    background-color: #f8f9fa !important;
+    color: #6c757d !important;
+}
+
+/* Group Analytics Dashboard Page */
+.local_comp_report_ext_analytics_dashboard .kpi-card {
+    border-radius: 12px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.local_comp_report_ext_analytics_dashboard .kpi-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15) !important;
+}
+.local_comp_report_ext_analytics_dashboard .bg-mastery {
+    background: linear-gradient(135deg, #10B981, #059669) !important;
+}
+.local_comp_report_ext_analytics_dashboard .bg-remediation {
+    background: linear-gradient(135deg, #EF4444, #DC2626) !important;
+}
+.local_comp_report_ext_analytics_dashboard .bg-strength {
+    background: linear-gradient(135deg, #3B82F6, #2563EB) !important;
+}
+.local_comp_report_ext_analytics_dashboard .bg-gap {
+    background: linear-gradient(135deg, #F59E0B, #D97706) !important;
+}
+
+/* Group Exam Analytics Page */
+.local_comp_report_ext_exam_analytics .kpi-card {
+    border-radius: 12px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.local_comp_report_ext_exam_analytics .kpi-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15) !important;
+}
+.local_comp_report_ext_exam_analytics .bg-exam-avg {
+    background: linear-gradient(135deg, #2563EB, #1D4ED8) !important;
+}
+.local_comp_report_ext_exam_analytics .bg-pass-rate {
+    background: linear-gradient(135deg, #059669, #047857) !important;
+}
+.local_comp_report_ext_exam_analytics .bg-highest {
+    background: linear-gradient(135deg, #0284C7, #0369A1) !important;
+}
+.local_comp_report_ext_exam_analytics .bg-lowest {
+    background: linear-gradient(135deg, #DC2626, #B91C1C) !important;
+}
+
+/* Print Styles */
+@media print {
+    #page-header, .navbar, .drawer, #nav-drawer, .nav-tabs, form.form-inline,
+    .modal, footer, #page-footer, .btn, .breadcrumb, .activity-navigation,
+    #region-main-settings-menu, .popover-region, .sr-only, #btn-print-analytics,
+    .usermenu, .nav-item, #roster-filter-group {
+        display: none !important;
+    }
+
+    body, #page, #page-content, #region-main,
+    .local_comp_report_ext_analytics_dashboard,
+    .local_comp_report_ext_exam_analytics {
+        background: #fff !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+    }
+
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+    }
+
+    .kpi-card {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        box-shadow: none !important;
+        border: 1px solid #ddd !important;
+    }
+
+    .card {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        box-shadow: none !important;
+        border: 1px solid #e2e8f0 !important;
+        margin-bottom: 20px !important;
+    }
+
+    .row {
+        display: flex !important;
+        flex-wrap: wrap !important;
+    }
+
+    .col-md-3 {
+        flex: 0 0 25% !important;
+        max-width: 25% !important;
+    }
+
+    .col-md-6 {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+    }
+
+    .col-md-12 {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+    }
+
+    canvas {
+        max-width: 100% !important;
+        height: auto !important;
+    }
+}

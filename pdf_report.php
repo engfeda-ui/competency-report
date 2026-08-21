@@ -25,4 +25,10 @@
 require_once(__DIR__ . '/../../config.php');
 $courseid = required_param('courseid', PARAM_INT);
 require_login($courseid);
+$context = context_course::instance($courseid);
+$canviewext = has_capability('local/comp_report_ext:viewreports', $context);
+$canviewold = has_capability('local/competency_report:viewreports', $context);
+if (!$canviewext && !$canviewold) {
+    require_capability('local/comp_report_ext:viewreports', $context);
+}
 require_once(__DIR__ . '/school_pdf.php');

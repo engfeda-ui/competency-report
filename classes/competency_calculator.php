@@ -149,6 +149,48 @@ class competency_calculator {
             }
         }
 
+        // Preload all practical assessment records for this student to eliminate N+1 DB queries.
+        $practicalrows = $DB->get_records(
+            'local_comp_report_ext_prac',
+            ['studentid' => $userid, 'courseid' => $this->courseid],
+            '',
+            'id, assessmentid, competencyid, competency_percent'
+        );
+        $practicalmap = [];
+        foreach ($practicalrows as $pr) {
+            $practicalmap[$pr->assessmentid . '_' . $pr->competencyid] = (float)$pr->competency_percent;
+        }
+
+        // Preload all quiz competency attempt results for this student in this course.
+        $quizsql = "SELECT m.competencyid, quiza.quiz,
+                           SUM(qa.maxfraction) AS maxf,
+                           SUM(qas.fraction)   AS gotf
+                      FROM {quiz_attempts} quiza
+                      JOIN {question_usages} qu   ON qu.id = quiza.uniqueid
+                      JOIN {question_attempts} qa  ON qa.questionusageid = qu.id
+                      JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
+                      JOIN (
+                          SELECT questionattemptid, MAX(fraction) AS fraction
+                            FROM {question_attempt_steps}
+                           GROUP BY questionattemptid
+                      ) qas ON qas.questionattemptid = qa.id
+                     WHERE quiza.course   = :courseid
+                       AND quiza.userid   = :userid
+                       AND quiza.state    = 'finished'
+                       AND m.courseid     = :courseid2
+                  GROUP BY m.competencyid, quiza.quiz";
+        $quizrows = $DB->get_records_sql($quizsql, [
+            'courseid'  => $this->courseid,
+            'userid'    => $userid,
+            'courseid2' => $this->courseid,
+        ]);
+        $quizmap = [];
+        foreach ($quizrows as $qr) {
+            if ($qr->maxf > 0) {
+                $quizmap[$qr->quiz . '_' . $qr->competencyid] = ($qr->gotf / $qr->maxf) * 100.0;
+            }
+        }
+
         $result = [];
 
         foreach ($competencies as $comp) {
@@ -160,23 +202,11 @@ class competency_calculator {
                 $scorepct = null;
 
                 if ($assessment->type === 'quiz' && !empty($assessment->quizid)) {
-                    // Get question-attempt score for this quiz + competency + student.
-                    $scorepct = $this->get_quiz_score_pct($userid, (int)$assessment->quizid, (int)$comp->id);
+                    $qkey = ((int)$assessment->quizid) . '_' . ((int)$comp->id);
+                    $scorepct = $quizmap[$qkey] ?? null;
                 } else if ($assessment->type === 'practical') {
-                    // Get latest manual practical result.
-                    $record = $DB->get_record(
-                        'local_comp_report_ext_prac',
-                        [
-                            'assessmentid' => $assessment->id,
-                            'studentid'    => $userid,
-                            'competencyid' => $comp->id,
-                        ],
-                        'competency_percent',
-                        IGNORE_MISSING
-                    );
-                    if ($record) {
-                        $scorepct = (float)$record->competency_percent;
-                    }
+                    $pkey = ((int)$assessment->id) . '_' . ((int)$comp->id);
+                    $scorepct = $practicalmap[$pkey] ?? null;
                 }
 
                 if ($scorepct !== null) {

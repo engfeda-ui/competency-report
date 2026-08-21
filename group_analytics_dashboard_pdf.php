@@ -33,14 +33,22 @@ require_once(__DIR__ . '/lib.php');
 
 $courseid   = required_param('courseid', PARAM_INT);
 $groupid    = optional_param('groupid', 0, PARAM_INT);
-$chart1 = optional_param('chart1', '', PARAM_RAW);
-$chart2 = optional_param('chart2', '', PARAM_RAW);
-$chart3 = optional_param('chart3', '', PARAM_RAW);
-$chart4 = optional_param('chart4', '', PARAM_RAW);
-$chart5 = optional_param('chart5', '', PARAM_RAW);
-$chart6 = optional_param('chart6', '', PARAM_RAW);
-$chart7 = optional_param('chart7', '', PARAM_RAW);
-$chart8 = optional_param('chart8', '', PARAM_RAW);
+$chart1     = optional_param('chart1', '', PARAM_TEXT);
+$chart2     = optional_param('chart2', '', PARAM_TEXT);
+$chart3     = optional_param('chart3', '', PARAM_TEXT);
+$chart4     = optional_param('chart4', '', PARAM_TEXT);
+$chart5     = optional_param('chart5', '', PARAM_TEXT);
+$chart6     = optional_param('chart6', '', PARAM_TEXT);
+$chart7     = optional_param('chart7', '', PARAM_TEXT);
+$chart8     = optional_param('chart8', '', PARAM_TEXT);
+
+require_login($courseid);
+$context = context_course::instance($courseid);
+$canviewext = has_capability('local/comp_report_ext:viewreports', $context);
+$canviewold = has_capability('local/competency_report:viewreports', $context);
+if (!$canviewext && !$canviewold) {
+    require_capability('local/comp_report_ext:viewreports', $context);
+}
 
 // -----------------------------------------------------------------------
 // TCPDF Generation.

@@ -118,7 +118,7 @@
                     {{! Type selector }}
                     <div class="col-md-2">
                         <label for="new_type" class="form-label fw-bold">{{strtype}}</label>
-                        <select id="new_type" name="assessment_type" class="form-select" onchange="toggleQuizField(this)">
+                        <select id="new_type" name="assessment_type" class="form-select">
                             <option value="quiz">{{#str}}typequiz, local_comp_report_ext{{/str}}</option>
                             <option value="practical">{{#str}}typepractical, local_comp_report_ext{{/str}}</option>
                         </select>
@@ -135,7 +135,7 @@
                     {{! Quiz selector (shown only for quiz type) }}
                     <div class="col-md-3" id="quiz-selector-wrap">
                         <label for="new_quizid" class="form-label fw-bold">{{strquiz}}</label>
-                        <select id="new_quizid" name="assessment_quizid" class="form-select" onchange="autoFillName(this)">
+                        <select id="new_quizid" name="assessment_quizid" class="form-select">
                             <option value="0">— {{#str}}selectquiz, local_comp_report_ext{{/str}} —</option>
                             {{#quizzes}}
                             <option value="{{id}}">{{name}}</option>
@@ -146,7 +146,7 @@
                     {{! Assignment selector (shown only for practical type, initially hidden) }}
                     <div class="col-md-3" id="assign-selector-wrap" style="display: none;">
                         <label for="new_assignid" class="form-label fw-bold">{{#str}}pluginname, mod_assign{{/str}}</label>
-                        <select id="new_assignid" name="assessment_assignid" class="form-select" onchange="autoFillName(this)">
+                        <select id="new_assignid" name="assessment_assignid" class="form-select">
                             <option value="0">— {{#str}}selectpracticalassessment, local_comp_report_ext{{/str}} —</option>
                             {{#assignments}}
                             <option value="{{id}}">{{name}}</option>
@@ -178,34 +178,8 @@
     </div>
 </div>
 
-<style>
-.quiz-badge    { background-color: #0d6efd; color: #fff; }
-.practical-badge { background-color: #198754; color: #fff; }
-.local-competency-assessment-setup .card { border-radius: 0.75rem; overflow: hidden; }
-</style>
-
-<script>
-function toggleQuizField(sel) {
-    var quizWrap = document.getElementById('quiz-selector-wrap');
-    var assignWrap = document.getElementById('assign-selector-wrap');
-    if (sel.value === 'practical') {
-        quizWrap.style.display = 'none';
-        assignWrap.style.display = '';
-    } else {
-        quizWrap.style.display = '';
-        assignWrap.style.display = 'none';
-    }
-}
-
-function autoFillName(quizSelect) {
-    var nameInput = document.getElementById('new_name');
-    if (quizSelect.value !== '0' && nameInput.value.trim() === '') {
-        var selectedText = quizSelect.options[quizSelect.selectedIndex].text;
-        // Strip out the leading dashes if it is the assignment selector
-        if (selectedText.startsWith('—')) {
-            return;
-        }
-        nameInput.value = selectedText;
-    }
-}
-</script>
+{{#js}}
+require(['local_comp_report_ext/assessment_setup'], function(AssessmentSetup) {
+    AssessmentSetup.init();
+});
+{{/js}}

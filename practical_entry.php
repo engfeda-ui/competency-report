@@ -57,7 +57,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
     $postassid   = required_param('assessmentid', PARAM_INT);
     $postcompid  = required_param('competencyid', PARAM_INT);
     $postgroupid = optional_param('groupid', 0, PARAM_INT);
-    $now         = time();
+    // Preload existing practical records to eliminate N+1 database queries.
+    $allexisting = $DB->get_records('local_comp_report_ext_prac', [
+        'assessmentid' => $postassid,
+        'courseid'     => $courseid,
+        'competencyid' => $postcompid,
+    ]);
+    $existingmap = [];
+    foreach ($allexisting as $rec) {
+        $existingmap[$rec->studentid] = $rec;
+    }
 
     foreach ($studentids as $idx => $sid) {
         $pct = isset($percents[$idx]) && $percents[$idx] !== '' ? (float)$percents[$idx] : null;
@@ -65,12 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
             continue;
         }
 
-        $existing = $DB->get_record('local_comp_report_ext_prac', [
-            'assessmentid' => $postassid,
-            'courseid'     => $courseid,
-            'competencyid' => $postcompid,
-            'studentid'    => $sid,
-        ]);
+        $existing = $existingmap[$sid] ?? null;
 
         if ($existing) {
             $existing->competency_percent = $pct;

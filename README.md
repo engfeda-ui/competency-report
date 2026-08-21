@@ -1,10 +1,10 @@
 # 📊 Moodle Local Plugin: Competency Analysis & Reporting (`local_comp_report_ext`)
 
-[![Moodle Compatibility](https://img.shields.io/badge/Moodle-4.5%20%7C%205.0%2B-orange.svg?style=flat-square)](https://moodle.org)
+[![Moodle Compatibility](https://img.shields.io/badge/Moodle-4.4%20%7C%205.2%2B-orange.svg?style=flat-square)](https://moodle.org)
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.18.0-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.19.0-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -32,7 +32,7 @@ A professional Moodle reporting engine that calculates and visualises student co
 
 | Dependency | Required Version / Compatibility |
 | :--- | :--- |
-| **Moodle Framework** | Moodle 4.5 to 5.0+ |
+| **Moodle Framework** | Moodle 4.4 to 5.2+ |
 | **PHP Runtime** | PHP 8.1, PHP 8.2, PHP 8.3 |
 | **Database System** | PostgreSQL 13+, MySQL 8.0+, or MariaDB 10.5+ |
 | **Required Plugin** | [**`qbank_competency`**](https://github.com/engfeda-ui/competency) ≥ 2026070500 |
@@ -47,7 +47,7 @@ A professional Moodle reporting engine that calculates and visualises student co
    ```
    moodle/local/comp_report_ext
    ```
-   > The directory name inside `local/` must be exactly `competency_report`.
+   > The directory name inside `local/` must be exactly `comp_report_ext`.
 4. **Run Moodle Upgrade:** Log in as Administrator and navigate to **Site administration > Notifications**.
 5. **Alternative Install:** Zip the directory and upload via **Site administration > Plugins > Install plugins**.
 
@@ -81,6 +81,15 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 ---
 
 ## 📋 Changelog
+
+### v3.19.0 — 2026-08-21
+- **Security & Authentication Checks (Issues #2, #4, #6):** Enforced `require_login()`, `require_sesskey()`, and robust capability checks (`viewownreport` / `viewreports`) across all AJAX and PDF endpoints (`ajax_ai.php`, `ajax_studyplan.php`, `student_competency_exams.php`, `timeline.php`, `student_exam.php`, `pdf_report.php`, `group_analytics_dashboard_pdf.php`). Replaced insecure `PARAM_RAW` parameters with safe types (`PARAM_TEXT`, `PARAM_CLEANHTML`).
+- **Capability Language Strings (Issue #11):** Added canonical `comp_report_ext:*` string identifiers in English and Arabic language packs for all capabilities defined in `db/access.php`.
+- **Language Localization (Issue #3):** Replaced hardcoded strings in PDF headers, table column titles, and AI analysis sections with localized `get_string()` calls.
+- **Database Performance & N+1 Optimization (Issue #5):** Preloaded practical exam and quiz attempt records in bulk across `practical_entry.php` and `competency_calculator.php` (`get_student_scores()`), eliminating nested N+1 query loops.
+- **External AJAX Services (Issue #7):** Refactored UI widgets (`ai_commentary_widget.mustache`) to use Moodle's native `core/ajax` client calling registered external services (`local_comp_report_ext_generate_ai_comment`, `local_comp_report_ext_generate_study_plan`).
+- **Moodle Support Alignment (Issue #8):** Reconciled minimum supported Moodle version declaration to Moodle 4.4+ (`2024041600`) across `version.php` and `README.md`.
+- **Templates, Output API & AMD Modules (Issues #9, #10):** Extracted all inline `<style>` blocks into root `styles.css`. Extracted assessment setup form JavaScript into dedicated AMD module `local_comp_report_ext/assessment_setup`. Migrated AI progress bar generation in `ai.php` to Mustache template via `$OUTPUT->render_from_template()`.
 
 ### v3.18.0 — 2026-08-12
 - **Fix (Study Plan PDF Header):** Fixed header logo occlusion in `studyplan_pdf.php`. The solid blue title banner is now positioned below the institutional logos rendered at the top, preventing the blue bar from overlapping and hiding the logos.

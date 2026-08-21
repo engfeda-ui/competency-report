@@ -25,15 +25,30 @@
 
 define('AJAX_SCRIPT', true);
 require_once(__DIR__ . '/../../config.php');
-require_login();
-require_once(__DIR__ . '/lib.php');
-require_once(__DIR__ . '/ai.php');
-
 $courseid = required_param('courseid', PARAM_INT);
 $userid   = optional_param('userid',   0, PARAM_INT);
 $language = optional_param('language', 'ar', PARAM_ALPHAEXT);
 $sessions = optional_param('sessions', 4, PARAM_INT);
 $quizid   = optional_param('quizid',   0, PARAM_INT);
+
+require_login($courseid);
+require_sesskey();
+$context = context_course::instance($courseid);
+if ($userid > 0 && $userid == $USER->id) {
+    $canview = has_capability('local/comp_report_ext:viewownreport', $context)
+        || has_capability('local/competency_report:viewownreport', $context)
+        || has_capability('local/comp_report_ext:viewreports', $context)
+        || has_capability('local/competency_report:viewreports', $context);
+    if (!$canview) {
+        require_capability('local/comp_report_ext:viewownreport', $context);
+    }
+} else {
+    $canview = has_capability('local/comp_report_ext:viewreports', $context)
+        || has_capability('local/competency_report:viewreports', $context);
+    if (!$canview) {
+        require_capability('local/comp_report_ext:viewreports', $context);
+    }
+}
 
 try {
     $res = \local_comp_report_ext\external\studyplan::generate_study_plan(

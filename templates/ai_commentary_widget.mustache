@@ -190,7 +190,7 @@
 {{/userid}}
 
 {{#js}}
-require(['jquery'], function($) {
+require(['jquery', 'core/ajax'], function($, Ajax) {
     var context = "{{context_type}}";
     var btn = $('#btn-generate-ai-' + context);
     var btnComp = $('#btn-focus-competency-' + context);
@@ -286,38 +286,35 @@ require(['jquery'], function($) {
 
         var selectedLang = $('#ai-comment-lang-' + context).val() || 'auto';
 
-        $.ajax({
-            url: M.cfg.wwwroot + '/local/comp_report_ext/ajax_ai.php',
-            type: 'POST',
-            dataType: 'json',
-            data: {
-                courseid: "{{courseid}}",
-                userid: "{{userid}}",
-                groupid: "{{groupid}}",
-                quizid: "{{quizid}}",
-                custom_prompt: customPrompt,
-                context_type: context,
-                focus_type: focusType,
+        Ajax.call([{
+            methodname: 'local_comp_report_ext_generate_ai_comment',
+            args: {
+                courseid: parseInt("{{courseid}}", 10),
+                userid: parseInt("{{userid}}" || "0", 10),
+                groupid: parseInt("{{groupid}}" || "0", 10),
+                quizid: parseInt("{{quizid}}" || "0", 10),
+                contexttype: context,
+                focustype: focusType,
+                customprompt: customPrompt,
                 language: selectedLang
-            },
-            success: function(data) {
-                loading.removeClass('d-flex').addClass('d-none');
-                btn.prop('disabled', false);
-                if (data.success) {
-                    contentHtml.html(data.html);
-                    responseBox.removeClass('d-none');
-                    updatePdfUrl();
-                } else {
-                    contentHtml.html('<div class="text-danger"><i class="fa fa-exclamation-circle mr-2"></i> Error: ' + data.error + '</div>');
-                    responseBox.removeClass('d-none');
-                }
-            },
-            error: function() {
-                loading.removeClass('d-flex').addClass('d-none');
-                btn.prop('disabled', false);
-                contentHtml.html('<div class="text-danger"><i class="fa fa-exclamation-circle mr-2"></i> Connection failed. Please check local LLM / Ollama availability.</div>');
+            }
+        }])[0].done(function(data) {
+            loading.removeClass('d-flex').addClass('d-none');
+            btn.prop('disabled', false);
+            if (data && data.html) {
+                contentHtml.html(data.html);
+                responseBox.removeClass('d-none');
+                updatePdfUrl();
+            } else {
+                contentHtml.html('<div class="text-danger"><i class="fa fa-exclamation-circle mr-2"></i> Error generating AI commentary</div>');
                 responseBox.removeClass('d-none');
             }
+        }).fail(function(ex) {
+            loading.removeClass('d-flex').addClass('d-none');
+            btn.prop('disabled', false);
+            var err = (ex && ex.message) ? ex.message : 'Connection failed. Please check local LLM / Ollama availability.';
+            contentHtml.html('<div class="text-danger"><i class="fa fa-exclamation-circle mr-2"></i> ' + err + '</div>');
+            responseBox.removeClass('d-none');
         });
     });
 
@@ -328,7 +325,7 @@ require(['jquery'], function($) {
 
 {{#userid}}
 {{#js}}
-require(['jquery'], function($) {
+require(['jquery', 'core/ajax'], function($, Ajax) {
     var uid = '{{userid}}';
     var btnPlan = $('#btn-studyplan-' + uid);
     var loadingPlan = $('#studyplan-loading-' + uid);
@@ -348,66 +345,63 @@ require(['jquery'], function($) {
         // Clamp between 1 and 60.
         selectedSessions = Math.max(1, Math.min(60, selectedSessions));
 
-        $.ajax({
-            url: M.cfg.wwwroot + '/local/comp_report_ext/ajax_studyplan.php',
-            type: 'POST',
-            dataType: 'json',
-            data: {
-                courseid: '{{courseid}}',
-                userid: uid,
+        Ajax.call([{
+            methodname: 'local_comp_report_ext_generate_study_plan',
+            args: {
+                courseid: parseInt('{{courseid}}', 10),
+                userid: parseInt(uid, 10),
                 language: selectedLang,
-                sessions: selectedSessions,
-                quizid: '{{quizid}}'
-            },
-            success: function(data) {
-                loadingPlan.removeClass('d-flex').addClass('d-none');
-                btnPlan.prop('disabled', false);
-                if (data.success) {
-                    contentPlan.html(data.html);
-                    resultPlan.removeClass('d-none');
+                numsessions: selectedSessions,
+                quizid: parseInt('{{quizid}}' || '0', 10)
+            }
+        }])[0].done(function(data) {
+            loadingPlan.removeClass('d-flex').addClass('d-none');
+            btnPlan.prop('disabled', false);
+            if (data && data.html) {
+                contentPlan.html(data.html);
+                resultPlan.removeClass('d-none');
 
-                    // Bind PDF export button click handler to submit form with edited content.
-                    $('#btn-studyplan-pdf-' + uid).off('click').on('click', function(e) {
-                        e.preventDefault();
-                        var editedHtml = contentPlan.html();
-                        var form = $('<form>', {
-                            action: M.cfg.wwwroot + '/local/comp_report_ext/studyplan_pdf.php',
-                            method: 'POST',
-                            target: '_blank'
-                        });
-
-                        var params = {
-                            courseid: '{{courseid}}',
-                            userid: uid,
-                            language: selectedLang,
-                            sessions: selectedSessions,
-                            quizid: '{{quizid}}',
-                            pdf_content: editedHtml
-                        };
-
-                        $.each(params, function(key, val) {
-                            form.append($('<input>', {
-                                type: 'hidden',
-                                name: key,
-                                value: val
-                            }));
-                        });
-
-                        $('body').append(form);
-                        form.submit();
-                        form.remove();
+                // Bind PDF export button click handler to submit form with edited content.
+                $('#btn-studyplan-pdf-' + uid).off('click').on('click', function(e) {
+                    e.preventDefault();
+                    var editedHtml = contentPlan.html();
+                    var form = $('<form>', {
+                        action: M.cfg.wwwroot + '/local/comp_report_ext/studyplan_pdf.php',
+                        method: 'POST',
+                        target: '_blank'
                     });
-                } else {
-                    contentPlan.html('<div class="text-danger"><i class="fa fa-exclamation-circle mr-1"></i>' + (data.error || 'Error generating study plan.') + '</div>');
-                    resultPlan.removeClass('d-none');
-                }
-            },
-            error: function() {
-                loadingPlan.removeClass('d-flex').addClass('d-none');
-                btnPlan.prop('disabled', false);
-                contentPlan.html('<div class="text-danger"><i class="fa fa-exclamation-circle mr-1"></i>Connection failed. Please check your AI settings.</div>');
+
+                    var params = {
+                        courseid: '{{courseid}}',
+                        userid: uid,
+                        language: selectedLang,
+                        sessions: selectedSessions,
+                        quizid: '{{quizid}}',
+                        pdf_content: editedHtml
+                    };
+
+                    $.each(params, function(key, val) {
+                        form.append($('<input>', {
+                            type: 'hidden',
+                            name: key,
+                            value: val
+                        }));
+                    });
+
+                    $('body').append(form);
+                    form.submit();
+                    form.remove();
+                });
+            } else {
+                contentPlan.html('<div class="text-danger"><i class="fa fa-exclamation-circle mr-1"></i>Error generating study plan.</div>');
                 resultPlan.removeClass('d-none');
             }
+        }).fail(function(ex) {
+            loadingPlan.removeClass('d-flex').addClass('d-none');
+            btnPlan.prop('disabled', false);
+            var err = (ex && ex.message) ? ex.message : 'Connection failed. Please check your AI settings.';
+            contentPlan.html('<div class="text-danger"><i class="fa fa-exclamation-circle mr-1"></i>' + err + '</div>');
+            resultPlan.removeClass('d-none');
         });
     });
 });

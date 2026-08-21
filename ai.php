@@ -635,10 +635,26 @@ function local_comp_report_ext_parse_progress_bars($html) {
             $color = '#dc3545'; // Red.
         }
 
+        global $OUTPUT;
+
+        $templatedata = [
+            'name'          => s($name),
+            'percent'       => $percent,
+            'color'         => $color,
+            'width'         => $width,
+            'remaining'     => $remaining,
+            'has_width'     => ($width > 0),
+            'has_remaining' => ($remaining > 0),
+        ];
+
+        if (isset($OUTPUT) && method_exists($OUTPUT, 'render_from_template')) {
+            return $OUTPUT->render_from_template('local_comp_report_ext/ai_progress_bar', $templatedata);
+        }
+
+        // Fallback if $OUTPUT is not yet fully initialized in CLI/cron.
         $output = '<div class="ai-progress-item" style="margin-top: 5px; margin-bottom: 8px;">';
         $output .= '<strong>' . s($name) . ' (' . $percent . '%)</strong>';
-        $output .= '<table border="0" cellspacing="0" cellpadding="0" ' .
-            'width="150" height="8" style="border: 1px solid #dee2e6; margin-top: 2px;">';
+        $output .= '<table border="0" cellspacing="0" cellpadding="0" width="150" height="8" style="border: 1px solid #dee2e6; margin-top: 2px;">';
         $output .= '<tr>';
         if ($width > 0) {
             $output .= '<td bgcolor="' . $color . '" width="' . $width . '%">&nbsp;</td>';
@@ -646,9 +662,7 @@ function local_comp_report_ext_parse_progress_bars($html) {
         if ($remaining > 0) {
             $output .= '<td bgcolor="#e9ecef" width="' . $remaining . '%">&nbsp;</td>';
         }
-        $output .= '</tr>';
-        $output .= '</table>';
-        $output .= '</div>';
+        $output .= '</tr></table></div>';
 
         return $output;
     }, $html);

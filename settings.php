@@ -59,7 +59,7 @@ if ($hassiteconfig) {
             get_string('local_endpoint', 'local_comp_report_ext'),
             get_string('local_endpoint_desc', 'local_comp_report_ext'),
             'http://localhost:11434/v1',
-            PARAM_RAW
+            PARAM_TEXT
         ));
 
 
@@ -78,7 +78,7 @@ if ($hassiteconfig) {
             get_string('model', 'local_comp_report_ext'),
             get_string('model_desc', 'local_comp_report_ext'),
             'gpt-4',
-            PARAM_RAW
+            PARAM_TEXT
         ));
 
         // Maximum number of rows.
@@ -122,7 +122,7 @@ if ($hassiteconfig) {
             get_string('logo_left_url', 'local_comp_report_ext'),
             get_string('logo_left_url_desc', 'local_comp_report_ext'),
             '',
-            PARAM_RAW
+            PARAM_TEXT
         ));
 
         // Right logo stored file.
@@ -141,7 +141,7 @@ if ($hassiteconfig) {
             get_string('logo_right_url', 'local_comp_report_ext'),
             get_string('logo_right_url_desc', 'local_comp_report_ext'),
             '',
-            PARAM_RAW
+            PARAM_TEXT
         ));
     }
 
