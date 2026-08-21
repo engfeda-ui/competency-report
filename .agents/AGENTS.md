@@ -73,18 +73,21 @@
 
 ---
 
-## 🗂️ Plugin → Path Mapping Reference
+## 🗂️ Plugin → Path & Packaging Mapping Reference
 
-| Plugin (local folder) | Production Path | Staging Path |
-|---|---|---|
-| `competency-report` | `/home/ubuntu/moodle-project/local/comp_report_ext/` | `/home/ubuntu/moodle-staging/local/comp_report_ext/` |
-| `block_competency_report` | `/home/ubuntu/moodle-project/blocks/comp_report_ext/` | `/home/ubuntu/moodle-staging/blocks/comp_report_ext/` |
-| `competency` | `/home/ubuntu/moodle-project/question/bank/comp_ext/` | `/home/ubuntu/moodle-staging/question/bank/comp_ext/` |
-| `failgrade` | `/home/ubuntu/moodle-project/mod/quiz/accessrule/failgrade_ext/` | `/home/ubuntu/moodle-staging/mod/quiz/accessrule/failgrade_ext/` |
-| `attemptpassword` | `/home/ubuntu/moodle-project/mod/quiz/accessrule/attemptpassword/` | `/home/ubuntu/moodle-staging/mod/quiz/accessrule/attemptpassword/` |
+| Plugin (local folder) | Production Path | Staging Path | Output ZIP Name | Folder Inside ZIP |
+|---|---|---|---|---|
+| `competency-report` | `/home/ubuntu/moodle-project/local/comp_report_ext/` | `/home/ubuntu/moodle-staging/local/comp_report_ext/` | `local_comp_report_ext.zip` | `comp_report_ext/` |
+| `block_competency_report` | `/home/ubuntu/moodle-project/blocks/comp_report_ext/` | `/home/ubuntu/moodle-staging/blocks/comp_report_ext/` | `block_comp_report_ext.zip` | `comp_report_ext/` |
+| `competency` | `/home/ubuntu/moodle-project/question/bank/comp_ext/` | `/home/ubuntu/moodle-staging/question/bank/comp_ext/` | `qbank_comp_ext.zip` | `comp_ext/` |
+| `failgrade` | `/home/ubuntu/moodle-project/mod/quiz/accessrule/failgrade_ext/` | `/home/ubuntu/moodle-staging/mod/quiz/accessrule/failgrade_ext/` | `quizaccess_failgrade_ext.zip` | `failgrade_ext/` |
+| `attemptpassword` | `/home/ubuntu/moodle-project/mod/quiz/accessrule/attemptpassword/` | `/home/ubuntu/moodle-staging/mod/quiz/accessrule/attemptpassword/` | `quizaccess_attemptpassword.zip` | `attemptpassword/` |
+
+> ⚠️ **ZIP Structure Requirement**: Every generated ZIP archive must contain exactly ONE root directory matching the column `Folder Inside ZIP` above, and exclude `.git`, `.github`, `.gitignore`, `.gitattributes`, `.agents`, `.zcode`.
 
 ## 🐳 Docker Container Names
 | Environment | Container Name |
 |---|---|
 | Production | `moodle-app` |
 | Staging | `moodle-staging-app` |
+
