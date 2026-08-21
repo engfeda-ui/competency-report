@@ -55,6 +55,17 @@
             </select>
         </div>
 
+        {{#has_quizzes}}
+        <div class="form-group mr-3">
+            <label class="font-weight-bold mr-2 mb-0"><i class="fa fa-pencil-square-o mr-1"></i> {{#str}}quiz, local_comp_report_ext{{/str}}</label>
+            <select name="quizid" class="form-control" onchange="this.form.submit()">
+                {{#quizoptions}}
+                    <option value="{{id}}" {{#selected}}selected{{/selected}}>{{name}}</option>
+                {{/quizoptions}}
+            </select>
+        </div>
+        {{/has_quizzes}}
+
         <button type="submit" class="btn btn-primary"><i class="fa fa-eye mr-1"></i> {{strshowstudents}}</button>
         {{#has_data}}
         <button id="btn-print-analytics" type="button" class="btn btn-outline-primary font-weight-bold shadow-sm ml-2">

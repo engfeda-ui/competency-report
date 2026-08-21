@@ -27,6 +27,7 @@ require_once($CFG->dirroot . '/group/lib.php');
 
 $courseid = required_param('courseid', PARAM_INT);
 $groupid  = optional_param('groupid', 0, PARAM_INT);
+$quizid   = optional_param('quizid', 0, PARAM_INT);
 
 $course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
 require_login($course);
@@ -38,7 +39,14 @@ if (!$canviewext && !$canviewold) {
     require_capability('local/comp_report_ext:viewreports', $context);
 }
 
-$PAGE->set_url('/local/comp_report_ext/group_exam_analytics.php', ['courseid' => $courseid, 'groupid' => $groupid]);
+$urlparams = ['courseid' => $courseid];
+if ($groupid > 0) {
+    $urlparams['groupid'] = $groupid;
+}
+if ($quizid > 0) {
+    $urlparams['quizid'] = $quizid;
+}
+$PAGE->set_url('/local/comp_report_ext/group_exam_analytics.php', $urlparams);
 $PAGE->set_context($context);
 $PAGE->set_title(get_string('groupperformance', 'local_comp_report_ext'));
 $PAGE->set_heading(format_string($course->fullname) . ' — ' . get_string('groupperformance', 'local_comp_report_ext'));
@@ -59,39 +67,67 @@ foreach ($groups as $g) {
     ];
 }
 
-// 1. Determine Target Quiz (from Assessment Weights or course quizzes).
-$quizid = 0;
-$quizname = '—';
+// 1. Determine Target Quiz & Build Quiz Selector Options.
+$allquizzes = $DB->get_records('quiz', ['course' => $courseid], 'name ASC', 'id, name');
 
 $asmts = $DB->get_records_sql(
-    "SELECT id, quizid, name
+    "SELECT id, quizid, name, weight
        FROM {local_comp_report_ext_asmt}
       WHERE courseid = :courseid AND type = 'quiz' AND quizid IS NOT NULL AND quizid > 0
    ORDER BY weight DESC, id ASC",
-    ['courseid' => $courseid],
-    0,
-    1
+    ['courseid' => $courseid]
 );
 
-if (!empty($asmts)) {
-    $asmt = reset($asmts);
-    $quizid = (int)$asmt->quizid;
-} else {
-    // Fallback: get latest quiz in course.
-    $quizzes = $DB->get_records_sql(
-        "SELECT id, name FROM {quiz} WHERE course = :courseid ORDER BY timecreated DESC, id DESC",
-        ['courseid' => $courseid],
-        0,
-        1
-    );
-    if (!empty($quizzes)) {
-        $q = reset($quizzes);
-        $quizid = (int)$q->id;
+// Map of quiz weights from assessment setup.
+$quizweights = [];
+foreach ($asmts as $a) {
+    if (!empty($a->quizid)) {
+        $quizweights[(int)$a->quizid] = (float)$a->weight;
     }
 }
 
+// If no specific quiz selected in request or invalid, default to highest weighted assessment quiz or first course quiz.
+if ($quizid <= 0 || !isset($allquizzes[$quizid])) {
+    if (!empty($asmts)) {
+        $asmt = reset($asmts);
+        $quizid = (int)$asmt->quizid;
+    } else if (!empty($allquizzes)) {
+        $q = reset($allquizzes);
+        $quizid = (int)$q->id;
+    } else {
+        $quizid = 0;
+    }
+}
+
+// Order quiz options: assessment-configured quizzes first (highest weight first), then remaining.
+$sortedquizzes = [];
+foreach ($asmts as $a) {
+    if (isset($allquizzes[$a->quizid])) {
+        $sortedquizzes[$a->quizid] = $allquizzes[$a->quizid];
+    }
+}
+foreach ($allquizzes as $qid => $qobj) {
+    if (!isset($sortedquizzes[$qid])) {
+        $sortedquizzes[$qid] = $qobj;
+    }
+}
+
+$quizoptions = [];
+foreach ($sortedquizzes as $qid => $qobj) {
+    $displayname = format_string($qobj->name);
+    if (isset($quizweights[$qid]) && $quizweights[$qid] > 0) {
+        $displayname .= ' (' . rtrim(rtrim(number_format($quizweights[$qid], 2), '0'), '.') . '%)';
+    }
+    $quizoptions[] = (object)[
+        'id'       => $qid,
+        'name'     => $displayname,
+        'selected' => ($qid == $quizid),
+    ];
+}
+
+$quizname = '—';
 $quiz = null;
-if ($quizid > 0) {
+if ($quizid > 0 && isset($allquizzes[$quizid])) {
     $quiz = $DB->get_record('quiz', ['id' => $quizid]);
     if ($quiz) {
         $quizname = format_string($quiz->name);
@@ -291,6 +327,9 @@ $renderdata = new stdClass();
 $renderdata->courseid          = $courseid;
 $renderdata->groupid           = $groupid;
 $renderdata->groups            = $groupoptions;
+$renderdata->quizid            = $quizid;
+$renderdata->quizoptions       = $quizoptions;
+$renderdata->has_quizzes       = !empty($quizoptions);
 $renderdata->has_data          = $hasdata;
 $renderdata->quiz_name         = $quizname;
 $renderdata->exam_avg          = number_format($examavg, 1);

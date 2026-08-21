@@ -53,6 +53,9 @@ class group_exam_analytics_page implements renderable, templatable {
         $d->courseid              = $this->data->courseid;
         $d->groupid               = $this->data->groupid;
         $d->groups                = $this->data->groups;
+        $d->quizid                = $this->data->quizid ?? 0;
+        $d->quizoptions           = $this->data->quizoptions ?? [];
+        $d->has_quizzes           = !empty($this->data->has_quizzes);
         $d->has_data              = $this->data->has_data;
         $d->quiz_name             = $this->data->quiz_name;
         $d->exam_avg              = $this->data->exam_avg;
