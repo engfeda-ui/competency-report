@@ -147,7 +147,7 @@ foreach ($students as $student) {
             : 'grey';
 
         $comprows[] = [
-            'shortname'     => format_string($data['competency']->shortname),
+            'shortname'     => format_string($data['competency']->shortname, true, ['escape' => false]),
             'asmt_cells'    => $asmtcells,
             'total_percent' => ($totalpercent !== null) ? number_format($totalpercent, 1) : null,
             'has_total'     => ($totalpercent !== null),

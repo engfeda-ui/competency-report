@@ -162,7 +162,8 @@ class competency_calculator {
         }
 
         // Preload all quiz competency attempt results for this student in this course.
-        $quizsql = "SELECT m.competencyid, quiza.quiz,
+        $quizsql = "SELECT CONCAT(quiza.quiz, '_', m.competencyid) AS unique_key,
+                           quiza.quiz, m.competencyid,
                            SUM(qa.maxfraction) AS maxf,
                            SUM(qas.fraction)   AS gotf
                       FROM {quiz_attempts} quiza
@@ -179,7 +180,7 @@ class competency_calculator {
                        AND quiza.userid   = :userid
                        AND quiza.state    = 'finished'
                        AND m.courseid     = :courseid2
-                  GROUP BY m.competencyid, quiza.quiz";
+                  GROUP BY quiza.quiz, m.competencyid";
         $quizrows = $DB->get_records_sql($quizsql, [
             'courseid'  => $this->courseid,
             'userid'    => $userid,

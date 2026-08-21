@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.19.6-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.19.7-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -353,7 +353,9 @@ npx grunt amd --files=local/competency_report
 
 ## 📋 Changelog
 
-### v3.14.0 (2026080420) — 2026-08-04
+### v3.19.7 (2026082107) — 2026-08-21
+- **Bug Fix (Competency Calculator Key Collision):** Resolved a critical query indexing collision in `competency_calculator::get_student_scores()`. When a student completed multiple quizzes in a course, `$DB->get_records_sql` indexed rows by `m.competencyid`, causing later quiz results to overwrite previous quiz scores for identical competencies. Added composite unique key `CONCAT(quiza.quiz, '_', m.competencyid) AS unique_key` and updated `GROUP BY` to ensure all quiz competency scores are preserved.
+- **UI Fix (Group Assessment Distribution):** Fixed double HTML entity encoding on competency names in `group_assessment_distribution.php` and `group_assessment_distribution_pdf.php` by setting `format_string(..., true, ['escape' => false])`, preventing `&amp;` from rendering literally in names like `Inspection & Testing`.
 - **Refactor:** Resolved all Moodle CodeSniffer (`moodle-plugin-ci codechecker`) style & formatting violations across all group report files, class files, and PDF generators.
 
 ### v3.13.4 (2026080419) — 2026-08-04
