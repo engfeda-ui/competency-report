@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.19.11-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.19.12-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -352,6 +352,11 @@ npx grunt amd --files=local/competency_report
 ---
 
 ## 📋 Changelog
+
+### v3.19.12 (2026082112) — 2026-08-21
+- **Feature & Architecture Enhancement (Dual-Method Exam Retakes Support):** Upgraded `group_exam_analytics.php` to seamlessly support both operational models of exam retakes:
+  1. **Multiple Attempts inside Same Quiz:** Analyzes consecutive attempts (Attempt 1, Attempt 2, Attempt 3) within the same Moodle quiz activity.
+  2. **Separate Independent Retake Quizzes:** Automatically scans and detects standalone course quizzes designated for retakes (e.g. `Retake 1`, `Retake 2`, `إعادة 1`, `إعادة 2`, `الدور الثاني`, etc.), consolidating their grades into the unified 3-attempt tracking pipeline and applying the 60% passing cap policy effortlessly.
 
 ### v3.19.11 (2026082111) — 2026-08-21
 - **Feature & Policy Implementation (3-Attempt Retake Tracking & 60% Passing Cap):** Implemented academy exam retake policy in **Analytics by Grades** (`group_exam_analytics.php`). The dashboard tracks all 3 student attempts (Attempt 1 Original, Retake 1, Retake 2), calculates the total retakes count, and caps the recorded final grade at the minimum passing threshold (`60.0%`) for any student who passes on a retake (while preserving natural scores for 1st attempt passes).
