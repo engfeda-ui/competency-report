@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.19.0-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.19.1-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -81,6 +81,9 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 ---
 
 ## 📋 Changelog
+
+### v3.19.1 — 2026-08-21
+- **Hotfix (Issue #11 — Capability Strings):** Added the missing Moodle capability language string keys (`comp_report_ext:manage`, `comp_report_ext:viewreports`, `comp_report_ext:viewownreport`, `comp_report_ext:manageassessments`, `comp_report_ext:enterpractical`) to both English and Arabic language packs. Without these keys Moodle cannot display human-readable capability names in the Role management UI. Also added legacy-alias strings for the `competency_report:*` capability family.
 
 ### v3.19.0 — 2026-08-21
 - **Security & Authentication Checks (Issues #2, #4, #6):** Enforced `require_login()`, `require_sesskey()`, and robust capability checks (`viewownreport` / `viewreports`) across all AJAX and PDF endpoints (`ajax_ai.php`, `ajax_studyplan.php`, `student_competency_exams.php`, `timeline.php`, `student_exam.php`, `pdf_report.php`, `group_analytics_dashboard_pdf.php`). Replaced insecure `PARAM_RAW` parameters with safe types (`PARAM_TEXT`, `PARAM_CLEANHTML`).

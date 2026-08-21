@@ -27,10 +27,10 @@ defined('MOODLE_INTERNAL') || die();
 
 /** @var stdClass $plugin */
 $plugin->component = 'local_comp_report_ext';       // Full name of the plugin (category_name).
-$plugin->version   = 2026082100;              // The current module version (YYYYMMDDXX).
+$plugin->version   = 2026082101;              // The current module version (YYYYMMDDXX).
 $plugin->requires  = 2024041600;              // Requires Moodle 4.4 or later.
 $plugin->maturity  = MATURITY_STABLE;          // Stable release.
-$plugin->release   = '3.19.0';                // Human-readable version name.
+$plugin->release   = '3.19.1';                // Human-readable version name.
 
 // Plugin dependencies (Other plugins that must be installed first).
 $plugin->dependencies = [
