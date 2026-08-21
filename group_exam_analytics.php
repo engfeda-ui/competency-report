@@ -174,62 +174,101 @@ if ($quiz && !empty($students)) {
     $sumgradesmax = (float)($quiz->sumgrades > 0 ? $quiz->sumgrades : 100.0);
 
     foreach ($students as $student) {
-        // Fetch best finished attempt for this quiz.
+        // Fetch all finished attempts for this student on this quiz ordered by attempt number.
         $attempts = $DB->get_records_sql(
-            "SELECT id, sumgrades
+            "SELECT id, attempt, sumgrades, timefinish
                FROM {quiz_attempts}
               WHERE quiz = :quizid AND userid = :userid AND state = 'finished'
-           ORDER BY sumgrades DESC, timefinish DESC",
-            ['quizid' => $quiz->id, 'userid' => $student->id],
-            0,
-            1
+           ORDER BY attempt ASC",
+            ['quizid' => $quiz->id, 'userid' => $student->id]
         );
 
         if (!empty($attempts)) {
-            $attempt = reset($attempts);
-            if ($attempt->sumgrades !== null) {
-                $scorepct = round(((float)$attempt->sumgrades / $sumgradesmax) * 100.0, 1);
-                $rawscores[] = $scorepct;
-
-                // Tier assignment.
-                if ($scorepct < 60) {
-                    $tier = 'failed';
-                    $tiername = get_string('grade_tier_failed', 'local_comp_report_ext') ?: 'At-Risk (< 60%)';
-                    $badgeclass = 'badge-danger';
-                } else if ($scorepct < 75) {
-                    $tier = 'passing';
-                    $tiername = get_string('grade_tier_passing', 'local_comp_report_ext') ?: 'Satisfactory (60-74%)';
-                    $badgeclass = 'badge-warning';
-                } else if ($scorepct < 90) {
-                    $tier = 'verygood';
-                    $tiername = get_string('grade_tier_verygood', 'local_comp_report_ext') ?: 'Very Good (75-89%)';
-                    $badgeclass = 'badge-info';
-                } else {
-                    $tier = 'outstanding';
-                    $tiername = get_string('grade_tier_outstanding', 'local_comp_report_ext') ?: 'Outstanding (90-100%)';
-                    $badgeclass = 'badge-success';
+            $attscores = [];
+            foreach ($attempts as $att) {
+                if ($att->sumgrades !== null) {
+                    $attscores[(int)$att->attempt] = round(((float)$att->sumgrades / $sumgradesmax) * 100.0, 1);
                 }
-
-                $needsremediation = ($scorepct < $threshold);
-                $decilebin = min(9, (int)floor($scorepct / 10));
-
-                $studentlist[] = [
-                    'index'             => count($studentlist) + 1,
-                    'id'                => (int)$student->id,
-                    'fullname'          => fullname($student),
-                    'average'           => number_format($scorepct, 1),
-                    'average_raw'       => $scorepct,
-                    'tier'              => $tier,
-                    'tier_name'         => $tiername,
-                    'badge_class'       => $badgeclass,
-                    'needs_remediation' => $needsremediation,
-                    'decile_bin'        => $decilebin,
-                    'detail_url'        => (new moodle_url('/local/comp_report_ext/student_competency_detail.php', [
-                        'courseid' => $courseid,
-                        'userid'   => $student->id,
-                    ]))->out(false),
-                ];
             }
+
+            $att1_score = $attscores[1] ?? null;
+            $att2_score = $attscores[2] ?? null;
+            $att3_score = $attscores[3] ?? null;
+            $retake_count = max(0, count($attscores) - 1);
+
+            $scorepct = 0.0;
+            $retake_status_label = '—';
+            $retake_status_badge = 'badge-secondary';
+
+            // Determine final recorded grade according to the 3-attempt retake policy (60% cap).
+            if ($att1_score !== null && $att1_score >= 60.0) {
+                // Passed on original 1st attempt with natural score.
+                $scorepct = $att1_score;
+                $retake_status_label = get_string('passed_first_attempt', 'local_comp_report_ext');
+                $retake_status_badge = 'badge-success';
+            } else if ($att2_score !== null && $att2_score >= 60.0) {
+                // Passed on Retake 1 — capped at 60.0%.
+                $scorepct = 60.0;
+                $retake_status_label = get_string('passed_retake_1', 'local_comp_report_ext');
+                $retake_status_badge = 'badge-info';
+            } else if ($att3_score !== null && $att3_score >= 60.0) {
+                // Passed on Retake 2 — capped at 60.0%.
+                $scorepct = 60.0;
+                $retake_status_label = get_string('passed_retake_2', 'local_comp_report_ext');
+                $retake_status_badge = 'badge-primary';
+            } else {
+                // Failed or pending: take highest score achieved.
+                $scorepct = !empty($attscores) ? max($attscores) : 0.0;
+                $retake_status_label = get_string('failed_status', 'local_comp_report_ext');
+                $retake_status_badge = 'badge-danger';
+            }
+
+            $rawscores[] = $scorepct;
+
+            // Tier assignment based on final recorded score.
+            if ($scorepct < 60) {
+                $tier = 'failed';
+                $tiername = get_string('grade_tier_failed', 'local_comp_report_ext') ?: 'At-Risk (< 60%)';
+                $badgeclass = 'badge-danger';
+            } else if ($scorepct < 75) {
+                $tier = 'passing';
+                $tiername = get_string('grade_tier_passing', 'local_comp_report_ext') ?: 'Satisfactory (60-74%)';
+                $badgeclass = 'badge-warning';
+            } else if ($scorepct < 90) {
+                $tier = 'verygood';
+                $tiername = get_string('grade_tier_verygood', 'local_comp_report_ext') ?: 'Very Good (75-89%)';
+                $badgeclass = 'badge-info';
+            } else {
+                $tier = 'outstanding';
+                $tiername = get_string('grade_tier_outstanding', 'local_comp_report_ext') ?: 'Outstanding (90-100%)';
+                $badgeclass = 'badge-success';
+            }
+
+            $needsremediation = ($scorepct < $threshold);
+            $decilebin = min(9, (int)floor($scorepct / 10));
+
+            $studentlist[] = [
+                'index'               => count($studentlist) + 1,
+                'id'                  => (int)$student->id,
+                'fullname'            => fullname($student),
+                'attempt1_score'      => ($att1_score !== null) ? number_format($att1_score, 1) . '%' : '—',
+                'retake1_score'       => ($att2_score !== null) ? number_format($att2_score, 1) . '%' : '—',
+                'retake2_score'       => ($att3_score !== null) ? number_format($att3_score, 1) . '%' : '—',
+                'retakes_count'       => $retake_count,
+                'average'             => number_format($scorepct, 1),
+                'average_raw'         => $scorepct,
+                'tier'                => $tier,
+                'tier_name'           => $tiername,
+                'badge_class'         => $badgeclass,
+                'retake_status_label' => $retake_status_label,
+                'retake_status_badge' => $retake_status_badge,
+                'needs_remediation'   => $needsremediation,
+                'decile_bin'          => $decilebin,
+                'detail_url'          => (new moodle_url('/local/comp_report_ext/student_competency_detail.php', [
+                    'courseid' => $courseid,
+                    'userid'   => $student->id,
+                ]))->out(false),
+            ];
         }
     }
 }

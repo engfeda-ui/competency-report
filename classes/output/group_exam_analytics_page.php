@@ -79,6 +79,11 @@ class group_exam_analytics_page implements renderable, templatable {
         $d->strexportpdf          = get_string('group_analytics_dashboard_pdf', 'local_comp_report_ext');
         $d->strprintreport        = get_string('printreport', 'local_comp_report_ext');
         $d->strnodata             = get_string('no_data_dashboard', 'local_comp_report_ext');
+        $d->strattempt1           = get_string('attempt_1', 'local_comp_report_ext');
+        $d->strretake1            = get_string('retake_1', 'local_comp_report_ext');
+        $d->strretake2            = get_string('retake_2', 'local_comp_report_ext');
+        $d->strretakescount       = get_string('retakes_count', 'local_comp_report_ext');
+        $d->strfinalrecordedgrade = get_string('final_recorded_grade', 'local_comp_report_ext');
 
         return $d;
     }

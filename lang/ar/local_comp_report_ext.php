@@ -354,6 +354,15 @@ $string['generalgradescard']          = 'بطاقة الدرجات العامة 
 $string['quizexamname']               = 'اسم الاختبار / التقييم';
 $string['scoreachieved']              = 'الدرجة المحققة';
 $string['aicommentarytitle']          = 'التحليل والتعليق التربوي بالذكاء الاصطناعي';
+$string['attempt_1']                = 'المحاولة 1 (الأصلية)';
+$string['retake_1']                 = 'الإعادة 1';
+$string['retake_2']                 = 'الإعادة 2';
+$string['retakes_count']            = 'عدد الإعادات';
+$string['final_recorded_grade']     = 'الدرجة المعتمدة النهائية';
+$string['passed_first_attempt']     = 'ناجح (محاولة أولى)';
+$string['passed_retake_1']          = 'ناجح إعادة 1 (سقف 60%)';
+$string['passed_retake_2']          = 'ناجح إعادة 2 (سقف 60%)';
+$string['failed_status']            = 'راسب (< 60%)';
 
 // سلاسل الصلاحيات (مطلوبة من مودل لعرض أسماء الصلاحيات في واجهة إدارة الأدوار).
 $string['comp_report_ext:manage']               = 'إدارة ربط الأسئلة بالكفايات';

@@ -355,6 +355,15 @@ $string['generalgradescard']          = 'General Grades and Academic Performance
 $string['quizexamname']               = 'Quiz / Exam Name';
 $string['scoreachieved']              = 'Score achieved';
 $string['aicommentarytitle']          = 'Pedagogical AI Analysis Commentary';
+$string['attempt_1']                = 'Attempt 1 (Original)';
+$string['retake_1']                 = 'Retake 1';
+$string['retake_2']                 = 'Retake 2';
+$string['retakes_count']            = 'Retakes';
+$string['final_recorded_grade']     = 'Final Recorded Grade';
+$string['passed_first_attempt']     = 'Passed (1st Attempt)';
+$string['passed_retake_1']          = 'Passed Retake 1 (60% Cap)';
+$string['passed_retake_2']          = 'Passed Retake 2 (60% Cap)';
+$string['failed_status']            = 'At-Risk / Failed (< 60%)';
 
 // Capability language strings (required by Moodle — key = shortname of capability after the plugin prefix).
 $string['comp_report_ext:manage']               = 'Manage competency-question mapping';

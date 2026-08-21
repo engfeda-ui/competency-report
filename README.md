@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.19.10-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.19.11-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -352,6 +352,10 @@ npx grunt amd --files=local/competency_report
 ---
 
 ## 📋 Changelog
+
+### v3.19.11 (2026082111) — 2026-08-21
+- **Feature & Policy Implementation (3-Attempt Retake Tracking & 60% Passing Cap):** Implemented academy exam retake policy in **Analytics by Grades** (`group_exam_analytics.php`). The dashboard tracks all 3 student attempts (Attempt 1 Original, Retake 1, Retake 2), calculates the total retakes count, and caps the recorded final grade at the minimum passing threshold (`60.0%`) for any student who passes on a retake (while preserving natural scores for 1st attempt passes).
+- **UI Enhancement (Student Roster Table):** Updated the student roster table in `templates/group_exam_analytics_page.mustache` with explicit columns for Attempt 1, Retake 1, Retake 2, Final Recorded Grade (highlighted in primary color), Retakes Count, and distinctive status badges (`Passed 1st Attempt`, `Passed Retake 1 (60% Cap)`, `Passed Retake 2 (60% Cap)`, `Failed (<60%)`).
 
 ### v3.19.10 (2026082110) — 2026-08-21
 - **Feature (Quiz Filter Selector on Analytics by Grades Dashboard):** Added an interactive Quiz dropdown selector at the top of the **Analytics by Grades** dashboard (`group_exam_analytics.php`). Quizzes configured in Assessment Setup are prioritized first (displaying their configured weight e.g. `Final Exam (50%)`), and the dashboard automatically defaults to the highest-weighted quiz (e.g. Final Exam) while giving teachers the flexibility to analyze any other course quiz with instant one-click switching.
