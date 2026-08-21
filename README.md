@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.19.2-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.19.3-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -81,6 +81,9 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 ---
 
 ## 📋 Changelog
+
+### v3.19.3 — 2026-08-21
+- **Bug Fix (SQL Join in Competency Calculator):** Fixed missing `{quiz}` table join in `classes/competency_calculator.php` (`get_student_scores()`). The preload query previously filtered by `quiza.course = :courseid`, but `{quiz_attempts}` does not have a `course` column, causing a `dml_read_exception` (`Unknown column 'quiza.course' in 'WHERE'`). Now correctly joins `{quiz} q ON q.id = quiza.quiz` and filters by `q.course = :courseid`.
 
 ### v3.19.2 — 2026-08-21
 - **Bug Fix (External AI Service Parameter Validation):** Updated `contexttype` and `focustype` parameter validation types in `classes/external/ai.php` from `PARAM_ALPHA` to `PARAM_ALPHAEXT`. `PARAM_ALPHA` rejected context types containing underscores such as `course_master` (used on the Unified Course Master Report page), triggering a Moodle `Invalid parameter value detected` exception. Now properly accepts all alpha-extended identifier formats.

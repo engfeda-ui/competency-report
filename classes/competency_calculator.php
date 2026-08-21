@@ -166,6 +166,7 @@ class competency_calculator {
                            SUM(qa.maxfraction) AS maxf,
                            SUM(qas.fraction)   AS gotf
                       FROM {quiz_attempts} quiza
+                      JOIN {quiz} q               ON q.id = quiza.quiz
                       JOIN {question_usages} qu   ON qu.id = quiza.uniqueid
                       JOIN {question_attempts} qa  ON qa.questionusageid = qu.id
                       JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
@@ -174,7 +175,7 @@ class competency_calculator {
                             FROM {question_attempt_steps}
                            GROUP BY questionattemptid
                       ) qas ON qas.questionattemptid = qa.id
-                     WHERE quiza.course   = :courseid
+                     WHERE q.course       = :courseid
                        AND quiza.userid   = :userid
                        AND quiza.state    = 'finished'
                        AND m.courseid     = :courseid2
