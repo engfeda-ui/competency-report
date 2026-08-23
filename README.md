@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.19.21-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.19.22-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -81,6 +81,9 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 ---
 
 ## 📋 Changelog
+
+### v3.19.22 — 2026-08-23
+- **Feature (Competency Mastery by Examination Matrix & Longitudinal Progress Curve):** Refactored the Student Detail Report (`student_competency_detail.php`, `classes/output/student_competency_detail_page.php`, and `templates/student_competency_detail_page.mustache`). Replaced the static competency table with an interactive multi-dimensional Competency by Exam Matrix (displaying exact competency mastery percentages and question breakdowns per exam, plus course totals in the footer), and introduced a Chart.js longitudinal progress curve displaying student improvement trajectories over time with automated trend KPIs (Improving, Steady, Needs Focus).
 
 ### v3.19.21 — 2026-08-23
 - **Feature (Exam & Quiz Performance Breakdown in Student Detail Report):** Added a dedicated Course Examinations & Quiz Results table in `student_competency_detail.php`, `classes/output/student_competency_detail_page.php`, and `templates/student_competency_detail_page.mustache`. Individual student reports now show their full exam history, including Attempt 1 (Original), Retake 1, Retake 2, Final Recorded Grade (with retake policy cap applied), status badges, and dual-metric grade formatting.

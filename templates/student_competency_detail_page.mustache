@@ -55,36 +55,128 @@
             </div>
         </div>
 
-        {{! Competency Breakdown Table }}
-        <div class="table-responsive">
-            <table class="generaltable table table-bordered table-hover shadow-sm bg-white">
-                <thead class="thead-dark">
-                    <tr>
-                        <th>{{#str}}competencycode, local_comp_report_ext{{/str}}</th>
-                        <th>{{#str}}competency, local_comp_report_ext{{/str}}</th>
-                        <th class="text-center">{{#str}}questioncount, local_comp_report_ext{{/str}}</th>
-                        <th class="text-center">{{#str}}correctcount, local_comp_report_ext{{/str}}</th>
-                        <th class="text-center">{{#str}}successrate, local_comp_report_ext{{/str}}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {{#rows}}
-                    <tr>
-                        <td class="font-weight-bold">{{shortname}}</td>
-                        <td>{{description}}</td>
-                        <td class="text-center">{{questions}}</td>
-                        <td class="text-center">{{correct}}</td>
-                        <td class="text-center font-weight-bold" style="color: {{color}};">
-                            %{{rate}}
-                        </td>
-                    </tr>
-                    {{/rows}}
-                </tbody>
-            </table>
+        {{! 1. Competency Mastery by Examination Matrix Table (Replaces static competency table) }}
+        <div class="card border-0 shadow-sm rounded-lg mb-4 overflow-hidden">
+            <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between flex-wrap">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle mr-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background-color: #e8f5e9; color: #2e7d32;">
+                        <i class="fa fa-th-list fa-lg"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-0 font-weight-bold text-dark">{{#str}}competency_matrix_title, local_comp_report_ext{{/str}}</h5>
+                        <small class="text-muted">{{#str}}competency_matrix_desc, local_comp_report_ext{{/str}}</small>
+                    </div>
+                </div>
+                <span class="badge badge-success px-3 py-1 font-weight-bold rounded-pill" style="font-size: 0.85rem;">{{#str}}tab_by_competency, local_comp_report_ext{{/str}}</span>
+            </div>
+            <div class="card-body p-0">
+                {{#has_matrix}}
+                <div class="table-responsive">
+                    <table class="generaltable table table-bordered table-hover mb-0 bg-white">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th style="width: 50px;" class="text-center">#</th>
+                                <th style="min-width: 180px;">{{#str}}quizexamname, local_comp_report_ext{{/str}}</th>
+                                {{#comp_headers}}
+                                <th class="text-center" style="min-width: 140px;">
+                                    <span class="d-block font-weight-bold">{{shortname}}</span>
+                                </th>
+                                {{/comp_headers}}
+                                <th class="text-center bg-dark text-white" style="min-width: 140px;">{{#str}}exam_total, local_comp_report_ext{{/str}}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{#matrix_rows}}
+                            <tr>
+                                <td class="text-center align-middle text-muted small">{{index}}</td>
+                                <td class="align-middle font-weight-bold">
+                                    <a href="{{quiz_url}}" class="text-dark" style="text-decoration: none;">
+                                        <i class="fa fa-file-text-o text-success mr-1"></i> {{quiz_name}}
+                                    </a>
+                                </td>
+                                {{#cells}}
+                                <td class="text-center align-middle">
+                                    {{#has_data}}
+                                    <span class="font-weight-bold d-block" style="color: {{color}}; font-size: 0.95rem;">{{pct}}</span>
+                                    <small class="text-muted d-block font-weight-normal" style="font-size: 0.75rem;">{{items}}</small>
+                                    {{/has_data}}
+                                    {{^has_data}}
+                                    <span class="text-muted font-weight-light">—</span>
+                                    {{/has_data}}
+                                </td>
+                                {{/cells}}
+                                <td class="text-center align-middle bg-light">
+                                    <span class="font-weight-bold d-block" style="color: {{row_color}}; font-size: 1rem;">{{row_total_pct}}</span>
+                                    <small class="text-muted d-block font-weight-normal" style="font-size: 0.75rem;">{{row_total_items}}</small>
+                                </td>
+                            </tr>
+                            {{/matrix_rows}}
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-secondary font-weight-bold border-top border-dark" style="background-color: #f1f3f5;">
+                                <td class="text-center align-middle"><i class="fa fa-flag-checkered text-dark"></i></td>
+                                <td class="align-middle text-dark font-weight-bold">{{#str}}overall_course_total, local_comp_report_ext{{/str}}</td>
+                                {{#footer_cells}}
+                                <td class="text-center align-middle">
+                                    <span class="font-weight-bold d-block" style="color: {{color}}; font-size: 1.05rem;">{{pct}}</span>
+                                    <small class="text-muted d-block font-weight-normal" style="font-size: 0.78rem;">{{items}}</small>
+                                </td>
+                                {{/footer_cells}}
+                                {{#footer_total}}
+                                <td class="text-center align-middle bg-white shadow-sm border-left border-right">
+                                    <span class="font-weight-bold d-block" style="color: {{color}}; font-size: 1.1rem;">{{pct}}</span>
+                                    <small class="text-muted d-block font-weight-normal" style="font-size: 0.78rem;">{{items}}</small>
+                                </td>
+                                {{/footer_total}}
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                {{/has_matrix}}
+                {{^has_matrix}}
+                <div class="p-4 text-center text-muted">
+                    <i class="fa fa-info-circle mr-1"></i> {{#str}}nodatafound, local_comp_report_ext{{/str}}
+                </div>
+                {{/has_matrix}}
+            </div>
         </div>
 
-        {{! Course Examinations & Quiz Results Section }}
-        <div class="card border-0 shadow-sm rounded-lg mb-4 mt-4 overflow-hidden">
+        {{! 2. Longitudinal Competency Progress & Mastery Curve Chart }}
+        {{#has_trend_chart}}
+        <div class="card border-0 shadow-sm rounded-lg mb-4 overflow-hidden">
+            <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between flex-wrap">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle mr-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background-color: #f3e8ff; color: #7e22ce;">
+                        <i class="fa fa-line-chart fa-lg"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-0 font-weight-bold text-dark">{{#str}}competency_trend_title, local_comp_report_ext{{/str}}</h5>
+                        <small class="text-muted">{{#str}}competency_trend_desc, local_comp_report_ext{{/str}}</small>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center flex-wrap mt-2 mt-md-0">
+                    {{#trend_kpis}}
+                    <div class="d-inline-flex align-items-center bg-light border rounded px-2 py-1 mr-2 mb-1" style="font-size: 0.82rem;">
+                        <span class="mr-1" style="display:inline-block; width:10px; height:10px; border-radius:50%; background-color: {{color}};"></span>
+                        <strong class="text-dark mr-1">{{comp_name}}:</strong>
+                        <span class="font-weight-bold mr-2" style="color: {{color}};">{{overall_pct}}</span>
+                        <span class="badge {{trend_badge}} font-weight-bold px-2 py-1" style="font-size: 0.72rem;">
+                            <i class="fa {{trend_icon}} mr-1"></i>{{trend_label}}
+                        </span>
+                    </div>
+                    {{/trend_kpis}}
+                </div>
+            </div>
+            <div class="card-body p-3">
+                <div style="position: relative; height: 320px; width: 100%;">
+                    <canvas id="competency-trend-chart-{{userid}}"></canvas>
+                </div>
+            </div>
+        </div>
+        {{/has_trend_chart}}
+
+        {{! 3. Course Examinations & Quiz Results Section }}
+        <div class="card border-0 shadow-sm rounded-lg mb-4 overflow-hidden">
             <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between flex-wrap">
                 <div class="d-flex align-items-center">
                     <div class="rounded-circle mr-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background-color: #e7f1ff; color: #0d6efd;">
@@ -127,7 +219,7 @@
                                     <small class="text-primary d-block font-weight-bold" style="font-size: 0.82rem;">{{attempt1_grade}}</small>
                                     {{/attempt1_grade}}
                                     {{#attempt1_items}}
-                                    <small class="text-muted d-block font-weight-normal" style="font-size: 0.72rem;">({{attempt1_items}})</small>
+                                    <small class="text-muted d-block font-weight-normal" style="font-size: 0.72rem;">{{attempt1_items}}</small>
                                     {{/attempt1_items}}
                                 </td>
                                 <td class="text-center align-middle">
@@ -136,7 +228,7 @@
                                     <small class="text-primary d-block font-weight-bold" style="font-size: 0.82rem;">{{retake1_grade}}</small>
                                     {{/retake1_grade}}
                                     {{#retake1_items}}
-                                    <small class="text-muted d-block font-weight-normal" style="font-size: 0.72rem;">({{retake1_items}})</small>
+                                    <small class="text-muted d-block font-weight-normal" style="font-size: 0.72rem;">{{retake1_items}}</small>
                                     {{/retake1_items}}
                                 </td>
                                 <td class="text-center align-middle">
@@ -145,7 +237,7 @@
                                     <small class="text-primary d-block font-weight-bold" style="font-size: 0.82rem;">{{retake2_grade}}</small>
                                     {{/retake2_grade}}
                                     {{#retake2_items}}
-                                    <small class="text-muted d-block font-weight-normal" style="font-size: 0.72rem;">({{retake2_items}})</small>
+                                    <small class="text-muted d-block font-weight-normal" style="font-size: 0.72rem;">{{retake2_items}}</small>
                                     {{/retake2_items}}
                                 </td>
                                 <td class="text-center align-middle bg-light">
@@ -154,7 +246,7 @@
                                     <small class="text-primary d-block font-weight-bold" style="font-size: 0.82rem;">{{final_grade}}</small>
                                     {{/final_grade}}
                                     {{#final_items}}
-                                    <small class="text-muted d-block font-weight-normal" style="font-size: 0.72rem;">({{final_items}})</small>
+                                    <small class="text-muted d-block font-weight-normal" style="font-size: 0.72rem;">{{final_items}}</small>
                                     {{/final_items}}
                                 </td>
                                 <td class="text-center align-middle">
@@ -175,7 +267,7 @@
         </div>
 
         {{! PDF Export Button }}
-        <div class="mt-4">
+        <div class="mt-4 mb-3">
             <a href="{{pdf_url}}" class="btn btn-secondary" target="_blank">
                 <i class="fa fa-file-pdf-o"></i> {{#str}}pdfmystudent, local_comp_report_ext{{/str}}
             </a>
@@ -183,6 +275,72 @@
 
         {{! Reusable AI Commentary & Focus Analysis Widget }}
         {{> local_comp_report_ext/ai_commentary_widget }}
+
+        {{#has_trend_chart}}
+        {{#js}}
+        require(['core/chartjs', 'jquery'], function(Chart, $) {
+            var rawData = {{{chart_data_json}}};
+            if (!rawData || !rawData.labels || rawData.labels.length < 2) { return; }
+
+            var canvas = document.getElementById('competency-trend-chart-{{userid}}');
+            if (!canvas) { return; }
+
+            new Chart(canvas.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: rawData.labels,
+                    datasets: rawData.datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) { return value + '%'; }
+                            },
+                            grid: {
+                                color: 'rgba(0,0,0,0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                boxWidth: 8,
+                                padding: 15,
+                                font: {
+                                    weight: 'bold',
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ' ' + context.dataset.label + ': ' + (context.parsed.y !== null ? context.parsed.y + '%' : '—');
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+        {{/js}}
+        {{/has_trend_chart}}
     {{/has_data}}
 
     {{^has_data}}

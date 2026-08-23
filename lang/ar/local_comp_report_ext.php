@@ -368,6 +368,16 @@ $string['exam_results_title']       = 'نتائج وأداء اختبارات ا
 $string['exam_results_desc']        = 'تفصيل درجات الطالب ومحاولات الإعادة والدرجة المعتمدة في كل اختبار بالمقرر.';
 $string['no_exams_taken']           = 'لا توجد محاولات اختبار مكتملة مسجلة لهذا الطالب في هذا المقرر.';
 $string['status']                   = 'الحالة';
+$string['competency_matrix_title']  = 'مصفوفة الكفايات حسب كل اختبار';
+$string['competency_matrix_desc']   = 'تحليل دقيق لأداء الطالب في كل كفاية داخل كل اختبار مع الإجمالي التراكمي العام للمقرر.';
+$string['competency_trend_title']   = 'منحنى التطور الزمني ومؤشرات تحسن الكفايات';
+$string['competency_trend_desc']    = 'رسم بياني تفاعلي يوضح تتبع تطور مستوى الطالب في كل كفاية على مدار الاختبارات.';
+$string['overall_course_total']     = 'الإجمالي العام للمقرر';
+$string['exam_total']               = 'إجمالي الاختبار';
+$string['trend_improving']          = 'في تحسن 📈';
+$string['trend_steady']             = 'مستقر ⚖️';
+$string['trend_declining']          = 'يحتاج تركيز 📉';
+$string['success_threshold_line']   = 'حد الاجتياز (60%)';
 
 // Capability language strings (required by Moodle).
 $string['comp_report_ext:manage']               = 'إدارة ربط الأسئلة بالكفايات';

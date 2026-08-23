@@ -369,6 +369,16 @@ $string['exam_results_title']       = 'Course Examinations & Quiz Performance';
 $string['exam_results_desc']        = 'Individual score breakdown across all course examinations, retake attempts, and final recorded grades.';
 $string['no_exams_taken']           = 'No finished exam attempts recorded for this student in this course.';
 $string['status']                   = 'Status';
+$string['competency_matrix_title']  = 'Competency Mastery by Examination';
+$string['competency_matrix_desc']   = 'Detailed breakdown of student competency performance across each course examination and overall totals.';
+$string['competency_trend_title']   = 'Longitudinal Competency Progress & Mastery Curve';
+$string['competency_trend_desc']    = 'Visual progress tracking of student competency development across course examinations over time.';
+$string['overall_course_total']     = 'Overall Course Total';
+$string['exam_total']               = 'Exam Total';
+$string['trend_improving']          = 'Improving';
+$string['trend_steady']             = 'Steady';
+$string['trend_declining']          = 'Needs Focus';
+$string['success_threshold_line']   = 'Success Threshold (60%)';
 
 // Capability language strings (required by Moodle — key = shortname of capability after the plugin prefix).
 $string['comp_report_ext:manage']               = 'Manage competency-question mapping';

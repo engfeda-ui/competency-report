@@ -94,6 +94,14 @@ class student_competency_detail_page implements renderable, templatable {
         $export->pdf_url = $this->data->pdf_url;
         $export->ai_comment = $this->data->ai_comment;
         $export->has_data = !empty($export->rows);
+        $export->comp_headers = $this->data->comp_headers ?? [];
+        $export->matrix_rows = $this->data->matrix_rows ?? [];
+        $export->footer_cells = $this->data->footer_cells ?? [];
+        $export->footer_total = $this->data->footer_total ?? null;
+        $export->has_matrix = $this->data->has_matrix ?? false;
+        $export->chart_data_json = $this->data->chart_data_json ?? '{}';
+        $export->trend_kpis = $this->data->trend_kpis ?? [];
+        $export->has_trend_chart = $this->data->has_trend_chart ?? false;
         $export->exam_rows = $this->data->exam_rows ?? [];
         $export->has_exams = !empty($export->exam_rows);
         $export->courseid = $this->data->courseid;

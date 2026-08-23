@@ -75,7 +75,27 @@ foreach ($rows as $r) {
     $rates[$r->shortname] = $r->questions ? ($r->correct / $r->questions) * 100 : 0;
 }
 
-// 3. Fetch and prepare all course exams and attempts for this student.
+// 3. Fetch and prepare all course competencies and matrix data.
+$compheaders = [];
+$comptotals = [];
+$overallallquestions = 0.0;
+$overallallcorrect = 0.0;
+
+foreach ($rows as $r) {
+    $compheaders[$r->id] = (object)[
+        'id'          => (int)$r->id,
+        'shortname'   => $r->shortname,
+        'description' => strip_tags(html_entity_decode($r->description, ENT_QUOTES, 'UTF-8')),
+    ];
+    $comptotals[$r->id] = [
+        'questions' => (float)$r->questions,
+        'correct'   => (float)$r->correct,
+    ];
+    $overallallquestions += (float)$r->questions;
+    $overallallcorrect += (float)$r->correct;
+}
+
+// 4. Fetch and prepare all course exams and attempts for this student.
 $allcoursequizzes = $DB->get_records('quiz', ['course' => $courseid], 'id ASC', 'id, name, grade, sumgrades');
 $retake1quizzes = [];
 $retake2quizzes = [];
@@ -103,8 +123,54 @@ foreach ($allcoursequizzes as $cq) {
     }
 }
 
+// Fetch student's finished attempts breakdown per competency across all quizzes.
+$userfinishedattempts = $DB->get_records_sql(
+    "SELECT quiz, MAX(id) AS bestattid
+       FROM {quiz_attempts}
+      WHERE userid = :userid AND state = 'finished'
+   GROUP BY quiz",
+    ['userid' => $userid]
+);
+
+$bestattids = array_map(fn($a) => (int)$a->bestattid, $userfinishedattempts);
+$quizcompdata = [];
+
+if (!empty($bestattids)) {
+    [$insql, $inparams] = $DB->get_in_or_equal($bestattids, SQL_PARAMS_NAMED, 'att');
+    $breakdownsql = "
+        SELECT CONCAT(quiza.quiz, '_', c.id) AS quizcompid,
+               quiza.quiz AS quizid,
+               c.id AS compid,
+               CAST(SUM(qa.maxfraction) AS DECIMAL(12, 1)) AS total_q,
+               CAST(SUM(qas.fraction) AS DECIMAL(12, 1)) AS correct_q
+          FROM {quiz_attempts} quiza
+          JOIN {question_usages} qu ON qu.id = quiza.uniqueid
+          JOIN {question_attempts} qa ON qa.questionusageid = qu.id
+          JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
+          JOIN {competency} c ON c.id = m.competencyid
+          JOIN (
+              SELECT MAX(fraction) AS fraction, questionattemptid
+                FROM {question_attempt_steps}
+            GROUP BY questionattemptid
+          ) qas ON qas.questionattemptid = qa.id
+         WHERE quiza.id $insql
+      GROUP BY quiza.quiz, c.id";
+    $quizcompdata = $DB->get_records_sql($breakdownsql, $inparams);
+}
+
 $qslabel = get_string('questions_abbr', 'local_comp_report_ext');
 $examrows = [];
+$matrixrows = [];
+$chartexamlabels = [];
+$chartcompseries = [];
+
+foreach ($compheaders as $cid => $ch) {
+    $chartcompseries[$cid] = [
+        'comp_id'   => $cid,
+        'comp_name' => $ch->shortname,
+        'scores'    => [],
+    ];
+}
 
 foreach ($primaryquizzes as $pq) {
     $sumgradesmax = (float)($pq->sumgrades > 0 ? $pq->sumgrades : 100.0);
@@ -311,11 +377,179 @@ foreach ($primaryquizzes as $pq) {
         'status_label'        => $retakestatuslabel,
         'status_badge'        => $retakestatusbadge,
     ];
+
+    // Build Competency Matrix Row for this quiz.
+    $chartexamlabels[] = format_string($pq->name);
+    $rowcells = [];
+    $rowtotalq = 0.0;
+    $rowtotalc = 0.0;
+
+    foreach ($compheaders as $cid => $ch) {
+        $key = $pq->id . '_' . $cid;
+        if (isset($quizcompdata[$key])) {
+            $tq = (float)$quizcompdata[$key]->total_q;
+            $cq = (float)$quizcompdata[$key]->correct_q;
+            $pct = $tq > 0 ? round(($cq / $tq) * 100.0, 1) : 0.0;
+            $color = ($pct >= 80) ? '#28a745' : (($pct >= 60) ? '#0056b3' : (($pct >= 40) ? '#e67e22' : '#dc3545'));
+
+            $rowcells[] = [
+                'has_data' => true,
+                'pct'      => '%' . number_format($pct, 1),
+                'items'    => '(' . (0 + round($cq, 1)) . '/' . (0 + round($tq, 1)) . ' ' . $qslabel . ')',
+                'color'    => $color,
+            ];
+
+            $rowtotalq += $tq;
+            $rowtotalc += $cq;
+            $chartcompseries[$cid]['scores'][] = $pct;
+        } else {
+            $rowcells[] = [
+                'has_data' => false,
+                'pct'      => '—',
+                'items'    => '',
+                'color'    => '#6c757d',
+            ];
+            $chartcompseries[$cid]['scores'][] = null;
+        }
+    }
+
+    $rowoverallpct = $rowtotalq > 0 ? round(($rowtotalc / $rowtotalq) * 100.0, 1) : 0.0;
+    $rowoverallcolor = ($rowoverallpct >= 80) ? '#28a745' : (($rowoverallpct >= 60) ? '#0056b3' : (($rowoverallpct >= 40) ? '#e67e22' : '#dc3545'));
+
+    $matrixrows[] = [
+        'index'            => count($matrixrows) + 1,
+        'quiz_id'          => (int)$pq->id,
+        'quiz_name'        => format_string($pq->name),
+        'quiz_url'         => $quizurl,
+        'cells'            => $rowcells,
+        'row_total_pct'    => '%' . number_format($rowoverallpct, 1),
+        'row_total_items'  => '(' . (0 + round($rowtotalc, 1)) . '/' . (0 + round($rowtotalq, 1)) . ' ' . $qslabel . ')',
+        'row_color'        => $rowoverallcolor,
+    ];
 }
+
+// Compute Matrix Footer Total Row.
+$footercells = [];
+foreach ($compheaders as $cid => $ch) {
+    $totq = $comptotals[$cid]['questions'] ?? 0.0;
+    $totc = $comptotals[$cid]['correct'] ?? 0.0;
+    $totpct = $totq > 0 ? round(($totc / $totq) * 100.0, 1) : 0.0;
+    $totcolor = ($totpct >= 80) ? '#28a745' : (($totpct >= 60) ? '#0056b3' : (($totpct >= 40) ? '#e67e22' : '#dc3545'));
+
+    $footercells[] = [
+        'pct'   => '%' . number_format($totpct, 1),
+        'items' => '(' . (0 + round($totc, 1)) . '/' . (0 + round($totq, 1)) . ' ' . $qslabel . ')',
+        'color' => $totcolor,
+    ];
+}
+
+$overallcoursepct = $overallallquestions > 0 ? round(($overallallcorrect / $overallallquestions) * 100.0, 1) : 0.0;
+$overallcoursecolor = ($overallcoursepct >= 80) ? '#28a745' : (($overallcoursepct >= 60) ? '#0056b3' : (($overallcoursepct >= 40) ? '#e67e22' : '#dc3545'));
+
+$footertotal = [
+    'pct'   => '%' . number_format($overallcoursepct, 1),
+    'items' => '(' . (0 + round($overallallcorrect, 1)) . '/' . (0 + round($overallallquestions, 1)) . ' ' . $qslabel . ')',
+    'color' => $overallcoursecolor,
+];
+
+// Build Chart.js Datasets and Trend KPIs.
+$palette = [
+    ['border' => '#0d6efd', 'bg' => 'rgba(13, 110, 253, 0.1)'],
+    ['border' => '#198754', 'bg' => 'rgba(25, 135, 84, 0.1)'],
+    ['border' => '#fd7e14', 'bg' => 'rgba(253, 126, 20, 0.1)'],
+    ['border' => '#6f42c1', 'bg' => 'rgba(111, 66, 193, 0.1)'],
+    ['border' => '#20c997', 'bg' => 'rgba(32, 201, 151, 0.1)'],
+    ['border' => '#d63384', 'bg' => 'rgba(214, 51, 132, 0.1)'],
+];
+
+$chartdatasets = [];
+$trendkpis = [];
+$coloridx = 0;
+
+foreach ($chartcompseries as $cid => $series) {
+    $validscores = array_filter($series['scores'], fn($v) => $v !== null);
+    $trendlabel = get_string('trend_steady', 'local_comp_report_ext');
+    $trendbadge = 'badge-info';
+    $trendicon  = 'fa-arrows-h';
+
+    if (count($validscores) >= 2) {
+        $firstscore = reset($validscores);
+        $lastscore  = end($validscores);
+        $diff = $lastscore - $firstscore;
+
+        if ($diff >= 5.0) {
+            $trendlabel = get_string('trend_improving', 'local_comp_report_ext');
+            $trendbadge = 'badge-success';
+            $trendicon  = 'fa-arrow-up';
+        } else if ($diff <= -5.0) {
+            $trendlabel = get_string('trend_declining', 'local_comp_report_ext');
+            $trendbadge = 'badge-danger';
+            $trendicon  = 'fa-arrow-down';
+        }
+    }
+
+    $color = $palette[$coloridx % count($palette)];
+    $coloridx++;
+
+    $chartdatasets[] = [
+        'label'                => $series['comp_name'],
+        'data'                 => $series['scores'],
+        'borderColor'          => $color['border'],
+        'backgroundColor'      => $color['bg'],
+        'borderWidth'          => 2.5,
+        'pointBackgroundColor' => $color['border'],
+        'pointRadius'          => 5,
+        'pointHoverRadius'     => 7,
+        'fill'                 => false,
+        'tension'              => 0.25,
+        'spanGaps'             => true,
+    ];
+
+    $totq = $comptotals[$cid]['questions'] ?? 0.0;
+    $totc = $comptotals[$cid]['correct'] ?? 0.0;
+    $totpct = $totq > 0 ? round(($totc / $totq) * 100.0, 1) : 0.0;
+
+    $trendkpis[] = [
+        'comp_name'   => $series['comp_name'],
+        'color'       => $color['border'],
+        'overall_pct' => '%' . number_format($totpct, 1),
+        'trend_label' => $trendlabel,
+        'trend_badge' => $trendbadge,
+        'trend_icon'  => $trendicon,
+    ];
+}
+
+// Add 60% Threshold Benchmark Line.
+$thresholdpoints = array_fill(0, count($chartexamlabels), 60.0);
+$chartdatasets[] = [
+    'label'                => get_string('success_threshold_line', 'local_comp_report_ext'),
+    'data'                 => $thresholdpoints,
+    'borderColor'          => '#dc3545',
+    'backgroundColor'      => 'transparent',
+    'borderWidth'          => 1.8,
+    'borderDash'           => [6, 4],
+    'pointRadius'          => 0,
+    'fill'                 => false,
+    'tension'              => 0,
+];
+
+$chartdatajson = json_encode([
+    'labels'   => $chartexamlabels,
+    'datasets' => $chartdatasets,
+]);
 
 $renderdata = new stdClass();
 $renderdata->rows = $rows;
+$renderdata->comp_headers = array_values($compheaders);
+$renderdata->matrix_rows = $matrixrows;
+$renderdata->footer_cells = $footercells;
+$renderdata->footer_total = $footertotal;
+$renderdata->has_matrix = !empty($matrixrows);
+$renderdata->chart_data_json = $chartdatajson;
+$renderdata->trend_kpis = $trendkpis;
+$renderdata->has_trend_chart = (count($chartexamlabels) >= 2);
 $renderdata->exam_rows = $examrows;
+$renderdata->has_exams = !empty($examrows);
 $renderdata->courseid = $courseid;
 $renderdata->userid = $userid;
 $pdfurl = new moodle_url('/local/comp_report_ext/parent_pdf.php', ['courseid' => $courseid, 'userid' => $userid]);
@@ -324,7 +558,7 @@ $renderdata->pdf_url = $pdfurl->out(false);
 // AI feedback is now loaded on-demand via AJAX to avoid slow page loads.
 $renderdata->ai_comment = null;
 
-// 4. Output Generation.
+// 5. Output Generation.
 echo $OUTPUT->header();
 
 $page = new \local_comp_report_ext\output\student_competency_detail_page($renderdata);
