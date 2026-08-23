@@ -377,4 +377,3 @@ $string['competency_report:viewreports']        = 'View all competency reports (
 $string['competency_report:viewownreport']      = 'View own competency report (legacy)';
 $string['competency_report:manageassessments']  = 'Manage assessment weights (legacy)';
 $string['competency_report:enterpractical']     = 'Enter practical exam results (legacy)';
-

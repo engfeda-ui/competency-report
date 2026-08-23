@@ -26,10 +26,10 @@
 define('AJAX_SCRIPT', true);
 require_once(__DIR__ . '/../../config.php');
 $courseid = required_param('courseid', PARAM_INT);
-$userid   = optional_param('userid',   0, PARAM_INT);
+$userid   = optional_param('userid', 0, PARAM_INT);
 $language = optional_param('language', 'ar', PARAM_ALPHAEXT);
 $sessions = optional_param('sessions', 4, PARAM_INT);
-$quizid   = optional_param('quizid',   0, PARAM_INT);
+$quizid   = optional_param('quizid', 0, PARAM_INT);
 
 require_login($courseid);
 require_sesskey();

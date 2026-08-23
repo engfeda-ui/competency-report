@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.19.15-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.19.16-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -81,6 +81,15 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 ---
 
 ## 📋 Changelog
+
+### v3.19.16 — 2026-08-23
+- **Code Standards & Moodle CodeChecker Compliance:**
+  - Eliminated variable naming violations (removed underscores in variables) across `group_exam_analytics.php`.
+  - Replaced legacy `list()` with PHP 7.1+ array destructuring syntax `[...]` across `group_exam_analytics.php`, `group_quiz_competency.php`, and `classes/external/ai.php`.
+  - Resolved all line length (> 132 chars) warnings in `classes/external/ai.php`, `classes/competency_calculator.php`, and `ai.php`.
+  - Fixed multiline function call signature spacing in `classes/competency_calculator.php` (`PSR2.Methods.FunctionCallSignature`).
+  - Formatted inline comments with proper capitalization, punctuation, and hyphen separators in `lib.php`, `lang/ar/local_comp_report_ext.php`, `group_analytics_dashboard_pdf.php`, `classes/output/group_competency_page.php`, and `classes/output/group_quiz_competency_page.php`.
+  - Fixed trailing newlines and whitespace issues in `lang/en/local_comp_report_ext.php`, `lang/ar/local_comp_report_ext.php`, and `ajax_studyplan.php`.
 
 ### v3.19.15 — 2026-08-23
 - **Code Standards & Naming Conventions (Reviewer Feedback #1):** Renamed plugin-owned PDF layout variables in `group_analytics_dashboard_pdf.php` from camelCase (`$currentY`, `$chartWidth`, `$chartHeight`) to Moodle standard `lower_snake_case` (`$currenty`, `$chartwidth`, `$chartheight`).

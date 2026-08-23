@@ -590,21 +590,21 @@ function local_comp_report_ext_build_studyplan_prompt(
     int $numsessions,
     array $contextdetails
 ): string {
-    // ---- Configuration ------------------------------------------------
+    // Configuration.
     $threshold   = (int)(get_config('local_comp_report_ext', 'success_threshold') ?: 60);
     $numsessions = max(1, min(60, $numsessions));
     $maxwords    = max(300, min(1500, $numsessions * 80));
     $midpoint    = (int)round($numsessions / 2);
 
     $studentname = $contextdetails['studentname'] ?? '';
-    $coursename  = $contextdetails['coursename']  ?? ($contextdetails['course_fullname'] ?? '');
-    $quizname    = $contextdetails['quizname']    ?? ($contextdetails['quiz_name'] ?? '');
+    $coursename  = $contextdetails['coursename'] ?? ($contextdetails['course_fullname'] ?? '');
+    $quizname    = $contextdetails['quizname'] ?? ($contextdetails['quiz_name'] ?? '');
 
     // Missed questions per competency from build_context_details().
-    // Structure: [comp_shortname => [['name' => string, 'pct' => int], ...]]
+    // Structure: [comp_shortname => [['name' => string, 'pct' => int], ...]].
     $missedbycomp = $contextdetails['missed_questions_by_competency'] ?? [];
 
-    // ---- Normalise rates to [shortname => ['desc' => string, 'rate' => float]] ----
+    // Normalise rates to [shortname => ['desc' => string, 'rate' => float]].
     $normrates = [];
     foreach ($rates as $key => $value) {
         if (is_array($value) && isset($value['competency'])) {
@@ -633,7 +633,7 @@ function local_comp_report_ext_build_studyplan_prompt(
         }
     }
 
-    // ---- Build prompt header ----------------------------------------
+    // Build prompt header.
     $prompt = "You are an expert educational psychologist and remedial learning coach.\n"
         . "Your task: create a HIGHLY SPECIFIC, question-driven, personalized remedial study plan";
 
@@ -648,13 +648,13 @@ function local_comp_report_ext_build_studyplan_prompt(
     }
     $prompt .= ".\n\n";
 
-    // ---- Plan parameters -------------------------------------------
+    // Plan parameters.
     $prompt .= "PLAN PARAMETERS:\n"
         . "- Total sessions: {$numsessions} x 1-hour blocks\n"
         . "- Each session is self-contained and independently schedulable\n"
         . "- Priority: weakest competencies get the most sessions\n\n";
 
-    // ---- Competency performance data --------------------------------
+    // Competency performance data.
     $prompt .= "=== COMPETENCY PERFORMANCE DATA ===\n";
 
     if (!empty($weak)) {
@@ -671,7 +671,7 @@ function local_comp_report_ext_build_studyplan_prompt(
         }
     }
 
-    // ---- CORE SECTION: Specific wrong answers per competency --------
+    // Core section: Specific wrong answers per competency.
     // This is the most important input — real quiz questions the student
     // got wrong, linked to their competency. The AI MUST base each
     // session's activities on these exact questions.
@@ -700,7 +700,7 @@ function local_comp_report_ext_build_studyplan_prompt(
             . " percentages above and typical assessment items for this domain.\n";
     }
 
-    // ---- Strict output requirements ---------------------------------
+    // Strict output requirements.
     $prompt .= "
 === STRICT OUTPUT REQUIREMENTS ===
 1. Write ENTIRELY in {$language}. No preamble, no meta-commentary.
@@ -740,4 +740,3 @@ function local_comp_report_ext_build_studyplan_prompt(
 
     return $prompt;
 }
-

@@ -77,9 +77,24 @@ class ai extends external_api {
                 VALUE_DEFAULT,
                 'student'
             ),
-            'focustype'    => new external_value(PARAM_ALPHAEXT, 'Focus type: competency or grades', VALUE_DEFAULT, 'competency'),
-            'customprompt' => new external_value(PARAM_TEXT, 'Optional custom prompt instructions', VALUE_DEFAULT, ''),
-            'language'     => new external_value(PARAM_TEXT, 'Optional language selection (Arabic, English, auto)', VALUE_DEFAULT, 'auto'),
+            'focustype'    => new external_value(
+                PARAM_ALPHAEXT,
+                'Focus type: competency or grades',
+                VALUE_DEFAULT,
+                'competency'
+            ),
+            'customprompt' => new external_value(
+                PARAM_TEXT,
+                'Optional custom prompt instructions',
+                VALUE_DEFAULT,
+                ''
+            ),
+            'language'     => new external_value(
+                PARAM_TEXT,
+                'Optional language selection (Arabic, English, auto)',
+                VALUE_DEFAULT,
+                'auto'
+            ),
         ]);
     }
 
@@ -160,7 +175,7 @@ class ai extends external_api {
                     foreach ($asmts as $asmt) {
                         $asmtname = $asmt->name . ' (Weight: ' . (float)$asmt->weight . '%)';
                         if ($asmt->type === 'quiz' && !empty($asmt->quizid)) {
-                            list($insql, $inparams) = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED);
+                            [$insql, $inparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED);
                             $inparams['quizid'] = $asmt->quizid;
                             $sql = "SELECT AVG(qa.sumgrades) AS avggrade, q.sumgrades AS maxgrade
                                     FROM {quiz_attempts} qa
@@ -170,9 +185,11 @@ class ai extends external_api {
                             $rate = ($res && $res->maxgrade > 0) ? round(($res->avggrade / $res->maxgrade) * 100, 1) : 0;
                             $rates[$asmtname] = $rate;
                         } else if ($asmt->type === 'practical') {
-                            list($insql, $inparams) = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED);
+                            [$insql, $inparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED);
                             $inparams['asmtid'] = $asmt->id;
-                            $sql = "SELECT AVG(competency_percent) AS avggrade FROM {local_comp_report_ext_prac} WHERE assessmentid = :asmtid AND studentid $insql";
+                            $sql = "SELECT AVG(competency_percent) AS avggrade
+                                      FROM {local_comp_report_ext_prac}
+                                     WHERE assessmentid = :asmtid AND studentid $insql";
                             $res = $DB->get_record_sql($sql, $inparams);
                             $rate = ($res && $res->avggrade !== null) ? round((float)$res->avggrade, 1) : 0;
                             $rates[$asmtname] = $rate;
@@ -184,7 +201,7 @@ class ai extends external_api {
                     if (!empty($params['groupid'])) {
                         $members = groups_get_members($params['groupid'], 'u.id');
                         $userids = !empty($members) ? array_keys($members) : [0];
-                        list($insql, $inparams) = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED);
+                        [$insql, $inparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED);
                         $inparams['courseid'] = $params['courseid'];
                         $sql = "SELECT q.id, q.name, AVG(qa.sumgrades) as avggrade, q.sumgrades as maxgrade
                                 FROM {quiz_attempts} qa

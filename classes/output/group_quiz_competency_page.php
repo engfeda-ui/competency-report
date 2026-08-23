@@ -78,7 +78,7 @@ class group_quiz_competency_page implements renderable, templatable {
         $export->groupid = $this->groupid;
         $export->quizid = $this->quizid;
         $export->context_type = 'quiz';
-        // groupid=0 means "All Groups" which is valid; only a quiz selection is required.
+        // Groupid=0 means "All Groups" which is valid; only a quiz selection is required.
         $export->has_data = ($this->quizid > 0);
 
         $export->groups       = !empty($this->data->groups) ? array_values((array)$this->data->groups) : [];

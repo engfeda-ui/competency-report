@@ -185,8 +185,10 @@ function local_comp_report_ext_ai_comment(
     }
 
     if ($isarabic) {
-        $langdirective = "CRITICAL LANGUAGE REQUIREMENT: Output the report ENTIRELY in natural, highly professional Arabic (العربية). "
-            . "Use exact technical, industrial, and academic terminology appropriate for the course subject. Do NOT output in English.";
+        $langdirective = "CRITICAL LANGUAGE REQUIREMENT: Output the report ENTIRELY in natural, "
+            . "highly professional Arabic (العربية). "
+            . "Use exact technical, industrial, and academic terminology appropriate for the course subject. "
+            . "Do NOT output in English.";
     } else {
         $langdirective = "CRITICAL LANGUAGE REQUIREMENT: Output the report in English, "
             . "using exact domain-specific technical terms suitable for the course subject.";
@@ -654,7 +656,9 @@ function local_comp_report_ext_parse_progress_bars($html) {
         // Fallback if $OUTPUT is not yet fully initialized in CLI/cron.
         $output = '<div class="ai-progress-item" style="margin-top: 5px; margin-bottom: 8px;">';
         $output .= '<strong>' . s($name) . ' (' . $percent . '%)</strong>';
-        $output .= '<table border="0" cellspacing="0" cellpadding="0" width="150" height="8" style="border: 1px solid #dee2e6; margin-top: 2px;">';
+        $tblattr = 'border="0" cellspacing="0" cellpadding="0" width="150" height="8" '
+            . 'style="border: 1px solid #dee2e6; margin-top: 2px;"';
+        $output .= '<table ' . $tblattr . '>';
         $output .= '<tr>';
         if ($width > 0) {
             $output .= '<td bgcolor="' . $color . '" width="' . $width . '%">&nbsp;</td>';

@@ -50,9 +50,7 @@ if (!$canviewext && !$canviewold) {
     require_capability('local/comp_report_ext:viewreports', $context);
 }
 
-// -----------------------------------------------------------------------
 // TCPDF Generation.
-// -----------------------------------------------------------------------
 $pdf = new TCPDF('P', PDF_UNIT, 'A4', true, 'UTF-8', false);
 $pdf->SetCreator('Moodle');
 $pdf->SetTitle(get_string('group_analytics_dashboard', 'local_comp_report_ext'));
@@ -90,10 +88,10 @@ if ($hascharts) {
     $pdf->Ln(2);
 
     $currenty = $pdf->GetY();
-    $chartwidth  = 86; // mm width for 2-column layout on A4 portrait
-    $chartheight = 52; // mm height
+    $chartwidth  = 86; // Mm width for 2-column layout on A4 portrait.
+    $chartheight = 52; // Mm height.
 
-    // Row 1: Chart 1 (Radar) & Chart 2 (Distribution)
+    // Row 1: Chart 1 (Radar) & Chart 2 (Distribution).
     if (!empty($chart1)) {
         $img1 = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $chart1));
         if ($img1) {
@@ -109,7 +107,7 @@ if ($hascharts) {
 
     $currenty += $chartheight + 4;
 
-    // Row 2: Chart 3 (Progress) & Chart 4 (Theory vs Practice)
+    // Row 2: Chart 3 (Progress) & Chart 4 (Theory vs Practice).
     if (!empty($chart3)) {
         $img3 = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $chart3));
         if ($img3) {

@@ -114,7 +114,7 @@ if ($quizid > 0) {
 
         // Performance Data Calculation.
         $studentids = array_keys($students);
-        list($insql, $inparams) = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'uid');
+        [$insql, $inparams] = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'uid');
         $inparams['quizid'] = $quizid;
 
         $scoremap = [];
@@ -145,7 +145,7 @@ if ($quizid > 0) {
         $maxgrade = (float)($quizrecord->grade ?? 0);
         $renderdata->quiz_maxgrade = number_format($maxgrade, 1);
 
-        list($ginsql, $ginparams) = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'gid');
+        [$ginsql, $ginparams] = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'gid');
         $ginparams['gquizid'] = $quizid;
         $graderecords = $DB->get_records_sql(
             "SELECT userid, grade FROM {quiz_grades} WHERE quiz = :gquizid AND userid $ginsql",

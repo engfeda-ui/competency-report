@@ -364,16 +364,15 @@ $string['passed_retake_1']          = 'ناجح إعادة 1 (سقف 60%)';
 $string['passed_retake_2']          = 'ناجح إعادة 2 (سقف 60%)';
 $string['failed_status']            = 'راسب (< 60%)';
 
-// سلاسل الصلاحيات (مطلوبة من مودل لعرض أسماء الصلاحيات في واجهة إدارة الأدوار).
+// Capability language strings (required by Moodle).
 $string['comp_report_ext:manage']               = 'إدارة ربط الأسئلة بالكفايات';
 $string['comp_report_ext:viewreports']          = 'عرض تقارير الكفايات الكاملة (للمعلم/المدير)';
 $string['comp_report_ext:viewownreport']        = 'عرض تقرير الكفايات الشخصي (للطالب)';
 $string['comp_report_ext:manageassessments']    = 'إدارة أوزان التقييمات (الاختبارات والعملي)';
 $string['comp_report_ext:enterpractical']       = 'إدخال درجات الاختبار العملي للطلاب';
 
-// أسماء الصلاحيات القديمة (للتوافقية مع اسم الإضافة السابق competency_report).
+// Legacy capability label aliases (competency_report plugin name).
 $string['competency_report:viewreports']        = 'عرض تقارير الكفايات الكاملة (قديم)';
 $string['competency_report:viewownreport']      = 'عرض تقرير الكفايات الشخصي (قديم)';
 $string['competency_report:manageassessments']  = 'إدارة أوزان التقييمات (قديم)';
 $string['competency_report:enterpractical']     = 'إدخال درجات العملي (قديم)';
-

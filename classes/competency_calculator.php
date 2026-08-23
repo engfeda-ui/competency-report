@@ -404,31 +404,27 @@ class competency_calculator {
         global $DB;
 
         if ($groupid && $groupid > 0) {
-            $students = $DB->get_records_sql("
-                SELECT DISTINCT u.id
-                  FROM {groups_members} gm
-                  JOIN {user} u ON u.id = gm.userid
-                  JOIN {role_assignments} ra ON ra.userid = u.id
-                  JOIN {context} ctx ON ctx.id = ra.contextid
-                 WHERE gm.groupid = :groupid
-                   AND ctx.instanceid = :courseid
-                   AND ra.roleid = (SELECT id FROM {role} WHERE shortname = 'student')
-                   AND u.deleted = 0",
-                ['groupid' => $groupid, 'courseid' => $this->courseid]
-            );
+            $sql = "SELECT DISTINCT u.id
+                      FROM {groups_members} gm
+                      JOIN {user} u ON u.id = gm.userid
+                      JOIN {role_assignments} ra ON ra.userid = u.id
+                      JOIN {context} ctx ON ctx.id = ra.contextid
+                     WHERE gm.groupid = :groupid
+                       AND ctx.instanceid = :courseid
+                       AND ra.roleid = (SELECT id FROM {role} WHERE shortname = 'student')
+                       AND u.deleted = 0";
+            $students = $DB->get_records_sql($sql, ['groupid' => $groupid, 'courseid' => $this->courseid]);
         } else {
-            $students = $DB->get_records_sql("
-                SELECT DISTINCT u.id
-                  FROM {role_assignments} ra
-                  JOIN {role} r ON r.id = ra.roleid
-                  JOIN {context} ctx ON ctx.id = ra.contextid
-                  JOIN {user} u ON u.id = ra.userid
-                 WHERE ctx.instanceid = :courseid
-                   AND ctx.contextlevel = 50
-                   AND r.shortname = 'student'
-                   AND u.deleted = 0",
-                ['courseid' => $this->courseid]
-            );
+            $sql = "SELECT DISTINCT u.id
+                      FROM {role_assignments} ra
+                      JOIN {role} r ON r.id = ra.roleid
+                      JOIN {context} ctx ON ctx.id = ra.contextid
+                      JOIN {user} u ON u.id = ra.userid
+                     WHERE ctx.instanceid = :courseid
+                       AND ctx.contextlevel = 50
+                       AND r.shortname = 'student'
+                       AND u.deleted = 0";
+            $students = $DB->get_records_sql($sql, ['courseid' => $this->courseid]);
         }
 
         if (empty($students)) {
@@ -442,9 +438,12 @@ class competency_calculator {
             $scores = $this->get_student_scores((int)$student->id);
             foreach ($scores as $compid => $data) {
                 if (!isset($compobjects[$compid])) {
+                    $compname = is_object($data['competency'])
+                        ? $data['competency']->shortname
+                        : ($data['competency']['shortname'] ?? 'Comp ' . $compid);
                     $compobjects[$compid] = (object)[
                         'id' => $compid,
-                        'shortname' => is_object($data['competency']) ? $data['competency']->shortname : ($data['competency']['shortname'] ?? 'Comp ' . $compid),
+                        'shortname' => $compname,
                     ];
                 }
                 $compscores[$compid][] = (float)$data['percent'];
