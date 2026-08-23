@@ -304,6 +304,7 @@ if ($quiz && !empty($students)) {
             $retakecount = ($att2score !== null ? 1 : 0) + ($att3score !== null ? 1 : 0);
 
             $scorepct = 0.0;
+            $finalraw = 0.0;
             $retakestatuslabel = '—';
             $retakestatusbadge = 'badge-secondary';
 
@@ -311,21 +312,33 @@ if ($quiz && !empty($students)) {
             if ($att1score !== null && $att1score >= 60.0) {
                 // Passed on original 1st attempt with natural score.
                 $scorepct = $att1score;
+                $finalraw = (float)$att1raw;
                 $retakestatuslabel = get_string('passed_first_attempt', 'local_comp_report_ext');
                 $retakestatusbadge = 'badge-success';
             } else if ($att2score !== null && $att2score >= 60.0) {
                 // Passed on Retake 1 — capped at 60.0%.
                 $scorepct = 60.0;
+                $finalraw = round(0.60 * $sumgradesmax, 2);
                 $retakestatuslabel = get_string('passed_retake_1', 'local_comp_report_ext');
                 $retakestatusbadge = 'badge-info';
             } else if ($att3score !== null && $att3score >= 60.0) {
                 // Passed on Retake 2 — capped at 60.0%.
                 $scorepct = 60.0;
+                $finalraw = round(0.60 * $sumgradesmax, 2);
                 $retakestatuslabel = get_string('passed_retake_2', 'local_comp_report_ext');
                 $retakestatusbadge = 'badge-primary';
             } else {
-                // Failed or pending: take highest score achieved.
+                // Failed or pending: take highest score achieved with actual raw points.
                 $scorepct = !empty($validscores) ? max($validscores) : 0.0;
+                if ($att1score !== null && $att1score === $scorepct) {
+                    $finalraw = (float)$att1raw;
+                } else if ($att2score !== null && $att2score === $scorepct) {
+                    $finalraw = (float)$att2raw;
+                } else if ($att3score !== null && $att3score === $scorepct) {
+                    $finalraw = (float)$att3raw;
+                } else {
+                    $finalraw = (float)($att1raw ?? ($att2raw ?? ($att3raw ?? 0.0)));
+                }
                 $retakestatuslabel = get_string('failed_status', 'local_comp_report_ext');
                 $retakestatusbadge = 'badge-danger';
             }
@@ -363,9 +376,8 @@ if ($quiz && !empty($students)) {
             $att3grade = ($att3raw !== null && $att3max !== null)
                 ? (0 + round($att3raw, 2)) . ' / ' . (0 + round($att3max, 2))
                 : '';
-            $finalraw = round(($scorepct / 100.0) * $sumgradesmax, 2);
             $finalgrade = ($sumgradesmax > 0)
-                ? (0 + $finalraw) . ' / ' . (0 + round($sumgradesmax, 2))
+                ? (0 + round($finalraw, 2)) . ' / ' . (0 + round($sumgradesmax, 2))
                 : '';
 
             $studentlist[] = [

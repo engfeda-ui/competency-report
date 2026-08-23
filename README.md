@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.19.17-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.19.18-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -81,6 +81,9 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 ---
 
 ## 📋 Changelog
+
+### v3.19.18 — 2026-08-23
+- **Bug Fix (Exact Integer Raw Grade Tracking for Final Recorded Grade in Exam Roster):** Fixed grade reconstruction rounding inaccuracy in `group_exam_analytics.php`. The Final Recorded Grade raw score now directly maps the exact raw points from the attempt instead of back-calculating from the rounded percentage, eliminating floating-point rounding artifacts (e.g. `25 / 45` instead of `25.02 / 45`).
 
 ### v3.19.17 — 2026-08-23
 - **Feature (Raw Grade Display alongside Percentage in Student Exam Scores Roster):** Added dual-metric reporting in the Group Exam Performance Analytics roster table (`group_exam_analytics.php` & `templates/group_exam_analytics_page.mustache`). The table now displays the exact raw score achieved out of total maximum points (e.g. `36 / 45`) formatted neatly below the percentage across Attempt 1, Retake 1, Retake 2, and Final Recorded Grade columns.
