@@ -94,6 +94,8 @@ class student_competency_detail_page implements renderable, templatable {
         $export->pdf_url = $this->data->pdf_url;
         $export->ai_comment = $this->data->ai_comment;
         $export->has_data = !empty($export->rows);
+        $export->exam_rows = $this->data->exam_rows ?? [];
+        $export->has_exams = !empty($export->exam_rows);
         $export->courseid = $this->data->courseid;
         $export->userid = $this->data->userid;
         $export->context_type = 'student';

@@ -365,6 +365,10 @@ $string['passed_first_attempt']     = 'Passed (1st Attempt)';
 $string['passed_retake_1']          = 'Passed Retake 1 (60% Cap)';
 $string['passed_retake_2']          = 'Passed Retake 2 (60% Cap)';
 $string['failed_status']            = 'At-Risk / Failed (< 60%)';
+$string['exam_results_title']       = 'Course Examinations & Quiz Performance';
+$string['exam_results_desc']        = 'Individual score breakdown across all course examinations, retake attempts, and final recorded grades.';
+$string['no_exams_taken']           = 'No finished exam attempts recorded for this student in this course.';
+$string['status']                   = 'Status';
 
 // Capability language strings (required by Moodle — key = shortname of capability after the plugin prefix).
 $string['comp_report_ext:manage']               = 'Manage competency-question mapping';

@@ -364,6 +364,10 @@ $string['passed_first_attempt']     = 'ناجح (محاولة أولى)';
 $string['passed_retake_1']          = 'ناجح إعادة 1 (سقف 60%)';
 $string['passed_retake_2']          = 'ناجح إعادة 2 (سقف 60%)';
 $string['failed_status']            = 'راسب (< 60%)';
+$string['exam_results_title']       = 'نتائج وأداء اختبارات المقرر';
+$string['exam_results_desc']        = 'تفصيل درجات الطالب ومحاولات الإعادة والدرجة المعتمدة في كل اختبار بالمقرر.';
+$string['no_exams_taken']           = 'لا توجد محاولات اختبار مكتملة مسجلة لهذا الطالب في هذا المقرر.';
+$string['status']                   = 'الحالة';
 
 // Capability language strings (required by Moodle).
 $string['comp_report_ext:manage']               = 'إدارة ربط الأسئلة بالكفايات';

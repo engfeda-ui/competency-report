@@ -83,6 +83,97 @@
             </table>
         </div>
 
+        {{! Course Examinations & Quiz Results Section }}
+        <div class="card border-0 shadow-sm rounded-lg mb-4 mt-4 overflow-hidden">
+            <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between flex-wrap">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle mr-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background-color: #e7f1ff; color: #0d6efd;">
+                        <i class="fa fa-pencil-square-o fa-lg"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-0 font-weight-bold text-dark">{{#str}}exam_results_title, local_comp_report_ext{{/str}}</h5>
+                        <small class="text-muted">{{#str}}exam_results_desc, local_comp_report_ext{{/str}}</small>
+                    </div>
+                </div>
+                <span class="badge badge-primary px-3 py-1 font-weight-bold rounded-pill" style="font-size: 0.85rem;">{{#str}}allquizzes, local_comp_report_ext{{/str}}</span>
+            </div>
+            <div class="card-body p-0">
+                {{#has_exams}}
+                <div class="table-responsive">
+                    <table class="generaltable table table-bordered table-hover mb-0 bg-white">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th style="width: 50px;" class="text-center">#</th>
+                                <th>{{#str}}quizexamname, local_comp_report_ext{{/str}}</th>
+                                <th class="text-center" style="width: 150px;">{{#str}}attempt_1, local_comp_report_ext{{/str}}</th>
+                                <th class="text-center" style="width: 140px;">{{#str}}retake_1, local_comp_report_ext{{/str}}</th>
+                                <th class="text-center" style="width: 140px;">{{#str}}retake_2, local_comp_report_ext{{/str}}</th>
+                                <th class="text-center" style="width: 170px;">{{#str}}final_recorded_grade, local_comp_report_ext{{/str}}</th>
+                                <th class="text-center" style="width: 160px;">{{#str}}status, local_comp_report_ext{{/str}}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{#exam_rows}}
+                            <tr>
+                                <td class="text-center align-middle text-muted small">{{index}}</td>
+                                <td class="align-middle font-weight-bold">
+                                    <a href="{{quiz_url}}" class="text-dark" style="text-decoration: none;">
+                                        <i class="fa fa-file-text-o text-primary mr-1"></i> {{quiz_name}}
+                                    </a>
+                                </td>
+                                <td class="text-center align-middle">
+                                    <span class="font-weight-bold text-dark">{{attempt1_score}}</span>
+                                    {{#attempt1_grade}}
+                                    <small class="text-primary d-block font-weight-bold" style="font-size: 0.82rem;">{{attempt1_grade}}</small>
+                                    {{/attempt1_grade}}
+                                    {{#attempt1_items}}
+                                    <small class="text-muted d-block font-weight-normal" style="font-size: 0.72rem;">({{attempt1_items}})</small>
+                                    {{/attempt1_items}}
+                                </td>
+                                <td class="text-center align-middle">
+                                    <span class="font-weight-bold text-info">{{retake1_score}}</span>
+                                    {{#retake1_grade}}
+                                    <small class="text-primary d-block font-weight-bold" style="font-size: 0.82rem;">{{retake1_grade}}</small>
+                                    {{/retake1_grade}}
+                                    {{#retake1_items}}
+                                    <small class="text-muted d-block font-weight-normal" style="font-size: 0.72rem;">({{retake1_items}})</small>
+                                    {{/retake1_items}}
+                                </td>
+                                <td class="text-center align-middle">
+                                    <span class="font-weight-bold text-primary">{{retake2_score}}</span>
+                                    {{#retake2_grade}}
+                                    <small class="text-primary d-block font-weight-bold" style="font-size: 0.82rem;">{{retake2_grade}}</small>
+                                    {{/retake2_grade}}
+                                    {{#retake2_items}}
+                                    <small class="text-muted d-block font-weight-normal" style="font-size: 0.72rem;">({{retake2_items}})</small>
+                                    {{/retake2_items}}
+                                </td>
+                                <td class="text-center align-middle bg-light">
+                                    <span class="font-weight-bold text-primary" style="font-size: 1.05rem;">{{final_score}}</span>
+                                    {{#final_grade}}
+                                    <small class="text-primary d-block font-weight-bold" style="font-size: 0.82rem;">{{final_grade}}</small>
+                                    {{/final_grade}}
+                                    {{#final_items}}
+                                    <small class="text-muted d-block font-weight-normal" style="font-size: 0.72rem;">({{final_items}})</small>
+                                    {{/final_items}}
+                                </td>
+                                <td class="text-center align-middle">
+                                    <span class="badge {{status_badge}} px-2 py-1 font-weight-bold" style="font-size: 0.82rem;">{{status_label}}</span>
+                                </td>
+                            </tr>
+                            {{/exam_rows}}
+                        </tbody>
+                    </table>
+                </div>
+                {{/has_exams}}
+                {{^has_exams}}
+                <div class="p-4 text-center text-muted">
+                    <i class="fa fa-info-circle mr-1"></i> {{#str}}no_exams_taken, local_comp_report_ext{{/str}}
+                </div>
+                {{/has_exams}}
+            </div>
+        </div>
+
         {{! PDF Export Button }}
         <div class="mt-4">
             <a href="{{pdf_url}}" class="btn btn-secondary" target="_blank">
