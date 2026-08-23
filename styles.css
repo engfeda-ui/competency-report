@@ -1,11 +1,11 @@
 /* Styles for local_comp_report_ext */
 
 /* Assessment Setup Page */
-.quiz-badge {
+.local-competency-assessment-setup .quiz-badge {
     background-color: #0d6efd;
     color: #fff;
 }
-.practical-badge {
+.local-competency-assessment-setup .practical-badge {
     background-color: #198754;
     color: #fff;
 }
@@ -24,36 +24,36 @@
 }
 
 /* Course Master Report Page */
-.master-stat-card {
+.local_comp_report_ext_master_report .master-stat-card {
     border-radius: 12px;
     transition: all 0.3s ease;
     border: none !important;
 }
-.master-stat-card:hover {
+.local_comp_report_ext_master_report .master-stat-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08) !important;
 }
-.matrix-cell-green {
+.local_comp_report_ext_master_report .matrix-cell-green {
     background-color: #e6ffec !important;
     color: #155724 !important;
     font-weight: bold;
 }
-.matrix-cell-blue {
+.local_comp_report_ext_master_report .matrix-cell-blue {
     background-color: #e6f2ff !important;
     color: #004085 !important;
     font-weight: bold;
 }
-.matrix-cell-orange {
+.local_comp_report_ext_master_report .matrix-cell-orange {
     background-color: #fff9e6 !important;
     color: #856404 !important;
     font-weight: bold;
 }
-.matrix-cell-red {
+.local_comp_report_ext_master_report .matrix-cell-red {
     background-color: #ffe6e6 !important;
     color: #721c24 !important;
     font-weight: bold;
 }
-.matrix-cell-muted {
+.local_comp_report_ext_master_report .matrix-cell-muted {
     background-color: #f8f9fa !important;
     color: #6c757d !important;
 }
@@ -102,16 +102,57 @@
     background: linear-gradient(135deg, #DC2626, #B91C1C) !important;
 }
 
-/* Print Styles */
+/* Print Styles - Scoped strictly to local_comp_report_ext pages */
 @media print {
-    #page-header, .navbar, .drawer, #nav-drawer, .nav-tabs, form.form-inline,
-    .modal, footer, #page-footer, .btn, .breadcrumb, .activity-navigation,
-    #region-main-settings-menu, .popover-region, .sr-only, #btn-print-analytics,
-    .usermenu, .nav-item, #roster-filter-group {
+    body#page-local-comp_report_ext-group_analytics_dashboard #page-header,
+    body#page-local-comp_report_ext-group_analytics_dashboard .navbar,
+    body#page-local-comp_report_ext-group_analytics_dashboard .drawer,
+    body#page-local-comp_report_ext-group_analytics_dashboard #nav-drawer,
+    body#page-local-comp_report_ext-group_analytics_dashboard .nav-tabs,
+    body#page-local-comp_report_ext-group_analytics_dashboard form.form-inline,
+    body#page-local-comp_report_ext-group_analytics_dashboard .modal,
+    body#page-local-comp_report_ext-group_analytics_dashboard footer,
+    body#page-local-comp_report_ext-group_analytics_dashboard #page-footer,
+    body#page-local-comp_report_ext-group_analytics_dashboard .btn,
+    body#page-local-comp_report_ext-group_analytics_dashboard .breadcrumb,
+    body#page-local-comp_report_ext-group_analytics_dashboard .activity-navigation,
+    body#page-local-comp_report_ext-group_analytics_dashboard #region-main-settings-menu,
+    body#page-local-comp_report_ext-group_analytics_dashboard .popover-region,
+    body#page-local-comp_report_ext-group_analytics_dashboard .sr-only,
+    body#page-local-comp_report_ext-group_analytics_dashboard #btn-print-analytics,
+    body#page-local-comp_report_ext-group_analytics_dashboard .usermenu,
+    body#page-local-comp_report_ext-group_analytics_dashboard .nav-item,
+    body#page-local-comp_report_ext-group_analytics_dashboard #roster-filter-group,
+    body#page-local-comp_report_ext-group_exam_analytics #page-header,
+    body#page-local-comp_report_ext-group_exam_analytics .navbar,
+    body#page-local-comp_report_ext-group_exam_analytics .drawer,
+    body#page-local-comp_report_ext-group_exam_analytics #nav-drawer,
+    body#page-local-comp_report_ext-group_exam_analytics .nav-tabs,
+    body#page-local-comp_report_ext-group_exam_analytics form.form-inline,
+    body#page-local-comp_report_ext-group_exam_analytics .modal,
+    body#page-local-comp_report_ext-group_exam_analytics footer,
+    body#page-local-comp_report_ext-group_exam_analytics #page-footer,
+    body#page-local-comp_report_ext-group_exam_analytics .btn,
+    body#page-local-comp_report_ext-group_exam_analytics .breadcrumb,
+    body#page-local-comp_report_ext-group_exam_analytics .activity-navigation,
+    body#page-local-comp_report_ext-group_exam_analytics #region-main-settings-menu,
+    body#page-local-comp_report_ext-group_exam_analytics .popover-region,
+    body#page-local-comp_report_ext-group_exam_analytics .sr-only,
+    body#page-local-comp_report_ext-group_exam_analytics #btn-print-analytics,
+    body#page-local-comp_report_ext-group_exam_analytics .usermenu,
+    body#page-local-comp_report_ext-group_exam_analytics .nav-item,
+    body#page-local-comp_report_ext-group_exam_analytics #exam-roster-filter-group {
         display: none !important;
     }
 
-    body, #page, #page-content, #region-main,
+    body#page-local-comp_report_ext-group_analytics_dashboard,
+    body#page-local-comp_report_ext-group_exam_analytics,
+    body#page-local-comp_report_ext-group_analytics_dashboard #page,
+    body#page-local-comp_report_ext-group_exam_analytics #page,
+    body#page-local-comp_report_ext-group_analytics_dashboard #page-content,
+    body#page-local-comp_report_ext-group_exam_analytics #page-content,
+    body#page-local-comp_report_ext-group_analytics_dashboard #region-main,
+    body#page-local-comp_report_ext-group_exam_analytics #region-main,
     .local_comp_report_ext_analytics_dashboard,
     .local_comp_report_ext_exam_analytics {
         background: #fff !important;
@@ -120,20 +161,23 @@
         width: 100% !important;
     }
 
-    * {
+    .local_comp_report_ext_analytics_dashboard *,
+    .local_comp_report_ext_exam_analytics * {
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
         color-adjust: exact !important;
     }
 
-    .kpi-card {
+    .local_comp_report_ext_analytics_dashboard .kpi-card,
+    .local_comp_report_ext_exam_analytics .kpi-card {
         page-break-inside: avoid !important;
         break-inside: avoid !important;
         box-shadow: none !important;
         border: 1px solid #ddd !important;
     }
 
-    .card {
+    .local_comp_report_ext_analytics_dashboard .card,
+    .local_comp_report_ext_exam_analytics .card {
         page-break-inside: avoid !important;
         break-inside: avoid !important;
         box-shadow: none !important;
@@ -141,27 +185,32 @@
         margin-bottom: 20px !important;
     }
 
-    .row {
+    .local_comp_report_ext_analytics_dashboard .row,
+    .local_comp_report_ext_exam_analytics .row {
         display: flex !important;
         flex-wrap: wrap !important;
     }
 
-    .col-md-3 {
+    .local_comp_report_ext_analytics_dashboard .col-md-3,
+    .local_comp_report_ext_exam_analytics .col-md-3 {
         flex: 0 0 25% !important;
         max-width: 25% !important;
     }
 
-    .col-md-6 {
+    .local_comp_report_ext_analytics_dashboard .col-md-6,
+    .local_comp_report_ext_exam_analytics .col-md-6 {
         flex: 0 0 50% !important;
         max-width: 50% !important;
     }
 
-    .col-md-12 {
+    .local_comp_report_ext_analytics_dashboard .col-md-12,
+    .local_comp_report_ext_exam_analytics .col-md-12 {
         flex: 0 0 100% !important;
         max-width: 100% !important;
     }
 
-    canvas {
+    .local_comp_report_ext_analytics_dashboard canvas,
+    .local_comp_report_ext_exam_analytics canvas {
         max-width: 100% !important;
         height: auto !important;
     }

@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.19.14-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.19.15-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -81,6 +81,11 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 ---
 
 ## 📋 Changelog
+
+### v3.19.15 — 2026-08-23
+- **Code Standards & Naming Conventions (Reviewer Feedback #1):** Renamed plugin-owned PDF layout variables in `group_analytics_dashboard_pdf.php` from camelCase (`$currentY`, `$chartWidth`, `$chartHeight`) to Moodle standard `lower_snake_case` (`$currenty`, `$chartwidth`, `$chartheight`).
+- **AMD Module Packaging & In-Package PHP Call Site (Reviewer Feedback #2):** Added explicit `$PAGE->requires->js_call_amd('local_comp_report_ext/assessment_setup', 'init')` call site in `assessment_setup.php` and verified compiled AMD minified artifact (`amd/build/assessment_setup.min.js` and `.map`) in repository and ZIP distribution.
+- **CSS Print Selector Scoping (Reviewer Feedback #3):** Scoped all print-only selectors (`.card`, `.row`, `.col-md-*`, `canvas`, `.kpi-card`, navigation hiding) and component classes in `styles.css` under plugin-specific container selectors (`.local_comp_report_ext_analytics_dashboard`, `.local_comp_report_ext_exam_analytics`, `body#page-local-comp_report_ext-*`) to guarantee strict print-layout isolation across Moodle.
 
 ### v3.19.6 — 2026-08-21
 - **Improvement (AI Service Model Default & Enhanced JS AJAX Diagnostics):** Set default AI model to `openrouter/free` (Free Models Router) to eliminate upstream rate limit errors (`HTTP 429`). Enhanced client-side AJAX error handling in `templates/ai_commentary_widget.mustache` to extract full error details (`ex.error`, `ex.statusText`) and display clear diagnostic feedback across all report pages.

@@ -179,6 +179,8 @@ $renderdata->quizzes      = array_values($quizzes);
 $renderdata->assignments  = array_values($assignments);
 $renderdata->sesskey      = sesskey();
 
+$PAGE->requires->js_call_amd('local_comp_report_ext/assessment_setup', 'init');
+
 $page = new \local_comp_report_ext\output\assessment_setup_page($renderdata);
 echo $OUTPUT->render($page);
 

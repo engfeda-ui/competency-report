@@ -89,41 +89,41 @@ if ($hascharts) {
     $pdf->Cell(0, 7, ' Dashboard Visual Analytics & Competency Curves', 0, 1, 'L', true);
     $pdf->Ln(2);
 
-    $currentY = $pdf->GetY();
-    $chartWidth  = 86; // mm width for 2-column layout on A4 portrait
-    $chartHeight = 52; // mm height
+    $currenty = $pdf->GetY();
+    $chartwidth  = 86; // mm width for 2-column layout on A4 portrait
+    $chartheight = 52; // mm height
 
     // Row 1: Chart 1 (Radar) & Chart 2 (Distribution)
     if (!empty($chart1)) {
         $img1 = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $chart1));
         if ($img1) {
-            $pdf->Image('@' . $img1, 15, $currentY, $chartWidth, $chartHeight, 'PNG');
+            $pdf->Image('@' . $img1, 15, $currenty, $chartwidth, $chartheight, 'PNG');
         }
     }
     if (!empty($chart2)) {
         $img2 = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $chart2));
         if ($img2) {
-            $pdf->Image('@' . $img2, 107, $currentY, $chartWidth, $chartHeight, 'PNG');
+            $pdf->Image('@' . $img2, 107, $currenty, $chartwidth, $chartheight, 'PNG');
         }
     }
 
-    $currentY += $chartHeight + 4;
+    $currenty += $chartheight + 4;
 
     // Row 2: Chart 3 (Progress) & Chart 4 (Theory vs Practice)
     if (!empty($chart3)) {
         $img3 = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $chart3));
         if ($img3) {
-            $pdf->Image('@' . $img3, 15, $currentY, $chartWidth, $chartHeight, 'PNG');
+            $pdf->Image('@' . $img3, 15, $currenty, $chartwidth, $chartheight, 'PNG');
         }
     }
     if (!empty($chart4)) {
         $img4 = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $chart4));
         if ($img4) {
-            $pdf->Image('@' . $img4, 107, $currentY, $chartWidth, $chartHeight, 'PNG');
+            $pdf->Image('@' . $img4, 107, $currenty, $chartwidth, $chartheight, 'PNG');
         }
     }
 
-    $pdf->SetY($currentY + $chartHeight + 4);
+    $pdf->SetY($currenty + $chartheight + 4);
 } else {
     // Fallback: Render Data Tables if PDF accessed directly without JS chart capture.
     if (!empty($comptablehtml)) {
