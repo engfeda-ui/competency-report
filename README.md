@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.19.19-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.19.20-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -81,6 +81,9 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 ---
 
 ## 📋 Changelog
+
+### v3.19.20 — 2026-08-23
+- **Bug Fix (Exact Scaled Grade Consistency in Final Recorded Grade):** Fixed 0.01 fractional variance between Attempt 1 and Final Recorded Grade in `group_exam_analytics.php`. The final scaled grade now calculates directly from the precise attempt raw points ratio rather than multiplying the single-decimal rounded percentage, ensuring 100% mathematical consistency (e.g. `16.67 / 30` across both columns).
 
 ### v3.19.19 — 2026-08-23
 - **Feature (Dual-Metric Grade & Question Item Breakdown in Exam Performance Roster):** Implemented Style A double-line structured display in `group_exam_analytics.php` and `templates/group_exam_analytics_page.mustache`. Each student score cell now prominently displays the percentage in bold, the scaled official grade out of the course maximum grade (e.g. `16.67 / 30`) in primary blue, and the exact question item count (e.g. `(25/45 Qs)` / `(25/45 أسئلة)`) as statistical context below.

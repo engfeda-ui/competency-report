@@ -405,10 +405,15 @@ if ($quiz && !empty($students)) {
             }
 
             // Final Recorded Grade.
-            $finalscaled = round(($scorepct / 100.0) * $quizmaxgrade, 2);
-            $finalgrade  = ($quizmaxgrade > 0)
-                ? (0 + $finalscaled) . ' / ' . (0 + round($quizmaxgrade, 2))
-                : '';
+            $finalgrade = '';
+            if ($quizmaxgrade > 0 && $sumgradesmax > 0) {
+                if ($scorepct == 60.0 && ($att1score === null || $att1score < 60.0)) {
+                    $finalscaled = round(0.60 * $quizmaxgrade, 2);
+                } else {
+                    $finalscaled = round(($finalraw / $sumgradesmax) * $quizmaxgrade, 2);
+                }
+                $finalgrade = (0 + $finalscaled) . ' / ' . (0 + round($quizmaxgrade, 2));
+            }
             $finalitems = '';
             if ($hasdiffmax && $sumgradesmax > 0) {
                 if ($scorepct == 60.0 && ($att1score === null || $att1score < 60.0)) {
