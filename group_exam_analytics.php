@@ -222,10 +222,15 @@ if ($quiz && !empty($students)) {
         );
 
         $attscores = [];
+        $attraws   = [];
+        $attmaxs   = [];
         if (!empty($attempts)) {
             foreach ($attempts as $att) {
                 if ($att->sumgrades !== null) {
-                    $attscores[(int)$att->attempt] = round(((float)$att->sumgrades / $sumgradesmax) * 100.0, 1);
+                    $attnum = (int)$att->attempt;
+                    $attscores[$attnum] = round(((float)$att->sumgrades / $sumgradesmax) * 100.0, 1);
+                    $attraws[$attnum]   = (float)$att->sumgrades;
+                    $attmaxs[$attnum]   = (float)$sumgradesmax;
                 }
             }
         }
@@ -233,6 +238,13 @@ if ($quiz && !empty($students)) {
         $att1score = $attscores[1] ?? null;
         $att2score = $attscores[2] ?? null;
         $att3score = $attscores[3] ?? null;
+
+        $att1raw = $attraws[1] ?? null;
+        $att1max = $attmaxs[1] ?? null;
+        $att2raw = $attraws[2] ?? null;
+        $att2max = $attmaxs[2] ?? null;
+        $att3raw = $attraws[3] ?? null;
+        $att3max = $attmaxs[3] ?? null;
 
         // 2. Fallback / Integration: Check separate Retake 1 quizzes if no 2nd attempt found on main quiz.
         if ($att2score === null && !empty($retake1quizzes)) {
@@ -254,6 +266,8 @@ if ($quiz && !empty($students)) {
                 $r1max = (float)($quizgrade > 0 ? $quizgrade : 100.0);
                 if ($r1att->sumgrades !== null) {
                     $att2score = round(((float)$r1att->sumgrades / $r1max) * 100.0, 1);
+                    $att2raw   = (float)$r1att->sumgrades;
+                    $att2max   = $r1max;
                 }
             }
         }
@@ -278,6 +292,8 @@ if ($quiz && !empty($students)) {
                 $r2max = (float)($quizgrade2 > 0 ? $quizgrade2 : 100.0);
                 if ($r2att->sumgrades !== null) {
                     $att3score = round(((float)$r2att->sumgrades / $r2max) * 100.0, 1);
+                    $att3raw   = (float)$r2att->sumgrades;
+                    $att3max   = $r2max;
                 }
             }
         }
@@ -338,16 +354,34 @@ if ($quiz && !empty($students)) {
             $needsremediation = ($scorepct < $threshold);
             $decilebin = min(9, (int)floor($scorepct / 10));
 
+            $att1grade = ($att1raw !== null && $att1max !== null)
+                ? (0 + round($att1raw, 2)) . ' / ' . (0 + round($att1max, 2))
+                : '';
+            $att2grade = ($att2raw !== null && $att2max !== null)
+                ? (0 + round($att2raw, 2)) . ' / ' . (0 + round($att2max, 2))
+                : '';
+            $att3grade = ($att3raw !== null && $att3max !== null)
+                ? (0 + round($att3raw, 2)) . ' / ' . (0 + round($att3max, 2))
+                : '';
+            $finalraw = round(($scorepct / 100.0) * $sumgradesmax, 2);
+            $finalgrade = ($sumgradesmax > 0)
+                ? (0 + $finalraw) . ' / ' . (0 + round($sumgradesmax, 2))
+                : '';
+
             $studentlist[] = [
                 'index'               => count($studentlist) + 1,
                 'id'                  => (int)$student->id,
                 'fullname'            => fullname($student),
                 'attempt1_score'      => ($att1score !== null) ? number_format($att1score, 1) . '%' : '—',
+                'attempt1_grade'      => $att1grade,
                 'retake1_score'       => ($att2score !== null) ? number_format($att2score, 1) . '%' : '—',
+                'retake1_grade'       => $att2grade,
                 'retake2_score'       => ($att3score !== null) ? number_format($att3score, 1) . '%' : '—',
+                'retake2_grade'       => $att3grade,
                 'retakes_count'       => $retakecount,
                 'average'             => number_format($scorepct, 1),
                 'average_raw'         => $scorepct,
+                'final_grade'         => $finalgrade,
                 'tier'                => $tier,
                 'tier_name'           => $tiername,
                 'badge_class'         => $badgeclass,
