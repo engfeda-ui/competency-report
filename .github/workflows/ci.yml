@@ -13,6 +13,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+      COMPOSER_AUTH: '{"github-oauth": {"github.com": "${{ secrets.GITHUB_TOKEN }}"}}'
+      COMPOSER_PROCESS_TIMEOUT: '600'
+      COMPOSER_NO_INTERACTION: '1'
 
     strategy:
       fail-fast: false
@@ -54,6 +57,7 @@ jobs:
 
       - name: Setup Moodle Plugin CI
         run: |
+          composer config -g github-oauth.github.com ${{ secrets.GITHUB_TOKEN }}
           composer create-project -n --no-dev --prefer-dist moodlehq/moodle-plugin-ci ci ^4
           echo "$(cd ci/bin; pwd)" >> $GITHUB_PATH
           echo "$(cd ci/vendor/bin; pwd)" >> $GITHUB_PATH

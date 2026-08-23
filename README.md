@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.19.22-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.19.23-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -59,11 +59,12 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 
 | Setting | Description | Default |
 | :--- | :--- | :--- |
-| **Enable AI integration** | Toggle AI-powered feedback on/off | Off |
-| **API Key** | OpenAI (or compatible) API key | — |
-| **Model** | Model name (e.g., `gpt-4`, `gpt-4o`) | `gpt-4` |
-| **Maximum rows** | Max rows shown in report tables | 100 |
-| **Success threshold** | Minimum % for competency mastery (used by colour-coding and `quizaccess_failgrade_ext`) | 60 |
+| `enable_ai` | Enable or disable the OpenAI/LLM integration | Disabled |
+| `api_key` | OpenAI / Provider API Key | Empty |
+| `ai_model` | Model name (e.g. `gpt-4o-mini`, `openrouter/free`) | `openrouter/free` |
+| `provider` | Provider (`openai`, `openrouter`, `deepseek`, `groq`, `local`) | `openrouter` |
+| `custom_prompt` | System instructions prepended to the prompt | Default template |
+| `success_threshold` | Minimum mastery rate to consider a student "Passed" | `60` |
 
 ---
 
@@ -81,6 +82,9 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 ---
 
 ## 📋 Changelog
+
+### v3.19.23 — 2026-08-23
+- **CI & Automation (GitHub API Authentication & Gateway Timeout Resilience):** Configured `COMPOSER_AUTH` with `GITHUB_TOKEN` and extended timeout settings in `.github/workflows/ci.yml`. Eliminates transient GitHub API `504 Gateway Timeout` and unauthenticated rate-limiting errors during `composer install` inside `moodle-plugin-ci`.
 
 ### v3.19.22 — 2026-08-23
 - **Feature (Competency Mastery by Examination Matrix & Longitudinal Progress Curve):** Refactored the Student Detail Report (`student_competency_detail.php`, `classes/output/student_competency_detail_page.php`, and `templates/student_competency_detail_page.mustache`). Replaced the static competency table with an interactive multi-dimensional Competency by Exam Matrix (displaying exact competency mastery percentages and question breakdowns per exam, plus course totals in the footer), and introduced a Chart.js longitudinal progress curve displaying student improvement trajectories over time with automated trend KPIs (Improving, Steady, Needs Focus).
