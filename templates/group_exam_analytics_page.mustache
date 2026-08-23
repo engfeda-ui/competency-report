@@ -231,26 +231,38 @@
                             <td class="text-center align-middle">
                                 <span class="font-weight-bold text-dark">{{attempt1_score}}</span>
                                 {{#attempt1_grade}}
-                                <small class="text-muted d-block font-weight-normal" style="font-size: 0.78rem;">({{attempt1_grade}})</small>
+                                <small class="text-primary d-block font-weight-bold" style="font-size: 0.82rem;">{{attempt1_grade}}</small>
                                 {{/attempt1_grade}}
+                                {{#attempt1_items}}
+                                <small class="text-muted d-block font-weight-normal" style="font-size: 0.72rem;">({{attempt1_items}})</small>
+                                {{/attempt1_items}}
                             </td>
                             <td class="text-center align-middle">
                                 <span class="font-weight-bold text-info">{{retake1_score}}</span>
                                 {{#retake1_grade}}
-                                <small class="text-muted d-block font-weight-normal" style="font-size: 0.78rem;">({{retake1_grade}})</small>
+                                <small class="text-primary d-block font-weight-bold" style="font-size: 0.82rem;">{{retake1_grade}}</small>
                                 {{/retake1_grade}}
+                                {{#retake1_items}}
+                                <small class="text-muted d-block font-weight-normal" style="font-size: 0.72rem;">({{retake1_items}})</small>
+                                {{/retake1_items}}
                             </td>
                             <td class="text-center align-middle">
                                 <span class="font-weight-bold text-primary">{{retake2_score}}</span>
                                 {{#retake2_grade}}
-                                <small class="text-muted d-block font-weight-normal" style="font-size: 0.78rem;">({{retake2_grade}})</small>
+                                <small class="text-primary d-block font-weight-bold" style="font-size: 0.82rem;">{{retake2_grade}}</small>
                                 {{/retake2_grade}}
+                                {{#retake2_items}}
+                                <small class="text-muted d-block font-weight-normal" style="font-size: 0.72rem;">({{retake2_items}})</small>
+                                {{/retake2_items}}
                             </td>
                             <td class="text-center align-middle">
                                 <span class="font-weight-bold text-primary" style="font-size: 1.05rem;">{{average}}%</span>
                                 {{#final_grade}}
-                                <small class="text-muted d-block font-weight-normal" style="font-size: 0.78rem;">({{final_grade}})</small>
+                                <small class="text-primary d-block font-weight-bold" style="font-size: 0.82rem;">{{final_grade}}</small>
                                 {{/final_grade}}
+                                {{#final_items}}
+                                <small class="text-muted d-block font-weight-normal" style="font-size: 0.72rem;">({{final_items}})</small>
+                                {{/final_items}}
                             </td>
                             <td class="text-center align-middle">
                                 <span class="badge badge-light border px-2 py-1 font-weight-bold">{{retakes_count}}</span>

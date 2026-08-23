@@ -172,6 +172,8 @@ $threshold = (int)(get_config('local_comp_report_ext', 'success_threshold') ?: 6
 
 if ($quiz && !empty($students)) {
     $sumgradesmax = (float)($quiz->sumgrades > 0 ? $quiz->sumgrades : 100.0);
+    $quizmaxgrade = (float)($quiz->grade > 0 ? $quiz->grade : $sumgradesmax);
+    $hasdiffmax   = (abs($quizmaxgrade - $sumgradesmax) > 0.01);
 
     // Detect any separate retake quizzes in the same course (e.g. "Final Exam - Retake 1", "إعادة اختبار", etc.).
     $allcoursequizzes = $DB->get_records('quiz', ['course' => $courseid], 'id ASC', 'id, name, sumgrades');
@@ -367,18 +369,54 @@ if ($quiz && !empty($students)) {
             $needsremediation = ($scorepct < $threshold);
             $decilebin = min(9, (int)floor($scorepct / 10));
 
-            $att1grade = ($att1raw !== null && $att1max !== null)
-                ? (0 + round($att1raw, 2)) . ' / ' . (0 + round($att1max, 2))
+            $qslabel = get_string('questions_abbr', 'local_comp_report_ext');
+
+            // Attempt 1.
+            $att1grade = '';
+            $att1items = '';
+            if ($att1raw !== null && $att1max !== null) {
+                $att1scaled = round(($att1raw / $att1max) * $quizmaxgrade, 2);
+                $att1grade  = (0 + $att1scaled) . ' / ' . (0 + round($quizmaxgrade, 2));
+                if ($hasdiffmax) {
+                    $att1items = (0 + round($att1raw, 2)) . '/' . (0 + round($att1max, 2)) . ' ' . $qslabel;
+                }
+            }
+
+            // Retake 1.
+            $att2grade = '';
+            $att2items = '';
+            if ($att2raw !== null && $att2max !== null) {
+                $att2scaled = round(($att2raw / $att2max) * $quizmaxgrade, 2);
+                $att2grade  = (0 + $att2scaled) . ' / ' . (0 + round($quizmaxgrade, 2));
+                if ($hasdiffmax) {
+                    $att2items = (0 + round($att2raw, 2)) . '/' . (0 + round($att2max, 2)) . ' ' . $qslabel;
+                }
+            }
+
+            // Retake 2.
+            $att3grade = '';
+            $att3items = '';
+            if ($att3raw !== null && $att3max !== null) {
+                $att3scaled = round(($att3raw / $att3max) * $quizmaxgrade, 2);
+                $att3grade  = (0 + $att3scaled) . ' / ' . (0 + round($quizmaxgrade, 2));
+                if ($hasdiffmax) {
+                    $att3items = (0 + round($att3raw, 2)) . '/' . (0 + round($att3max, 2)) . ' ' . $qslabel;
+                }
+            }
+
+            // Final Recorded Grade.
+            $finalscaled = round(($scorepct / 100.0) * $quizmaxgrade, 2);
+            $finalgrade  = ($quizmaxgrade > 0)
+                ? (0 + $finalscaled) . ' / ' . (0 + round($quizmaxgrade, 2))
                 : '';
-            $att2grade = ($att2raw !== null && $att2max !== null)
-                ? (0 + round($att2raw, 2)) . ' / ' . (0 + round($att2max, 2))
-                : '';
-            $att3grade = ($att3raw !== null && $att3max !== null)
-                ? (0 + round($att3raw, 2)) . ' / ' . (0 + round($att3max, 2))
-                : '';
-            $finalgrade = ($sumgradesmax > 0)
-                ? (0 + round($finalraw, 2)) . ' / ' . (0 + round($sumgradesmax, 2))
-                : '';
+            $finalitems = '';
+            if ($hasdiffmax && $sumgradesmax > 0) {
+                if ($scorepct == 60.0 && ($att1score === null || $att1score < 60.0)) {
+                    $finalitems = (0 + round(0.60 * $sumgradesmax, 1)) . '/' . (0 + round($sumgradesmax, 2)) . ' ' . $qslabel;
+                } else {
+                    $finalitems = (0 + round($finalraw, 2)) . '/' . (0 + round($sumgradesmax, 2)) . ' ' . $qslabel;
+                }
+            }
 
             $studentlist[] = [
                 'index'               => count($studentlist) + 1,
@@ -386,14 +424,18 @@ if ($quiz && !empty($students)) {
                 'fullname'            => fullname($student),
                 'attempt1_score'      => ($att1score !== null) ? number_format($att1score, 1) . '%' : '—',
                 'attempt1_grade'      => $att1grade,
+                'attempt1_items'      => $att1items,
                 'retake1_score'       => ($att2score !== null) ? number_format($att2score, 1) . '%' : '—',
                 'retake1_grade'       => $att2grade,
+                'retake1_items'       => $att2items,
                 'retake2_score'       => ($att3score !== null) ? number_format($att3score, 1) . '%' : '—',
                 'retake2_grade'       => $att3grade,
+                'retake2_items'       => $att3items,
                 'retakes_count'       => $retakecount,
                 'average'             => number_format($scorepct, 1),
                 'average_raw'         => $scorepct,
                 'final_grade'         => $finalgrade,
+                'final_items'         => $finalitems,
                 'tier'                => $tier,
                 'tier_name'           => $tiername,
                 'badge_class'         => $badgeclass,

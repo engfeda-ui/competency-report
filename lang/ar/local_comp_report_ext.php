@@ -279,6 +279,7 @@ $string['updateassessments'] = 'حفظ الأوزان والتغييرات';
 $string['weighttotal_ok'] = 'مجموع أوزان التقييمات هو 100% تماماً. تم ضبط كل شيء بشكل صحيح.';
 
 // Missing Cache and Privacy strings.
+$string['questions_abbr'] = 'أسئلة';
 $string['cachedef_ai_feedback'] = 'مخزن المؤقت للتغذية الراجعة للذكاء الاصطناعي';
 $string['custominstructionsdesc'] = 'اكتب تعليمات خاصة لتوجيه تقرير الذكاء الاصطناعي (مثل اللغة، الطول، التركيز).';
 $string['generalgradesreportgroup'] = 'تقرير الدرجات العامة - المجموعة: {$a}';

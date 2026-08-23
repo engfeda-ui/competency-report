@@ -281,6 +281,7 @@ $string['updateassessments'] = 'Save Weights & Changes';
 $string['weighttotal_ok'] = 'The total weight of all assessments is exactly 100%. Everything is set correctly.';
 
 // Missing Cache and Privacy strings.
+$string['questions_abbr'] = 'Qs';
 $string['cachedef_ai_feedback'] = 'AI Feedback Cache';
 $string['custominstructionsdesc'] = 'Write custom instructions to guide the AI report (e.g. language, length, focus).';
 $string['generalgradesreportgroup'] = 'General Grades Report - Group: {$a}';
