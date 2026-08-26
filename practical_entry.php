@@ -67,6 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
     foreach ($allexisting as $rec) {
         $existingmap[$rec->studentid] = $rec;
     }
+    $now = time();
 
     foreach ($studentids as $idx => $sid) {
         $pct = isset($percents[$idx]) && $percents[$idx] !== '' ? (float)$percents[$idx] : null;

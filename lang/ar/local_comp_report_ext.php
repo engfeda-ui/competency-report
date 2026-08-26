@@ -296,7 +296,6 @@ $string['allgroups']                       = 'كل المجموعات';
 $string['allquizzes']                      = 'جميع الاختبارات';
 $string['score_distribution_histogram']     = 'المدرج التكراري لتوزيع درجات الطلاب الإجمالية';
 $string['group']                           = 'المجموعة';
-$string['competency']                      = 'الكفاية';
 $string['weightedtotal']                   = 'المجموع المرجح';
 $string['assessmentheader']                = '{$a->name} ({$a->weight}%)';
 $string['noassessmentsconfigured']         = 'لا توجد تقييمات مرجحة مُعدَّة لهذه الدورة. يرجى استخدام إعداد التقييمات أولاً.';

@@ -79,7 +79,7 @@ function xmldb_local_comp_report_ext_upgrade($oldversion) {
             $dbman->create_table($table2);
         }
 
-        upgrade_plugin_savepoint(true, 2026070100, 'local', 'competency_report');
+        upgrade_plugin_savepoint(true, 2026070100, 'local', 'comp_report_ext');
     }
 
     if ($oldversion < 2026070302) {
@@ -90,13 +90,13 @@ function xmldb_local_comp_report_ext_upgrade($oldversion) {
             $dbman->add_field($table, $field);
         }
 
-        upgrade_plugin_savepoint(true, 2026070302, 'local', 'competency_report');
+        upgrade_plugin_savepoint(true, 2026070302, 'local', 'comp_report_ext');
     }
 
     if ($oldversion < 2026070500) {
         // Version bump: added manageassessments and enterpractical capabilities to db/access.php.
         // No database changes required, capabilities are registered automatically by Moodle.
-        upgrade_plugin_savepoint(true, 2026070500, 'local', 'competency_report');
+        upgrade_plugin_savepoint(true, 2026070500, 'local', 'comp_report_ext');
     }
 
     return true;

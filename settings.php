@@ -64,12 +64,11 @@ if ($hassiteconfig) {
 
 
         // API Key.
-        $settings->add(new admin_setting_configtext(
+        $settings->add(new admin_setting_configpasswordunmask(
             'local_comp_report_ext/apikey',
             get_string('apikey', 'local_comp_report_ext'),
             get_string('apikey_desc', 'local_comp_report_ext'),
-            '',
-            PARAM_TEXT
+            ''
         ));
 
         // Model name.

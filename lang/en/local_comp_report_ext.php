@@ -298,7 +298,6 @@ $string['allgroups']                       = 'All Groups';
 $string['allquizzes']                      = 'All Exams / Quizzes';
 $string['score_distribution_histogram']     = 'Overall Score Distribution Histogram';
 $string['group']                           = 'Group';
-$string['competency']                      = 'Competency';
 $string['weightedtotal']                   = 'Weighted Total';
 $string['assessmentheader']                = '{$a->name} ({$a->weight}%)';
 $string['noassessmentsconfigured']         = 'No weighted assessments have been configured for this course yet. Please use Assessment Setup first.';
