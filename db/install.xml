@@ -42,7 +42,7 @@
                 <KEY NAME="studentfk" TYPE="foreign" FIELDS="studentid" REFTABLE="user" REFFIELDS="id"/>
             </KEYS>
             <INDEXES>
-                <INDEX NAME="assessment_student_comp_idx" UNIQUE="false" FIELDS="assessmentid, studentid, competencyid" COMMENT="Speed up lookup of a student result for a specific assessment and competency"/>
+                <INDEX NAME="assessment_student_comp_idx" UNIQUE="true" FIELDS="assessmentid, studentid, competencyid" COMMENT="Speed up lookup of a student result for a specific assessment and competency"/>
                 <INDEX NAME="course_student_idx" UNIQUE="false" FIELDS="courseid, studentid"/>
             </INDEXES>
         </TABLE>

@@ -287,26 +287,18 @@ class competency_sync {
     public static function purge_duplicate_evidence(): void {
         global $DB;
         try {
-            $dupes = $DB->get_records_sql(
-                "SELECT id, usercompetencyid
-                   FROM {competency_evidence}
-               ORDER BY usercompetencyid ASC, id DESC"
+            // Select only ids that have a NEWER sibling for the same usercompetencyid.
+            // This keeps the newest record per usercompetencyid while fetching just the
+            // duplicate ids from the database instead of loading the whole table in PHP.
+            $todelete = $DB->get_fieldset_sql(
+                "SELECT e.id
+                   FROM {competency_evidence} e
+                   JOIN {competency_evidence} newer
+                     ON newer.usercompetencyid = e.usercompetencyid
+                    AND newer.id > e.id"
             );
-            if (empty($dupes)) {
-                return;
-            }
-            $seen = [];
-            $todelete = [];
-            foreach ($dupes as $row) {
-                if (isset($seen[$row->usercompetencyid])) {
-                    $todelete[] = (int)$row->id;
-                } else {
-                    $seen[$row->usercompetencyid] = true;
-                }
-            }
             if (!empty($todelete)) {
-                $chunks = array_chunk($todelete, 1000);
-                foreach ($chunks as $chunk) {
+                foreach (array_chunk($todelete, 1000) as $chunk) {
                     $DB->delete_records_list('competency_evidence', 'id', $chunk);
                 }
             }

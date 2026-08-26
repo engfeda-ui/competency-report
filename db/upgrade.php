@@ -99,5 +99,41 @@ function xmldb_local_comp_report_ext_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026070500, 'local', 'comp_report_ext');
     }
 
+    // 2026082700: Enforce data integrity on practical results.
+    // 1) Remove duplicate rows keeping the newest per (assessmentid, studentid, competencyid).
+    // 2) Replace the non-unique index with a UNIQUE one to prevent future races.
+    if ($oldversion < 2026082700) {
+        $table = new xmldb_table('local_comp_report_ext_prac');
+
+        $dupids = $DB->get_fieldset_sql("
+            SELECT p.id
+              FROM {local_comp_report_ext_prac} p
+              JOIN {local_comp_report_ext_prac} newer
+                ON newer.assessmentid  = p.assessmentid
+               AND newer.studentid     = p.studentid
+               AND newer.competencyid  = p.competencyid
+               AND newer.id > p.id
+        ");
+        if (!empty($dupids)) {
+            foreach (array_chunk($dupids, 1000) as $chunk) {
+                $DB->delete_records_list('local_comp_report_ext_prac', 'id', $chunk);
+            }
+        }
+
+        $oldidx = new xmldb_index('assessment_student_comp_idx', XMLDB_INDEX_NOTUNIQUE,
+            ['assessmentid', 'studentid', 'competencyid']);
+        if ($dbman->find_index_name($table, $oldidx)) {
+            $dbman->drop_index($table, $oldidx);
+        }
+
+        $newidx = new xmldb_index('assessment_student_comp_idx', XMLDB_INDEX_UNIQUE,
+            ['assessmentid', 'studentid', 'competencyid']);
+        if (!$dbman->find_index_name($table, $newidx)) {
+            $dbman->add_index($table, $newidx);
+        }
+
+        upgrade_plugin_savepoint(true, 2026082700, 'local', 'comp_report_ext');
+    }
+
     return true;
 }

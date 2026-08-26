@@ -92,7 +92,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
             $record->competency_percent = $pct;
             $record->timecreated      = $now;
             $record->timemodified     = $now;
-            $DB->insert_record('local_comp_report_ext_prac', $record);
+            try {
+                $DB->insert_record('local_comp_report_ext_prac', $record);
+            } catch (\dml_write_exception $e) {
+                // Unique-index race: a concurrent request inserted this row first — update instead.
+                unset($e);
+                if ($duprow = $DB->get_record('local_comp_report_ext_prac', [
+                    'assessmentid' => $postassid,
+                    'courseid'     => $courseid,
+                    'competencyid' => $postcompid,
+                    'studentid'    => $sid,
+                ], 'id')) {
+                    $record->id = $duprow->id;
+                    $DB->update_record('local_comp_report_ext_prac', $record);
+                }
+            }
         }
     }
 
