@@ -29,14 +29,14 @@ $functions = [
         'classname'   => 'local_comp_report_ext\external\ai',
         'methodname'  => 'generate_comment',
         'description' => 'Generates AI competency and grade analysis commentary.',
-        'type'        => 'read',
+        'type'        => 'write',
         'ajax'        => true,
     ],
     'local_comp_report_ext_generate_study_plan' => [
         'classname'   => 'local_comp_report_ext\external\studyplan',
         'methodname'  => 'generate_study_plan',
         'description' => 'Generates personalized remedial study plans.',
-        'type'        => 'read',
+        'type'        => 'write',
         'ajax'        => true,
     ],
 ];

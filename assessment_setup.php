@@ -109,10 +109,15 @@ if ($action === 'update' && confirm_sesskey()) {
     $weights = optional_param_array('weight', [], PARAM_FLOAT);
 
     foreach ($names as $id => $name) {
+        $id     = (int)$id;
         $name   = trim($name);
         $weight = isset($weights[$id]) ? (float)$weights[$id] : 0.0;
 
         if ($name !== '' && $weight >= 0) {
+            // Security: only allow updating assessments belonging to this course (anti-IDOR).
+            if (!$DB->record_exists('local_comp_report_ext_asmt', ['id' => $id, 'courseid' => $courseid])) {
+                continue;
+            }
             $DB->update_record('local_comp_report_ext_asmt', (object)[
                 'id'           => $id,
                 'name'         => $name,

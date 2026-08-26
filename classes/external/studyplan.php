@@ -102,7 +102,24 @@ class studyplan extends external_api {
         $context = context_course::instance($params['courseid']);
         self::validate_context($context);
 
-        require_capability('moodle/course:view', $context);
+        global $USER;
+
+        // Authorization mirrors ajax_studyplan.php: users may only access their
+        // own report unless they hold report-viewing capabilities in this course.
+        $canviewown     = has_capability('local/comp_report_ext:viewownreport', $context)
+            || has_capability('local/competency_report:viewownreport', $context);
+        $canviewreports = has_capability('local/comp_report_ext:viewreports', $context)
+            || has_capability('local/competency_report:viewreports', $context);
+
+        if ($params['userid'] > 0 && (int)$params['userid'] === (int)$USER->id) {
+            if (!$canviewown && !$canviewreports) {
+                require_capability('local/comp_report_ext:viewownreport', $context);
+            }
+        } else {
+            if (!$canviewreports) {
+                require_capability('local/comp_report_ext:viewreports', $context);
+            }
+        }
 
         $graderid = \local_comp_report_ext\competency_sync::resolve_grader_id();
         $rates    = \local_comp_report_ext\competency_sync::sync_user_competency(
