@@ -442,13 +442,23 @@ function local_comp_report_ext_build_context_details($courseid, $userid = 0, $qu
                    JOIN {question_attempts} qa ON qa.questionusageid = qu.id
                    JOIN {question} q ON q.id = qa.questionid
                    JOIN (
-                       SELECT MAX(fraction) AS fraction, questionattemptid
-                         FROM {question_attempt_steps}
-                        GROUP BY questionattemptid
+                       SELECT s.questionattemptid, MAX(s.fraction) AS fraction
+                         FROM {question_attempt_steps} s
+                         JOIN {question_attempts} qa2 ON qa2.id = s.questionattemptid
+                         JOIN {question_usages} qu2   ON qu2.id = qa2.questionusageid
+                         JOIN {quiz_attempts} qa3     ON qa3.uniqueid = qu2.id
+                         JOIN {quiz} quiz2            ON quiz2.id = qa3.quiz
+                        WHERE quiz2.course = :courseid2 AND qa3.userid = :userid2 AND qa3.state = 'finished'
+                        GROUP BY s.questionattemptid
                    ) qas ON qas.questionattemptid = qa.id
                   WHERE quiz.course = :courseid AND quiza.userid = :userid AND quiza.state = 'finished'
                   ORDER BY qas.fraction ASC";
-        $qattempts = $DB->get_records_sql($qsql, ['courseid' => $courseid, 'userid' => $userid]);
+        $qattempts = $DB->get_records_sql($qsql, [
+            'courseid' => $courseid,
+            'userid' => $userid,
+            'courseid2' => $courseid,
+            'userid2' => $userid,
+        ]);
 
         $missed = [];
         $mastered = [];
@@ -495,9 +505,14 @@ function local_comp_report_ext_build_context_details($courseid, $userid = 0, $qu
                         JOIN {qbank_comp_ext_qmap} m   ON m.questionid    = qa.questionid
                         JOIN {competency}         c    ON c.id            = m.competencyid
                         JOIN (
-                            SELECT MAX(fraction) AS fraction, questionattemptid
-                              FROM {question_attempt_steps}
-                             GROUP BY questionattemptid
+                            SELECT s.questionattemptid, MAX(s.fraction) AS fraction
+                              FROM {question_attempt_steps} s
+                              JOIN {question_attempts} qa2 ON qa2.id = s.questionattemptid
+                              JOIN {question_usages} qu2   ON qu2.id = qa2.questionusageid
+                              JOIN {quiz_attempts} qa3     ON qa3.uniqueid = qu2.id
+                             WHERE qa3.userid = :userid2 AND qa3.state = 'finished'
+                               AND qa3.quiz IN (SELECT q3.id FROM {quiz} q3 WHERE q3.course = :courseid2)
+                            GROUP BY s.questionattemptid
                         ) qas ON qas.questionattemptid = qa.id
                        WHERE quiz.id      = :quizid
                          AND quiz.course  = :courseid
@@ -505,7 +520,13 @@ function local_comp_report_ext_build_context_details($courseid, $userid = 0, $qu
                          AND quiza.state  = 'finished'
                          AND qas.fraction < 1.0
                        ORDER BY c.shortname, qas.fraction ASC";
-            $mqparams = ['quizid' => $quizid, 'courseid' => $courseid, 'userid' => $userid];
+            $mqparams = [
+                'quizid' => $quizid,
+                'courseid' => $courseid,
+                'userid' => $userid,
+                'courseid2' => $courseid,
+                'userid2' => $userid,
+            ];
         } else {
             $mqsql = "SELECT q.id, q.name,
                              qas.fraction     AS earned,
@@ -519,16 +540,26 @@ function local_comp_report_ext_build_context_details($courseid, $userid = 0, $qu
                         JOIN {qbank_comp_ext_qmap} m   ON m.questionid    = qa.questionid
                         JOIN {competency}         c    ON c.id            = m.competencyid
                         JOIN (
-                            SELECT MAX(fraction) AS fraction, questionattemptid
-                              FROM {question_attempt_steps}
-                             GROUP BY questionattemptid
+                            SELECT s.questionattemptid, MAX(s.fraction) AS fraction
+                              FROM {question_attempt_steps} s
+                              JOIN {question_attempts} qa2 ON qa2.id = s.questionattemptid
+                              JOIN {question_usages} qu2   ON qu2.id = qa2.questionusageid
+                              JOIN {quiz_attempts} qa3     ON qa3.uniqueid = qu2.id
+                              JOIN {quiz} quiz2            ON quiz2.id = qa3.quiz
+                             WHERE quiz2.course = :courseid2 AND qa3.userid = :userid2 AND qa3.state = 'finished'
+                             GROUP BY s.questionattemptid
                         ) qas ON qas.questionattemptid = qa.id
                        WHERE quiz.course  = :courseid
                          AND quiza.userid = :userid
                          AND quiza.state  = 'finished'
                          AND qas.fraction < 1.0
                        ORDER BY c.shortname, qas.fraction ASC";
-            $mqparams = ['courseid' => $courseid, 'userid' => $userid];
+            $mqparams = [
+                'courseid' => $courseid,
+                'userid' => $userid,
+                'courseid2' => $courseid,
+                'userid2' => $userid,
+            ];
         }
 
         $mqrows = $DB->get_records_sql($mqsql, $mqparams);

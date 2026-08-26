@@ -54,6 +54,15 @@ class competency_calculator {
     /** @var array|null Cached assessment rows for this course */
     private $assessments = null;
 
+    /** @var array|null Bulk-preloaded quiz rates: [userid][quizid_compid] => percentage */
+    private $quizratescache = null;
+
+    /** @var array|null Bulk-preloaded practical rates: [userid][asmtid_compid] => percentage */
+    private $practicalratescache = null;
+
+    /** @var array Instance-cached competency lists keyed by filtercompetencyid (0 = unfiltered) */
+    private $compscache = [];
+
     /**
      * Constructor.
      *
@@ -120,78 +129,44 @@ class competency_calculator {
 
         $threshold = (int)(get_config('local_comp_report_ext', 'success_threshold') ?: 60);
 
-        // Fetch all competencies that have question mappings in this course.
-        $compsql = "SELECT DISTINCT c.id, c.shortname, c.description, c.descriptionformat
-                      FROM {qbank_comp_ext_qmap} m
-                      JOIN {competency} c ON c.id = m.competencyid
-                     WHERE m.courseid = :courseid";
-        $params = ['courseid' => $this->courseid];
-        if ($filtercompetencyid) {
-            $compsql .= ' AND c.id = :compid';
-            $params['compid'] = $filtercompetencyid;
-        }
-        $competencies = $DB->get_records_sql($compsql, $params);
-
-        // Also add competencies that appear only in practical assessments.
-        $pracsql = "SELECT DISTINCT c.id, c.shortname, c.description, c.descriptionformat
-                      FROM {local_comp_report_ext_prac} p
-                      JOIN {competency} c ON c.id = p.competencyid
-                     WHERE p.courseid = :courseid";
-        $pracparams = ['courseid' => $this->courseid];
-        if ($filtercompetencyid) {
-            $pracsql .= ' AND c.id = :compid';
-            $pracparams['compid'] = $filtercompetencyid;
-        }
-        $praccomps = $DB->get_records_sql($pracsql, $pracparams);
-        foreach ($praccomps as $cid => $comp) {
-            if (!isset($competencies[$cid])) {
-                $competencies[$cid] = $comp;
+        // Fetch all competencies that have question mappings in this course
+        // (instance-cached; identical for every student).
+        $compkey = $filtercompetencyid ?: 0;
+        if (!isset($this->compscache[$compkey])) {
+            $compsql = "SELECT DISTINCT c.id, c.shortname, c.description, c.descriptionformat
+                          FROM {qbank_comp_ext_qmap} m
+                          JOIN {competency} c ON c.id = m.competencyid
+                         WHERE m.courseid = :courseid";
+            $params = ['courseid' => $this->courseid];
+            if ($filtercompetencyid) {
+                $compsql .= ' AND c.id = :compid';
+                $params['compid'] = $filtercompetencyid;
             }
-        }
+            $competencies = $DB->get_records_sql($compsql, $params);
 
-        // Preload all practical assessment records for this student to eliminate N+1 DB queries.
-        $practicalrows = $DB->get_records(
-            'local_comp_report_ext_prac',
-            ['studentid' => $userid, 'courseid' => $this->courseid],
-            '',
-            'id, assessmentid, competencyid, competency_percent'
-        );
-        $practicalmap = [];
-        foreach ($practicalrows as $pr) {
-            $practicalmap[$pr->assessmentid . '_' . $pr->competencyid] = (float)$pr->competency_percent;
-        }
-
-        // Preload all quiz competency attempt results for this student in this course.
-        $quizsql = "SELECT CONCAT(quiza.quiz, '_', m.competencyid) AS unique_key,
-                           quiza.quiz, m.competencyid,
-                           SUM(qa.maxfraction) AS maxf,
-                           SUM(qas.fraction)   AS gotf
-                      FROM {quiz_attempts} quiza
-                      JOIN {quiz} q               ON q.id = quiza.quiz
-                      JOIN {question_usages} qu   ON qu.id = quiza.uniqueid
-                      JOIN {question_attempts} qa  ON qa.questionusageid = qu.id
-                      JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
-                      JOIN (
-                          SELECT questionattemptid, MAX(fraction) AS fraction
-                            FROM {question_attempt_steps}
-                           GROUP BY questionattemptid
-                      ) qas ON qas.questionattemptid = qa.id
-                     WHERE q.course       = :courseid
-                       AND quiza.userid   = :userid
-                       AND quiza.state    = 'finished'
-                       AND m.courseid     = :courseid2
-                  GROUP BY quiza.quiz, m.competencyid";
-        $quizrows = $DB->get_records_sql($quizsql, [
-            'courseid'  => $this->courseid,
-            'userid'    => $userid,
-            'courseid2' => $this->courseid,
-        ]);
-        $quizmap = [];
-        foreach ($quizrows as $qr) {
-            if ($qr->maxf > 0) {
-                $quizmap[$qr->quiz . '_' . $qr->competencyid] = ($qr->gotf / $qr->maxf) * 100.0;
+            // Also add competencies that appear only in practical assessments.
+            $pracsql = "SELECT DISTINCT c.id, c.shortname, c.description, c.descriptionformat
+                          FROM {local_comp_report_ext_prac} p
+                          JOIN {competency} c ON c.id = p.competencyid
+                         WHERE p.courseid = :courseid";
+            $pracparams = ['courseid' => $this->courseid];
+            if ($filtercompetencyid) {
+                $pracsql .= ' AND c.id = :compid';
+                $pracparams['compid'] = $filtercompetencyid;
             }
+            $praccomps = $DB->get_records_sql($pracsql, $pracparams);
+            foreach ($praccomps as $cid => $comp) {
+                if (!isset($competencies[$cid])) {
+                    $competencies[$cid] = $comp;
+                }
+            }
+            $this->compscache[$compkey] = $competencies;
         }
+        $competencies = $this->compscache[$compkey];
+
+        // Per-user rate maps (served from bulk preloaded caches when available).
+        $quizmap      = $this->bulk_quiz_map($userid);
+        $practicalmap = $this->bulk_practical_map($userid);
 
         $result = [];
 
@@ -259,6 +234,9 @@ class competency_calculator {
         if (empty($userids)) {
             return [];
         }
+        // Bulk-load quiz and practical rates for all users in two queries.
+        $this->preload_user_data(array_map('intval', $userids));
+
         $result = [];
         foreach ($userids as $uid) {
             $scores = $this->get_student_scores((int)$uid);
@@ -270,46 +248,136 @@ class competency_calculator {
     }
 
     /**
-     * Get the raw question-attempt score percentage for a student in a specific
-     * quiz for questions mapped to a specific competency.
+     * Bulk-preload quiz and practical rate maps for a set of users so that
+     * subsequent get_student_scores() calls avoid per-user heavy queries.
      *
-     * @param int $userid
-     * @param int $quizid
-     * @param int $competencyid
-     * @return float|null  Percentage 0-100, or null if no finished attempt found.
+     * @param array $userids
      */
-    private function get_quiz_score_pct(int $userid, int $quizid, int $competencyid): ?float {
+    public function preload_user_data(array $userids): void {
+        if (empty($userids)) {
+            $this->quizratescache = [];
+            $this->practicalratescache = [];
+            return;
+        }
+        $this->quizratescache      = $this->get_quiz_rates_bulk($userids);
+        $this->practicalratescache = $this->get_practical_rates_bulk($userids);
+    }
+
+    /**
+     * Fetch per-user quiz competency rates for many users in ONE query.
+     *
+     * The MAX(fraction) aggregation over {question_attempt_steps} is scoped
+     * to the finished attempts of the requested users in this course, instead
+     * of aggregating the entire steps table on every call.
+     *
+     * @param array $userids
+     * @return array [userid][quizid_compid] => percentage float
+     */
+    private function get_quiz_rates_bulk(array $userids): array {
         global $DB;
 
-        $sql = "SELECT SUM(qa.maxfraction) AS maxf,
+        if (empty($userids)) {
+            return [];
+        }
+
+        [$insql, $inparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, 'uida');
+        [$insql2, $inparams2] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, 'uidb');
+
+        $sql = "SELECT quiza.userid, quiza.quiz, m.competencyid,
+                       SUM(qa.maxfraction) AS maxf,
                        SUM(qas.fraction)   AS gotf
                   FROM {quiz_attempts} quiza
-                  JOIN {question_usages} qu   ON qu.id = quiza.uniqueid
+                  JOIN {quiz} q                ON q.id = quiza.quiz
+                  JOIN {question_usages} qu    ON qu.id = quiza.uniqueid
                   JOIN {question_attempts} qa  ON qa.questionusageid = qu.id
                   JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
                   JOIN (
-                      SELECT questionattemptid, MAX(fraction) AS fraction
-                        FROM {question_attempt_steps}
-                       GROUP BY questionattemptid
+                      SELECT s.questionattemptid, MAX(s.fraction) AS fraction
+                        FROM {question_attempt_steps} s
+                        JOIN {question_attempts} qa2 ON qa2.id = s.questionattemptid
+                        JOIN {question_usages} qu2   ON qu2.id = qa2.questionusageid
+                        JOIN {quiz_attempts} qa3     ON qa3.uniqueid = qu2.id
+                        JOIN {quiz} q2               ON q2.id = qa3.quiz
+                       WHERE q2.course = :courseid
+                         AND qa3.state = 'finished'
+                         AND qa3.userid $insql
+                       GROUP BY s.questionattemptid
                   ) qas ON qas.questionattemptid = qa.id
-                 WHERE quiza.quiz      = :quizid
-                   AND quiza.userid    = :userid
-                   AND quiza.state     = 'finished'
-                   AND m.competencyid  = :competencyid
-                   AND m.courseid      = :courseid";
+                 WHERE q.course       = :courseid2
+                   AND quiza.state    = 'finished'
+                   AND quiza.userid   $insql2
+                   AND m.courseid     = :courseid3
+              GROUP BY quiza.userid, quiza.quiz, m.competencyid";
 
-        $row = $DB->get_record_sql($sql, [
-            'quizid'       => $quizid,
-            'userid'       => $userid,
-            'competencyid' => $competencyid,
-            'courseid'     => $this->courseid,
-        ]);
+        $rows = $DB->get_records_sql($sql, array_merge($inparams, $inparams2, [
+            'courseid'  => $this->courseid,
+            'courseid2' => $this->courseid,
+            'courseid3' => $this->courseid,
+        ]));
 
-        if (!$row || $row->maxf <= 0) {
-            return null;
+        $map = [];
+        foreach ($rows as $r) {
+            if ($r->maxf > 0) {
+                $map[(int)$r->userid][$r->quiz . '_' . $r->competencyid] = ($r->gotf / $r->maxf) * 100.0;
+            }
+        }
+        return $map;
+    }
+
+    /**
+     * Fetch per-user practical competency rates for many users in one query.
+     *
+     * @param array $userids
+     * @return array [userid][asmtid_compid] => percentage float
+     */
+    private function get_practical_rates_bulk(array $userids): array {
+        global $DB;
+
+        if (empty($userids)) {
+            return [];
         }
 
-        return ($row->gotf / $row->maxf) * 100.0;
+        [$insql, $inparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, 'uid');
+        $inparams['courseid'] = $this->courseid;
+
+        $rows = $DB->get_records_sql("
+            SELECT studentid, assessmentid, competencyid, competency_percent
+              FROM {local_comp_report_ext_prac}
+             WHERE courseid = :courseid
+               AND studentid $insql
+        ", $inparams);
+
+        $map = [];
+        foreach ($rows as $r) {
+            $map[(int)$r->studentid][$r->assessmentid . '_' . $r->competencyid] = (float)$r->competency_percent;
+        }
+        return $map;
+    }
+
+    /**
+     * Quiz rate map for one user, served from the bulk cache when preloaded.
+     *
+     * @param int $userid
+     * @return array [quizid_compid] => percentage float
+     */
+    private function bulk_quiz_map(int $userid): array {
+        if ($this->quizratescache !== null) {
+            return $this->quizratescache[$userid] ?? [];
+        }
+        return $this->get_quiz_rates_bulk([$userid])[$userid] ?? [];
+    }
+
+    /**
+     * Practical rate map for one user, served from the bulk cache when preloaded.
+     *
+     * @param int $userid
+     * @return array [asmtid_compid] => percentage float
+     */
+    private function bulk_practical_map(int $userid): array {
+        if ($this->practicalratescache !== null) {
+            return $this->practicalratescache[$userid] ?? [];
+        }
+        return $this->get_practical_rates_bulk([$userid])[$userid] ?? [];
     }
 
     /**
@@ -430,6 +498,9 @@ class competency_calculator {
         if (empty($students)) {
             return [];
         }
+
+        // Bulk-load quiz and practical rates for all students in two queries.
+        $this->preload_user_data(array_map('intval', array_keys($students)));
 
         $compscores = [];
         $compobjects = [];
