@@ -309,18 +309,19 @@ class competency_calculator {
                    AND m.courseid     = :courseid3
               GROUP BY quiza.userid, quiza.quiz, m.competencyid";
 
-        $rows = $DB->get_records_sql($sql, array_merge($inparams, $inparams2, [
+        $rs = $DB->get_recordset_sql($sql, array_merge($inparams, $inparams2, [
             'courseid'  => $this->courseid,
             'courseid2' => $this->courseid,
             'courseid3' => $this->courseid,
         ]));
 
         $map = [];
-        foreach ($rows as $r) {
+        foreach ($rs as $r) {
             if ($r->maxf > 0) {
                 $map[(int)$r->userid][$r->quiz . '_' . $r->competencyid] = ($r->gotf / $r->maxf) * 100.0;
             }
         }
+        $rs->close();
         return $map;
     }
 
@@ -340,7 +341,7 @@ class competency_calculator {
         [$insql, $inparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, 'uid');
         $inparams['courseid'] = $this->courseid;
 
-        $rows = $DB->get_records_sql("
+        $rs = $DB->get_recordset_sql("
             SELECT studentid, assessmentid, competencyid, competency_percent
               FROM {local_comp_report_ext_prac}
              WHERE courseid = :courseid
@@ -348,9 +349,10 @@ class competency_calculator {
         ", $inparams);
 
         $map = [];
-        foreach ($rows as $r) {
+        foreach ($rs as $r) {
             $map[(int)$r->studentid][$r->assessmentid . '_' . $r->competencyid] = (float)$r->competency_percent;
         }
+        $rs->close();
         return $map;
     }
 
