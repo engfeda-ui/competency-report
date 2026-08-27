@@ -120,14 +120,20 @@ function xmldb_local_comp_report_ext_upgrade($oldversion) {
             }
         }
 
-        $oldidx = new xmldb_index('assessment_student_comp_idx', XMLDB_INDEX_NOTUNIQUE,
-            ['assessmentid', 'studentid', 'competencyid']);
+        $oldidx = new xmldb_index(
+            'assessment_student_comp_idx',
+            XMLDB_INDEX_NOTUNIQUE,
+            ['assessmentid', 'studentid', 'competencyid']
+        );
         if ($dbman->find_index_name($table, $oldidx)) {
             $dbman->drop_index($table, $oldidx);
         }
 
-        $newidx = new xmldb_index('assessment_student_comp_idx', XMLDB_INDEX_UNIQUE,
-            ['assessmentid', 'studentid', 'competencyid']);
+        $newidx = new xmldb_index(
+            'assessment_student_comp_idx',
+            XMLDB_INDEX_UNIQUE,
+            ['assessmentid', 'studentid', 'competencyid']
+        );
         if (!$dbman->find_index_name($table, $newidx)) {
             $dbman->add_index($table, $newidx);
         }

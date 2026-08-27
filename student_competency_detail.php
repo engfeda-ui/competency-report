@@ -414,7 +414,14 @@ foreach ($primaryquizzes as $pq) {
     }
 
     $rowoverallpct = $rowtotalq > 0 ? round(($rowtotalc / $rowtotalq) * 100.0, 1) : 0.0;
-    $rowoverallcolor = ($rowoverallpct >= 80) ? '#28a745' : (($rowoverallpct >= 60) ? '#0056b3' : (($rowoverallpct >= 40) ? '#e67e22' : '#dc3545'));
+    $rowoverallcolor = '#dc3545';
+    if ($rowoverallpct >= 80) {
+        $rowoverallcolor = '#28a745';
+    } else if ($rowoverallpct >= 60) {
+        $rowoverallcolor = '#0056b3';
+    } else if ($rowoverallpct >= 40) {
+        $rowoverallcolor = '#e67e22';
+    }
 
     $matrixrows[] = [
         'index'            => count($matrixrows) + 1,
@@ -434,7 +441,14 @@ foreach ($compheaders as $cid => $ch) {
     $totq = $comptotals[$cid]['questions'] ?? 0.0;
     $totc = $comptotals[$cid]['correct'] ?? 0.0;
     $totpct = $totq > 0 ? round(($totc / $totq) * 100.0, 1) : 0.0;
-    $totcolor = ($totpct >= 80) ? '#28a745' : (($totpct >= 60) ? '#0056b3' : (($totpct >= 40) ? '#e67e22' : '#dc3545'));
+    $totcolor = '#dc3545';
+    if ($totpct >= 80) {
+        $totcolor = '#28a745';
+    } else if ($totpct >= 60) {
+        $totcolor = '#0056b3';
+    } else if ($totpct >= 40) {
+        $totcolor = '#e67e22';
+    }
 
     $footercells[] = [
         'pct'   => '%' . number_format($totpct, 1),
@@ -444,7 +458,14 @@ foreach ($compheaders as $cid => $ch) {
 }
 
 $overallcoursepct = $overallallquestions > 0 ? round(($overallallcorrect / $overallallquestions) * 100.0, 1) : 0.0;
-$overallcoursecolor = ($overallcoursepct >= 80) ? '#28a745' : (($overallcoursepct >= 60) ? '#0056b3' : (($overallcoursepct >= 40) ? '#e67e22' : '#dc3545'));
+$overallcoursecolor = '#dc3545';
+if ($overallcoursepct >= 80) {
+    $overallcoursecolor = '#28a745';
+} else if ($overallcoursepct >= 60) {
+    $overallcoursecolor = '#0056b3';
+} else if ($overallcoursepct >= 40) {
+    $overallcoursecolor = '#e67e22';
+}
 
 $footertotal = [
     'pct'   => '%' . number_format($overallcoursepct, 1),

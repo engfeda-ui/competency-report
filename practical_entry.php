@@ -97,12 +97,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
             } catch (\dml_write_exception $e) {
                 // Unique-index race: a concurrent request inserted this row first — update instead.
                 unset($e);
-                if ($duprow = $DB->get_record('local_comp_report_ext_prac', [
+                $dupparams = [
                     'assessmentid' => $postassid,
                     'courseid'     => $courseid,
                     'competencyid' => $postcompid,
                     'studentid'    => $sid,
-                ], 'id')) {
+                ];
+                $duprow = $DB->get_record('local_comp_report_ext_prac', $dupparams, 'id');
+                if ($duprow) {
                     $record->id = $duprow->id;
                     $DB->update_record('local_comp_report_ext_prac', $record);
                 }
