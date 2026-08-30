@@ -440,6 +440,8 @@ $string['specializations_taught']       = 'التخصصات المُدرَّسة
 $string['all_courses_specializations']  = 'كافة المقررات والتخصصات';
 $string['filter_by_course']             = 'المقرر / التخصص';
 $string['specializations_count']        = 'التخصصات';
+$string['select_all']                   = 'تحديد الكل';
+$string['deselect_all']                 = 'إلغاء تحديد الكل';
 
 // Institutional & Multi-Specialization Dashboard strings.
 $string['tab_institutional_dashboard']  = 'لوحة التخصصات والمناطق';

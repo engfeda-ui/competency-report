@@ -441,6 +441,8 @@ $string['specializations_taught']       = 'Specializations Taught';
 $string['all_courses_specializations']  = 'All Courses & Specializations';
 $string['filter_by_course']             = 'Course / Specialization';
 $string['specializations_count']        = 'Specializations';
+$string['select_all']                   = 'Select All';
+$string['deselect_all']                 = 'Deselect All';
 
 // Institutional & Multi-Specialization Dashboard strings.
 $string['tab_institutional_dashboard']  = 'Institutional Dashboard';

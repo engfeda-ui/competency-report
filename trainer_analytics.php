@@ -20,7 +20,7 @@
  * Provides comparative pedagogical analysis across trainers, showing
  * student mastery achievements, practical assessment scores, pass rates,
  * specializations taught, and competency strengths/weaknesses.
- * Supports both Single Course mode and All Courses / Specializations mode.
+ * Supports Single Course mode, Multi-Course custom selection, and All Specializations mode.
  *
  * @package    local_comp_report_ext
  * @copyright  2026 Mahmoud Salem
@@ -30,8 +30,9 @@
 require_once(__DIR__ . '/../../config.php');
 require_once(__DIR__ . '/lib.php');
 
-$courseid = optional_param('courseid', 0, PARAM_INT);
-$groupid  = optional_param('groupid', 0, PARAM_INT);
+$courseid     = optional_param('courseid', 0, PARAM_INT);
+$rawcourseids = optional_param_array('courseids', [], PARAM_INT);
+$groupid      = optional_param('groupid', 0, PARAM_INT);
 
 // Authentication & Context Setup.
 if ($courseid > 0) {
@@ -59,7 +60,7 @@ $PAGE->set_heading($course ? format_string($course->fullname) . ' — ' . get_st
 $PAGE->set_pagelayout($courseid > 0 ? 'course' : 'admin');
 $PAGE->set_context($context);
 
-// 1. Fetch available courses for the Course Selector dropdown.
+// 1. Fetch available courses for selection.
 $isadmin = is_siteadmin();
 if ($isadmin) {
     $allcourses = $DB->get_records_select(
@@ -79,27 +80,58 @@ if ($isadmin) {
     }
 }
 
-$courseoptions = [[
-    'id'       => 0,
-    'name'     => get_string('all_courses_specializations', 'local_comp_report_ext'),
-    'selected' => ($courseid == 0),
-]];
+// 2. Resolve Selected Courses.
+$selectedcourseids = [];
+if (!empty($rawcourseids)) {
+    foreach ($rawcourseids as $cid) {
+        if (isset($allcourses[$cid])) {
+            $selectedcourseids[] = (int)$cid;
+        }
+    }
+}
+if (empty($selectedcourseids)) {
+    if ($courseid > 0 && isset($allcourses[$courseid])) {
+        $selectedcourseids = [$courseid];
+    } else if (!empty($allcourses)) {
+        $selectedcourseids = array_keys($allcourses);
+    }
+}
+
+$selected_count    = count($selectedcourseids);
+$total_count       = count($allcourses);
+$is_all_selected   = ($selected_count === $total_count);
+$is_single_course  = ($selected_count === 1);
+$active_course_id  = $is_single_course ? reset($selectedcourseids) : 0;
+$isallcourses      = !$is_single_course;
+
+// Build Course Checkbox Options for Dropdown.
+$courseoptions = [];
 foreach ($allcourses as $c) {
     $courseoptions[] = [
         'id'       => (int)$c->id,
         'name'     => format_string($c->fullname),
-        'selected' => ($courseid == (int)$c->id),
+        'shortname'=> format_string($c->shortname),
+        'selected' => in_array((int)$c->id, $selectedcourseids),
     ];
 }
 
-// 2. Fetch available groups.
+if ($is_all_selected) {
+    $course_btn_label = get_string('all_courses_specializations', 'local_comp_report_ext');
+} else if ($is_single_course) {
+    $single_cid = reset($selectedcourseids);
+    $course_btn_label = format_string($allcourses[$single_cid]->shortname ?? $allcourses[$single_cid]->fullname);
+} else {
+    $course_btn_label = get_string('selected_courses_count', 'local_comp_report_ext', $selected_count);
+}
+
+// 3. Fetch available groups for single course mode.
 $groupoptions = [[
     'id'       => 0,
     'name'     => get_string('allgroups', 'local_comp_report_ext'),
     'selected' => ($groupid == 0),
 ]];
-if ($courseid > 0) {
-    $groups = groups_get_all_groups($courseid);
+if ($is_single_course && $active_course_id > 0) {
+    $groups = groups_get_all_groups($active_course_id);
     foreach ($groups as $g) {
         $groupoptions[] = [
             'id'       => $g->id,
@@ -109,29 +141,10 @@ if ($courseid > 0) {
     }
 }
 
-// 3. Fetch trainer practical evaluation records.
-$isallcourses = ($courseid == 0);
-$accessible_cids = array_keys($allcourses);
-
-if ($isallcourses) {
-    if (!empty($accessible_cids)) {
-        [$incourses, $courseparams] = $DB->get_in_or_equal($accessible_cids, SQL_PARAMS_NAMED, 'cid');
-        $trainer_prac_sql = "
-            SELECT p.trainerid, p.courseid, c.fullname as coursename, c.shortname as courseshortname,
-                   u.firstname, u.lastname, u.email,
-                   COUNT(DISTINCT p.studentid) AS student_count,
-                   COUNT(p.id) AS total_evaluations,
-                   AVG(p.competency_percent) AS avg_practical_pct
-              FROM {local_comp_report_ext_prac} p
-              JOIN {user} u ON u.id = p.trainerid
-              JOIN {course} c ON c.id = p.courseid
-             WHERE p.courseid $incourses AND u.deleted = 0
-          GROUP BY p.trainerid, p.courseid, c.fullname, c.shortname, u.firstname, u.lastname, u.email";
-        $trainers_prac_records = $DB->get_records_sql($trainer_prac_sql, $courseparams);
-    } else {
-        $trainers_prac_records = [];
-    }
-} else {
+// 4. Fetch trainer practical evaluation records.
+$trainers_prac_records = [];
+if (!empty($selectedcourseids)) {
+    [$incourses, $courseparams] = $DB->get_in_or_equal($selectedcourseids, SQL_PARAMS_NAMED, 'cid');
     $trainer_prac_sql = "
         SELECT p.trainerid, p.courseid, c.fullname as coursename, c.shortname as courseshortname,
                u.firstname, u.lastname, u.email,
@@ -141,12 +154,12 @@ if ($isallcourses) {
           FROM {local_comp_report_ext_prac} p
           JOIN {user} u ON u.id = p.trainerid
           JOIN {course} c ON c.id = p.courseid
-         WHERE p.courseid = :courseid AND u.deleted = 0
+         WHERE p.courseid $incourses AND u.deleted = 0
       GROUP BY p.trainerid, p.courseid, c.fullname, c.shortname, u.firstname, u.lastname, u.email";
-    $trainers_prac_records = $DB->get_records_sql($trainer_prac_sql, ['courseid' => $courseid]);
+    $trainers_prac_records = $DB->get_records_sql($trainer_prac_sql, $courseparams);
 }
 
-// 4. Aggregate trainer profiles across courses.
+// 5. Aggregate trainer profiles across courses.
 $trainers_map = [];
 foreach ($trainers_prac_records as $tp) {
     $tid = (int)$tp->trainerid;
@@ -168,15 +181,16 @@ foreach ($trainers_prac_records as $tp) {
 }
 
 // In single course mode, also include enrolled teachers who haven't submitted practicals yet.
-if (!$isallcourses && $context) {
-    $enrolled_teachers = get_enrolled_users($context, 'moodle/course:update', $groupid, 'u.id, u.firstname, u.lastname, u.email');
+if ($is_single_course && $active_course_id > 0) {
+    $ccontext = context_course::instance($active_course_id);
+    $enrolled_teachers = get_enrolled_users($ccontext, 'moodle/course:update', $groupid, 'u.id, u.firstname, u.lastname, u.email');
     foreach ($enrolled_teachers as $et) {
         if (!isset($trainers_map[$et->id])) {
             $trainers_map[$et->id] = (object)[
                 'id'                => (int)$et->id,
                 'fullname'          => fullname($et),
                 'email'             => $et->email,
-                'courses'           => [$courseid => format_string($course->shortname)],
+                'courses'           => [$active_course_id => format_string($allcourses[$active_course_id]->shortname ?? 'Course')],
                 'evaluations_count' => 0,
                 'total_students'    => 0,
                 'practical_pcts'    => [0.0],
@@ -185,28 +199,24 @@ if (!$isallcourses && $context) {
     }
 }
 
-// 5. Preload student competency scores for each trainer.
+// 6. Preload student competency scores for each trainer.
 $trainer_rows         = [];
 $trainer_names        = [];
 $trainer_mastery_data = [];
 $trainer_pass_data    = [];
 
 foreach ($trainers_map as $trainerid => $trainer) {
-    // Fetch all evaluations and student scores for this trainer.
-    if ($isallcourses) {
+    if (!empty($selectedcourseids)) {
+        [$incourses, $courseparams] = $DB->get_in_or_equal($selectedcourseids, SQL_PARAMS_NAMED, 'cid');
+        $courseparams['trainerid'] = $trainerid;
         $st_records = $DB->get_records_sql(
             "SELECT DISTINCT p.courseid, p.studentid, p.competencyid, p.competency_percent
                FROM {local_comp_report_ext_prac} p
-              WHERE p.trainerid = :trainerid",
-            ['trainerid' => $trainerid]
+              WHERE p.courseid $incourses AND p.trainerid = :trainerid",
+            $courseparams
         );
     } else {
-        $st_records = $DB->get_records_sql(
-            "SELECT DISTINCT p.courseid, p.studentid, p.competencyid, p.competency_percent
-               FROM {local_comp_report_ext_prac} p
-              WHERE p.courseid = :courseid AND p.trainerid = :trainerid",
-            ['courseid' => $courseid, 'trainerid' => $trainerid]
-        );
+        $st_records = [];
     }
 
     $comp_ids = [];
@@ -307,19 +317,22 @@ $hasdata = !empty($trainer_rows);
 
 // Prepare render data.
 $renderdata = new stdClass();
-$renderdata->courseid          = $courseid;
-$renderdata->groupid           = $groupid;
-$renderdata->groups            = $groupoptions;
-$renderdata->course_options    = $courseoptions;
-$renderdata->is_all_courses    = $isallcourses;
-$renderdata->has_data          = $hasdata;
-$renderdata->trainer_count     = count($trainer_rows);
+$renderdata->courseid               = $courseid;
+$renderdata->groupid                = $groupid;
+$renderdata->groups                 = $groupoptions;
+$renderdata->course_options         = $courseoptions;
+$renderdata->course_btn_label       = $course_btn_label;
+$renderdata->selected_courses_count = $selected_count;
+$renderdata->is_all_courses         = $isallcourses;
+$renderdata->is_single_course       = $is_single_course;
+$renderdata->has_data               = $hasdata;
+$renderdata->trainer_count          = count($trainer_rows);
 
-$renderdata->trainer_list      = $trainer_rows;
-$renderdata->trainer_names_json= json_encode($trainer_names);
-$renderdata->trainer_mastery_json = json_encode($trainer_mastery_data);
-$renderdata->trainer_pass_json    = json_encode($trainer_pass_data);
-$renderdata->trainer_list_json    = json_encode($trainer_rows);
+$renderdata->trainer_list           = $trainer_rows;
+$renderdata->trainer_names_json     = json_encode($trainer_names);
+$renderdata->trainer_mastery_json   = json_encode($trainer_mastery_data);
+$renderdata->trainer_pass_json      = json_encode($trainer_pass_data);
+$renderdata->trainer_list_json      = json_encode($trainer_rows);
 
 echo $OUTPUT->header();
 

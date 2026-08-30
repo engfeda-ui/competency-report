@@ -54,7 +54,10 @@ class term_comprehensive_report_page implements renderable, templatable {
         $d->groupid               = $this->data->groupid;
         $d->groups                = $this->data->groups;
         $d->course_options        = $this->data->course_options ?? [];
+        $d->course_btn_label      = $this->data->course_btn_label ?? '';
+        $d->selected_courses_count= $this->data->selected_courses_count ?? count($d->course_options);
         $d->is_all_courses        = $this->data->is_all_courses ?? false;
+        $d->is_single_course      = $this->data->is_single_course ?? false;
         $d->quizid                = $this->data->quizid ?? 0;
         $d->quizoptions           = $this->data->quizoptions ?? [];
         $d->quiz_name             = $this->data->quiz_name;

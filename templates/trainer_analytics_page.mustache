@@ -60,17 +60,37 @@
 
     <!-- Filter Form -->
     <form method="get" class="form-inline mb-4 bg-light p-3 rounded shadow-sm d-flex justify-content-between align-items-center flex-wrap">
+        <input type="hidden" name="courseid" value="{{courseid}}">
         <div class="d-flex align-items-center mb-2 mb-sm-0 flex-wrap">
-            <div class="form-group mr-3 mb-2 mb-sm-0">
-                <label class="font-weight-bold mr-2 mb-0"><i class="fa fa-book mr-1 text-primary"></i> {{#str}}filter_by_course, local_comp_report_ext{{/str}}</label>
-                <select name="courseid" class="form-control form-control-sm font-weight-bold" onchange="this.form.submit()">
+            <!-- Course Multi-Select Dropdown with Checkboxes -->
+            <div class="dropdown mr-3 mb-2 mb-sm-0">
+                <button class="btn btn-outline-primary dropdown-toggle shadow-sm font-weight-bold" type="button" id="courseMultiSelectDropTrainers" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fa fa-book mr-1"></i> {{#str}}filter_by_course, local_comp_report_ext{{/str}}:
+                    <span class="text-navy ml-1 font-weight-bold">{{course_btn_label}}</span>
+                    <span class="badge badge-primary ml-1">{{selected_courses_count}}</span>
+                </button>
+                <div class="dropdown-menu p-3 shadow-lg" aria-labelledby="courseMultiSelectDropTrainers" style="min-width: 350px; max-height: 420px; overflow-y: auto;">
+                    <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                        <h6 class="dropdown-header px-0 text-primary font-weight-bold mb-0">
+                            <i class="fa fa-th-list mr-1"></i> {{#str}}select_courses_specializations, local_comp_report_ext{{/str}}
+                        </h6>
+                        <div>
+                            <button type="button" class="btn btn-xs btn-link p-0 text-primary small font-weight-bold mr-2" onclick="setAllCourseCheckboxes(this, true)">{{#str}}select_all, local_comp_report_ext{{/str}}</button>
+                            <button type="button" class="btn btn-xs btn-link p-0 text-muted small" onclick="setAllCourseCheckboxes(this, false)">{{#str}}deselect_all, local_comp_report_ext{{/str}}</button>
+                        </div>
+                    </div>
                     {{#course_options}}
-                        <option value="{{id}}" {{#selected}}selected{{/selected}}>{{name}}</option>
+                    <div class="custom-control custom-checkbox mb-2">
+                        <input type="checkbox" class="custom-control-input course-checkbox-item" id="copt_tr_{{id}}" name="courseids[]" value="{{id}}" {{#selected}}checked{{/selected}}>
+                        <label class="custom-control-label small font-weight-bold" for="copt_tr_{{id}}">{{name}}</label>
+                    </div>
                     {{/course_options}}
-                </select>
+                    <div class="dropdown-divider"></div>
+                    <button type="submit" class="btn btn-primary btn-sm btn-block font-weight-bold"><i class="fa fa-check mr-1"></i> {{#str}}apply, core{{/str}}</button>
+                </div>
             </div>
 
-            {{^is_all_courses}}
+            {{#is_single_course}}
             <div class="form-group mr-3 mb-2 mb-sm-0">
                 <label class="font-weight-bold mr-2 mb-0"><i class="fa fa-users mr-1"></i> {{#str}}group, local_comp_report_ext{{/str}}</label>
                 <select name="groupid" class="form-control form-control-sm" onchange="this.form.submit()">
@@ -79,7 +99,7 @@
                     {{/groups}}
                 </select>
             </div>
-            {{/is_all_courses}}
+            {{/is_single_course}}
             <button type="submit" class="btn btn-primary btn-sm mb-2 mb-sm-0"><i class="fa fa-eye mr-1"></i> {{strshowstudents}}</button>
         </div>
 
@@ -245,5 +265,27 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+function setAllCourseCheckboxes(btn, check) {
+    var dropdown = btn.closest('.dropdown-menu');
+    if (dropdown) {
+        var boxes = dropdown.querySelectorAll('.course-checkbox-item');
+        for (var i = 0; i < boxes.length; i++) {
+            boxes[i].checked = check;
+        }
+    }
+}
+</script>
+{{/has_data}}
+{{^has_data}}
+<script>
+function setAllCourseCheckboxes(btn, check) {
+    var dropdown = btn.closest('.dropdown-menu');
+    if (dropdown) {
+        var boxes = dropdown.querySelectorAll('.course-checkbox-item');
+        for (var i = 0; i < boxes.length; i++) {
+            boxes[i].checked = check;
+        }
+    }
+}
 </script>
 {{/has_data}}

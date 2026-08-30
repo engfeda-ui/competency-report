@@ -25,7 +25,7 @@
  *   - Practical Retakes: capped at 24.0 / 40 (60% of 40)
  *   - Pass criteria: Total >= 60, Best Theory >= 18, Practical >= 24
  *
- * Supports both Single Course mode and All Courses / Specializations mode.
+ * Supports Single Course mode, Multi-Course custom selection, and All Specializations mode.
  *
  * @package    local_comp_report_ext
  * @copyright  2026 Mahmoud Salem
@@ -36,10 +36,11 @@ require_once(__DIR__ . '/../../config.php');
 require_once(__DIR__ . '/lib.php');
 require_once($CFG->libdir . '/csvlib.class.php');
 
-$courseid = optional_param('courseid', 0, PARAM_INT);
-$groupid  = optional_param('groupid', 0, PARAM_INT);
-$quizid   = optional_param('quizid', 0, PARAM_INT);
-$clearcsv = optional_param('clear_csv', 0, PARAM_INT);
+$courseid      = optional_param('courseid', 0, PARAM_INT);
+$rawcourseids  = optional_param_array('courseids', [], PARAM_INT);
+$groupid       = optional_param('groupid', 0, PARAM_INT);
+$quizid        = optional_param('quizid', 0, PARAM_INT);
+$clearcsv      = optional_param('clear_csv', 0, PARAM_INT);
 
 // Authentication & Context Setup.
 if ($courseid > 0) {
@@ -68,7 +69,7 @@ $PAGE->set_heading($course ? format_string($course->fullname) . ' — ' . get_st
 $PAGE->set_pagelayout($courseid > 0 ? 'course' : 'admin');
 $PAGE->set_context($context);
 
-// 1. Fetch available courses for the Course Selector dropdown.
+// 1. Fetch available courses for selection.
 $isadmin = is_siteadmin();
 if ($isadmin) {
     $allcourses = $DB->get_records_select(
@@ -88,27 +89,58 @@ if ($isadmin) {
     }
 }
 
-$courseoptions = [[
-    'id'       => 0,
-    'name'     => get_string('all_courses_specializations', 'local_comp_report_ext'),
-    'selected' => ($courseid == 0),
-]];
+// 2. Resolve Selected Courses.
+$selectedcourseids = [];
+if (!empty($rawcourseids)) {
+    foreach ($rawcourseids as $cid) {
+        if (isset($allcourses[$cid])) {
+            $selectedcourseids[] = (int)$cid;
+        }
+    }
+}
+if (empty($selectedcourseids)) {
+    if ($courseid > 0 && isset($allcourses[$courseid])) {
+        $selectedcourseids = [$courseid];
+    } else if (!empty($allcourses)) {
+        $selectedcourseids = array_keys($allcourses);
+    }
+}
+
+$selected_count    = count($selectedcourseids);
+$total_count       = count($allcourses);
+$is_all_selected   = ($selected_count === $total_count);
+$is_single_course  = ($selected_count === 1);
+$active_course_id  = $is_single_course ? reset($selectedcourseids) : 0;
+$isallcourses      = !$is_single_course;
+
+// Build Course Checkbox Options for Dropdown.
+$courseoptions = [];
 foreach ($allcourses as $c) {
     $courseoptions[] = [
         'id'       => (int)$c->id,
         'name'     => format_string($c->fullname),
-        'selected' => ($courseid == (int)$c->id),
+        'shortname'=> format_string($c->shortname),
+        'selected' => in_array((int)$c->id, $selectedcourseids),
     ];
 }
 
-// 2. Fetch available groups.
+if ($is_all_selected) {
+    $course_btn_label = get_string('all_courses_specializations', 'local_comp_report_ext');
+} else if ($is_single_course) {
+    $single_cid = reset($selectedcourseids);
+    $course_btn_label = format_string($allcourses[$single_cid]->shortname ?? $allcourses[$single_cid]->fullname);
+} else {
+    $course_btn_label = get_string('selected_courses_count', 'local_comp_report_ext', $selected_count);
+}
+
+// 3. Fetch available groups for single course mode.
 $groupoptions = [[
     'id'       => 0,
     'name'     => get_string('allgroups', 'local_comp_report_ext'),
     'selected' => ($groupid == 0),
 ]];
-if ($courseid > 0) {
-    $groups = groups_get_all_groups($courseid);
+if ($is_single_course && $active_course_id > 0) {
+    $groups = groups_get_all_groups($active_course_id);
     foreach ($groups as $g) {
         $groupoptions[] = [
             'id'       => $g->id,
@@ -120,8 +152,8 @@ if ($courseid > 0) {
 
 // Handle clear CSV data from session if requested.
 if ($clearcsv && confirm_sesskey()) {
-    if (isset($SESSION->comp_report_part_data[$courseid])) {
-        unset($SESSION->comp_report_part_data[$courseid]);
+    if (isset($SESSION->comp_report_part_data[$active_course_id])) {
+        unset($SESSION->comp_report_part_data[$active_course_id]);
     }
     redirect(new moodle_url('/local/comp_report_ext/term_comprehensive_report.php', [
         'courseid' => $courseid,
@@ -131,7 +163,7 @@ if ($clearcsv && confirm_sesskey()) {
 }
 
 // Handle CSV / TSV text paste or file upload for Participation & Assignments.
-$uploadedcustom = $SESSION->comp_report_part_data[$courseid] ?? [];
+$uploadedcustom = $SESSION->comp_report_part_data[$active_course_id] ?? [];
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
     $csvtext = optional_param('csv_text', '', PARAM_RAW);
     if (!empty($_FILES['part_file']['tmp_name']) && is_uploaded_file($_FILES['part_file']['tmp_name'])) {
@@ -208,21 +240,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
                 if (!isset($SESSION->comp_report_part_data)) {
                     $SESSION->comp_report_part_data = [];
                 }
-                $SESSION->comp_report_part_data[$courseid] = $parseddata;
+                $SESSION->comp_report_part_data[$active_course_id] = $parseddata;
                 $uploadedcustom = $parseddata;
             }
         }
     }
 }
 
-$isallcourses = ($courseid == 0);
-$selected_cids = $isallcourses ? array_keys($allcourses) : [$courseid];
 $student_rows = [];
 $quizoptions = [];
 $primary_quiz_name = '—';
 
-if (!empty($selected_cids)) {
-    [$incourses, $courseparams] = $DB->get_in_or_equal($selected_cids, SQL_PARAMS_NAMED, 'cid');
+if (!empty($selectedcourseids)) {
+    [$incourses, $courseparams] = $DB->get_in_or_equal($selectedcourseids, SQL_PARAMS_NAMED, 'cid');
 
     // A. Preload Practical evaluation scores.
     $prac_sql = "SELECT p.courseid, p.studentid, AVG(p.competency_percent) AS avg_percent
@@ -257,8 +287,8 @@ if (!empty($selected_cids)) {
         }
     }
 
-    if (!$isallcourses && $quizid > 0 && isset($quizzes[$quizid])) {
-        $course_primary_quizzes[$courseid] = $quizzes[$quizid];
+    if ($is_single_course && $quizid > 0 && isset($quizzes[$quizid])) {
+        $course_primary_quizzes[$active_course_id] = $quizzes[$quizid];
     }
 
     $quiz_attempts_lookup = [];
@@ -309,11 +339,11 @@ if (!empty($selected_cids)) {
     }
 
     // D. Fetch students enrolled per course.
-    foreach ($selected_cids as $cid) {
+    foreach ($selectedcourseids as $cid) {
         $cinfo = $allcourses[$cid] ?? (object)['fullname' => 'Course ' . $cid, 'shortname' => 'C' . $cid];
         $ccontext = context_course::instance($cid);
 
-        if (!$isallcourses && $groupid > 0) {
+        if ($is_single_course && $groupid > 0) {
             $students = get_enrolled_users($ccontext, 'local/comp_report_ext:viewownreport', $groupid, 'u.id, u.firstname, u.lastname, u.email, u.idnumber');
             if (empty($students)) {
                 $students = get_enrolled_users($ccontext, '', $groupid, 'u.id, u.firstname, u.lastname, u.email, u.idnumber');
@@ -490,35 +520,38 @@ foreach ($all_scales as $sc) {
 
 // 7. Prepare render data object.
 $renderdata = new stdClass();
-$renderdata->courseid            = $courseid;
-$renderdata->groupid             = $groupid;
-$renderdata->groups              = $groupoptions;
-$renderdata->course_options      = $courseoptions;
-$renderdata->is_all_courses      = $isallcourses;
-$renderdata->quizid              = $quizid;
-$renderdata->quizoptions         = $quizoptions;
-$renderdata->quiz_name           = $isallcourses ? get_string('all_courses_specializations', 'local_comp_report_ext') : ($primaryquiz ? format_string($primaryquiz->name) : 'Default Assessment');
-$renderdata->has_data            = !empty($student_rows);
-$renderdata->has_custom_upload   = !empty($uploadedcustom);
-$renderdata->custom_upload_count = count($uploadedcustom);
-$renderdata->sesskey             = sesskey();
+$renderdata->courseid               = $courseid;
+$renderdata->groupid                = $groupid;
+$renderdata->groups                 = $groupoptions;
+$renderdata->course_options         = $courseoptions;
+$renderdata->course_btn_label       = $course_btn_label;
+$renderdata->selected_courses_count = $selected_count;
+$renderdata->is_all_courses         = $isallcourses;
+$renderdata->is_single_course       = $is_single_course;
+$renderdata->quizid                 = $quizid;
+$renderdata->quizoptions            = $quizoptions;
+$renderdata->quiz_name              = $isallcourses ? get_string('all_courses_specializations', 'local_comp_report_ext') : ($primaryquiz ? format_string($primaryquiz->name) : 'Default Assessment');
+$renderdata->has_data               = !empty($student_rows);
+$renderdata->has_custom_upload      = !empty($uploadedcustom);
+$renderdata->custom_upload_count    = count($uploadedcustom);
+$renderdata->sesskey                = sesskey();
 
-$renderdata->enrolled_count      = $enrolled_count;
-$renderdata->passed_count        = $passed_count;
-$renderdata->failed_count        = $failed_count;
-$renderdata->pass_rate           = number_format($pass_rate, 1);
-$renderdata->term_avg            = number_format($term_avg, 1);
-$renderdata->theory_pass_rate    = number_format($theory_pass_rate, 1);
-$renderdata->prac_pass_rate      = number_format($prac_pass_rate, 1);
-$renderdata->retake1_count       = $retake1_count;
-$renderdata->retake2_count       = $retake2_count;
+$renderdata->enrolled_count         = $enrolled_count;
+$renderdata->passed_count           = $passed_count;
+$renderdata->failed_count           = $failed_count;
+$renderdata->pass_rate              = number_format($pass_rate, 1);
+$renderdata->term_avg               = number_format($term_avg, 1);
+$renderdata->theory_pass_rate       = number_format($theory_pass_rate, 1);
+$renderdata->prac_pass_rate         = number_format($prac_pass_rate, 1);
+$renderdata->retake1_count          = $retake1_count;
+$renderdata->retake2_count          = $retake2_count;
 
-$renderdata->student_list        = $student_rows;
-$renderdata->gpa_rows            = $gpa_rows;
+$renderdata->student_list           = $student_rows;
+$renderdata->gpa_rows               = $gpa_rows;
 
-$renderdata->gpa_labels_json     = json_encode(array_column($all_scales, 'letter'));
-$renderdata->gpa_counts_json     = json_encode(array_values($gpa_counts));
-$renderdata->student_list_json   = json_encode($student_rows);
+$renderdata->gpa_labels_json        = json_encode(array_column($all_scales, 'letter'));
+$renderdata->gpa_counts_json        = json_encode(array_values($gpa_counts));
+$renderdata->student_list_json      = json_encode($student_rows);
 
 echo $OUTPUT->header();
 

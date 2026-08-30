@@ -54,7 +54,10 @@ class trainer_analytics_page implements renderable, templatable {
         $d->groupid               = $this->data->groupid;
         $d->groups                = $this->data->groups;
         $d->course_options        = $this->data->course_options ?? [];
+        $d->course_btn_label      = $this->data->course_btn_label ?? '';
+        $d->selected_courses_count= $this->data->selected_courses_count ?? count($d->course_options);
         $d->is_all_courses        = $this->data->is_all_courses ?? false;
+        $d->is_single_course      = $this->data->is_single_course ?? false;
         $d->has_data              = $this->data->has_data;
         $d->trainer_count         = $this->data->trainer_count;
 
