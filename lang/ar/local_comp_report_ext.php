@@ -436,6 +436,10 @@ $string['trainer_top_comp']             = 'أعلى كفاية محققة';
 $string['trainer_weak_comp']            = 'أدنى كفاية محققة';
 $string['trainer_total_exams']          = 'إجمالي الاختبارات المقدمة';
 $string['no_trainers_found']            = 'لا توجد سجلات تقييم عملي أو تعيينات مدربين مسجلة في هذا المقرر.';
+$string['specializations_taught']       = 'التخصصات المُدرَّسة';
+$string['all_courses_specializations']  = 'كافة المقررات والتخصصات';
+$string['filter_by_course']             = 'المقرر / التخصص';
+$string['specializations_count']        = 'التخصصات';
 
 // Institutional & Multi-Specialization Dashboard strings.
 $string['tab_institutional_dashboard']  = 'لوحة التخصصات والمناطق';

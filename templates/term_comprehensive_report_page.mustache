@@ -62,8 +62,17 @@
     <div class="card shadow-sm mb-4 border-0 bg-light">
         <div class="card-body p-3">
             <form method="get" class="form-inline d-flex flex-wrap align-items-center justify-content-between">
-                <input type="hidden" name="courseid" value="{{courseid}}">
                 <div class="d-flex flex-wrap align-items-center mb-2 mb-md-0">
+                    <div class="form-group mr-3 mb-2 mb-sm-0">
+                        <label class="font-weight-bold mr-2 mb-0"><i class="fa fa-book mr-1 text-primary"></i> {{#str}}filter_by_course, local_comp_report_ext{{/str}}</label>
+                        <select name="courseid" class="form-control form-control-sm font-weight-bold" onchange="this.form.submit()">
+                            {{#course_options}}
+                                <option value="{{id}}" {{#selected}}selected{{/selected}}>{{name}}</option>
+                            {{/course_options}}
+                        </select>
+                    </div>
+
+                    {{^is_all_courses}}
                     <div class="form-group mr-3 mb-2 mb-sm-0">
                         <label class="font-weight-bold mr-2 mb-0"><i class="fa fa-users mr-1"></i> {{#str}}group, local_comp_report_ext{{/str}}</label>
                         <select name="groupid" class="form-control form-control-sm" onchange="this.form.submit()">
@@ -81,8 +90,9 @@
                             {{/quizoptions}}
                         </select>
                     </div>
+                    {{/is_all_courses}}
 
-                    <button type="submit" class="btn btn-primary btn-sm mr-2">
+                    <button type="submit" class="btn btn-primary btn-sm mr-2 mb-2 mb-sm-0">
                         <i class="fa fa-eye mr-1"></i> {{strshowstudents}}
                     </button>
                 </div>
@@ -291,6 +301,9 @@
                                 <th rowspan="2" class="align-middle" style="width: 40px;">#</th>
                                 <th rowspan="2" class="align-middle text-left" style="min-width: 180px;">Student Name</th>
                                 <th rowspan="2" class="align-middle" style="min-width: 100px;">Academic ID</th>
+                                {{#is_all_courses}}
+                                <th rowspan="2" class="align-middle" style="min-width: 130px;">{{#str}}specialization, local_comp_report_ext{{/str}}</th>
+                                {{/is_all_courses}}
                                 <th colspan="4" class="bg-primary-light text-primary border-bottom-0">Theory Final (30%)</th>
                                 <th colspan="4" class="bg-info-light text-info border-bottom-0">Practical Exam (40%)</th>
                                 <th rowspan="2" class="align-middle bg-warning-light text-warning" title="Participation (/20)">Part.<br><small>/20</small></th>
@@ -320,6 +333,9 @@
                                     </a>
                                 </td>
                                 <td class="text-muted">{{idnumber}}</td>
+                                {{#is_all_courses}}
+                                <td><span class="badge badge-info">{{courseshortname}}</span></td>
+                                {{/is_all_courses}}
                                 
                                 <!-- Theory Section -->
                                 <td>{{theory_final_30}}</td>

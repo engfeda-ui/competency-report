@@ -437,6 +437,10 @@ $string['trainer_top_comp']             = 'Highest Achieving Competency';
 $string['trainer_weak_comp']            = 'Lowest Achieving Competency';
 $string['trainer_total_exams']          = 'Total Exams Sat';
 $string['no_trainers_found']            = 'No trainer assignments or practical evaluation records found for this course.';
+$string['specializations_taught']       = 'Specializations Taught';
+$string['all_courses_specializations']  = 'All Courses & Specializations';
+$string['filter_by_course']             = 'Course / Specialization';
+$string['specializations_count']        = 'Specializations';
 
 // Institutional & Multi-Specialization Dashboard strings.
 $string['tab_institutional_dashboard']  = 'Institutional Dashboard';

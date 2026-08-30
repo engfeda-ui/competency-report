@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.21.0-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.22.0-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
@@ -21,8 +21,8 @@ A professional Moodle reporting engine that calculates and visualises student co
   - Student report card, exam analysis, competency state, timeline
   - Teacher class report, student comparison, exam analysis
   - Group competency, group quiz competency, and **Group & Assessment Distribution Analysis (NEW in v3.7.0)**
-  - **Term Comprehensive Report (NEW in v3.20.0):** Official 100-point term model (Theory 30% with 18 cap, Practical 40% with 24 cap, Participation 20%, Assignments 10%), 9-tier GPA evaluation scale, and gradebook integration.
-  - **Trainer Performance Analytics (NEW in v3.20.0):** Comparative pedagogical analytics across trainers.
+  - **Term Comprehensive Report (NEW in v3.20.0, Multi-Course in v3.22.0):** Official 100-point term model (Theory 30% with 18 cap, Practical 40% with 24 cap, Participation 20%, Assignments 10%), 9-tier GPA evaluation scale, retake tracking, and All Courses & Specializations support.
+  - **Trainer Performance Analytics (NEW in v3.20.0, Multi-Course in v3.22.0):** Comparative pedagogical analytics across trainers, tracking specializations taught, cross-course mastery, and student pass rates.
   - **Institutional & Multi-Specialization Dashboard (NEW in v3.21.0):** Multi-course aggregation, dynamic group-to-region mapping with auto-suggestions and persistent storage, cross-specialization & cross-region analytics, and unified master student roster.
   - School-wide report and PDF export
 - **Background Evidence Processing:** An adhoc task calculates competency success rates and writes them as Moodle competency evidence — now scoped to enrolled course students only (performance improvement).
@@ -86,6 +86,11 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 ---
 
 ## 📋 Changelog
+
+### v3.22.0 — 2026-08-30
+- **Feature (Cross-Specialization & All Courses Mode for Trainer Analytics & Term Comprehensive Report):**
+  - **Trainer Performance Analytics (`trainer_analytics.php`):** Added a Course Selector dropdown allowing users to switch between a single course and **"All Courses & Specializations (كافة المقررات والتخصصات)"**. In All Courses mode, evaluates each trainer's aggregate performance across all subjects and specializations they teach, displays the list and count of specializations taught, and calculates cross-course mastery and student pass rates.
+  - **Term Comprehensive Report (`term_comprehensive_report.php`):** Added a Course Selector dropdown allowing site-wide and multi-course evaluation of the 100-point term model across all specializations with course/specialization badges in the master student roster.
 
 ### v3.21.0 — 2026-08-30
 - **Feature (Institutional & Multi-Specialization Dashboard):** Added `institutional_dashboard.php`, output class `institutional_dashboard_page.php`, and template `institutional_dashboard_page.mustache`:

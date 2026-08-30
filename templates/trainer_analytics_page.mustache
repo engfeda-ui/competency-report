@@ -60,9 +60,18 @@
 
     <!-- Filter Form -->
     <form method="get" class="form-inline mb-4 bg-light p-3 rounded shadow-sm d-flex justify-content-between align-items-center flex-wrap">
-        <input type="hidden" name="courseid" value="{{courseid}}">
-        <div class="d-flex align-items-center mb-2 mb-sm-0">
-            <div class="form-group mr-3">
+        <div class="d-flex align-items-center mb-2 mb-sm-0 flex-wrap">
+            <div class="form-group mr-3 mb-2 mb-sm-0">
+                <label class="font-weight-bold mr-2 mb-0"><i class="fa fa-book mr-1 text-primary"></i> {{#str}}filter_by_course, local_comp_report_ext{{/str}}</label>
+                <select name="courseid" class="form-control form-control-sm font-weight-bold" onchange="this.form.submit()">
+                    {{#course_options}}
+                        <option value="{{id}}" {{#selected}}selected{{/selected}}>{{name}}</option>
+                    {{/course_options}}
+                </select>
+            </div>
+
+            {{^is_all_courses}}
+            <div class="form-group mr-3 mb-2 mb-sm-0">
                 <label class="font-weight-bold mr-2 mb-0"><i class="fa fa-users mr-1"></i> {{#str}}group, local_comp_report_ext{{/str}}</label>
                 <select name="groupid" class="form-control form-control-sm" onchange="this.form.submit()">
                     {{#groups}}
@@ -70,7 +79,8 @@
                     {{/groups}}
                 </select>
             </div>
-            <button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-eye mr-1"></i> {{strshowstudents}}</button>
+            {{/is_all_courses}}
+            <button type="submit" class="btn btn-primary btn-sm mb-2 mb-sm-0"><i class="fa fa-eye mr-1"></i> {{strshowstudents}}</button>
         </div>
 
         {{#has_data}}
@@ -118,6 +128,9 @@
                             <tr>
                                 <th style="width: 40px;">#</th>
                                 <th class="text-left" style="min-width: 180px;">{{#str}}trainer_name, local_comp_report_ext{{/str}}</th>
+                                {{#is_all_courses}}
+                                <th style="min-width: 150px;">{{#str}}specializations_taught, local_comp_report_ext{{/str}}</th>
+                                {{/is_all_courses}}
                                 <th>{{#str}}trainer_cohort_count, local_comp_report_ext{{/str}}</th>
                                 <th>Practical Evaluated</th>
                                 <th class="bg-info-light text-info font-weight-bold">{{#str}}trainer_avg_mastery, local_comp_report_ext{{/str}}</th>
@@ -134,12 +147,17 @@
                                     <i class="fa fa-user-circle text-muted mr-1"></i> {{fullname}}
                                     <small class="d-block text-muted">{{email}}</small>
                                 </td>
+                                {{#is_all_courses}}
+                                <td>
+                                    <span class="badge badge-info mb-1">{{specs_count}} {{#str}}specializations_count, local_comp_report_ext{{/str}}</span>
+                                    <small class="d-block text-muted font-weight-bold">{{specs_display}}</small>
+                                </td>
+                                {{/is_all_courses}}
                                 <td>
                                     <span class="badge badge-light border px-2 py-1 font-weight-bold">{{student_count}}</span>
                                 </td>
                                 <td>
                                     <span class="badge badge-light border px-2 py-1">{{evaluations_count}} entries</span>
-                                    <small class="d-block text-muted">Avg: {{avg_practical}}%</small>
                                 </td>
                                 <td>
                                     <span class="badge {{badge}} px-2 py-1 font-weight-bold" style="font-size: 13px;">

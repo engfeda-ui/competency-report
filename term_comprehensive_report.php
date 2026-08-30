@@ -25,6 +25,8 @@
  *   - Practical Retakes: capped at 24.0 / 40 (60% of 40)
  *   - Pass criteria: Total >= 60, Best Theory >= 18, Practical >= 24
  *
+ * Supports both Single Course mode and All Courses / Specializations mode.
+ *
  * @package    local_comp_report_ext
  * @copyright  2026 Mahmoud Salem
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -34,21 +36,27 @@ require_once(__DIR__ . '/../../config.php');
 require_once(__DIR__ . '/lib.php');
 require_once($CFG->libdir . '/csvlib.class.php');
 
-$courseid = required_param('courseid', PARAM_INT);
+$courseid = optional_param('courseid', 0, PARAM_INT);
 $groupid  = optional_param('groupid', 0, PARAM_INT);
 $quizid   = optional_param('quizid', 0, PARAM_INT);
 $clearcsv = optional_param('clear_csv', 0, PARAM_INT);
 
-require_login($courseid);
-$context = context_course::instance($courseid);
+// Authentication & Context Setup.
+if ($courseid > 0) {
+    require_login($courseid);
+    $context = context_course::instance($courseid);
+    $course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
+} else {
+    require_login();
+    $context = context_system::instance();
+    $course = null;
+}
 
 $canviewext = has_capability('local/comp_report_ext:viewreports', $context);
 $canviewold = has_capability('local/competency_report:viewreports', $context);
-if (!$canviewext && !$canviewold) {
+if (!$canviewext && !$canviewold && !has_capability('moodle/site:config', $context)) {
     require_capability('local/comp_report_ext:viewreports', $context);
 }
-
-$course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
 
 $PAGE->set_url('/local/comp_report_ext/term_comprehensive_report.php', [
     'courseid' => $courseid,
@@ -56,9 +64,59 @@ $PAGE->set_url('/local/comp_report_ext/term_comprehensive_report.php', [
     'quizid'   => $quizid,
 ]);
 $PAGE->set_title(get_string('term_comprehensive_report', 'local_comp_report_ext'));
-$PAGE->set_heading(format_string($course->fullname) . ' — ' . get_string('term_comprehensive_report', 'local_comp_report_ext'));
-$PAGE->set_pagelayout('course');
+$PAGE->set_heading($course ? format_string($course->fullname) . ' — ' . get_string('term_comprehensive_report', 'local_comp_report_ext') : get_string('term_comprehensive_report', 'local_comp_report_ext'));
+$PAGE->set_pagelayout($courseid > 0 ? 'course' : 'admin');
 $PAGE->set_context($context);
+
+// 1. Fetch available courses for the Course Selector dropdown.
+$isadmin = is_siteadmin();
+if ($isadmin) {
+    $allcourses = $DB->get_records_select(
+        'course',
+        'id > 1 AND visible = 1',
+        null,
+        'fullname ASC',
+        'id, fullname, shortname'
+    );
+} else {
+    $mycourses = enrol_get_my_courses('id, fullname, shortname', 'fullname ASC');
+    $allcourses = [];
+    foreach ($mycourses as $c) {
+        if ($c->id > 1) {
+            $allcourses[$c->id] = $c;
+        }
+    }
+}
+
+$courseoptions = [[
+    'id'       => 0,
+    'name'     => get_string('all_courses_specializations', 'local_comp_report_ext'),
+    'selected' => ($courseid == 0),
+]];
+foreach ($allcourses as $c) {
+    $courseoptions[] = [
+        'id'       => (int)$c->id,
+        'name'     => format_string($c->fullname),
+        'selected' => ($courseid == (int)$c->id),
+    ];
+}
+
+// 2. Fetch available groups.
+$groupoptions = [[
+    'id'       => 0,
+    'name'     => get_string('allgroups', 'local_comp_report_ext'),
+    'selected' => ($groupid == 0),
+]];
+if ($courseid > 0) {
+    $groups = groups_get_all_groups($courseid);
+    foreach ($groups as $g) {
+        $groupoptions[] = [
+            'id'       => $g->id,
+            'name'     => format_string($g->name),
+            'selected' => ($groupid == $g->id),
+        ];
+    }
+}
 
 // Handle clear CSV data from session if requested.
 if ($clearcsv && confirm_sesskey()) {
@@ -91,67 +149,65 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
                 if (trim($line) === '') {
                     continue;
                 }
-                // Support comma, semicolon, or tab separation.
                 $delimiter = (strpos($line, "\t") !== false) ? "\t" : ((strpos($line, ';') !== false) ? ';' : ',');
                 $cols = str_getcsv($line, $delimiter);
 
                 if ($header === null) {
-                    // Detect header row.
                     $lowercols = array_map('strtolower', array_map('trim', $cols));
-                    foreach ($lowercols as $cidx => $colname) {
-                        if (preg_match('/email|بريد/u', $colname)) {
-                            $hmap['email'] = $cidx;
-                        } else if (preg_match('/^id$|academic|student.*id|رقم.*اكاديمي|رقم.*جامعي/u', $colname)) {
-                            $hmap['id'] = $cidx;
-                        } else if (preg_match('/particip|مشارك/u', $colname)) {
-                            $hmap['participation'] = $cidx;
-                        } else if (preg_match('/assign|homework|task|تكليف|واجب/u', $colname)) {
-                            $hmap['assignments'] = $cidx;
-                        } else if (preg_match('/retake.*1.*t|t1|نظري.*1/u', $colname)) {
-                            $hmap['retake1_t'] = $cidx;
-                        } else if (preg_match('/retake.*2.*t|t2|نظري.*2/u', $colname)) {
-                            $hmap['retake2_t'] = $cidx;
-                        } else if (preg_match('/retake.*1.*p|p1|عملي.*1/u', $colname)) {
-                            $hmap['retake1_p'] = $cidx;
-                        } else if (preg_match('/retake.*2.*p|p2|عملي.*2/u', $colname)) {
-                            $hmap['retake2_p'] = $cidx;
-                        }
+                    foreach ($lowercols as $cidx => $cname) {
+                        if (preg_match('/(email|mail|بريد)/i', $cname)) { $hmap['email'] = $cidx; }
+                        else if (preg_match('/(id|academic|idnumber|رقم|جامعي|أكاديمي)/i', $cname)) { $hmap['id'] = $cidx; }
+                        else if (preg_match('/(part|مشاركة|حضور|attendance)/i', $cname)) { $hmap['participation'] = $cidx; }
+                        else if (preg_match('/(assign|واجب|تكليف|homework)/i', $cname)) { $hmap['assignments'] = $cidx; }
+                        else if (preg_match('/(retake1_t|retake1.*theory|إعادة.*نظري.*1)/i', $cname)) { $hmap['retake1_t'] = $cidx; }
+                        else if (preg_match('/(retake2_t|retake2.*theory|إعادة.*نظري.*2)/i', $cname)) { $hmap['retake2_t'] = $cidx; }
+                        else if (preg_match('/(retake1_p|retake1.*prac|إعادة.*عملي.*1)/i', $cname)) { $hmap['retake1_p'] = $cidx; }
+                        else if (preg_match('/(retake2_p|retake2.*prac|إعادة.*عملي.*2)/i', $cname)) { $hmap['retake2_p'] = $cidx; }
                     }
-                    if ($hmap['email'] !== -1 || $hmap['id'] !== -1) {
+                    if ($hmap['email'] !== -1 || $hmap['id'] !== -1 || $hmap['participation'] !== -1) {
                         $header = $lowercols;
                         continue;
-                    } else {
-                        // Default column mapping if no header matches.
-                        $hmap = ['id' => 0, 'email' => 1, 'participation' => 2, 'assignments' => 3, 'retake1_t' => 4, 'retake2_t' => 5, 'retake1_p' => 6, 'retake2_p' => 7];
                     }
+                    $header = [];
                 }
 
                 $key = '';
                 if ($hmap['email'] !== -1 && !empty($cols[$hmap['email']])) {
                     $key = strtolower(trim($cols[$hmap['email']]));
                 } else if ($hmap['id'] !== -1 && !empty($cols[$hmap['id']])) {
-                    $key = 'id_' . strtolower(trim($cols[$hmap['id']]));
+                    $key = trim($cols[$hmap['id']]);
+                } else if (!empty($cols[0])) {
+                    $key = trim($cols[0]);
                 }
 
                 if (!empty($key)) {
-                    $part = ($hmap['participation'] !== -1 && isset($cols[$hmap['participation']]) && is_numeric(trim($cols[$hmap['participation']]))) ? (float)trim($cols[$hmap['participation']]) : 0.0;
-                    $asgn = ($hmap['assignments'] !== -1 && isset($cols[$hmap['assignments']]) && is_numeric(trim($cols[$hmap['assignments']]))) ? (float)trim($cols[$hmap['assignments']]) : 0.0;
-                    $r1t  = ($hmap['retake1_t'] !== -1 && isset($cols[$hmap['retake1_t']]) && is_numeric(trim($cols[$hmap['retake1_t']]))) ? (float)trim($cols[$hmap['retake1_t']]) : null;
-                    $r2t  = ($hmap['retake2_t'] !== -1 && isset($cols[$hmap['retake2_t']]) && is_numeric(trim($cols[$hmap['retake2_t']]))) ? (float)trim($cols[$hmap['retake2_t']]) : null;
-                    $r1p  = ($hmap['retake1_p'] !== -1 && isset($cols[$hmap['retake1_p']]) && is_numeric(trim($cols[$hmap['retake1_p']]))) ? (float)trim($cols[$hmap['retake1_p']]) : null;
-                    $r2p  = ($hmap['retake2_p'] !== -1 && isset($cols[$hmap['retake2_p']]) && is_numeric(trim($cols[$hmap['retake2_p']]))) ? (float)trim($cols[$hmap['retake2_p']]) : null;
-
-                    $parseddata[$key] = [
-                        'participation' => min(20.0, max(0.0, $part)),
-                        'assignments'   => min(10.0, max(0.0, $asgn)),
-                        'retake1_t'     => ($r1t !== null) ? min(18.0, max(0.0, $r1t)) : null,
-                        'retake2_t'     => ($r2t !== null) ? min(18.0, max(0.0, $r2t)) : null,
-                        'retake1_p'     => ($r1p !== null) ? min(24.0, max(0.0, $r1p)) : null,
-                        'retake2_p'     => ($r2p !== null) ? min(24.0, max(0.0, $r2p)) : null,
-                    ];
+                    $entry = [];
+                    if ($hmap['participation'] !== -1 && isset($cols[$hmap['participation']])) {
+                        $entry['participation'] = (float)str_replace(',', '.', trim($cols[$hmap['participation']]));
+                    }
+                    if ($hmap['assignments'] !== -1 && isset($cols[$hmap['assignments']])) {
+                        $entry['assignments'] = (float)str_replace(',', '.', trim($cols[$hmap['assignments']]));
+                    }
+                    if ($hmap['retake1_t'] !== -1 && isset($cols[$hmap['retake1_t']]) && trim($cols[$hmap['retake1_t']]) !== '') {
+                        $entry['retake1_t'] = (float)str_replace(',', '.', trim($cols[$hmap['retake1_t']]));
+                    }
+                    if ($hmap['retake2_t'] !== -1 && isset($cols[$hmap['retake2_t']]) && trim($cols[$hmap['retake2_t']]) !== '') {
+                        $entry['retake2_t'] = (float)str_replace(',', '.', trim($cols[$hmap['retake2_t']]));
+                    }
+                    if ($hmap['retake1_p'] !== -1 && isset($cols[$hmap['retake1_p']]) && trim($cols[$hmap['retake1_p']]) !== '') {
+                        $entry['retake1_p'] = (float)str_replace(',', '.', trim($cols[$hmap['retake1_p']]));
+                    }
+                    if ($hmap['retake2_p'] !== -1 && isset($cols[$hmap['retake2_p']]) && trim($cols[$hmap['retake2_p']]) !== '') {
+                        $entry['retake2_p'] = (float)str_replace(',', '.', trim($cols[$hmap['retake2_p']]));
+                    }
+                    $parseddata[$key] = $entry;
                 }
             }
+
             if (!empty($parseddata)) {
+                if (!isset($SESSION->comp_report_part_data)) {
+                    $SESSION->comp_report_part_data = [];
+                }
                 $SESSION->comp_report_part_data[$courseid] = $parseddata;
                 $uploadedcustom = $parseddata;
             }
@@ -159,438 +215,301 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
     }
 }
 
-// 1. Fetch available groups.
-$groups = groups_get_all_groups($courseid);
-$groupoptions = [[
-    'id'       => 0,
-    'name'     => get_string('allgroups', 'local_comp_report_ext'),
-    'selected' => ($groupid == 0),
-]];
-foreach ($groups as $g) {
-    $groupoptions[] = [
-        'id'       => $g->id,
-        'name'     => format_string($g->name),
-        'selected' => ($groupid == $g->id),
-    ];
-}
-
-// 2. Fetch available quizzes in course.
-$allcoursequizzes = $DB->get_records('quiz', ['course' => $courseid], 'name ASC', 'id, name, sumgrades, grade');
+$isallcourses = ($courseid == 0);
+$selected_cids = $isallcourses ? array_keys($allcourses) : [$courseid];
+$student_rows = [];
 $quizoptions = [];
-$primaryquiz = null;
+$primary_quiz_name = '—';
 
-foreach ($allcoursequizzes as $cq) {
-    // Determine if this is a retake quiz to prioritize regular final quizzes.
-    $isretake = preg_match('/(retake|إعادة|الدور[\s]*(الثاني|الثالث)|محاولة[\s]*(2|3))/iu', $cq->name);
-    $selected = ($quizid > 0 && (int)$cq->id === $quizid);
+if (!empty($selected_cids)) {
+    [$incourses, $courseparams] = $DB->get_in_or_equal($selected_cids, SQL_PARAMS_NAMED, 'cid');
 
-    $quizoptions[] = [
-        'id'       => (int)$cq->id,
-        'name'     => format_string($cq->name),
-        'selected' => $selected,
-        'isretake' => (bool)$isretake,
-    ];
-
-    if ($selected) {
-        $primaryquiz = $cq;
+    // A. Preload Practical evaluation scores.
+    $prac_sql = "SELECT p.courseid, p.studentid, AVG(p.competency_percent) AS avg_percent
+                   FROM {local_comp_report_ext_prac} p
+                  WHERE p.courseid $incourses
+               GROUP BY p.courseid, p.studentid";
+    $prac_records = $DB->get_records_sql($prac_sql, $courseparams);
+    $prac_lookup = [];
+    foreach ($prac_records as $pr) {
+        $prac_lookup[$pr->courseid][$pr->studentid] = (float)$pr->avg_percent;
     }
-}
 
-// If no quiz selected, pick the first non-retake quiz or first quiz.
-if (!$primaryquiz && !empty($allcoursequizzes)) {
-    foreach ($allcoursequizzes as $cq) {
-        if (!preg_match('/(retake|إعادة)/iu', $cq->name)) {
-            $primaryquiz = $cq;
-            break;
+    // B. Preload Quizzes and Attempts.
+    $quizzes = $DB->get_records_sql("
+        SELECT id, course, name, sumgrades, grade
+          FROM {quiz}
+         WHERE course $incourses
+      ORDER BY course ASC, id ASC",
+        $courseparams
+    );
+
+    $course_primary_quizzes = [];
+    foreach ($quizzes as $q) {
+        $isretake = preg_match('/(retake|إعادة)/iu', $q->name);
+        if (!isset($course_primary_quizzes[$q->course]) && !$isretake) {
+            $course_primary_quizzes[$q->course] = $q;
         }
     }
-    if (!$primaryquiz) {
-        $primaryquiz = reset($allcoursequizzes);
-    }
-    $quizid = (int)$primaryquiz->id;
-    foreach ($quizoptions as &$opt) {
-        if ($opt['id'] === $quizid) {
-            $opt['selected'] = true;
+    foreach ($quizzes as $q) {
+        if (!isset($course_primary_quizzes[$q->course])) {
+            $course_primary_quizzes[$q->course] = $q;
         }
     }
-    unset($opt);
-}
 
-// 3. Separate Retake Quizzes detection in course.
-$retake1quizzes = [];
-$retake2quizzes = [];
-if ($primaryquiz) {
-    foreach ($allcoursequizzes as $cq) {
-        if ((int)$cq->id === (int)$primaryquiz->id) {
-            continue;
-        }
-        $cname = $cq->name;
-        $isretake1 = preg_match('/(retake[\s\-]*1|1[\s]*st[\s]*retake|first[\s\-]*retake|إعادة[\s]*1|الإعادة[\s]*الأولى|الدور[\s]*الثاني|محاولة[\s]*2)/iu', $cname);
-        $isretake2 = preg_match('/(retake[\s\-]*2|2[\s]*nd[\s]*retake|second[\s\-]*retake|إعادة[\s]*2|الإعادة[\s]*الثانية|الدور[\s]*الثالث|محاولة[\s]*3)/iu', $cname);
-
-        if ($isretake1) {
-            $retake1quizzes[$cq->id] = $cq;
-        } else if ($isretake2) {
-            $retake2quizzes[$cq->id] = $cq;
-        }
+    if (!$isallcourses && $quizid > 0 && isset($quizzes[$quizid])) {
+        $course_primary_quizzes[$courseid] = $quizzes[$quizid];
     }
-}
 
-// 4. Fetch students roster.
-if ($groupid > 0) {
-    $students = $DB->get_records_sql("
-        SELECT DISTINCT u.id, u.firstname, u.lastname, u.email, u.idnumber
-          FROM {groups_members} gm
-          JOIN {user} u ON u.id = gm.userid
-          JOIN {role_assignments} ra ON ra.userid = u.id
-          JOIN {context} ctx ON ctx.id = ra.contextid
-         WHERE gm.groupid = :groupid
-           AND ctx.instanceid = :courseid
-           AND ctx.contextlevel = 50
-           AND ra.roleid = (SELECT id FROM {role} WHERE shortname = 'student')
-           AND u.deleted = 0
-      ORDER BY u.firstname ASC, u.lastname ASC",
-        ['groupid' => $groupid, 'courseid' => $courseid]
-    );
-} else {
-    $students = $DB->get_records_sql("
-        SELECT DISTINCT u.id, u.firstname, u.lastname, u.email, u.idnumber
-          FROM {role_assignments} ra
-          JOIN {role} r ON r.id = ra.roleid
-          JOIN {context} ctx ON ctx.id = ra.contextid
-          JOIN {user} u ON u.id = ra.userid
-         WHERE ctx.instanceid = :courseid
-           AND ctx.contextlevel = 50
-           AND r.shortname = 'student'
-           AND u.deleted = 0
-      ORDER BY u.firstname ASC, u.lastname ASC",
-        ['courseid' => $courseid]
-    );
-}
-
-// 5. Preload practical scores for all students in this course.
-$pracsql = "SELECT p.studentid, AVG(p.competency_percent) AS avg_percent, COUNT(p.id) as count_records
-              FROM {local_comp_report_ext_prac} p
-             WHERE p.courseid = :courseid
-          GROUP BY p.studentid";
-$pracrecords = $DB->get_records_sql($pracsql, ['courseid' => $courseid]);
-
-// 6. Preload quiz attempts for primary quiz and separate retake quizzes.
-$userids = !empty($students) ? array_keys($students) : [];
-$primaryattempts = [];
-if (!empty($userids) && $primaryquiz) {
-    [$inusersql, $inuserparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, 'uqa');
-    $inuserparams['quizid'] = $primaryquiz->id;
-
-    $allattempts = $DB->get_records_sql(
-        "SELECT id, userid, attempt, sumgrades, timefinish
-           FROM {quiz_attempts}
-          WHERE quiz = :quizid AND userid $inusersql AND state = 'finished'
-       ORDER BY userid ASC, attempt ASC",
-        $inuserparams
-    );
-    foreach ($allattempts as $att) {
-        $primaryattempts[$att->userid][$att->attempt] = (float)$att->sumgrades;
-    }
-}
-
-// 7. Auto-detect Assignments & Participation from Moodle Gradebook.
-$user_assignment_scores = [];
-$user_participation_scores = [];
-
-if (!empty($userids)) {
-    // A. Assignments (/10) from Moodle Gradebook assign module.
-    $assignitems = $DB->get_records_sql(
-        "SELECT id, itemname, grademax
-           FROM {grade_items}
-          WHERE courseid = :courseid AND itemmodule = 'assign'",
-        ['courseid' => $courseid]
-    );
-    if (!empty($assignitems)) {
-        [$initems, $itemparams] = $DB->get_in_or_equal(array_keys($assignitems), SQL_PARAMS_NAMED, 'gitem');
-        [$inuids, $uidparams]   = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, 'guser');
-        $allassigngrades = $DB->get_records_sql(
-            "SELECT id, itemid, userid, finalgrade, rawgrade
-               FROM {grade_grades}
-              WHERE itemid $initems AND userid $inuids",
-            array_merge($itemparams, $uidparams)
+    $quiz_attempts_lookup = [];
+    if (!empty($course_primary_quizzes)) {
+        $quizids = array_map(function($q) { return $q->id; }, $course_primary_quizzes);
+        [$inquizzes, $quizparams] = $DB->get_in_or_equal($quizids, SQL_PARAMS_NAMED, 'qid');
+        $allattempts = $DB->get_records_sql("
+            SELECT id, quiz, userid, attempt, sumgrades
+              FROM {quiz_attempts}
+             WHERE quiz $inquizzes AND state = 'finished'
+          ORDER BY userid ASC, attempt ASC",
+            $quizparams
         );
-        $user_assign_pcts = [];
-        foreach ($allassigngrades as $g) {
-            $maxg = (float)$assignitems[$g->itemid]->grademax;
-            if ($maxg > 0 && $g->finalgrade !== null) {
-                $user_assign_pcts[$g->userid][] = ((float)$g->finalgrade / $maxg) * 100.0;
-            }
-        }
-        foreach ($user_assign_pcts as $uid => $pcts) {
-            if (!empty($pcts)) {
-                $avgpct = array_sum($pcts) / count($pcts);
-                $user_assignment_scores[$uid] = min(10.0, round(($avgpct / 100.0) * 10.0, 2));
-            }
+        foreach ($allattempts as $att) {
+            $quiz_attempts_lookup[$att->quiz][$att->userid][$att->attempt] = (float)$att->sumgrades;
         }
     }
 
-    // B. Participation (/20) from Moodle Gradebook manual/attendance items.
-    $partitems = $DB->get_records_sql(
-        "SELECT id, itemname, grademax
-           FROM {grade_items}
-          WHERE courseid = :courseid
-            AND (itemtype = 'manual' OR itemmodule IN ('attendance', 'forum'))
-            AND (itemname LIKE '%participat%' OR itemname LIKE '%مشارك%' OR itemname LIKE '%حضور%' OR itemname LIKE '%attend%')",
-        ['courseid' => $courseid]
+    // C. Preload Gradebook assignments & participation.
+    $allgradeitems = $DB->get_records_sql("
+        SELECT id, courseid, itemname, itemmodule, itemtype, grademax
+          FROM {grade_items}
+         WHERE courseid $incourses",
+        $courseparams
     );
-    if (!empty($partitems)) {
-        [$inpartitems, $partitemparams] = $DB->get_in_or_equal(array_keys($partitems), SQL_PARAMS_NAMED, 'pitem');
-        [$inuids2, $uidparams2]         = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, 'puser');
-        $allpartgrades = $DB->get_records_sql(
-            "SELECT id, itemid, userid, finalgrade
-               FROM {grade_grades}
-              WHERE itemid $inpartitems AND userid $inuids2",
-            array_merge($partitemparams, $uidparams2)
+
+    $assign_grades_lookup = [];
+    $part_grades_lookup   = [];
+    if (!empty($allgradeitems)) {
+        $itemids = array_keys($allgradeitems);
+        [$initemids, $itemparams] = $DB->get_in_or_equal($itemids, SQL_PARAMS_NAMED, 'giid');
+        $allgrades = $DB->get_records_sql("
+            SELECT id, itemid, userid, finalgrade
+              FROM {grade_grades}
+             WHERE itemid $initemids AND finalgrade IS NOT NULL",
+            $itemparams
         );
-        foreach ($allpartgrades as $g) {
-            $maxg = (float)$partitems[$g->itemid]->grademax;
-            if ($maxg > 0 && $g->finalgrade !== null) {
-                $user_participation_scores[$g->userid] = min(20.0, round(((float)$g->finalgrade / $maxg) * 20.0, 2));
+        foreach ($allgrades as $g) {
+            $gi = $allgradeitems[$g->itemid];
+            $cid = $gi->courseid;
+            if ($gi->itemmodule === 'assign' && $gi->grademax > 0) {
+                $pct = ((float)$g->finalgrade / (float)$gi->grademax) * 100.0;
+                $assign_grades_lookup[$cid][$g->userid][] = $pct;
+            } else if ($gi->grademax > 0 && ($gi->itemtype === 'manual' || in_array($gi->itemmodule, ['attendance', 'forum']))) {
+                $part_grades_lookup[$cid][$g->userid] = min(20.0, ((float)$g->finalgrade / (float)$gi->grademax) * 20.0);
             }
+        }
+    }
+
+    // D. Fetch students enrolled per course.
+    foreach ($selected_cids as $cid) {
+        $cinfo = $allcourses[$cid] ?? (object)['fullname' => 'Course ' . $cid, 'shortname' => 'C' . $cid];
+        $ccontext = context_course::instance($cid);
+
+        if (!$isallcourses && $groupid > 0) {
+            $students = get_enrolled_users($ccontext, 'local/comp_report_ext:viewownreport', $groupid, 'u.id, u.firstname, u.lastname, u.email, u.idnumber');
+            if (empty($students)) {
+                $students = get_enrolled_users($ccontext, '', $groupid, 'u.id, u.firstname, u.lastname, u.email, u.idnumber');
+            }
+        } else {
+            $students = get_enrolled_users($ccontext, 'local/comp_report_ext:viewownreport', 0, 'u.id, u.firstname, u.lastname, u.email, u.idnumber');
+            if (empty($students)) {
+                $students = get_enrolled_users($ccontext, '', 0, 'u.id, u.firstname, u.lastname, u.email, u.idnumber');
+            }
+        }
+
+        $primaryquiz = $course_primary_quizzes[$cid] ?? null;
+        $sumgradesmax = ($primaryquiz && $primaryquiz->sumgrades > 0) ? (float)$primaryquiz->sumgrades : 100.0;
+
+        foreach ($students as $st) {
+            // Student Groups.
+            $stgroups = groups_get_all_groups($cid, $st->id);
+            $groupnames = !empty($stgroups) ? implode(', ', array_map(function($g) { return format_string($g->name); }, $stgroups)) : get_string('region_unassigned', 'local_comp_report_ext');
+
+            // 1. Theory score /30.
+            $att1 = $primaryquiz ? ($quiz_attempts_lookup[$primaryquiz->id][$st->id][1] ?? null) : null;
+            $att2 = $primaryquiz ? ($quiz_attempts_lookup[$primaryquiz->id][$st->id][2] ?? null) : null;
+            $att3 = $primaryquiz ? ($quiz_attempts_lookup[$primaryquiz->id][$st->id][3] ?? null) : null;
+
+            $theory_orig = ($att1 !== null) ? round(($att1 / $sumgradesmax) * 30.0, 2) : 0.0;
+            $retake1_t   = ($att2 !== null) ? min(18.0, round(($att2 / $sumgradesmax) * 30.0, 2)) : null;
+            $retake2_t   = ($att3 !== null) ? min(18.0, round(($att3 / $sumgradesmax) * 30.0, 2)) : null;
+
+            // Custom retakes from upload if available.
+            $emailkey = strtolower(trim($st->email));
+            $idkey    = trim($st->idnumber);
+            $customst = $uploadedcustom[$emailkey] ?? ($uploadedcustom[$idkey] ?? null);
+
+            if ($customst) {
+                if (isset($customst['retake1_t'])) { $retake1_t = min(18.0, (float)$customst['retake1_t']); }
+                if (isset($customst['retake2_t'])) { $retake2_t = min(18.0, (float)$customst['retake2_t']); }
+            }
+
+            $best_theory = max($theory_orig, $retake1_t ?? 0.0, $retake2_t ?? 0.0);
+            $theory_pass = ($best_theory >= 18.0);
+
+            // 2. Practical score /40.
+            $prac_pct = $prac_lookup[$cid][$st->id] ?? null;
+            $prac_orig = ($prac_pct !== null) ? round(($prac_pct / 100.0) * 40.0, 2) : null;
+            $retake1_p = ($customst && isset($customst['retake1_p'])) ? min(24.0, (float)$customst['retake1_p']) : null;
+            $retake2_p = ($customst && isset($customst['retake2_p'])) ? min(24.0, (float)$customst['retake2_p']) : null;
+
+            $best_prac = null;
+            if ($prac_orig !== null || $retake1_p !== null || $retake2_p !== null) {
+                $best_prac = max($prac_orig ?? 0.0, $retake1_p ?? 0.0, $retake2_p ?? 0.0);
+            }
+            $prac_pass = ($best_prac !== null) ? ($best_prac >= 24.0) : null;
+
+            // 3. Participation /20 & Assignments /10.
+            $participation = $part_grades_lookup[$cid][$st->id] ?? 0.0;
+            $assignments   = 0.0;
+            if (!empty($assign_grades_lookup[$cid][$st->id])) {
+                $assign_pcts = $assign_grades_lookup[$cid][$st->id];
+                $assignments = min(10.0, round((array_sum($assign_pcts) / count($assign_pcts) / 100.0) * 10.0, 2));
+            }
+            if ($customst) {
+                if (isset($customst['participation'])) { $participation = min(20.0, (float)$customst['participation']); }
+                if (isset($customst['assignments'])) { $assignments = min(10.0, (float)$customst['assignments']); }
+            }
+
+            // 4. Expected Participation benchmark (derived from theory mastery).
+            $expected_part = round(($best_theory / 30.0) * 20.0, 1);
+
+            // 5. Term Total /100 & GPA Scale.
+            $term_total = round($best_theory + ($best_prac ?? 0.0) + $participation + $assignments, 2);
+            $overall_pass = ($term_total >= 60.0);
+            $eval = \local_comp_report_ext\competency_calculator::eval_scale($term_total);
+
+            $student_rows[] = [
+                'index'             => count($student_rows) + 1,
+                'id'                => $st->id,
+                'fullname'          => fullname($st),
+                'email'             => $st->email,
+                'idnumber'          => $st->idnumber ?: '—',
+                'courseid'          => $cid,
+                'coursename'        => format_string($cinfo->fullname),
+                'courseshortname'   => format_string($cinfo->shortname),
+                'groupname'         => $groupnames,
+                'theory_orig'       => number_format($theory_orig, 1),
+                'retake1_t'         => ($retake1_t !== null) ? number_format($retake1_t, 1) : '—',
+                'retake2_t'         => ($retake2_t !== null) ? number_format($retake2_t, 1) : '—',
+                'best_theory'       => number_format($best_theory, 1),
+                'theory_pass'       => $theory_pass,
+                'prac_orig'         => ($prac_orig !== null) ? number_format($prac_orig, 1) : '—',
+                'retake1_p'         => ($retake1_p !== null) ? number_format($retake1_p, 1) : '—',
+                'retake2_p'         => ($retake2_p !== null) ? number_format($retake2_p, 1) : '—',
+                'best_prac'         => ($best_prac !== null) ? number_format($best_prac, 1) : '—',
+                'prac_pass'         => $prac_pass,
+                'has_prac'          => ($best_prac !== null),
+                'participation'     => number_format($participation, 1),
+                'assignments'       => number_format($assignments, 1),
+                'expected_part'     => number_format($expected_part, 1),
+                'term_total'        => number_format($term_total, 1),
+                'term_total_raw'    => $term_total,
+                'overall_pass'      => $overall_pass,
+                'gpa_letter'        => $eval['letter'],
+                'gpa_value'         => number_format($eval['gpa'], 2),
+                'gpa_label'         => $eval['label'],
+                'gpa_badge'         => $eval['badge'],
+                'detail_url'        => (new moodle_url('/local/comp_report_ext/student_competency_detail.php', [
+                    'courseid' => $cid,
+                    'userid'   => $st->id,
+                ]))->out(false),
+            ];
         }
     }
 }
 
-// 8. Calculate comprehensive 100-point term records for each student.
-$sumgradesmax = ($primaryquiz && $primaryquiz->sumgrades > 0) ? (float)$primaryquiz->sumgrades : 100.0;
-$studentrows = [];
-$totals_scores = [];
-$counts = [
-    'enrolled'      => count($students),
-    'overall_pass'  => 0,
-    'overall_fail'  => 0,
-    'theory_pass'   => 0,
-    'theory_fail'   => 0,
-    'prac_pass'     => 0,
-    'prac_fail'     => 0,
-    'prac_none'     => 0,
-    'retake1_count' => 0,
-    'retake2_count' => 0,
-];
-$gpadist = [
-    'exceptional' => 0,
-    'excellent'   => 0,
-    'superior'    => 0,
-    'verygood'    => 0,
-    'aboveavg'    => 0,
-    'good'        => 0,
-    'highpass'    => 0,
-    'pass'        => 0,
-    'fail'        => 0,
+// 6. Aggregate cohort summary indicators.
+$enrolled_count = count($student_rows);
+$passed_count   = 0;
+$failed_count   = 0;
+$theory_passed  = 0;
+$prac_passed    = 0;
+$retake1_count  = 0;
+$retake2_count  = 0;
+$total_term_sum = 0.0;
+
+$gpa_counts = [
+    'A+' => 0, 'A' => 0, 'B+' => 0, 'B' => 0,
+    'C+' => 0, 'C' => 0, 'D+' => 0, 'D' => 0, 'F' => 0,
 ];
 
-
-foreach ($students as $student) {
-    $emailkey = strtolower(trim($student->email));
-    $idkey    = 'id_' . strtolower(trim($student->idnumber ?: $student->id));
-    $custom   = $uploadedcustom[$emailkey] ?? ($uploadedcustom[$idkey] ?? null);
-
-    // 1. Final Theory (/30) and Theory Retakes (capped at 18).
-    $att1 = $primaryattempts[$student->id][1] ?? null;
-    $att2 = $primaryattempts[$student->id][2] ?? null;
-    $att3 = $primaryattempts[$student->id][3] ?? null;
-
-    $theory_final_30 = ($att1 !== null) ? round(($att1 / $sumgradesmax) * 30.0, 2) : 0.0;
-    
-    // Retake 1 theory: from attempt 2, or custom CSV upload (capped at 18.0 = 60% of 30).
-    $retake1_t = null;
-    if ($custom && $custom['retake1_t'] !== null) {
-        $retake1_t = min(18.0, (float)$custom['retake1_t']);
-    } else if ($att2 !== null) {
-        $raw30 = ($att2 / $sumgradesmax) * 30.0;
-        $retake1_t = min(18.0, round($raw30, 2));
-    }
-
-    // Retake 2 theory: from attempt 3, or custom CSV upload (capped at 18.0).
-    $retake2_t = null;
-    if ($custom && $custom['retake2_t'] !== null) {
-        $retake2_t = min(18.0, (float)$custom['retake2_t']);
-    } else if ($att3 !== null) {
-        $raw30_3 = ($att3 / $sumgradesmax) * 30.0;
-        $retake2_t = min(18.0, round($raw30_3, 2));
-    }
-
-    // Best Theory score (/30).
-    $best_theory = max($theory_final_30, $retake1_t ?? 0.0, $retake2_t ?? 0.0);
-    $theory_pass = ($best_theory >= 18.0);
-
-    // 2. Practical (/40) and Practical Retakes (capped at 24.0 = 60% of 40).
-    $prac_rec = $pracrecords[$student->id] ?? null;
-    $prac_orig_40 = ($prac_rec && $prac_rec->avg_percent !== null)
-        ? round(((float)$prac_rec->avg_percent / 100.0) * 40.0, 2)
-        : null;
-
-    $retake1_p = ($custom && $custom['retake1_p'] !== null) ? min(24.0, (float)$custom['retake1_p']) : null;
-    $retake2_p = ($custom && $custom['retake2_p'] !== null) ? min(24.0, (float)$custom['retake2_p']) : null;
-
-    $best_practical = ($prac_orig_40 !== null || $retake1_p !== null || $retake2_p !== null)
-        ? max($prac_orig_40 ?? 0.0, $retake1_p ?? 0.0, $retake2_p ?? 0.0)
-        : null;
-
-    $practical_pass = ($best_practical !== null) ? ($best_practical >= 24.0) : null;
-
-    // 3. Participation (/20) & Assignments (/10).
-    $participation = 0.0;
-    if ($custom && isset($custom['participation'])) {
-        $participation = (float)$custom['participation'];
-    } else if (isset($user_participation_scores[$student->id])) {
-        $participation = (float)$user_participation_scores[$student->id];
-    }
-
-    $assignments = 0.0;
-    if ($custom && isset($custom['assignments'])) {
-        $assignments = (float)$custom['assignments'];
-    } else if (isset($user_assignment_scores[$student->id])) {
-        $assignments = (float)$user_assignment_scores[$student->id];
-    }
-
-    // Expected participation benchmark formula from standalone: (bestTheory + bestPractical) * 20 / 70
-    $expected_part = round(($best_theory + ($best_practical ?? 0.0)) * (20.0 / 70.0), 1);
-
-    // 4. Term Total (/100) & Overall Pass.
-    $term_total   = round($best_theory + ($best_practical ?? 0.0) + $participation + $assignments, 2);
-    $overall_pass = ($term_total >= 60.0);
-
-    // 5. GPA Evaluation Scale.
-    $eval = \local_comp_report_ext\competency_calculator::eval_scale($term_total);
-
-    // Retake flags.
-    $has_retake1 = ($retake1_t !== null || $retake1_p !== null);
-    $has_retake2 = ($retake2_t !== null || $retake2_p !== null);
-
-    // Aggregate cohort counters.
-    if ($overall_pass) {
-        $counts['overall_pass']++;
+foreach ($student_rows as $st) {
+    if ($st['overall_pass']) {
+        $passed_count++;
     } else {
-        $counts['overall_fail']++;
+        $failed_count++;
     }
-    if ($theory_pass) {
-        $counts['theory_pass']++;
-    } else {
-        $counts['theory_fail']++;
-    }
-    if ($practical_pass === true) {
-        $counts['prac_pass']++;
-    } else if ($practical_pass === false) {
-        $counts['prac_fail']++;
-    } else {
-        $counts['prac_none']++;
-    }
-    if ($has_retake1) {
-        $counts['retake1_count']++;
-    }
-    if ($has_retake2) {
-        $counts['retake2_count']++;
-    }
-    $gpadist[$eval['key']]++;
-    $totals_scores[] = $term_total;
+    if ($st['theory_pass']) { $theory_passed++; }
+    if ($st['prac_pass'] === true) { $prac_passed++; }
+    if ($st['retake1_t'] !== '—' || $st['retake1_p'] !== '—') { $retake1_count++; }
+    if ($st['retake2_t'] !== '—' || $st['retake2_p'] !== '—') { $retake2_count++; }
 
-    $studentrows[] = [
-        'index'                 => count($studentrows) + 1,
-        'id'                    => (int)$student->id,
-        'fullname'              => fullname($student),
-        'idnumber'              => $student->idnumber ?: '—',
-        'email'                 => $student->email,
-        'theory_final_30'       => ($att1 !== null) ? number_format($theory_final_30, 1) : '—',
-        'retake1_t'             => ($retake1_t !== null) ? number_format($retake1_t, 1) : '—',
-        'retake2_t'             => ($retake2_t !== null) ? number_format($retake2_t, 1) : '—',
-        'best_theory'           => number_format($best_theory, 1),
-        'theory_pass'           => $theory_pass,
-        'prac_orig_40'          => ($prac_orig_40 !== null) ? number_format($prac_orig_40, 1) : '—',
-        'retake1_p'             => ($retake1_p !== null) ? number_format($retake1_p, 1) : '—',
-        'retake2_p'             => ($retake2_p !== null) ? number_format($retake2_p, 1) : '—',
-        'best_practical'        => ($best_practical !== null) ? number_format($best_practical, 1) : '—',
-        'practical_pass'        => $practical_pass,
-        'has_practical'         => ($best_practical !== null),
-        'participation'         => number_format($participation, 1),
-        'expected_participation'=> number_format($expected_part, 1),
-        'assignments'           => number_format($assignments, 1),
-        'term_total'            => number_format($term_total, 1),
-        'overall_pass'          => $overall_pass,
-        'gpa_letter'            => $eval['letter'],
-        'gpa_value'             => number_format($eval['gpa'], 2),
-        'gpa_label'             => $eval['label'],
-        'gpa_color'             => $eval['color'],
-        'gpa_badge'             => $eval['badge'],
-        'has_retake1'           => $has_retake1,
-        'has_retake2'           => $has_retake2,
-        'detail_url'            => (new moodle_url('/local/comp_report_ext/student_competency_detail.php', [
-            'courseid' => $courseid,
-            'userid'   => $student->id,
-        ]))->out(false),
-    ];
+    $total_term_sum += $st['term_total_raw'];
+    $gpa_counts[$st['gpa_letter']] = ($gpa_counts[$st['gpa_letter']] ?? 0) + 1;
 }
 
-// 8. Overall KPI stats and averages.
-$hasdata = !empty($studentrows);
-$termaverage = $hasdata ? round(array_sum($totals_scores) / count($totals_scores), 1) : 0.0;
-$passrate    = ($counts['enrolled'] > 0) ? round(($counts['overall_pass'] / $counts['enrolled']) * 100.0, 1) : 0.0;
-$theorypassrate = ($counts['enrolled'] > 0) ? round(($counts['theory_pass'] / $counts['enrolled']) * 100.0, 1) : 0.0;
-$practested = $counts['prac_pass'] + $counts['prac_fail'];
-$pracpassrate = ($practested > 0) ? round(($counts['prac_pass'] / $practested) * 100.0, 1) : 0.0;
+$pass_rate        = ($enrolled_count > 0) ? round(($passed_count / $enrolled_count) * 100.0, 1) : 0.0;
+$term_avg         = ($enrolled_count > 0) ? round($total_term_sum / $enrolled_count, 1) : 0.0;
+$theory_pass_rate = ($enrolled_count > 0) ? round(($theory_passed / $enrolled_count) * 100.0, 1) : 0.0;
+$prac_pass_rate   = ($enrolled_count > 0) ? round(($prac_passed / $enrolled_count) * 100.0, 1) : 0.0;
 
 // GPA distribution table rows.
-$gpaorder = [
-    ['key' => 'exceptional', 'letter' => 'A+', 'gpa' => '5.00', 'label' => get_string('eval_exceptional', 'local_comp_report_ext'), 'badge' => 'badge-success'],
-    ['key' => 'excellent',   'letter' => 'A',  'gpa' => '4.75', 'label' => get_string('eval_excellent', 'local_comp_report_ext'),   'badge' => 'badge-success'],
-    ['key' => 'superior',    'letter' => 'B+', 'gpa' => '4.50', 'label' => get_string('eval_superior', 'local_comp_report_ext'),    'badge' => 'badge-info'],
-    ['key' => 'verygood',    'letter' => 'B',  'gpa' => '4.00', 'label' => get_string('eval_verygood', 'local_comp_report_ext'),    'badge' => 'badge-info'],
-    ['key' => 'aboveavg',    'letter' => 'C+', 'gpa' => '3.50', 'label' => get_string('eval_aboveavg', 'local_comp_report_ext'),    'badge' => 'badge-warning'],
-    ['key' => 'good',        'letter' => 'C',  'gpa' => '3.00', 'label' => get_string('eval_good', 'local_comp_report_ext'),        'badge' => 'badge-warning'],
-    ['key' => 'highpass',    'letter' => 'D+', 'gpa' => '2.50', 'label' => get_string('eval_highpass', 'local_comp_report_ext'),    'badge' => 'badge-primary'],
-    ['key' => 'pass',        'letter' => 'D',  'gpa' => '2.00', 'label' => get_string('eval_pass', 'local_comp_report_ext'),        'badge' => 'badge-secondary'],
-    ['key' => 'fail',        'letter' => 'F',  'gpa' => '1.00', 'label' => get_string('eval_fail', 'local_comp_report_ext'),        'badge' => 'badge-danger'],
-];
-$gparows = [];
-foreach ($gpaorder as $item) {
-    $count = $gpadist[$item['key']];
-    $pct = ($counts['enrolled'] > 0) ? round(($count / $counts['enrolled']) * 100.0, 1) : 0.0;
-    $gparows[] = [
-        'letter' => $item['letter'],
-        'gpa'    => $item['gpa'],
-        'label'  => $item['label'],
-        'badge'  => $item['badge'],
-        'count'  => $count,
-        'pct'    => $pct,
+$gpa_rows = [];
+$all_scales = \local_comp_report_ext\competency_calculator::get_grading_scale();
+foreach ($all_scales as $sc) {
+    $count = $gpa_counts[$sc['letter']] ?? 0;
+    $pct   = ($enrolled_count > 0) ? round(($count / $enrolled_count) * 100.0, 1) : 0.0;
+    $gpa_rows[] = [
+        'letter'     => $sc['letter'],
+        'gpa'        => number_format($sc['gpa'], 2),
+        'range'      => $sc['min'] . '% - ' . $sc['max'] . '%',
+        'label'      => $sc['label'],
+        'count'      => $count,
+        'percentage' => number_format($pct, 1),
+        'badge'      => $sc['badge'],
     ];
 }
 
-// 9. Prepare render data.
+// 7. Prepare render data object.
 $renderdata = new stdClass();
-$renderdata->courseid          = $courseid;
-$renderdata->groupid           = $groupid;
-$renderdata->groups            = $groupoptions;
-$renderdata->quizid            = $quizid;
-$renderdata->quizoptions       = $quizoptions;
-$renderdata->quiz_name         = $primaryquiz ? format_string($primaryquiz->name) : '—';
-$renderdata->has_data          = $hasdata;
-$renderdata->has_custom_upload = !empty($uploadedcustom);
+$renderdata->courseid            = $courseid;
+$renderdata->groupid             = $groupid;
+$renderdata->groups              = $groupoptions;
+$renderdata->course_options      = $courseoptions;
+$renderdata->is_all_courses      = $isallcourses;
+$renderdata->quizid              = $quizid;
+$renderdata->quizoptions         = $quizoptions;
+$renderdata->quiz_name           = $isallcourses ? get_string('all_courses_specializations', 'local_comp_report_ext') : ($primaryquiz ? format_string($primaryquiz->name) : 'Default Assessment');
+$renderdata->has_data            = !empty($student_rows);
+$renderdata->has_custom_upload   = !empty($uploadedcustom);
 $renderdata->custom_upload_count = count($uploadedcustom);
-$renderdata->sesskey           = sesskey();
+$renderdata->sesskey             = sesskey();
 
-$renderdata->enrolled_count    = $counts['enrolled'];
-$renderdata->passed_count      = $counts['overall_pass'];
-$renderdata->failed_count      = $counts['overall_fail'];
-$renderdata->pass_rate         = number_format($passrate, 1);
-$renderdata->term_avg          = number_format($termaverage, 1);
-$renderdata->theory_pass_rate  = number_format($theorypassrate, 1);
-$renderdata->prac_pass_rate    = number_format($pracpassrate, 1);
-$renderdata->retake1_count     = $counts['retake1_count'];
-$renderdata->retake2_count     = $counts['retake2_count'];
+$renderdata->enrolled_count      = $enrolled_count;
+$renderdata->passed_count        = $passed_count;
+$renderdata->failed_count        = $failed_count;
+$renderdata->pass_rate           = number_format($pass_rate, 1);
+$renderdata->term_avg            = number_format($term_avg, 1);
+$renderdata->theory_pass_rate    = number_format($theory_pass_rate, 1);
+$renderdata->prac_pass_rate      = number_format($prac_pass_rate, 1);
+$renderdata->retake1_count       = $retake1_count;
+$renderdata->retake2_count       = $retake2_count;
 
-$renderdata->student_list      = $studentrows;
-$renderdata->gpa_rows          = $gparows;
+$renderdata->student_list        = $student_rows;
+$renderdata->gpa_rows            = $gpa_rows;
 
-// Chart data JSON.
-$renderdata->gpa_labels_json   = json_encode(array_column($gpaorder, 'letter'));
-$renderdata->gpa_counts_json   = json_encode(array_values($gpadist));
-$renderdata->student_list_json = json_encode($studentrows);
+$renderdata->gpa_labels_json     = json_encode(array_column($all_scales, 'letter'));
+$renderdata->gpa_counts_json     = json_encode(array_values($gpa_counts));
+$renderdata->student_list_json   = json_encode($student_rows);
 
 echo $OUTPUT->header();
 
