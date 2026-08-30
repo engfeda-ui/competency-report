@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.20.0-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.21.0-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
@@ -21,6 +21,9 @@ A professional Moodle reporting engine that calculates and visualises student co
   - Student report card, exam analysis, competency state, timeline
   - Teacher class report, student comparison, exam analysis
   - Group competency, group quiz competency, and **Group & Assessment Distribution Analysis (NEW in v3.7.0)**
+  - **Term Comprehensive Report (NEW in v3.20.0):** Official 100-point term model (Theory 30% with 18 cap, Practical 40% with 24 cap, Participation 20%, Assignments 10%), 9-tier GPA evaluation scale, and gradebook integration.
+  - **Trainer Performance Analytics (NEW in v3.20.0):** Comparative pedagogical analytics across trainers.
+  - **Institutional & Multi-Specialization Dashboard (NEW in v3.21.0):** Multi-course aggregation, dynamic group-to-region mapping with auto-suggestions and persistent storage, cross-specialization & cross-region analytics, and unified master student roster.
   - School-wide report and PDF export
 - **Background Evidence Processing:** An adhoc task calculates competency success rates and writes them as Moodle competency evidence — now scoped to enrolled course students only (performance improvement).
 - **Enterprise PDF Exports:** Students and educators can download structured PDF reports.
@@ -83,6 +86,17 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 ---
 
 ## 📋 Changelog
+
+### v3.21.0 — 2026-08-30
+- **Feature (Institutional & Multi-Specialization Dashboard):** Added `institutional_dashboard.php`, output class `institutional_dashboard_page.php`, and template `institutional_dashboard_page.mustache`:
+  - **Universal Multi-Course Selection:** Select one or multiple courses/specializations to aggregate into an overarching institutional report.
+  - **Interactive Group-to-Region Mapping:** Discovers all groups across selected courses, provides keyword auto-suggestions (Central, Eastern, Western, Southern, etc.), and persistently saves custom group-to-region assignments in Moodle configuration (`set_config`).
+  - **Cross-Specialization & Cross-Region Analytics:** Visual Chart.js comparison charts and summary breakdown tables showing total enrollment, pass rates, average scores, and GPA distributions.
+  - **Master Student Roster:** Full 100-point term model roster with live multi-field search, filters by specialization and region, Excel CSV export, and print formatting.
+  - **Navigation Integration:** Unified 8-tab navigation bar across all report templates and course reports menu.
+
+### v3.20.0 — 2026-08-30
+- **Feature (Term Comprehensive Report & Trainer Performance Analytics):** Added `term_comprehensive_report.php` implementing the 100-point term evaluation model (Practical 40%, Final Theory 30%, Participation 20%, Assignments 10%), 9-level GPA calculation scale (`competency_calculator::eval_scale`), retake policy caps (18/30 theory, 24/40 practical), and `trainer_analytics.php` for comparative cohort teacher analysis.
 
 ### v3.19.32 — 2026-08-27
 - **Code Standards:** Resolved Moodle CodeSniffer (PHPCS) violations in `db/upgrade.php` (multi-line index instantiation), `practical_entry.php` (PSR-12 control structure formatting), and `student_competency_detail.php` (line length warnings).

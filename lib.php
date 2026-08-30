@@ -213,6 +213,15 @@ function local_comp_report_ext_extend_navigation_reports($navigation, $course, $
             null,
             'traineranalytics_rep'
         );
+
+        $url9 = new moodle_url('/local/comp_report_ext/institutional_dashboard.php', ['courseid' => $course->id]);
+        $navigation->add(
+            get_string('institutional_dashboard', 'local_comp_report_ext'),
+            $url9,
+            navigation_node::TYPE_SETTING,
+            null,
+            'institutionaldashboard_rep'
+        );
     }
 }
 

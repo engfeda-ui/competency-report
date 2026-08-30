@@ -437,6 +437,47 @@ $string['trainer_weak_comp']            = 'أدنى كفاية محققة';
 $string['trainer_total_exams']          = 'إجمالي الاختبارات المقدمة';
 $string['no_trainers_found']            = 'لا توجد سجلات تقييم عملي أو تعيينات مدربين مسجلة في هذا المقرر.';
 
+// Institutional & Multi-Specialization Dashboard strings.
+$string['tab_institutional_dashboard']  = 'لوحة التخصصات والمناطق';
+$string['institutional_dashboard']      = 'اللوحة المؤسسية الشاملة للتخصصات والمناطق';
+$string['institutional_dashboard_desc']  = 'لوحة تحكم إحصائية شاملة تجمع عدة تخصصات ومقررات، مع توزيع تفاعلي للمجموعات على المناطق وكشف نتائج الطلاب العام.';
+$string['select_courses_specializations'] = 'تحديد التخصصات والمقررات';
+$string['select_courses_help']          = 'اختر مقرراً واحداً أو أكثر لتضمينها وتجميعها في التقرير المؤسسي الشامل.';
+$string['all_courses']                  = 'كافة المقررات والتخصصات المتاحة';
+$string['selected_courses_count']       = 'المقررات المحددة: {$a}';
+$string['map_groups_to_regions']        = 'توزيع المجموعات على المناطق';
+$string['map_groups_desc']              = 'عيّن كل مجموعة/شعبة من المجموعات المكتشفة إلى المنطقة أو الفرع المناسب (مثل: المنطقة الوسطى، الشرقية، الغربية، الجنوبية، أو فروع مخصصة).';
+$string['region_name']                  = 'المنطقة / الفرع';
+$string['group_name']                   = 'المجموعة / الشعبة';
+$string['btn_save_region_mapping']      = 'حفظ توزيع المناطق';
+$string['mapping_saved_success']        = 'تم حفظ توزيع المجموعات على المناطق بنجاح.';
+$string['cross_spec_analytics']         = 'مقارنة أداء التخصصات والمقررات';
+$string['cross_region_analytics']       = 'مقارنة أداء المناطق والفروع';
+$string['group_rankings']               = 'تحليل وترتيب المجموعات والشعب';
+$string['master_student_roster']        = 'كشف درجات الطلاب الشامل';
+$string['specialization']               = 'التخصص / المقرر';
+$string['region']                       = 'المنطقة';
+$string['group']                        = 'المجموعة';
+$string['total_specializations']        = 'إجمالي التخصصات';
+$string['total_regions']                = 'إجمالي المناطق';
+$string['total_groups']                 = 'إجمالي المجموعات';
+$string['cohort_total_students']        = 'إجمالي الطلاب المسجلين';
+$string['cohort_overall_avg']           = 'المتوسط العام للدفعة';
+$string['cohort_pass_rate']             = 'نسبة النجاح العامة';
+$string['filter_by_spec']               = 'تصفية حسب التخصص';
+$string['filter_by_region']             = 'تصفية حسب المنطقة';
+$string['filter_by_group']              = 'تصفية حسب المجموعة';
+$string['search_student_ph']            = 'بحث باسم الطالب، الرقم الأكاديمي أو البريد...';
+$string['btn_export_master_excel']      = 'تصدير الكشف الشامل (Excel)';
+$string['no_courses_selected']          = 'يرجى تحديد مقرر واحد على الأقل لتوليد التقرير المؤسسي.';
+$string['auto_suggested_region']        = 'مقترح تلقائياً';
+$string['add_custom_region']            = 'إضافة منطقة مخصصة';
+$string['region_central']               = 'المنطقة الوسطى';
+$string['region_eastern']               = 'المنطقة الشرقية';
+$string['region_western']               = 'المنطقة الغربية';
+$string['region_southern']              = 'المنطقة الجنوبية';
+$string['region_unassigned']            = 'غير محددة';
+
 
 // Capability language strings (required by Moodle).
 $string['comp_report_ext:manage']               = 'إدارة ربط الأسئلة بالكفايات';

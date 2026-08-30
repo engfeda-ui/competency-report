@@ -438,6 +438,47 @@ $string['trainer_weak_comp']            = 'Lowest Achieving Competency';
 $string['trainer_total_exams']          = 'Total Exams Sat';
 $string['no_trainers_found']            = 'No trainer assignments or practical evaluation records found for this course.';
 
+// Institutional & Multi-Specialization Dashboard strings.
+$string['tab_institutional_dashboard']  = 'Institutional Dashboard';
+$string['institutional_dashboard']      = 'Institutional & Multi-Specialization Dashboard';
+$string['institutional_dashboard_desc']  = 'Cross-specialization and regional performance dashboard aggregating multiple courses, dynamic group-to-region mapping, and master student cohorts.';
+$string['select_courses_specializations'] = 'Select Courses / Specializations';
+$string['select_courses_help']          = 'Choose one or more courses/specializations to aggregate in the institutional report.';
+$string['all_courses']                  = 'All Available Courses';
+$string['selected_courses_count']       = 'Selected Courses: {$a}';
+$string['map_groups_to_regions']        = 'Map Groups to Regions';
+$string['map_groups_desc']              = 'Assign discovered course groups to regions/campuses (e.g., Central, Eastern, Western, Southern, or custom branch names).';
+$string['region_name']                  = 'Region / Campus';
+$string['group_name']                   = 'Group / Cohort';
+$string['btn_save_region_mapping']      = 'Save Region Mapping';
+$string['mapping_saved_success']        = 'Group-to-region mapping saved successfully.';
+$string['cross_spec_analytics']         = 'Specialization Performance Comparison';
+$string['cross_region_analytics']       = 'Regional Performance Comparison';
+$string['group_rankings']               = 'Group & Class Breakdown';
+$string['master_student_roster']        = 'Master Student Roster';
+$string['specialization']               = 'Specialization / Course';
+$string['region']                       = 'Region';
+$string['group']                        = 'Group';
+$string['total_specializations']        = 'Total Specializations';
+$string['total_regions']                = 'Total Regions';
+$string['total_groups']                 = 'Total Groups';
+$string['cohort_total_students']        = 'Total Enrolled Students';
+$string['cohort_overall_avg']           = 'Cohort Overall Average';
+$string['cohort_pass_rate']             = 'Cohort Pass Rate';
+$string['filter_by_spec']               = 'Filter by Specialization';
+$string['filter_by_region']             = 'Filter by Region';
+$string['filter_by_group']              = 'Filter by Group';
+$string['search_student_ph']            = 'Search by student name, ID or email...';
+$string['btn_export_master_excel']      = 'Export Master Roster (Excel)';
+$string['no_courses_selected']          = 'Please select at least one course/specialization to generate the institutional report.';
+$string['auto_suggested_region']        = 'Auto-suggested';
+$string['add_custom_region']            = 'Add Custom Region';
+$string['region_central']               = 'Central Region';
+$string['region_eastern']               = 'Eastern Region';
+$string['region_western']               = 'Western Region';
+$string['region_southern']              = 'Southern Region';
+$string['region_unassigned']            = 'Unassigned Region';
+
 
 // Capability language strings (required by Moodle — key = shortname of capability after the plugin prefix).
 $string['comp_report_ext:manage']               = 'Manage competency-question mapping';
