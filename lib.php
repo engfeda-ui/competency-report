@@ -186,6 +186,33 @@ function local_comp_report_ext_extend_navigation_reports($navigation, $course, $
             null,
             'groupanalyticsdashboard_rep'
         );
+
+        $url6 = new moodle_url('/local/comp_report_ext/group_exam_analytics.php', ['courseid' => $course->id]);
+        $navigation->add(
+            get_string('tab_analytics_grades', 'local_comp_report_ext'),
+            $url6,
+            navigation_node::TYPE_SETTING,
+            null,
+            'groupexamanalytics_rep'
+        );
+
+        $url7 = new moodle_url('/local/comp_report_ext/term_comprehensive_report.php', ['courseid' => $course->id]);
+        $navigation->add(
+            get_string('term_comprehensive_report', 'local_comp_report_ext'),
+            $url7,
+            navigation_node::TYPE_SETTING,
+            null,
+            'termcomprehensivereport_rep'
+        );
+
+        $url8 = new moodle_url('/local/comp_report_ext/trainer_analytics.php', ['courseid' => $course->id]);
+        $navigation->add(
+            get_string('trainer_analytics', 'local_comp_report_ext'),
+            $url8,
+            navigation_node::TYPE_SETTING,
+            null,
+            'traineranalytics_rep'
+        );
     }
 }
 

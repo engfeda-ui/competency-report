@@ -1,0 +1,533 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    @template local_comp_report_ext/term_comprehensive_report_page
+}}
+<div class="local_comp_report_ext_term_report">
+    <!-- Navigation Tabs -->
+    <ul class="nav nav-tabs mb-4">
+        <li class="nav-item">
+            <a class="nav-link font-weight-bold text-muted" href="group_competency.php?courseid={{courseid}}">
+                <i class="fa fa-list-alt mr-1"></i> {{#str}}tab_by_competency, local_comp_report_ext{{/str}}
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link font-weight-bold text-muted" href="group_quiz_competency.php?courseid={{courseid}}">
+                <i class="fa fa-pencil-square-o mr-1"></i> {{#str}}tab_by_quiz, local_comp_report_ext{{/str}}
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link font-weight-bold text-muted" href="group_assessment_distribution.php?courseid={{courseid}}">
+                <i class="fa fa-balance-scale mr-1"></i> {{#str}}tab_assessment_distribution, local_comp_report_ext{{/str}}
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link font-weight-bold text-muted" href="group_analytics_dashboard.php?courseid={{courseid}}">
+                <i class="fa fa-bar-chart mr-1"></i> {{#str}}tab_analytics_competency, local_comp_report_ext{{/str}}
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link font-weight-bold text-muted" href="group_exam_analytics.php?courseid={{courseid}}">
+                <i class="fa fa-line-chart mr-1"></i> {{#str}}tab_analytics_grades, local_comp_report_ext{{/str}}
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link active font-weight-bold" href="#">
+                <i class="fa fa-graduation-cap mr-1"></i> {{#str}}tab_term_comprehensive, local_comp_report_ext{{/str}}
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link font-weight-bold text-muted" href="trainer_analytics.php?courseid={{courseid}}">
+                <i class="fa fa-user-circle-o mr-1"></i> {{#str}}tab_trainer_analytics, local_comp_report_ext{{/str}}
+            </a>
+        </li>
+    </ul>
+
+    <!-- Filter & Action Bar -->
+    <div class="card shadow-sm mb-4 border-0 bg-light">
+        <div class="card-body p-3">
+            <form method="get" class="form-inline d-flex flex-wrap align-items-center justify-content-between">
+                <input type="hidden" name="courseid" value="{{courseid}}">
+                <div class="d-flex flex-wrap align-items-center mb-2 mb-md-0">
+                    <div class="form-group mr-3 mb-2 mb-sm-0">
+                        <label class="font-weight-bold mr-2 mb-0"><i class="fa fa-users mr-1"></i> {{#str}}group, local_comp_report_ext{{/str}}</label>
+                        <select name="groupid" class="form-control form-control-sm" onchange="this.form.submit()">
+                            {{#groups}}
+                                <option value="{{id}}" {{#selected}}selected{{/selected}}>{{name}}</option>
+                            {{/groups}}
+                        </select>
+                    </div>
+
+                    <div class="form-group mr-3 mb-2 mb-sm-0">
+                        <label class="font-weight-bold mr-2 mb-0"><i class="fa fa-file-text-o mr-1"></i> {{#str}}quiz, local_comp_report_ext{{/str}}</label>
+                        <select name="quizid" class="form-control form-control-sm" onchange="this.form.submit()">
+                            {{#quizoptions}}
+                                <option value="{{id}}" {{#selected}}selected{{/selected}}>{{name}}</option>
+                            {{/quizoptions}}
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-sm mr-2">
+                        <i class="fa fa-eye mr-1"></i> {{strshowstudents}}
+                    </button>
+                </div>
+
+                <div class="d-flex align-items-center">
+                    {{#has_data}}
+                    <button id="btn-print-term" type="button" class="btn btn-outline-secondary btn-sm mr-2 font-weight-bold">
+                        <i class="fa fa-print mr-1"></i> {{strprintreport}}
+                    </button>
+                    <button id="btn-export-excel" type="button" class="btn btn-outline-success btn-sm mr-2 font-weight-bold">
+                        <i class="fa fa-file-excel-o mr-1"></i> {{strexportexcel}}
+                    </button>
+                    {{/has_data}}
+                    <button type="button" class="btn btn-outline-primary btn-sm font-weight-bold" data-toggle="collapse" data-target="#upload-section" aria-expanded="false">
+                        <i class="fa fa-upload mr-1"></i> {{#str}}upload_part_asgn_file, local_comp_report_ext{{/str}}
+                    </button>
+                </div>
+            </form>
+
+            <!-- Collapsible Upload Section for Custom Participation/Assignments Override -->
+            <div class="collapse mt-3 pt-3 border-top" id="upload-section">
+                <div class="bg-white p-3 rounded border">
+                    <h6 class="font-weight-bold text-navy mb-2"><i class="fa fa-cloud-upload text-primary mr-1"></i> {{#str}}upload_part_asgn_file, local_comp_report_ext{{/str}}</h6>
+                    <p class="small text-muted mb-3">{{#str}}upload_part_asgn_help, local_comp_report_ext{{/str}}</p>
+                    
+                    {{#has_custom_upload}}
+                    <div class="alert alert-success py-2 px-3 small d-flex align-items-center justify-content-between mb-3">
+                        <span><i class="fa fa-check-circle mr-1"></i> Custom Data Active: <strong>{{custom_upload_count}}</strong> records loaded from uploaded file/session.</span>
+                        <a href="term_comprehensive_report.php?courseid={{courseid}}&clear_csv=1&sesskey={{sesskey}}" class="btn btn-sm btn-outline-danger py-0 px-2 font-weight-bold">Clear Custom Data</a>
+                    </div>
+                    {{/has_custom_upload}}
+
+                    <form method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="sesskey" value="{{sesskey}}">
+                        <div class="form-row">
+                            <div class="col-md-6 mb-2">
+                                <label class="small font-weight-bold">CSV / TSV File Upload:</label>
+                                <input type="file" name="part_file" class="form-control-file form-control-sm" accept=".csv,.txt,.tsv">
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="small font-weight-bold">Or Paste CSV Text (Email/ID, Participation, Assignments, Retake1T, Retake2T, Retake1P, Retake2P):</label>
+                                <textarea name="csv_text" class="form-control form-control-sm" rows="2" placeholder="student@example.com, 18.5, 9.0, 16.0, 0, 22.0, 0"></textarea>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-success btn-sm font-weight-bold">
+                            <i class="fa fa-save mr-1"></i> Apply Data & Calculate
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{^has_data}}
+        <div class="alert alert-info py-5 text-center shadow-sm">
+            <i class="fa fa-graduation-cap fa-3x mb-3 opacity-50 d-block"></i>
+            <p class="mb-0">{{strnodata}}</p>
+        </div>
+    {{/has_data}}
+
+    {{#has_data}}
+    <div id="term-report-printable-area">
+        <!-- Banner Info -->
+        <div class="alert alert-primary bg-light border-primary shadow-sm mb-4 py-2 px-3 d-flex flex-wrap align-items-center justify-content-between">
+            <div>
+                <i class="fa fa-graduation-cap text-primary fa-lg mr-2"></i>
+                <span><strong>Assessment Model:</strong> <span class="badge badge-info px-2 py-1">PRACTICAL 40%</span> + <span class="badge badge-primary px-2 py-1">FINAL THEORY 30%</span> + <span class="badge badge-warning px-2 py-1">PARTICIPATION 20%</span> + <span class="badge badge-success px-2 py-1">ASSIGNMENTS 10%</span> = <strong>100 Points</strong></span>
+            </div>
+            <div class="small text-muted mt-2 mt-sm-0">
+                <span>Pass Rules: <strong>Total ≥ 60</strong> | <strong>Theory ≥ 18</strong> | <strong>Practical ≥ 24</strong></span>
+            </div>
+        </div>
+
+        <!-- KPI Cards Grid -->
+        <div class="row mb-4">
+            <!-- Enrolled Students -->
+            <div class="col-6 col-md-3 mb-3">
+                <div class="card h-100 border-0 shadow-sm text-white" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);">
+                    <div class="card-body py-3">
+                        <span class="text-uppercase small font-weight-bold opacity-75 d-block mb-1">Enrolled Students</span>
+                        <h2 class="mb-0 font-weight-bold">{{enrolled_count}}</h2>
+                        <small class="opacity-75 d-block mt-1"><i class="fa fa-users mr-1"></i> Total Cohort</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Overall Pass Rate -->
+            <div class="col-6 col-md-3 mb-3">
+                <div class="card h-100 border-0 shadow-sm text-white" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+                    <div class="card-body py-3">
+                        <span class="text-uppercase small font-weight-bold opacity-75 d-block mb-1">Overall Pass Rate</span>
+                        <h2 class="mb-0 font-weight-bold">{{pass_rate}}%</h2>
+                        <small class="opacity-75 d-block mt-1">{{passed_count}} Passed / {{failed_count}} Failed</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Term Average Score -->
+            <div class="col-6 col-md-3 mb-3">
+                <div class="card h-100 border-0 shadow-sm text-white" style="background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);">
+                    <div class="card-body py-3">
+                        <span class="text-uppercase small font-weight-bold opacity-75 d-block mb-1">Term Average</span>
+                        <h2 class="mb-0 font-weight-bold">{{term_avg}} <small class="text-white opacity-75 font-weight-normal">/100</small></h2>
+                        <small class="opacity-75 d-block mt-1">Theory Pass: <strong>{{theory_pass_rate}}%</strong></small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Practical Pass Rate & Retakes -->
+            <div class="col-6 col-md-3 mb-3">
+                <div class="card h-100 border-0 shadow-sm text-white" style="background: linear-gradient(135deg, #ff7e5f 0%, #feb47b 100%);">
+                    <div class="card-body py-3">
+                        <span class="text-uppercase small font-weight-bold opacity-75 d-block mb-1">Practical & Retakes</span>
+                        <h2 class="mb-0 font-weight-bold">{{prac_pass_rate}}%</h2>
+                        <small class="opacity-75 d-block mt-1">R1: <strong>{{retake1_count}}</strong> | R2: <strong>{{retake2_count}}</strong> sat</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- GPA Academic Distribution & Chart -->
+        <div class="row mb-4">
+            <!-- GPA Distribution Table -->
+            <div class="col-lg-7 mb-4">
+                <div class="card shadow-sm h-100 border-0">
+                    <div class="card-header bg-white font-weight-bold border-bottom py-3 d-flex align-items-center">
+                        <i class="fa fa-trophy text-warning mr-2 fa-lg"></i>
+                        <span>{{#str}}gpa_distribution_title, local_comp_report_ext{{/str}}</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped mb-0 text-center align-middle">
+                                <thead class="thead-light small text-uppercase">
+                                    <tr>
+                                        <th class="text-left pl-3">Scale Tier</th>
+                                        <th>Letter</th>
+                                        <th>GPA</th>
+                                        <th>Students</th>
+                                        <th>Cohort %</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {{#gpa_rows}}
+                                    <tr>
+                                        <td class="text-left pl-3 font-weight-bold"><span class="badge {{badge}} mr-1">{{letter}}</span> {{label}}</td>
+                                        <td><strong>{{letter}}</strong></td>
+                                        <td class="text-muted">{{gpa}}</td>
+                                        <td><span class="badge badge-light border px-2 py-1 font-weight-bold">{{count}}</span></td>
+                                        <td>
+                                            <div class="d-flex align-items-center justify-content-center">
+                                                <div class="progress mr-2" style="width: 70px; height: 8px;">
+                                                    <div class="progress-bar bg-primary" role="progressbar" style="width: {{pct}}%"></div>
+                                                </div>
+                                                <span class="small font-weight-bold">{{pct}}%</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {{/gpa_rows}}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GPA Chart Visualization -->
+            <div class="col-lg-5 mb-4">
+                <div class="card shadow-sm h-100 border-0">
+                    <div class="card-header bg-white font-weight-bold border-bottom py-3 d-flex align-items-center">
+                        <i class="fa fa-bar-chart text-primary mr-2 fa-lg"></i>
+                        <span>GPA Tiers Visual Breakdown</span>
+                    </div>
+                    <div class="card-body d-flex flex-column justify-content-center p-3">
+                        <div style="position: relative; height: 260px; width: 100%;">
+                            <canvas id="termGpaChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Full Student Comprehensive Term Master Table -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3 border-bottom d-flex flex-wrap justify-content-between align-items-center">
+                <div class="d-flex align-items-center mb-2 mb-md-0">
+                    <i class="fa fa-list-alt text-primary mr-2 fa-lg"></i>
+                    <h5 class="mb-0 font-weight-bold text-navy">Comprehensive Term Student Roster</h5>
+                    <span class="badge badge-secondary ml-2 px-2 py-1">{{enrolled_count}} Students</span>
+                </div>
+                <div class="d-flex align-items-center">
+                    <input type="text" id="term-search-input" class="form-control form-control-sm mr-2" placeholder="Search by name, ID or email..." style="width: 250px;">
+                    <select id="term-filter-status" class="form-control form-control-sm" style="width: 140px;">
+                        <option value="all">All Status</option>
+                        <option value="passed">Passed (≥60)</option>
+                        <option value="failed">Failed (<60)</option>
+                        <option value="retake">Had Retakes</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-bordered mb-0 text-center small align-middle" id="term-master-table">
+                        <thead class="bg-light text-uppercase font-weight-bold text-navy">
+                            <tr>
+                                <th rowspan="2" class="align-middle" style="width: 40px;">#</th>
+                                <th rowspan="2" class="align-middle text-left" style="min-width: 180px;">Student Name</th>
+                                <th rowspan="2" class="align-middle" style="min-width: 100px;">Academic ID</th>
+                                <th colspan="4" class="bg-primary-light text-primary border-bottom-0">Theory Final (30%)</th>
+                                <th colspan="4" class="bg-info-light text-info border-bottom-0">Practical Exam (40%)</th>
+                                <th rowspan="2" class="align-middle bg-warning-light text-warning" title="Participation (/20)">Part.<br><small>/20</small></th>
+                                <th rowspan="2" class="align-middle bg-warning-light text-warning" title="Assignments (/10)">Asgn.<br><small>/10</small></th>
+                                <th rowspan="2" class="align-middle bg-success-light text-success font-weight-bold" style="font-size: 13px;">Term Total<br><small>/100</small></th>
+                                <th rowspan="2" class="align-middle" style="min-width: 90px;">Grade & GPA</th>
+                                <th rowspan="2" class="align-middle">Status</th>
+                            </tr>
+                            <tr class="small">
+                                <th class="text-muted" title="Original 1st Attempt (/30)">Final</th>
+                                <th class="text-muted" title="Retake 1 Theory (Capped at 18)">R1</th>
+                                <th class="text-muted" title="Retake 2 Theory (Capped at 18)">R2</th>
+                                <th class="text-primary font-weight-bold" title="Best Theory (Pass ≥18)">Best</th>
+                                <th class="text-muted" title="Original Practical (/40)">Orig</th>
+                                <th class="text-muted" title="Retake 1 Practical (Capped at 24)">R1</th>
+                                <th class="text-muted" title="Retake 2 Practical (Capped at 24)">R2</th>
+                                <th class="text-info font-weight-bold" title="Best Practical (Pass ≥24)">Best</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{#student_list}}
+                            <tr class="student-term-row" data-passed="{{#overall_pass}}1{{/overall_pass}}{{^overall_pass}}0{{/overall_pass}}" data-retake="{{#has_retake1}}1{{/has_retake1}}{{^has_retake1}}{{#has_retake2}}1{{/has_retake2}}{{^has_retake2}}0{{/has_retake2}}{{/has_retake1}}">
+                                <td class="font-weight-bold text-muted">{{index}}</td>
+                                <td class="text-left font-weight-bold">
+                                    <a href="{{detail_url}}" class="text-dark hover-primary" target="_blank">
+                                        <i class="fa fa-user-circle text-muted mr-1"></i> {{fullname}}
+                                    </a>
+                                </td>
+                                <td class="text-muted">{{idnumber}}</td>
+                                
+                                <!-- Theory Section -->
+                                <td>{{theory_final_30}}</td>
+                                <td>
+                                    {{#retake1_t}}
+                                        <span class="badge badge-light border">{{retake1_t}}</span>
+                                    {{/retake1_t}}
+                                    {{^retake1_t}}—{{/retake1_t}}
+                                </td>
+                                <td>
+                                    {{#retake2_t}}
+                                        <span class="badge badge-light border">{{retake2_t}}</span>
+                                    {{/retake2_t}}
+                                    {{^retake2_t}}—{{/retake2_t}}
+                                </td>
+                                <td class="font-weight-bold {{#theory_pass}}text-success{{/theory_pass}}{{^theory_pass}}text-danger{{/theory_pass}}">
+                                    {{best_theory}}
+                                </td>
+
+                                <!-- Practical Section -->
+                                <td>{{prac_orig_40}}</td>
+                                <td>
+                                    {{#retake1_p}}
+                                        <span class="badge badge-light border">{{retake1_p}}</span>
+                                    {{/retake1_p}}
+                                    {{^retake1_p}}—{{/retake1_p}}
+                                </td>
+                                <td>
+                                    {{#retake2_p}}
+                                        <span class="badge badge-light border">{{retake2_p}}</span>
+                                    {{/retake2_p}}
+                                    {{^retake2_p}}—{{/retake2_p}}
+                                </td>
+                                <td class="font-weight-bold {{#has_practical}}{{#practical_pass}}text-success{{/practical_pass}}{{^practical_pass}}text-danger{{/practical_pass}}{{/has_practical}}{{^has_practical}}text-muted{{/has_practical}}">
+                                    {{best_practical}}
+                                </td>
+
+                                <!-- Participation & Assignments -->
+                                <td title="Expected Benchmark: {{expected_participation}}">{{participation}}</td>
+                                <td>{{assignments}}</td>
+
+                                <!-- Term Total -->
+                                <td class="font-weight-bold text-navy" style="font-size: 14px;">
+                                    {{term_total}}
+                                </td>
+
+                                <!-- Grade & GPA -->
+                                <td>
+                                    <span class="badge {{gpa_badge}} font-weight-bold px-2 py-1">{{gpa_letter}}</span>
+                                    <small class="d-block text-muted">{{gpa_value}}</small>
+                                </td>
+
+                                <!-- Overall Status -->
+                                <td>
+                                    {{#overall_pass}}
+                                        <span class="badge badge-success font-weight-bold px-2 py-1">
+                                            <i class="fa fa-check mr-1"></i> Passed
+                                        </span>
+                                    {{/overall_pass}}
+                                    {{^overall_pass}}
+                                        <span class="badge badge-danger font-weight-bold px-2 py-1">
+                                            <i class="fa fa-times mr-1"></i> Failed
+                                        </span>
+                                    {{/overall_pass}}
+                                </td>
+                            </tr>
+                            {{/student_list}}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{/has_data}}
+</div>
+
+<style>
+.local_comp_report_ext_term_report .bg-primary-light { background-color: #e8f0fe !important; }
+.local_comp_report_ext_term_report .bg-info-light { background-color: #e1f5fe !important; }
+.local_comp_report_ext_term_report .bg-warning-light { background-color: #fff8e1 !important; }
+.local_comp_report_ext_term_report .bg-success-light { background-color: #e8f5e9 !important; }
+.local_comp_report_ext_term_report .text-navy { color: #16324f !important; }
+.local_comp_report_ext_term_report .hover-primary:hover { color: #0056b3 !important; text-decoration: underline; }
+
+@media print {
+    .nav-tabs, form, .collapse, #btn-print-term, #btn-export-excel, #term-search-input, #term-filter-status, .card-header select, .card-header input {
+        display: none !important;
+    }
+    body { background: #fff !important; }
+    .card { border: none !important; box-shadow: none !important; }
+    .table { width: 100% !important; font-size: 9px !important; }
+}
+</style>
+
+{{#has_data}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 1. Render GPA Distribution Chart using Chart.js.
+    var ctx = document.getElementById('termGpaChart');
+    if (ctx && typeof Chart !== 'undefined') {
+        var labels = {{{gpa_labels_json}}};
+        var counts = {{{gpa_counts_json}}};
+        var colors = ['#28a745', '#28a745', '#17a2b8', '#17a2b8', '#ffc107', '#ffc107', '#007bff', '#6c757d', '#dc3545'];
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Students Count',
+                    data: counts,
+                    backgroundColor: colors,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                legend: { display: false },
+                scales: {
+                    yAxes: [{
+                        ticks: { beginAtZero: true, precision: 0 }
+                    }]
+                }
+            }
+        });
+    }
+
+    // 2. Search & Filter in Student Table.
+    var searchInput = document.getElementById('term-search-input');
+    var filterStatus = document.getElementById('term-filter-status');
+    var rows = document.querySelectorAll('.student-term-row');
+
+    function filterTable() {
+        var query = (searchInput ? searchInput.value : '').toLowerCase().trim();
+        var status = filterStatus ? filterStatus.value : 'all';
+
+        rows.forEach(function(row) {
+            var text = row.textContent.toLowerCase();
+            var matchesQuery = !query || text.indexOf(query) !== -1;
+            var isPassed = row.getAttribute('data-passed') === '1';
+            var hasRetake = row.getAttribute('data-retake') === '1';
+
+            var matchesStatus = true;
+            if (status === 'passed') {
+                matchesStatus = isPassed;
+            } else if (status === 'failed') {
+                matchesStatus = !isPassed;
+            } else if (status === 'retake') {
+                matchesStatus = hasRetake;
+            }
+
+            row.style.display = (matchesQuery && matchesStatus) ? '' : 'none';
+        });
+    }
+
+    if (searchInput) searchInput.addEventListener('input', filterTable);
+    if (filterStatus) filterStatus.addEventListener('change', filterTable);
+
+    // 3. Print Action.
+    var btnPrint = document.getElementById('btn-print-term');
+    if (btnPrint) {
+        btnPrint.addEventListener('click', function() {
+            window.print();
+        });
+    }
+
+    // 4. Excel Export Action (CSV download).
+    var btnExcel = document.getElementById('btn-export-excel');
+    if (btnExcel) {
+        btnExcel.addEventListener('click', function() {
+            var studentData = {{{student_list_json}}};
+            if (!studentData || !studentData.length) return;
+
+            var csvContent = "\uFEFF"; // UTF-8 BOM
+            csvContent += "#,Student Name,Academic ID,Email,Theory Final (/30),Retake 1 Theory,Retake 2 Theory,Best Theory (/30),Theory Status,Practical (/40),Retake 1 Practical,Retake 2 Practical,Best Practical (/40),Practical Status,Participation (/20),Assignments (/10),Term Total (/100),Letter Grade,GPA,Overall Status\n";
+
+            studentData.forEach(function(s) {
+                var row = [
+                    s.index,
+                    '"' + s.fullname.replace(/"/g, '""') + '"',
+                    '"' + (s.idnumber || '').replace(/"/g, '""') + '"',
+                    '"' + s.email + '"',
+                    s.theory_final_30,
+                    s.retake1_t,
+                    s.retake2_t,
+                    s.best_theory,
+                    s.theory_pass ? 'Passed' : 'Failed',
+                    s.prac_orig_40,
+                    s.retake1_p,
+                    s.retake2_p,
+                    s.best_practical,
+                    s.practical_pass ? 'Passed' : (s.has_practical ? 'Failed' : 'None'),
+                    s.participation,
+                    s.assignments,
+                    s.term_total,
+                    s.gpa_letter,
+                    s.gpa_value,
+                    s.overall_pass ? 'Passed' : 'Failed'
+                ];
+                csvContent += row.join(',') + "\n";
+            });
+
+            var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = 'term_comprehensive_report_course_' + '{{courseid}}' + '.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        });
+    }
+});
+</script>
+{{/has_data}}

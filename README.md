@@ -4,7 +4,8 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.19.32-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.20.0-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -428,7 +429,20 @@ npx grunt amd --files=local/comp_report_ext
 
 ## 📋 Changelog
 
+### v3.20.0 (2026083001) — 2026-08-30
+- **Feature (Term Comprehensive Report):** Implemented the full 100-point term assessment model in `term_comprehensive_report.php` and `templates/term_comprehensive_report_page.mustache`:
+  - **100-Point Model Breakdown:** Practical Exam (40%) + Final Theory Exam (30%) + Participation (20%) + Assignments (10%) = 100 Points.
+  - **Retake Policy Caps Enforced:** Theory retakes (Attempt 2 / 3 or separate retake quizzes) are strictly capped at `18.0 / 30` (60%), and practical retakes are capped at `24.0 / 40` (60%).
+  - **Pass Thresholds:** Overall Pass (`Total ≥ 60`), Theory Pass (`Best Theory ≥ 18`), Practical Pass (`Practical ≥ 24`).
+  - **Native Moodle Integration:** Automatically auto-detects and calculates Assignments (from Moodle `{assign}` gradebook items) and Participation (from manual/attendance gradebook items), with optional CSV/Excel override support and session persistence.
+  - **Benchmarked Expected Participation:** Automatically calculates expected participation benchmark: `(Best Theory + Best Practical) * 20 / 70`.
+  - **Academic 9-Tier GPA Scale:** Evaluates student totals against the standard scale: Exceptional (`A+ / 5.0`), Excellent (`A / 4.75`), Superior (`B+ / 4.5`), Very Good (`B / 4.0`), Above Avg (`C+ / 3.5`), Good (`C / 3.0`), High Pass (`D+ / 2.5`), Pass (`D / 2.0`), Fail (`F / 1.0`).
+  - **Interactive Visualizations & Export:** Includes GPA distribution bar chart, cohort KPI summary cards, filterable student roster with search by name/ID, Excel (.csv) export, and print optimization.
+- **Feature (Trainer Performance Analytics):** Added trainer-level pedagogical analytics dashboard (`trainer_analytics.php` and `templates/trainer_analytics_page.mustache`), aggregating cohort student counts, practical evaluation entries, average competency mastery, pass rates, and identifying each trainer's highest and lowest achieving competencies.
+- **Enhancement (Navigation & Architecture):** Added unified tab navigation across all report pages and registered navigation hooks in `lib.php` for Course Navigation menus. Added static `competency_calculator::eval_scale()` method and comprehensive English and Arabic language string definitions.
+
 ### v3.19.14 (2026082114) — 2026-08-21
+
 - **Enhancement (Flexible Retake Quiz Name Detection):** Expanded the separate-quiz retake detection engine in `group_exam_analytics.php` to recognise all common retake naming conventions — not just `Retake 1` / `Retake 2`. The system now matches any quiz whose name contains a retake indicator combined with a number or ordinal, in any position or format:
   - **Retake 1 patterns:** `Retake 1`, `Retake-1`, `1st Retake`, `First Retake`, `Final Exam Retake 1`, `إعادة 1`, `الإعادة الأولى`, `الدور الثاني`, `محاولة 2`
   - **Retake 2 patterns:** `Retake 2`, `Retake-2`, `2nd Retake`, `Second Retake`, `Final Exam Retake 2`, `إعادة 2`, `الإعادة الثانية`, `الدور الثالث`, `محاولة 3`

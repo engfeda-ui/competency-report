@@ -379,6 +379,66 @@ $string['trend_steady']             = 'Steady';
 $string['trend_declining']          = 'Needs Focus';
 $string['success_threshold_line']   = 'Success Threshold (60%)';
 
+// Term Comprehensive Report & GPA strings.
+$string['tab_term_comprehensive']       = 'Term Comprehensive Report';
+$string['term_comprehensive_report']    = 'Term Comprehensive Report';
+$string['term_comprehensive_report_desc'] = 'Unified term report combining Final Exam (30%), Practical Exam (40%), Participation (20%), and Assignments (10%) with retake caps and GPA scaling.';
+$string['eval_exceptional']             = 'Exceptional';
+$string['eval_excellent']               = 'Excellent';
+$string['eval_superior']                = 'Superior';
+$string['eval_verygood']                = 'Very Good';
+$string['eval_aboveavg']                = 'Above Average';
+$string['eval_good']                    = 'Good';
+$string['eval_highpass']                = 'High Pass';
+$string['eval_pass']                    = 'Pass';
+$string['eval_fail']                    = 'Fail';
+$string['letter_grade']                 = 'Letter Grade';
+$string['gpa']                          = 'GPA';
+$string['theory_score_30']              = 'Theory Final (/30)';
+$string['theory_retake1_18']            = 'Theory Retake 1 (/18 cap)';
+$string['theory_retake2_18']            = 'Theory Retake 2 (/18 cap)';
+$string['best_theory_30']               = 'Best Theory (/30)';
+$string['practical_score_40']           = 'Practical (/40)';
+$string['practical_retake1_24']         = 'Practical Retake 1 (/24 cap)';
+$string['practical_retake2_24']         = 'Practical Retake 2 (/24 cap)';
+$string['best_practical_40']            = 'Best Practical (/40)';
+$string['participation_20']             = 'Participation (/20)';
+$string['assignments_10']               = 'Assignments (/10)';
+$string['expected_participation']       = 'Expected Participation (Benchmarked)';
+$string['term_total_100']               = 'Term Total (/100)';
+$string['theory_status']                = 'Theory Status';
+$string['practical_status']             = 'Practical Status';
+$string['overall_term_status']          = 'Overall Status';
+$string['theory_passed']                = 'Theory Passed (≥18)';
+$string['theory_failed']                = 'Theory Failed (<18)';
+$string['practical_passed']             = 'Practical Passed (≥24)';
+$string['practical_failed']             = 'Practical Failed (<24)';
+$string['practical_none']               = 'No Practical Record';
+$string['term_passed']                  = 'Passed (≥60)';
+$string['term_failed']                  = 'Failed (<60)';
+$string['gpa_distribution_title']       = 'Academic Performance & GPA Distribution';
+$string['term_kpis_title']              = 'Term Performance Summary & Cohort Indicators';
+$string['upload_part_asgn_file']        = 'Upload Participation & Assignments CSV/Excel';
+$string['upload_part_asgn_help']        = 'Upload a CSV or Excel file containing columns: Email or ID, Participation (out of 20), Assignments (out of 10), and optional Retake Theory / Retake Practical scores.';
+$string['upload_retakes_file']          = 'Upload Retakes Data File (Optional)';
+$string['btn_calculate_term']           = 'Recalculate Term Report';
+$string['btn_export_term_excel']        = 'Export Term Report (Excel)';
+$string['btn_export_term_pdf']          = 'Export Term Report (PDF)';
+
+// Trainer Analytics strings.
+$string['tab_trainer_analytics']        = 'Trainer Performance Analytics';
+$string['trainer_analytics']            = 'Trainer Performance Analytics';
+$string['trainer_analytics_desc']       = 'Comparative pedagogical analytics across trainers, showing cohort mastery rates, pass percentages, and student distribution.';
+$string['trainer_name']                 = 'Trainer Name';
+$string['trainer_cohort_count']         = 'Total Students';
+$string['trainer_avg_mastery']          = 'Average Competency Mastery';
+$string['trainer_pass_rate']            = 'Overall Pass Rate';
+$string['trainer_top_comp']             = 'Highest Achieving Competency';
+$string['trainer_weak_comp']            = 'Lowest Achieving Competency';
+$string['trainer_total_exams']          = 'Total Exams Sat';
+$string['no_trainers_found']            = 'No trainer assignments or practical evaluation records found for this course.';
+
+
 // Capability language strings (required by Moodle — key = shortname of capability after the plugin prefix).
 $string['comp_report_ext:manage']               = 'Manage competency-question mapping';
 $string['comp_report_ext:viewreports']          = 'View all competency reports (teacher/manager)';

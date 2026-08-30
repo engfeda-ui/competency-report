@@ -378,6 +378,66 @@ $string['trend_steady']             = 'مستقر ⚖️';
 $string['trend_declining']          = 'يحتاج تركيز 📉';
 $string['success_threshold_line']   = 'حد الاجتياز (60%)';
 
+// Term Comprehensive Report & GPA strings.
+$string['tab_term_comprehensive']       = 'التقرير الترمي الشامل';
+$string['term_comprehensive_report']    = 'التقرير الترمي الشامل';
+$string['term_comprehensive_report_desc'] = 'تقرير تراكمي موحد يجمع الاختبار النهائي (30%)، الاختبار العملي (40%)، المشاركة (20%)، والتكاليف (10%) مع تطبيق سقف الإعادات ومعدل GPA.';
+$string['eval_exceptional']             = 'استثنائي (A+)';
+$string['eval_excellent']               = 'ممتاز (A)';
+$string['eval_superior']                = 'جيد جداً مرتفع (B+)';
+$string['eval_verygood']                = 'جيد جداً (B)';
+$string['eval_aboveavg']                = 'جيد مرتفع (C+)';
+$string['eval_good']                    = 'جيد (C)';
+$string['eval_highpass']                = 'مقبول مرتفع (D+)';
+$string['eval_pass']                    = 'مقبول (D)';
+$string['eval_fail']                    = 'راسب (F)';
+$string['letter_grade']                 = 'التقدير الحرفي';
+$string['gpa']                          = 'المعدل التراكمي (GPA)';
+$string['theory_score_30']              = 'النظري النهائي (/30)';
+$string['theory_retake1_18']            = 'إعادة النظري 1 (سقف 18)';
+$string['theory_retake2_18']            = 'إعادة النظري 2 (سقف 18)';
+$string['best_theory_30']               = 'أفضل نظري معتمد (/30)';
+$string['practical_score_40']           = 'العملي الأصلي (/40)';
+$string['practical_retake1_24']         = 'إعادة العملي 1 (سقف 24)';
+$string['practical_retake2_24']         = 'إعادة العملي 2 (سقف 24)';
+$string['best_practical_40']            = 'أفضل عملي معتمد (/40)';
+$string['participation_20']             = 'المشاركة والتفاعل (/20)';
+$string['assignments_10']               = 'الواجبات والتكاليف (/10)';
+$string['expected_participation']       = 'المشاركة المتوقعة قياسياً';
+$string['term_total_100']               = 'المجموع الكلي للترم (/100)';
+$string['theory_status']                = 'حالة النظري';
+$string['practical_status']             = 'حالة العملي';
+$string['overall_term_status']          = 'الحالة النهائية';
+$string['theory_passed']                = 'مجتاز النظري (≥18)';
+$string['theory_failed']                = 'راسب نظري (<18)';
+$string['practical_passed']             = 'مجتاز العملي (≥24)';
+$string['practical_failed']             = 'راسب عملي (<24)';
+$string['practical_none']               = 'لا يوجد سجل عملي';
+$string['term_passed']                  = 'ناجح (≥60)';
+$string['term_failed']                  = 'راسب (<60)';
+$string['gpa_distribution_title']       = 'توزيع الدرجات والمعدلات الأكاديمية (GPA)';
+$string['term_kpis_title']              = 'مؤشرات الأداء الترمي ومعدلات النجاح العامة';
+$string['upload_part_asgn_file']        = 'رفع ملف المشاركة والتكاليف (CSV / Excel)';
+$string['upload_part_asgn_help']        = 'ارفع ملف CSV أو Excel يحتوي على: البريد الإلكتروني أو الرقم الأكاديمي، درجات المشاركة (من 20)، التكاليف (من 10)، ودرجات الإعادات الاختيارية.';
+$string['upload_retakes_file']          = 'رفع ملف بيانات الإعادات (اختياري)';
+$string['btn_calculate_term']           = 'إعادة احتساب التقرير الترمي';
+$string['btn_export_term_excel']        = 'تصدير التقرير الترمي (Excel)';
+$string['btn_export_term_pdf']          = 'تصدير التقرير الترمي (PDF)';
+
+// Trainer Analytics strings.
+$string['tab_trainer_analytics']        = 'تحليل أداء المدربين';
+$string['trainer_analytics']            = 'تحليل أداء المدربين';
+$string['trainer_analytics_desc']       = 'تحليل تربوي ومقارن لأداء المدربين ونسب إتقان الكفايات ومعدلات النجاح للطلاب المسندين لكل مدرب.';
+$string['trainer_name']                 = 'اسم المدرب';
+$string['trainer_cohort_count']         = 'عدد الطلاب';
+$string['trainer_avg_mastery']          = 'متوسط إتقان الكفايات';
+$string['trainer_pass_rate']            = 'معدل النجاح الإجمالي';
+$string['trainer_top_comp']             = 'أعلى كفاية محققة';
+$string['trainer_weak_comp']            = 'أدنى كفاية محققة';
+$string['trainer_total_exams']          = 'إجمالي الاختبارات المقدمة';
+$string['no_trainers_found']            = 'لا توجد سجلات تقييم عملي أو تعيينات مدربين مسجلة في هذا المقرر.';
+
+
 // Capability language strings (required by Moodle).
 $string['comp_report_ext:manage']               = 'إدارة ربط الأسئلة بالكفايات';
 $string['comp_report_ext:viewreports']          = 'عرض تقارير الكفايات الكاملة (للمعلم/المدير)';
