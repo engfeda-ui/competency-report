@@ -639,5 +639,24 @@ class competency_calculator {
             'badge'  => 'badge-danger',
         ];
     }
+
+    /**
+     * Get the complete academic 9-tier grading scale definition.
+     *
+     * @return array Array of scale tiers with min, max, letter, gpa, label, badge, color.
+     */
+    public static function get_grading_scale(): array {
+        return [
+            ['key' => 'exceptional', 'letter' => 'A+', 'gpa' => 5.00, 'min' => 95, 'max' => 100, 'label' => get_string('eval_exceptional', 'local_comp_report_ext'), 'badge' => 'badge-success', 'color' => '#28a745'],
+            ['key' => 'excellent',   'letter' => 'A',  'gpa' => 4.75, 'min' => 90, 'max' => 94.9, 'label' => get_string('eval_excellent', 'local_comp_report_ext'),   'badge' => 'badge-success', 'color' => '#28a745'],
+            ['key' => 'superior',    'letter' => 'B+', 'gpa' => 4.50, 'min' => 85, 'max' => 89.9, 'label' => get_string('eval_superior', 'local_comp_report_ext'),    'badge' => 'badge-info',    'color' => '#17a2b8'],
+            ['key' => 'verygood',    'letter' => 'B',  'gpa' => 4.00, 'min' => 80, 'max' => 84.9, 'label' => get_string('eval_verygood', 'local_comp_report_ext'),    'badge' => 'badge-info',    'color' => '#17a2b8'],
+            ['key' => 'aboveavg',    'letter' => 'C+', 'gpa' => 3.50, 'min' => 75, 'max' => 79.9, 'label' => get_string('eval_aboveavg', 'local_comp_report_ext'),    'badge' => 'badge-warning', 'color' => '#ffc107'],
+            ['key' => 'good',        'letter' => 'C',  'gpa' => 3.00, 'min' => 70, 'max' => 74.9, 'label' => get_string('eval_good', 'local_comp_report_ext'),        'badge' => 'badge-warning', 'color' => '#ffc107'],
+            ['key' => 'highpass',    'letter' => 'D+', 'gpa' => 2.50, 'min' => 65, 'max' => 69.9, 'label' => get_string('eval_highpass', 'local_comp_report_ext'),    'badge' => 'badge-primary', 'color' => '#007bff'],
+            ['key' => 'pass',        'letter' => 'D',  'gpa' => 2.00, 'min' => 60, 'max' => 64.9, 'label' => get_string('eval_pass', 'local_comp_report_ext'),        'badge' => 'badge-secondary', 'color' => '#6c757d'],
+            ['key' => 'fail',        'letter' => 'F',  'gpa' => 1.00, 'min' => 0,  'max' => 59.9, 'label' => get_string('eval_fail', 'local_comp_report_ext'),        'badge' => 'badge-danger',  'color' => '#dc3545'],
+        ];
+    }
 }
 
