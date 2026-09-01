@@ -4,8 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.23.0-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
-
+[![Version](https://img.shields.io/badge/Version-v3.24.0-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -21,9 +20,6 @@ A professional Moodle reporting engine that calculates and visualises student co
   - Student report card, exam analysis, competency state, timeline
   - Teacher class report, student comparison, exam analysis
   - Group competency, group quiz competency, and **Group & Assessment Distribution Analysis (NEW in v3.7.0)**
-  - **Term Comprehensive Report (NEW in v3.20.0, Multi-Course in v3.22.0, Custom Multi-Selection in v3.23.0):** Official 100-point term model (Theory 30% with 18 cap, Practical 40% with 24 cap, Participation 20%, Assignments 10%), 9-tier GPA evaluation scale, retake tracking, and flexible custom multi-course checkbox selection.
-  - **Trainer Performance Analytics (NEW in v3.20.0, Multi-Course in v3.22.0, Custom Multi-Selection in v3.23.0):** Comparative pedagogical analytics across trainers, tracking specializations taught, cross-course mastery, and student pass rates across custom subsets of courses.
-  - **Institutional & Multi-Specialization Dashboard (NEW in v3.21.0):** Multi-course aggregation, dynamic group-to-region mapping with auto-suggestions and persistent storage, cross-specialization & cross-region analytics, and unified master student roster.
   - School-wide report and PDF export
 - **Background Evidence Processing:** An adhoc task calculates competency success rates and writes them as Moodle competency evidence — now scoped to enrolled course students only (performance improvement).
 - **Enterprise PDF Exports:** Students and educators can download structured PDF reports.
@@ -87,27 +83,8 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 
 ## 📋 Changelog
 
-### v3.23.0 — 2026-08-30
-- **Feature (Custom Multi-Course Checkbox Selection):** Upgraded course filtering in **Term Comprehensive Report (`term_comprehensive_report.php`)** and **Trainer Performance Analytics (`trainer_analytics.php`)** to support flexible custom subsets of courses via a multi-select checkboxes dropdown with instant "Select All", "Deselect All", and selection counter badges.
-
-### v3.22.1 — 2026-08-30
-- **Bug Fix (Term Comprehensive Report):** Defined missing static method `competency_calculator::get_grading_scale()` in `classes/competency_calculator.php` to supply the academic 9-tier scale breakdown to the GPA table and Chart.js distribution. Fixed template property mappings in `term_comprehensive_report.php`.
-
-### v3.22.0 — 2026-08-30
-- **Feature (Cross-Specialization & All Courses Mode for Trainer Analytics & Term Comprehensive Report):**
-  - **Trainer Performance Analytics (`trainer_analytics.php`):** Added a Course Selector dropdown allowing users to switch between a single course and **"All Courses & Specializations (كافة المقررات والتخصصات)"**. In All Courses mode, evaluates each trainer's aggregate performance across all subjects and specializations they teach, displays the list and count of specializations taught, and calculates cross-course mastery and student pass rates.
-  - **Term Comprehensive Report (`term_comprehensive_report.php`):** Added a Course Selector dropdown allowing site-wide and multi-course evaluation of the 100-point term model across all specializations with course/specialization badges in the master student roster.
-
-### v3.21.0 — 2026-08-30
-- **Feature (Institutional & Multi-Specialization Dashboard):** Added `institutional_dashboard.php`, output class `institutional_dashboard_page.php`, and template `institutional_dashboard_page.mustache`:
-  - **Universal Multi-Course Selection:** Select one or multiple courses/specializations to aggregate into an overarching institutional report.
-  - **Interactive Group-to-Region Mapping:** Discovers all groups across selected courses, provides keyword auto-suggestions (Central, Eastern, Western, Southern, etc.), and persistently saves custom group-to-region assignments in Moodle configuration (`set_config`).
-  - **Cross-Specialization & Cross-Region Analytics:** Visual Chart.js comparison charts and summary breakdown tables showing total enrollment, pass rates, average scores, and GPA distributions.
-  - **Master Student Roster:** Full 100-point term model roster with live multi-field search, filters by specialization and region, Excel CSV export, and print formatting.
-  - **Navigation Integration:** Unified 8-tab navigation bar across all report templates and course reports menu.
-
-### v3.20.0 — 2026-08-30
-- **Feature (Term Comprehensive Report & Trainer Performance Analytics):** Added `term_comprehensive_report.php` implementing the 100-point term evaluation model (Practical 40%, Final Theory 30%, Participation 20%, Assignments 10%), 9-level GPA calculation scale (`competency_calculator::eval_scale`), retake policy caps (18/30 theory, 24/40 practical), and `trainer_analytics.php` for comparative cohort teacher analysis.
+### v3.24.0 — 2026-09-01
+- **Rollback:** Reverted the 3 complex multi-course reports (Term Comprehensive Report, Trainer Performance Analytics, and Institutional Dashboard) to restore the clean, stable v3.19.32 baseline architecture.
 
 ### v3.19.32 — 2026-08-27
 - **Code Standards:** Resolved Moodle CodeSniffer (PHPCS) violations in `db/upgrade.php` (multi-line index instantiation), `practical_entry.php` (PSR-12 control structure formatting), and `student_competency_detail.php` (line length warnings).
@@ -454,20 +431,7 @@ npx grunt amd --files=local/comp_report_ext
 
 ## 📋 Changelog
 
-### v3.20.0 (2026083001) — 2026-08-30
-- **Feature (Term Comprehensive Report):** Implemented the full 100-point term assessment model in `term_comprehensive_report.php` and `templates/term_comprehensive_report_page.mustache`:
-  - **100-Point Model Breakdown:** Practical Exam (40%) + Final Theory Exam (30%) + Participation (20%) + Assignments (10%) = 100 Points.
-  - **Retake Policy Caps Enforced:** Theory retakes (Attempt 2 / 3 or separate retake quizzes) are strictly capped at `18.0 / 30` (60%), and practical retakes are capped at `24.0 / 40` (60%).
-  - **Pass Thresholds:** Overall Pass (`Total ≥ 60`), Theory Pass (`Best Theory ≥ 18`), Practical Pass (`Practical ≥ 24`).
-  - **Native Moodle Integration:** Automatically auto-detects and calculates Assignments (from Moodle `{assign}` gradebook items) and Participation (from manual/attendance gradebook items), with optional CSV/Excel override support and session persistence.
-  - **Benchmarked Expected Participation:** Automatically calculates expected participation benchmark: `(Best Theory + Best Practical) * 20 / 70`.
-  - **Academic 9-Tier GPA Scale:** Evaluates student totals against the standard scale: Exceptional (`A+ / 5.0`), Excellent (`A / 4.75`), Superior (`B+ / 4.5`), Very Good (`B / 4.0`), Above Avg (`C+ / 3.5`), Good (`C / 3.0`), High Pass (`D+ / 2.5`), Pass (`D / 2.0`), Fail (`F / 1.0`).
-  - **Interactive Visualizations & Export:** Includes GPA distribution bar chart, cohort KPI summary cards, filterable student roster with search by name/ID, Excel (.csv) export, and print optimization.
-- **Feature (Trainer Performance Analytics):** Added trainer-level pedagogical analytics dashboard (`trainer_analytics.php` and `templates/trainer_analytics_page.mustache`), aggregating cohort student counts, practical evaluation entries, average competency mastery, pass rates, and identifying each trainer's highest and lowest achieving competencies.
-- **Enhancement (Navigation & Architecture):** Added unified tab navigation across all report pages and registered navigation hooks in `lib.php` for Course Navigation menus. Added static `competency_calculator::eval_scale()` method and comprehensive English and Arabic language string definitions.
-
 ### v3.19.14 (2026082114) — 2026-08-21
-
 - **Enhancement (Flexible Retake Quiz Name Detection):** Expanded the separate-quiz retake detection engine in `group_exam_analytics.php` to recognise all common retake naming conventions — not just `Retake 1` / `Retake 2`. The system now matches any quiz whose name contains a retake indicator combined with a number or ordinal, in any position or format:
   - **Retake 1 patterns:** `Retake 1`, `Retake-1`, `1st Retake`, `First Retake`, `Final Exam Retake 1`, `إعادة 1`, `الإعادة الأولى`, `الدور الثاني`, `محاولة 2`
   - **Retake 2 patterns:** `Retake 2`, `Retake-2`, `2nd Retake`, `Second Retake`, `Final Exam Retake 2`, `إعادة 2`, `الإعادة الثانية`, `الدور الثالث`, `محاولة 3`
