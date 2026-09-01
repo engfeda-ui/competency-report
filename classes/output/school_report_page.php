@@ -15,11 +15,10 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Report for competency analysis based on school-wide or course-specific data.
+ * Output renderable for the modern institutional competency dashboard.
  *
  * @package    local_comp_report_ext
  * @copyright  2026 Mahmoud Salem
- * @copyright  based on work by 2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -29,14 +28,12 @@ use renderable;
 use templatable;
 use renderer_base;
 use stdClass;
-use moodle_url;
 
 /**
- * Renderable class for the school-wide competency report.
+ * Renderable class for the school-wide institutional competency report.
  *
  * @package    local_comp_report_ext
  * @copyright  2026 Mahmoud Salem
- * @copyright  based on work by 2026 Hakan Ã‡iÄŸci {@link https://hakancigci.com.tr}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class school_report_page implements renderable, templatable {
@@ -44,7 +41,7 @@ class school_report_page implements renderable, templatable {
     protected $data;
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param stdClass $data
      */
@@ -60,54 +57,22 @@ class school_report_page implements renderable, templatable {
      */
     public function export_for_template(renderer_base $output) {
         $export = new stdClass();
-        $export->has_data = !empty($this->data->rows);
-        $export->courseid = $this->data->courseid;
-        $export->pdf_url = (new moodle_url(
-            '/local/comp_report_ext/school_pdf.php',
-            ['courseid' => $this->data->courseid]
-        ))->out(false);
-
-        if ($export->has_data) {
-            $export->rows = [];
-            foreach ($this->data->rows as $r) {
-                // 1. Calculate success rate and format (e.g., 75.4).
-                $rawrate = $r->attempts ? ($r->correct / $r->attempts) * 100 : 0;
-                $formattedrate = number_format($rawrate, 1);
-
-                // 2. Format question and correct counts (e.g., 1,250).
-                // Using 0 decimals for attempts; formatting follows localization.
-                $formattedattempts = number_format($r->attempts, 0);
-                $formattedcorrect  = number_format($r->correct, 1);
-
-                // Determine CSS color class for the table row based on the success rate.
-                $rowclass = 'table-danger';
-                if ($rawrate >= 70) {
-                    $rowclass = 'table-success';
-                } else if ($rawrate >= 50) {
-                    $rowclass = 'table-warning';
-                }
-
-                $export->rows[] = [
-                    'shortname'   => $r->shortname,
-                    'description' => format_text($r->description, FORMAT_HTML),
-                    'attempts'    => $formattedattempts,
-                    'correct'     => $formattedcorrect,
-                    'rate'        => $formattedrate,
-                    'rowclass'    => $rowclass,
-                ];
-            }
-
-            // AI Commentary Section.
-            if (!empty($this->data->comment)) {
-                $export->ai_comment = [
-                    'title'   => get_string('generalcomment', 'local_comp_report_ext'),
-                    'content' => format_text($this->data->comment, FORMAT_HTML),
-                ];
-            }
-            $export->courseid = $this->data->courseid;
-            $export->userid = 0;
-            $export->context_type = 'school';
-        }
+        $export->has_data                  = $this->data->has_data;
+        $export->categoryid                = $this->data->categoryid;
+        $export->categories                = $this->data->categories;
+        $export->total_courses             = $this->data->total_courses;
+        $export->total_students            = $this->data->total_students;
+        $export->total_competencies        = $this->data->total_competencies;
+        $export->overall_mastery           = $this->data->overall_mastery;
+        $export->courses                   = $this->data->courses;
+        $export->top_competencies          = $this->data->top_competencies;
+        $export->lowest_competencies       = $this->data->lowest_competencies;
+        $export->has_top_competencies      = !empty($this->data->top_competencies);
+        $export->has_lowest_competencies   = !empty($this->data->lowest_competencies);
+        $export->chart_courses_labels_json = $this->data->chart_courses_labels_json;
+        $export->chart_courses_data_json   = $this->data->chart_courses_data_json;
+        $export->chart_dist_data_json      = $this->data->chart_dist_data_json;
+        $export->pdf_url                   = $this->data->pdf_url;
 
         return $export;
     }

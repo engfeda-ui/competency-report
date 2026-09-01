@@ -379,6 +379,33 @@ $string['trend_steady']             = 'Steady';
 $string['trend_declining']          = 'Needs Focus';
 $string['success_threshold_line']   = 'Success Threshold (60%)';
 
+// Institutional / Site-Wide Dashboard Strings.
+$string['institutional_dashboard_title'] = 'Institutional Competency Dashboard';
+$string['active_courses_count']          = 'Active Evaluated Courses';
+$string['total_evaluated_students']      = 'Evaluated Students';
+$string['overall_institution_mastery']   = 'Overall Institutional Mastery';
+$string['total_assessed_competencies']   = 'Assessed Competencies';
+$string['filter_by_category']            = 'Filter by Category';
+$string['all_categories']                = 'All Categories';
+$string['course_comparison_chart']       = 'Course Competency Mastery Comparison';
+$string['mastery_distribution_chart']    = 'Mastery Level Distribution';
+$string['tier_high_mastery']             = 'High Mastery (≥80%)';
+$string['tier_moderate_mastery']         = 'Moderate Mastery (60-79%)';
+$string['tier_needs_focus']              = 'Needs Support (<60%)';
+$string['top_strengths_title']           = 'Top Achieving Competencies';
+$string['lowest_competencies_title']      = 'Competencies Requiring Support';
+$string['theory_mastery']                = 'Theory Mastery';
+$string['practical_mastery']             = 'Practical Mastery';
+$string['overall_mastery']               = 'Overall Mastery';
+$string['status_excellent']              = 'Excellent (≥80%)';
+$string['status_competent']              = 'Competent (60-79%)';
+$string['status_at_risk']                = 'Needs Support (<60%)';
+$string['export_csv']                    = 'Export to Excel (CSV)';
+$string['view_course_report']            = 'View Course Report';
+$string['search_courses_placeholder']    = 'Search by course name or code...';
+$string['courses_overview_title']        = 'Course Competency Performance Breakdown';
+$string['no_active_courses_found']       = 'No active courses with competency evaluation data found.';
+
 // Capability language strings (required by Moodle — key = shortname of capability after the plugin prefix).
 $string['comp_report_ext:manage']               = 'Manage competency-question mapping';
 $string['comp_report_ext:viewreports']          = 'View all competency reports (teacher/manager)';

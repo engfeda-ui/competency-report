@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.24.0-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.24.1-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -82,6 +82,14 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 ---
 
 ## 📋 Changelog
+
+### v3.24.1 — 2026-09-01
+- **Feature (Modern Institutional Competency Dashboard & Executive PDF):** Overhauled `school_report.php` and `school_pdf.php` into an executive, high-performance Institutional Dashboard:
+  - **Executive KPI Cards:** Evaluated active courses count, unique evaluated students, overall institutional mastery rate, and assessed competencies count.
+  - **Visual Analytics:** Added Chart.js course comparison bar chart and 3-tier competency mastery distribution doughnut chart.
+  - **Focus Competencies:** Instant identification of top 5 achieving competencies and lowest 5 competencies requiring support with visual progress indicators.
+  - **Active Courses Master Roster:** Multi-metric course breakdown with live instantaneous search, theory & practical mastery rates, category badges, direct links to course master reports, and client-side CSV table export.
+  - **Executive PDF Export:** Redesigned `school_pdf.php` with official header, KPI tables, and color-coded course matrix.
 
 ### v3.24.0 — 2026-09-01
 - **Rollback:** Reverted the 3 complex multi-course reports (Term Comprehensive Report, Trainer Performance Analytics, and Institutional Dashboard) to restore the clean, stable v3.19.32 baseline architecture.

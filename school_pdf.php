@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Premium PDF export for school-wide or group competency & grade analysis.
+ * Premium Executive PDF export for the Institutional Competency Dashboard.
  *
  * @package    local_comp_report_ext
  * @copyright  2026 Mahmoud Salem
@@ -25,265 +25,244 @@
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->libdir . '/tcpdf/tcpdf.php');
 require_once(__DIR__ . '/lib.php');
-require_once(__DIR__ . '/ai.php');
 
 global $DB, $USER;
 
-// 1. Parameter Validation.
-$courseid     = required_param('courseid', PARAM_INT);
-$groupid      = optional_param('groupid', 0, PARAM_INT);
-$focustype    = optional_param('focus_type', 'competency', PARAM_ALPHA); // Focus type: competency or grades.
-$customprompt = optional_param('custom_prompt', '', PARAM_TEXT);
-$pdfcontent   = optional_param('pdf_content', '', PARAM_CLEANHTML);
-
-// 2. Authentication & Capability Checks.
-if ($courseid > 0) {
-    require_login($courseid);
-    $context = context_course::instance($courseid);
-    $canviewext = has_capability('local/comp_report_ext:viewreports', $context);
-    $canviewold = has_capability('local/competency_report:viewreports', $context);
-    if (!$canviewext && !$canviewold) {
-        require_capability('local/comp_report_ext:viewreports', $context);
-    }
-    $course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
-} else {
-    // If no course is specified, treat as a site-wide report (admin access).
-    require_login();
-    $context = context_system::instance();
+// 1. Authentication & Capability Checks.
+require_login();
+$context = context_system::instance();
+if (!has_capability('moodle/site:config', $context) && !has_capability('local/comp_report_ext:viewreports', $context)) {
     require_capability('moodle/site:config', $context);
-    $course = $DB->get_record('course', ['id' => SITEID], '*', MUST_EXIST);
-    $course->fullname = get_string('schoolreport', 'local_comp_report_ext');
 }
 
-$group = null;
-if ($groupid && $courseid > 0) {
-    $group = $DB->get_record('groups', ['id' => $groupid, 'courseid' => $courseid], '*', MUST_EXIST);
-}
+// 2. Parameters.
+$categoryid = optional_param('categoryid', 0, PARAM_INT);
+$courseid   = optional_param('courseid', 0, PARAM_INT);
 
-// Determine Context Type string for AI analysis.
-$contexttype = ($groupid > 0) ? 'group' : 'school';
+// 3. Category Filter.
+$catwhere_q = '';
+$catwhere_p = '';
+$params_q = [];
+$params_p = [];
 
-// 3. Define report title based on focus and scope.
-if ($focustype === 'grades') {
-    if ($group) {
-        $reporttitle = get_string('generalgradesreportgroup', 'local_comp_report_ext', $group->name);
-    } else {
-        $reporttitle = get_string('generalgradesreportcourse', 'local_comp_report_ext', $course->fullname);
-    }
-} else {
-    if ($group) {
-        $reporttitle = get_string('detailedreportgroup', 'local_comp_report_ext', $group->name);
-    } else {
-        $reporttitle = get_string('detailedreportcourse', 'local_comp_report_ext', $course->fullname);
+$category_name = get_string('all_categories', 'local_comp_report_ext');
+if ($categoryid > 0) {
+    $catwhere_q = ' AND c.category = :catid ';
+    $catwhere_p = ' AND c.category = :catid ';
+    $params_q['catid'] = $categoryid;
+    $params_p['catid'] = $categoryid;
+    $catrec = $DB->get_record('course_categories', ['id' => $categoryid]);
+    if ($catrec) {
+        $category_name = format_string($catrec->name);
     }
 }
 
-// 4. Performance Data Queries.
-$rates = [];
-$tablehtml = '';
+if ($courseid > 0) {
+    $catwhere_q .= ' AND q.course = :cid ';
+    $catwhere_p .= ' AND pr.courseid = :cid ';
+    $params_q['cid'] = $courseid;
+    $params_p['cid'] = $courseid;
+}
 
-if ($focustype === 'grades') {
-    // GENERAL GRADES MODE.
-    if ($groupid && $courseid > 0) {
-        $sql = "SELECT q.id, q.name, AVG(qa.sumgrades) as avggrade, q.sumgrades as maxgrade, COUNT(qa.id) as attempts
-                FROM {quiz_attempts} qa
-                JOIN {quiz} q ON q.id = qa.quiz
-                JOIN {groups_members} gm ON gm.userid = qa.userid
-                WHERE q.course = :courseid AND gm.groupid = :groupid AND qa.state = 'finished'
-                GROUP BY q.id, q.name, q.sumgrades
-                ORDER BY q.name ASC";
-        $rows = $DB->get_records_sql($sql, ['courseid' => $courseid, 'groupid' => $groupid]);
-    } else if ($courseid > 0) {
-        $sql = "SELECT q.id, q.name, AVG(qa.sumgrades) as avggrade, q.sumgrades as maxgrade, COUNT(qa.id) as attempts
-                FROM {quiz_attempts} qa
-                JOIN {quiz} q ON q.id = qa.quiz
-                WHERE q.course = :courseid AND qa.state = 'finished'
-                GROUP BY q.id, q.name, q.sumgrades
-                ORDER BY q.name ASC";
-        $rows = $DB->get_records_sql($sql, ['courseid' => $courseid]);
-    } else {
-        $sql = "SELECT q.id, q.name, AVG(qa.sumgrades) as avggrade, q.sumgrades as maxgrade, COUNT(qa.id) as attempts
-                FROM {quiz_attempts} qa
-                JOIN {quiz} q ON q.id = qa.quiz
-                WHERE qa.state = 'finished'
-                GROUP BY q.id, q.name, q.sumgrades
-                ORDER BY q.name ASC";
-        $rows = $DB->get_records_sql($sql, []);
-    }
+// 4. Data Aggregations.
+$sql_theory = "
+    SELECT q.course AS courseid,
+           COUNT(DISTINCT quiza.userid) AS student_count,
+           COUNT(DISTINCT m.competencyid) AS comp_count,
+           CAST(SUM(qa.maxfraction) AS DECIMAL(12, 1)) AS attempts,
+           CAST(SUM(qas.fraction) AS DECIMAL(12, 1)) AS correct
+    FROM {quiz_attempts} quiza
+    JOIN {quiz} q ON q.id = quiza.quiz
+    JOIN {course} c ON c.id = q.course
+    JOIN {question_usages} qu ON qu.id = quiza.uniqueid
+    JOIN {question_attempts} qa ON qa.questionusageid = qu.id
+    JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
+    JOIN (
+        SELECT MAX(fraction) AS fraction, questionattemptid
+        FROM {question_attempt_steps}
+        GROUP BY questionattemptid
+    ) qas ON qas.questionattemptid = qa.id
+    WHERE quiza.state = 'finished' AND q.course != " . SITEID . " $catwhere_q
+    GROUP BY q.course
+";
+$theory_by_course = $DB->get_records_sql($sql_theory, $params_q);
 
-    foreach ($rows as $r) {
-        $rate = $r->maxgrade ? round(($r->avggrade / $r->maxgrade) * 100) : 0;
-        $rates[$r->name] = $rate;
-    }
+$sql_practical = "
+    SELECT pr.courseid,
+           COUNT(DISTINCT pr.studentid) AS student_count,
+           COUNT(DISTINCT pr.competencyid) AS comp_count,
+           AVG(pr.competency_percent) AS avg_percent,
+           COUNT(pr.id) AS total_entries
+    FROM {local_comp_report_ext_prac} pr
+    JOIN {course} c ON c.id = pr.courseid
+    WHERE pr.courseid != " . SITEID . " $catwhere_p
+    GROUP BY pr.courseid
+";
+$practical_by_course = $DB->get_records_sql($sql_practical, $params_p);
 
-    // Build Table HTML for General Grades.
-    $tablehtml = '
-    <table border="1" cellpadding="6">
-        <thead>
-            <tr bgcolor="#f2f2f2" style="font-weight: bold;">
-                <th width="45%" align="center">' . get_string('quizexamname', 'local_comp_report_ext') . '</th>
-                <th width="15%" align="center">' . get_string('participantcount', 'local_comp_report_ext') . '</th>
-                <th width="24%" align="center">' . get_string('averagegrade', 'local_comp_report_ext') . '</th>
-                <th width="16%" align="center">' . get_string('successrate', 'local_comp_report_ext') . '</th>
-            </tr>
-        </thead>
-        <tbody>';
-
-    foreach ($rows as $r) {
-        $rate = $r->maxgrade ? round(($r->avggrade / $r->maxgrade) * 100) : 0;
-        $bgcolor = $rate >= 80 ? '#e6ffec' : ($rate >= 60 ? '#e6f2ff' : ($rate >= 40 ? '#fff9e6' : '#ffe6e6'));
-        $avgscore = number_format($r->avggrade, 1) . ' / ' . number_format($r->maxgrade, 1);
-
-        $tablehtml .= '
-            <tr bgcolor="' . $bgcolor . '">
-                <td width="45%"><b>' . s($r->name) . '</b></td>
-                <td width="15%" align="center">' . $r->attempts . '</td>
-                <td width="24%" align="center">' . $avgscore . '</td>
-                <td width="16%" align="center"><b>%' . $rate . '</b></td>
-            </tr>';
-    }
-    $tablehtml .= '</tbody></table>';
-} else {
-    // COMPETENCY ACHIEVEMENTS MODE.
-    if ($groupid && $courseid > 0) {
-        $wheresql = "WHERE quiz.course = :courseid AND quiza.state = 'finished' "
-            . "AND quiza.userid IN (SELECT userid FROM {groups_members} WHERE groupid = :groupid)";
-        $params = ['courseid' => $courseid, 'groupid' => $groupid];
-    } else if ($courseid > 0) {
-        $wheresql = "WHERE quiz.course = :courseid AND quiza.state = 'finished'";
-        $params = ['courseid' => $courseid];
-    } else {
-        $wheresql = "WHERE quiza.state = 'finished'";
-        $params = [];
-    }
-
-    $sql = "
-        SELECT c.id, c.shortname, c.description,
-               CAST(SUM(qa.maxfraction) AS DECIMAL(12, 1)) AS attempts,
-               CAST(SUM(qas.fraction) AS DECIMAL(12, 1)) AS correct
+$sql_students = "
+    SELECT COUNT(DISTINCT all_students.userid) AS total_students
+    FROM (
+        SELECT quiza.userid
         FROM {quiz_attempts} quiza
-        JOIN {quiz} quiz ON quiz.id = quiza.quiz
+        JOIN {quiz} q ON q.id = quiza.quiz
+        JOIN {course} c ON c.id = q.course
         JOIN {question_usages} qu ON qu.id = quiza.uniqueid
         JOIN {question_attempts} qa ON qa.questionusageid = qu.id
         JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
-        JOIN {competency} c ON c.id = m.competencyid
-        JOIN (
-            SELECT MAX(fraction) AS fraction, questionattemptid
-            FROM {question_attempt_steps}
-            GROUP BY questionattemptid
-        ) qas ON qas.questionattemptid = qa.id
-        $wheresql
-        GROUP BY c.id, c.shortname, c.description
-        ORDER BY c.shortname ASC
-    ";
+        WHERE quiza.state = 'finished' AND q.course != " . SITEID . " $catwhere_q
+        UNION
+        SELECT pr.studentid AS userid
+        FROM {local_comp_report_ext_prac} pr
+        JOIN {course} c ON c.id = pr.courseid
+        WHERE pr.courseid != " . SITEID . " $catwhere_p
+    ) all_students
+";
+$total_evaluated_students = (int)$DB->get_field_sql($sql_students, array_merge($params_q, $params_p));
 
-    $rows = $DB->get_records_sql($sql, $params);
+$course_ids = array_unique(array_merge(
+    array_keys($theory_by_course),
+    array_keys($practical_by_course)
+));
 
-    foreach ($rows as $r) {
-        $rate = $r->attempts ? round(($r->correct / $r->attempts) * 100) : 0;
-        $rates[$r->shortname] = $rate;
+$courses_data = [];
+$total_mastery_sum = 0;
+
+if (!empty($course_ids)) {
+    list($cinsql, $cinparams) = $DB->get_in_or_equal($course_ids, SQL_PARAMS_NAMED);
+    $courses_info = $DB->get_records_sql("
+        SELECT c.id, c.fullname, c.shortname, c.category, cc.name AS category_name
+        FROM {course} c
+        LEFT JOIN {course_categories} cc ON cc.id = c.category
+        WHERE c.id $cinsql
+        ORDER BY cc.name ASC, c.fullname ASC
+    ", $cinparams);
+
+    foreach ($course_ids as $cid) {
+        if (!isset($courses_info[$cid])) {
+            continue;
+        }
+        $cinfo = $courses_info[$cid];
+
+        $has_theory = isset($theory_by_course[$cid]) && $theory_by_course[$cid]->attempts > 0;
+        $theory_rate = $has_theory ? round(($theory_by_course[$cid]->correct / $theory_by_course[$cid]->attempts) * 100, 1) : null;
+        $theory_students = $has_theory ? (int)$theory_by_course[$cid]->student_count : 0;
+
+        $has_prac = isset($practical_by_course[$cid]) && $practical_by_course[$cid]->total_entries > 0;
+        $prac_rate = $has_prac ? round((float)$practical_by_course[$cid]->avg_percent, 1) : null;
+        $prac_students = $has_prac ? (int)$practical_by_course[$cid]->student_count : 0;
+
+        $overall_rate = 0.0;
+        if ($has_theory && $has_prac) {
+            $overall_rate = round(($theory_rate + $prac_rate) / 2, 1);
+        } else if ($has_theory) {
+            $overall_rate = $theory_rate;
+        } else if ($has_prac) {
+            $overall_rate = $prac_rate;
+        }
+
+        $total_students = max($theory_students, $prac_students);
+        $total_mastery_sum += $overall_rate;
+
+        $courses_data[] = [
+            'id'             => $cid,
+            'fullname'       => format_string($cinfo->fullname),
+            'shortname'      => format_string($cinfo->shortname),
+            'category_name'  => format_string($cinfo->category_name ?? $category_name),
+            'students_count' => $total_students,
+            'theory_rate'    => $has_theory ? number_format($theory_rate, 1) . '%' : '—',
+            'prac_rate'      => $has_prac ? number_format($prac_rate, 1) . '%' : '—',
+            'overall_rate'   => number_format($overall_rate, 1) . '%',
+            'raw_overall'    => $overall_rate,
+        ];
     }
-
-    // Build Table HTML for Competency achievements.
-    $tablehtml = '
-    <table border="1" cellpadding="6">
-        <thead>
-            <tr bgcolor="#f2f2f2" style="font-weight: bold;">
-                <th width="15%" align="center">' . get_string('competencycode', 'local_comp_report_ext') . '</th>
-                <th width="41%" align="center">' . get_string('competencyname', 'local_comp_report_ext') . '</th>
-                <th width="14%" align="center">' . get_string('questioncount', 'local_comp_report_ext') . '</th>
-                <th width="14%" align="center">' . get_string('correctcount', 'local_comp_report_ext') . '</th>
-                <th width="16%" align="center">' . get_string('successrate', 'local_comp_report_ext') . '</th>
-            </tr>
-        </thead>
-        <tbody>';
-
-    foreach ($rows as $r) {
-        $rate = $r->attempts ? round(($r->correct / $r->attempts) * 100) : 0;
-        $cleandesc = html_entity_decode(strip_tags($r->description), ENT_QUOTES, 'UTF-8');
-        $bgcolor = $rate >= 80 ? '#e6ffec' : ($rate >= 60 ? '#e6f2ff' : ($rate >= 40 ? '#fff9e6' : '#ffe6e6'));
-
-        $tablehtml .= '
-            <tr bgcolor="' . $bgcolor . '">
-                <td width="15%" align="center"><b>' . s($r->shortname) . '</b></td>
-                <td width="41%">' . s($cleandesc) . '</td>
-                <td width="14%" align="center">' . $r->attempts . '</td>
-                <td width="14%" align="center">' . $r->correct . '</td>
-                <td width="16%" align="center"><b>%' . $rate . '</b></td>
-            </tr>';
-    }
-    $tablehtml .= '</tbody></table>';
 }
 
-// 5. Generate AI comment using exact parameters.
-// Generate AI Comment with the correct focus and custom prompt, or use POSTed content.
-if (!empty($pdfcontent)) {
-    $comment = $pdfcontent;
-} else {
-    $contextdetails = local_comp_report_ext_build_context_details($courseid);
-    $comment = local_comp_report_ext_generate_comment($rates, $contexttype, $customprompt, $focustype, $contextdetails);
-}
-// Strip any non-BMP unicode characters (emojis) to prevent TCPDF font warnings.
-$comment = preg_replace('/[^\x{0000}-\x{FFFF}]/u', '', $comment);
+$evaluated_courses_count = count($courses_data);
+$overall_institution_mastery = $evaluated_courses_count > 0 ? round($total_mastery_sum / $evaluated_courses_count, 1) : 0.0;
 
-// 6. PDF Generation (TCPDF).
+// 5. PDF Setup (TCPDF).
+$reporttitle = get_string('institutional_dashboard_title', 'local_comp_report_ext');
+
 $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
-$pdf->SetCreator('Moodle');
+$pdf->SetCreator('Moodle - Competency Report Plugin');
 $pdf->SetTitle($reporttitle);
 $pdf->setPrintHeader(false);
 $pdf->setPrintFooter(true);
-$pdf->SetMargins(15, 15, 15);
+$pdf->SetMargins(12, 12, 12);
 $pdf->SetAutoPageBreak(true, PDF_MARGIN_BOTTOM);
 $pdf->AddPage();
+
 local_comp_report_ext_render_pdf_header_logos($pdf);
 
-// Set font for robust UTF-8 / Arabic support.
+// Font configuration.
 $pdf->SetFont('freeserif', '', 11);
 
-// Header Banner.
-$pdf->SetFont('freeserif', 'B', 16);
-$pdf->Cell(0, 10, $reporttitle, 0, 1, 'L');
-$pdf->SetFont('freeserif', '', 10);
-$pdf->Cell(0, 6, get_string('subjectcourse', 'local_comp_report_ext', $course->fullname), 0, 1, 'L');
-if ($group) {
-    $pdf->Cell(0, 6, get_string('groupclass', 'local_comp_report_ext', $group->name), 0, 1, 'L');
+// Header section.
+$pdf->SetFont('freeserif', 'B', 15);
+$pdf->Cell(0, 8, $reporttitle, 0, 1, 'L');
+
+$pdf->SetFont('freeserif', '', 9);
+$pdf->Cell(0, 5, get_string('category', 'core') . ": " . $category_name, 0, 1, 'L');
+$dateconfig = get_string('strftimedatetimeshort', 'langconfig');
+$pdf->Cell(0, 5, get_string('creation_date', 'local_comp_report_ext') . ": " . userdate(time(), $dateconfig), 0, 1, 'L');
+$pdf->Ln(4);
+
+// KPI Summary Table.
+$kpihtml = '
+<table border="1" cellpadding="6" style="background-color: #f8fafc; font-size: 9pt;">
+    <tr bgcolor="#1e293b" style="color: #ffffff; font-weight: bold; text-align: center;">
+        <th width="25%">' . get_string('active_courses_count', 'local_comp_report_ext') . '</th>
+        <th width="25%">' . get_string('total_evaluated_students', 'local_comp_report_ext') . '</th>
+        <th width="25%">' . get_string('overall_institution_mastery', 'local_comp_report_ext') . '</th>
+        <th width="25%">' . get_string('status', 'local_comp_report_ext') . '</th>
+    </tr>
+    <tr align="center" style="font-size: 11pt; font-weight: bold;">
+        <td width="25%">' . $evaluated_courses_count . '</td>
+        <td width="25%">' . number_format($total_evaluated_students) . '</td>
+        <td width="25%" style="color: #059669;">%' . number_format($overall_institution_mastery, 1) . '</td>
+        <td width="25%">' . ($overall_institution_mastery >= 70 ? get_string('status_excellent', 'local_comp_report_ext') : get_string('status_competent', 'local_comp_report_ext')) . '</td>
+    </tr>
+</table>';
+$pdf->writeHTML($kpihtml, true, false, true, false, '');
+$pdf->Ln(4);
+
+// Courses Breakdown Table.
+$tablehtml = '
+<h4 style="font-size: 11pt; font-weight: bold; margin-bottom: 4px;">' . get_string('courses_overview_title', 'local_comp_report_ext') . '</h4>
+<table border="1" cellpadding="5" style="font-size: 8.5pt;">
+    <thead>
+        <tr bgcolor="#f1f5f9" style="font-weight: bold; text-align: center;">
+            <th width="8%">#</th>
+            <th width="32%">' . get_string('course') . '</th>
+            <th width="20%">' . get_string('category') . '</th>
+            <th width="10%">' . get_string('total_evaluated_students', 'local_comp_report_ext') . '</th>
+            <th width="10%">' . get_string('theory_mastery', 'local_comp_report_ext') . '</th>
+            <th width="10%">' . get_string('practical_mastery', 'local_comp_report_ext') . '</th>
+            <th width="10%">' . get_string('overall_mastery', 'local_comp_report_ext') . '</th>
+        </tr>
+    </thead>
+    <tbody>';
+
+foreach ($courses_data as $c) {
+    $bgcolor = $c['raw_overall'] >= 80 ? '#ecfdf5' : ($c['raw_overall'] >= 60 ? '#eff6ff' : '#fef2f2');
+    $tablehtml .= '
+        <tr bgcolor="' . $bgcolor . '">
+            <td width="8%" align="center">' . $c['id'] . '</td>
+            <td width="32%"><b>' . s($c['fullname']) . '</b><br><small style="color: #64748b;">(' . s($c['shortname']) . ')</small></td>
+            <td width="20%">' . s($c['category_name']) . '</td>
+            <td width="10%" align="center"><b>' . $c['students_count'] . '</b></td>
+            <td width="10%" align="center">' . $c['theory_rate'] . '</td>
+            <td width="10%" align="center">' . $c['prac_rate'] . '</td>
+            <td width="10%" align="center" style="font-weight: bold; color: #1e3a8a;">' . $c['overall_rate'] . '</td>
+        </tr>';
 }
 
-$dateconfig = get_string('strftimedatetimeshort', 'langconfig');
-$dateinfo = get_string('creation_date', 'local_comp_report_ext') . ": " . userdate(time(), $dateconfig);
-$pdf->Cell(0, 6, $dateinfo, 0, 1, 'L');
-$pdf->Ln(5);
-
-// Render HTML Table.
-$pdf->SetFont('freeserif', '', 10);
+$tablehtml .= '</tbody></table>';
 $pdf->writeHTML($tablehtml, true, false, true, false, '');
 
-// Render AI Commentary Section.
-if (!empty($comment)) {
-    $pdf->Ln(8);
-    $pdf->SetFont('freeserif', 'B', 12);
-    $pdf->SetFillColor(240, 240, 240);
-    $pdf->Cell(0, 10, " ✨ " . get_string('aicommentarytitle', 'local_comp_report_ext'), 0, 1, 'L', true);
-    $pdf->Ln(2);
-
-    $pdf->SetFont('freeserif', '', 10);
-    $pdf->writeHTML($comment, true, false, true, false, '');
-}
-
-// Legend.
-$pdf->Ln(8);
-$pdf->SetFont('freeserif', 'B', 9);
-$pdf->Cell(0, 7, get_string('colorlegend', 'local_comp_report_ext'), 0, 1);
-$pdf->SetFont('freeserif', '', 8);
-$legend = get_string('redlegend', 'local_comp_report_ext') . " | " .
-          get_string('orangelegend', 'local_comp_report_ext') . " | " .
-          get_string('bluelegend', 'local_comp_report_ext') . " | " .
-          get_string('greenlegend', 'local_comp_report_ext');
-$pdf->Cell(0, 5, $legend, 0, 1);
-
-// Final PDF output.
-$filename = "report_" . clean_filename($reporttitle) . ".pdf";
-// Clear output buffer to prevent PHP warnings/headers-already-sent errors from corrupting the PDF.
+// Clean buffer and output.
+$filename = "Institutional_Report_" . date('Ymd_His') . ".pdf";
 if (ob_get_length()) {
     ob_end_clean();
 }

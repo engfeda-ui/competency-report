@@ -378,6 +378,33 @@ $string['trend_steady']             = 'مستقر ⚖️';
 $string['trend_declining']          = 'يحتاج تركيز 📉';
 $string['success_threshold_line']   = 'حد الاجتياز (60%)';
 
+// نصوص لوحة تحكم المنشأة / التقرير العام المؤسسي.
+$string['institutional_dashboard_title'] = 'لوحة تحكم كفايات المنشأة والمقررات';
+$string['active_courses_count']          = 'المقررات النشطة المقيّمة';
+$string['total_evaluated_students']      = 'إجمالي الطلاب المقيّمين';
+$string['overall_institution_mastery']   = 'معدل الإتقان العام للمنشأة';
+$string['total_assessed_competencies']   = 'الكفايات المقيّمة';
+$string['filter_by_category']            = 'تصفية حسب التصنيف';
+$string['all_categories']                = 'كافة التصنيفات والأقسام';
+$string['course_comparison_chart']       = 'مقارنة معدلات إتقان المقررات';
+$string['mastery_distribution_chart']    = 'توزيع مستويات الإتقان الأكاديمي';
+$string['tier_high_mastery']             = 'إتقان متميز (≥80%)';
+$string['tier_moderate_mastery']         = 'إتقان جيد (60-79%)';
+$string['tier_needs_focus']              = 'يحتاج إلى دعم (<60%)';
+$string['top_strengths_title']           = 'أعلى الكفايات إتقاناً (نقاط القوة)';
+$string['lowest_competencies_title']      = 'كفايات تتطلب دعماً وتطويراً';
+$string['theory_mastery']                = 'الإتقان النظري';
+$string['practical_mastery']             = 'الإتقان العملي';
+$string['overall_mastery']               = 'المعدل العام';
+$string['status_excellent']              = 'متميز (≥80%)';
+$string['status_competent']              = 'متقن (60-79%)';
+$string['status_at_risk']                = 'يحتاج دعم (<60%)';
+$string['export_csv']                    = 'تصدير إلى Excel (CSV)';
+$string['view_course_report']            = 'عرض تقرير المقرر';
+$string['search_courses_placeholder']    = 'ابحث باسم المقرر أو الرمز...';
+$string['courses_overview_title']        = 'جدول أداء المقررات والكفايات التراكمي';
+$string['no_active_courses_found']       = 'لم يُعثر على مقررات نشطة بها بيانات تقييم كفايات.';
+
 // Capability language strings (required by Moodle).
 $string['comp_report_ext:manage']               = 'إدارة ربط الأسئلة بالكفايات';
 $string['comp_report_ext:viewreports']          = 'عرض تقارير الكفايات الكاملة (للمعلم/المدير)';
