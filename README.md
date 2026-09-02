@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.24.1-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.24.2-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -82,6 +82,11 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 ---
 
 ## 📋 Changelog
+
+### v3.24.2 — 2026-09-02
+- **Fix (PDF Export AI Commentary & Group Name Resolution):**
+  - Added missing `require_once(__DIR__ . '/ai.php');` in `group_quiz_competency_pdf.php` and `group_competency_pdf.php`, resolving fatal error `Exception - Call to undefined function local_comp_report_ext_generate_comment()` when exporting group competency reports to PDF with default/empty commentary payload.
+  - Replaced undefined `$group->name` references with properly resolved `$groupname` in header banners and PDF export filenames across both group PDF generator scripts.
 
 ### v3.24.1 — 2026-09-01
 - **Feature (Modern Institutional Competency Dashboard & Executive PDF):** Overhauled `school_report.php` and `school_pdf.php` into an executive, high-performance Institutional Dashboard:

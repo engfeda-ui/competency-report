@@ -25,6 +25,7 @@
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->libdir . '/tcpdf/tcpdf.php');
 require_once(__DIR__ . '/lib.php');
+require_once(__DIR__ . '/ai.php');
 
 $courseid   = required_param('courseid', PARAM_INT);
 $groupid    = optional_param('groupid', 0, PARAM_INT);
@@ -213,7 +214,7 @@ $pdf->SetFont('freeserif', 'B', 15);
 $pdf->Cell(0, 10, get_string('groupquizcompetency', 'local_comp_report_ext'), 0, 1, 'L');
 $pdf->SetFont('freeserif', '', 10);
 $pdf->Cell(0, 6, "Subject / Course: " . $course->fullname, 0, 1, 'L');
-$pdf->Cell(0, 6, "Group / Class: " . $group->name, 0, 1, 'L');
+$pdf->Cell(0, 6, "Group / Class: " . $groupname, 0, 1, 'L');
 $pdf->Cell(0, 6, "Selected Exam / Quiz: " . $quiz->name, 0, 1, 'L');
 
 $dateconfig = get_string('strftimedatetimeshort', 'langconfig');
@@ -255,7 +256,7 @@ $legend = get_string('redlegend', 'local_comp_report_ext') . " | " .
 $pdf->Cell(0, 5, $legend, 0, 1);
 
 // Final PDF output.
-$reporttitle = "Group_Quiz_Competency_Report_" . clean_filename($group->name) . "_" . clean_filename($quiz->name);
+$reporttitle = "Group_Quiz_Competency_Report_" . clean_filename($groupname) . "_" . clean_filename($quiz->name);
 $filename = $reporttitle . ".pdf";
 
 if (ob_get_length()) {

@@ -25,6 +25,7 @@
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->libdir . '/tcpdf/tcpdf.php');
 require_once(__DIR__ . '/lib.php');
+require_once(__DIR__ . '/ai.php');
 
 $courseid = required_param('courseid', PARAM_INT);
 $groupid  = optional_param('groupid', 0, PARAM_INT);
@@ -219,7 +220,7 @@ $pdf->SetFont('freeserif', 'B', 15);
 $pdf->Cell(0, 10, get_string('groupcompetency', 'local_comp_report_ext'), 0, 1, 'L');
 $pdf->SetFont('freeserif', '', 10);
 $pdf->Cell(0, 6, "Subject / Course: " . $course->fullname, 0, 1, 'L');
-$pdf->Cell(0, 6, "Group / Class: " . $group->name, 0, 1, 'L');
+$pdf->Cell(0, 6, "Group / Class: " . $groupname, 0, 1, 'L');
 
 $dateconfig = get_string('strftimedatetimeshort', 'langconfig');
 $dateinfo = get_string('creation_date', 'local_comp_report_ext') . ": " . userdate(time(), $dateconfig);
@@ -260,7 +261,7 @@ if (!empty($pdfcontent)) {
 }
 
 // Final PDF output.
-$reporttitle = "Group_Competency_Report_" . clean_filename($group->name);
+$reporttitle = "Group_Competency_Report_" . clean_filename($groupname);
 $filename = $reporttitle . ".pdf";
 
 // Clear output buffer.
