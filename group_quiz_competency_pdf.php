@@ -228,8 +228,18 @@ $pdf->writeHTML($tablehtml, true, false, true, false, '');
 
 // Render AI Commentary Section if provided.
 if (empty($pdfcontent) && !empty($grouptotals)) {
-    $contextdetails = local_comp_report_ext_build_context_details($courseid, 0, $quizid);
-    $pdfcontent = local_comp_report_ext_generate_comment($grouptotals, 'quiz', '', 'competency', $contextdetails);
+    $grouprates = [];
+    foreach ($competencies as $c) {
+        $tatt = $grouptotals[$c->id]['att'] ?? 0;
+        $tcor = $grouptotals[$c->id]['cor'] ?? 0;
+        if ($tatt > 0) {
+            $grouprates[$c->shortname] = round(($tcor / $tatt) * 100, 1);
+        }
+    }
+    if (!empty($grouprates)) {
+        $contextdetails = local_comp_report_ext_build_context_details($courseid, 0, $quizid);
+        $pdfcontent = local_comp_report_ext_generate_comment($grouprates, 'quiz', '', 'competency', $contextdetails);
+    }
 }
 
 if (!empty($pdfcontent)) {

@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.24.2-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.24.3-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -82,6 +82,11 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 ---
 
 ## 📋 Changelog
+
+### v3.24.3 — 2026-09-02
+- **Enhancement & Resilience (Group Rates Normalization & Offline / No-AI Fallback):**
+  - Normalized `$grouprates` as a clean associative array `[shortname => rate]` in both `group_quiz_competency_pdf.php` and `group_competency_pdf.php` prior to calling `local_comp_report_ext_generate_comment()`.
+  - Guarantees seamless fallback to rule-based pedagogical comments (`local_comp_report_ext_rule_based_comment`) when deployed on Moodle instances where AI is disabled or without an external LLM API key, displaying color-coded competency breakdowns without network dependencies.
 
 ### v3.24.2 — 2026-09-02
 - **Fix (PDF Export AI Commentary & Group Name Resolution):**
