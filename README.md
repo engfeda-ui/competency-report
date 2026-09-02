@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.24.3-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.24.4-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -82,6 +82,12 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 ---
 
 ## 📋 Changelog
+
+### v3.24.4 — 2026-09-02
+- **Fix & Data Accuracy (Student-Only Filtering Across Group Reports & PDF Exports):**
+  - Replaced unfiltered `get_enrolled_users()` calls with strict student-role filtering via Moodle's `get_role_users()` across `group_quiz_competency_pdf.php`, `group_competency_pdf.php`, `teacher_student_competency.php`, and `forms/selector_form.php`.
+  - Guarantees that selecting **All Groups** (`groupid=0`) exclusively queries and displays enrolled students with the `student` role, strictly excluding teachers, editing trainers, and administrators from cohort roster tables, PDF exports, and student selector dropdowns.
+  - Added archetype fallback (`archetype = 'student'`) and enrolled-only validation (`$all = false`) in `group_competency.php` and `group_quiz_competency.php`.
 
 ### v3.24.3 — 2026-09-02
 - **Enhancement & Resilience (Group Rates Normalization & Offline / No-AI Fallback):**

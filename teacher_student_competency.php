@@ -40,8 +40,22 @@ $PAGE->set_title(get_string('teacherstudentcompetency', 'local_comp_report_ext')
 $PAGE->set_heading(get_string('teacherstudentcompetency', 'local_comp_report_ext'));
 $PAGE->set_pagelayout('course');
 
-// 1. Data Preparation.
-$students = get_enrolled_users($context);
+// 1. Data Preparation — STUDENTS ONLY (exclude teachers/admins).
+$studentrole = $DB->get_record('role', ['shortname' => 'student'], 'id');
+if (!$studentrole) {
+    $studentrole = $DB->get_record('role', ['archetype' => 'student'], 'id');
+}
+$students = [];
+if ($studentrole) {
+    $students = (array) get_role_users(
+        $studentrole->id,
+        $context,
+        false,
+        'u.id, u.firstname, u.lastname, u.idnumber',
+        'u.lastname ASC, u.firstname ASC',
+        false
+    );
+}
 $studentoptions = [0 => get_string('selectstudent', 'local_comp_report_ext')];
 foreach ($students as $s) {
     $studentoptions[$s->id] = fullname($s);

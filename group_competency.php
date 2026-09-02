@@ -64,8 +64,11 @@ foreach ($groups as $g) {
 
 global $DB;
 
-// 2. Retrieve STUDENTS ONLY — filter by role shortname 'student' to exclude teachers/trainers.
+// 2. Retrieve STUDENTS ONLY — filter by role shortname/archetype 'student' to exclude teachers/trainers.
 $studentrole = $DB->get_record('role', ['shortname' => 'student'], 'id');
+if (!$studentrole) {
+    $studentrole = $DB->get_record('role', ['archetype' => 'student'], 'id');
+}
 $students = [];
 if ($studentrole) {
     $students = (array) get_role_users(
@@ -74,7 +77,7 @@ if ($studentrole) {
         false,
         'u.*',
         'u.idnumber ASC, u.lastname ASC, u.firstname ASC',
-        true,
+        false,
         ($groupid > 0 ? $groupid : '')
     );
 }

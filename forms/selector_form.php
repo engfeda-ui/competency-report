@@ -50,11 +50,25 @@ class local_comp_report_ext_selector_form extends moodleform {
 
         $context = context_course::instance($courseid);
 
-        // 1. Student Selection (Always visible).
+        // 1. Student Selection (Always visible — students only).
         $users = [0 => get_string('selectuser', 'local_comp_report_ext')];
         $fields = 'u.id, u.firstname, u.lastname, u.firstnamephonetic, u.lastnamephonetic, '
             . 'u.middlename, u.alternatename, u.department';
-        $enrolled = get_enrolled_users($context, '', 0, $fields);
+        $studentrole = $DB->get_record('role', ['shortname' => 'student'], 'id');
+        if (!$studentrole) {
+            $studentrole = $DB->get_record('role', ['archetype' => 'student'], 'id');
+        }
+        $enrolled = [];
+        if ($studentrole) {
+            $enrolled = (array) get_role_users(
+                $studentrole->id,
+                $context,
+                false,
+                $fields,
+                'u.lastname ASC, u.firstname ASC',
+                false
+            );
+        }
 
         if (!empty($enrolled)) {
             foreach ($enrolled as $u) {

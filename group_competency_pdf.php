@@ -49,16 +49,23 @@ if ($groupid > 0) {
     $groupname = get_string('allgroups', 'local_comp_report_ext');
 }
 
-$students = (array) get_enrolled_users(
-    $context,
-    '',
-    $groupid,
-    'u.*',
-    'u.idnumber ASC, u.lastname ASC, u.firstname ASC',
-    0,
-    0,
-    true
-);
+// 1. Retrieve STUDENTS ONLY — filter by role shortname/archetype 'student' to exclude teachers/trainers/administrators.
+$studentrole = $DB->get_record('role', ['shortname' => 'student'], 'id');
+if (!$studentrole) {
+    $studentrole = $DB->get_record('role', ['archetype' => 'student'], 'id');
+}
+$students = [];
+if ($studentrole) {
+    $students = (array) get_role_users(
+        $studentrole->id,
+        $context,
+        false,
+        'u.*',
+        'u.idnumber ASC, u.lastname ASC, u.firstname ASC',
+        false,
+        ($groupid > 0 ? $groupid : '')
+    );
+}
 
 // 2. Fetch mapped competencies list - scoped to course.
 $competencies = (array) $DB->get_records_sql("
