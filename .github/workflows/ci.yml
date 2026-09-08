@@ -1,4 +1,4 @@
-# GitHub Actions workflow for Moodle plugin CI (Modern Versions Focus).
+# GitHub Actions workflow for Moodle plugin CI (Enhanced Marketplace Standard).
 name: Moodle Plugin CI
 
 on:
@@ -13,9 +13,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
-      COMPOSER_AUTH: '{"github-oauth": {"github.com": "${{ secrets.GITHUB_TOKEN }}"}}'
-      COMPOSER_PROCESS_TIMEOUT: '600'
-      COMPOSER_NO_INTERACTION: '1'
 
     strategy:
       fail-fast: false
@@ -38,12 +35,12 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      - uses: actions/checkout@v4
         with:
           path: local/comp_report_ext
 
       - name: Setup PHP
-        uses: shivammathur/setup-php@9e72090525849c5e82e596468b86eb55e9cc5401 # v2.32.0
+        uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
           extensions: pgsql, mbstring, gd, curl, xml, zip, intl, sodium
@@ -57,19 +54,9 @@ jobs:
 
       - name: Setup Moodle Plugin CI
         run: |
-          composer config -g github-oauth.github.com ${{ secrets.GITHUB_TOKEN }}
           composer create-project -n --no-dev --prefer-dist moodlehq/moodle-plugin-ci ci ^4
           echo "$(cd ci/bin; pwd)" >> $GITHUB_PATH
           echo "$(cd ci/vendor/bin; pwd)" >> $GITHUB_PATH
-
-      - name: Add qbank_comp_ext dependency
-        run: |
-          if [ -n "${{ secrets.COMPETENCY_CLONE_TOKEN }}" ]; then
-            moodle-plugin-ci add-plugin --clone=https://x-access-token:${{ secrets.COMPETENCY_CLONE_TOKEN }}@github.com/engfeda-ui/competency.git
-          else
-            moodle-plugin-ci add-plugin --clone=https://github.com/engfeda-ui/competency.git
-          fi
-
 
       - name: Install Moodle
         run: moodle-plugin-ci install --plugin local/comp_report_ext --db-host=127.0.0.1 --db-user=postgres --db-name=moodle_ci_db --db-pass="" --db-type=pgsql
@@ -77,13 +64,29 @@ jobs:
           MOODLE_BRANCH: ${{ matrix.moodle-branch }}
 
       - name: PHP Lint
+        if: ${{ !cancelled() }}
         run: moodle-plugin-ci phplint local/comp_report_ext
 
-      - name: PHP CodeSniffer
+      - name: Validating
+        if: ${{ !cancelled() }}
+        run: moodle-plugin-ci validate
+
+      - name: PHP CodeSniffer (Moodle Coding Style)
+        if: ${{ !cancelled() }}
         run: moodle-plugin-ci codechecker local/comp_report_ext
 
+      - name: PHPDoc Checker
+        if: ${{ !cancelled() }}
+        run: moodle-plugin-ci phpdoc local/comp_report_ext
+
+      - name: Check upgrade savepoints
+        if: ${{ !cancelled() }}
+        run: moodle-plugin-ci savepoints
+
       - name: Moodle PHPUnit
+        if: ${{ !cancelled() }}
         run: moodle-plugin-ci phpunit
 
       - name: Moodle Behat
+        if: ${{ !cancelled() }}
         run: moodle-plugin-ci behat
