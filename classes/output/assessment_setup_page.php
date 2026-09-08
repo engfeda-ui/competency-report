@@ -67,20 +67,26 @@ class assessment_setup_page implements renderable, templatable {
             $row->id          = $a->id;
             $row->name        = $a->name;
             $row->type        = $a->type;
-            $row->typelabel   = ($a->type === 'practical')
-                ? get_string('typepractical', 'local_comp_report_ext')
-                : get_string('typequiz', 'local_comp_report_ext');
+            if ($a->type === 'practical') {
+                $row->typelabel = get_string('typepractical', 'local_comp_report_ext');
+            } else if ($a->type === 'oral') {
+                $row->typelabel = get_string('typeoral', 'local_comp_report_ext');
+            } else if ($a->type === 'assign') {
+                $row->typelabel = get_string('typeassign', 'local_comp_report_ext');
+            } else {
+                $row->typelabel = get_string('typequiz', 'local_comp_report_ext');
+            }
             $row->weight      = $a->weight;
             $row->quizid      = $a->quizid;
             $row->assignid    = $a->assignid;
 
             global $DB;
-            if ($a->type === 'quiz' && $a->quizid) {
+            if (!empty($a->quizid)) {
                 $quiz = $DB->get_record('quiz', ['id' => $a->quizid], 'name');
-                $row->associatedactivity = $quiz ? $quiz->name : 'Unknown Quiz';
-            } else if ($a->type === 'practical' && $a->assignid) {
+                $row->associatedactivity = $quiz ? $quiz->name . ' (' . get_string('quiz', 'local_comp_report_ext') . ')' : 'Unknown Quiz';
+            } else if (!empty($a->assignid)) {
                 $assign = $DB->get_record('assign', ['id' => $a->assignid], 'name');
-                $row->associatedactivity = $assign ? $assign->name : 'Unknown Assignment';
+                $row->associatedactivity = $assign ? $assign->name . ' (' . get_string('pluginname', 'mod_assign') . ')' : 'Unknown Assignment';
             } else {
                 $row->associatedactivity = '—';
             }

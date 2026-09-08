@@ -24,42 +24,6 @@ define([], function() {
     'use strict';
 
     /**
-     * Toggles quiz vs assignment selector fields based on selected assessment type.
-     *
-     * @param {string} val Selected assessment type ('quiz' or 'practical').
-     */
-    var toggleQuizField = function(val) {
-        var quizWrap = document.getElementById('quiz-selector-wrap');
-        var assignWrap = document.getElementById('assign-selector-wrap');
-        var quizSelect = document.getElementById('new_quizid');
-        var assignSelect = document.getElementById('new_assignid');
-
-        if (!quizWrap || !assignWrap) {
-            return;
-        }
-
-        if (val === 'practical') {
-            quizWrap.style.display = 'none';
-            assignWrap.style.display = '';
-            if (quizSelect) {
-                quizSelect.value = '0';
-            }
-            if (assignSelect && assignSelect.value !== '0') {
-                autoFillName(assignSelect);
-            }
-        } else {
-            quizWrap.style.display = '';
-            assignWrap.style.display = 'none';
-            if (assignSelect) {
-                assignSelect.value = '0';
-            }
-            if (quizSelect && quizSelect.value !== '0') {
-                autoFillName(quizSelect);
-            }
-        }
-    };
-
-    /**
      * Auto-fills the assessment name input when an activity is selected.
      *
      * @param {HTMLSelectElement} selectEl
@@ -83,30 +47,27 @@ define([], function() {
          * Initialize event listeners for the assessment setup form.
          */
         init: function() {
-            var typeSelect = document.getElementById('new_type');
-            var quizSelect = document.getElementById('new_quizid');
-            var assignSelect = document.getElementById('new_assignid');
-
-            if (typeSelect) {
-                typeSelect.addEventListener('change', function() {
-                    toggleQuizField(this.value);
+            var activitySelect = document.getElementById('new_activity');
+            if (activitySelect) {
+                activitySelect.addEventListener('change', function() {
+                    autoFillName(this);
                 });
-                toggleQuizField(typeSelect.value);
             }
 
+            // Legacy fallback if quiz/assign selects are still present.
+            var quizSelect = document.getElementById('new_quizid');
             if (quizSelect) {
                 quizSelect.addEventListener('change', function() {
                     autoFillName(this);
                 });
             }
-
+            var assignSelect = document.getElementById('new_assignid');
             if (assignSelect) {
                 assignSelect.addEventListener('change', function() {
                     autoFillName(this);
                 });
             }
         },
-        toggleQuizField: toggleQuizField,
         autoFillName: autoFillName
     };
 });

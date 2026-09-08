@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.24.4-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.25.0-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -82,6 +82,13 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 ---
 
 ## 📋 Changelog
+
+### v3.25.0 — 2026-09-08
+- **Unified Assessment Setup & Automated Oral/Practical Quiz Integration:**
+  - Expanded Assessment Types in **Assessment Setup** (`assessment_setup.php`) to include **Oral Assessment** (`oral`), **Practical Assessment** (`practical`), **Quiz Assessment** (`quiz`), and **Assignment** (`assign`).
+  - Introduced a unified Activity Selector allowing instructors to link ANY assessment type (including Practical and Oral exams) directly to a Moodle Quiz (`mod_quiz`).
+  - **Automated Competency Mastery (Zero Manual Entry):** Updated `competency_calculator::get_student_scores()` and `classes/external/ai.php` to automatically calculate per-competency achievement from question bank mappings (`qbank_comp_ext_qmap`) and quiz attempt data whenever an assessment is linked to a Quiz, eliminating the need for manual score entry in `practical_entry.php`.
+  - Added new badge styles (`.oral-badge`, `.assign-badge`) and bilingual language strings in Arabic and English.
 
 ### v3.24.4 — 2026-09-02
 - **Fix & Data Accuracy (Student-Only Filtering Across Group Reports & PDF Exports):**
@@ -454,6 +461,13 @@ npx grunt amd --files=local/comp_report_ext
 ---
 
 ## 📋 Changelog
+
+### v3.25.0 — 2026-09-08
+- **Unified Assessment Setup & Automated Oral/Practical Quiz Integration:**
+  - Expanded Assessment Types in **Assessment Setup** (`assessment_setup.php`) to include **Oral Assessment** (`oral`), **Practical Assessment** (`practical`), **Quiz Assessment** (`quiz`), and **Assignment** (`assign`).
+  - Introduced a unified Activity Selector allowing instructors to link ANY assessment type (including Practical and Oral exams) directly to a Moodle Quiz (`mod_quiz`).
+  - **Automated Competency Mastery (Zero Manual Entry):** Updated `competency_calculator::get_student_scores()` and `classes/external/ai.php` to automatically calculate per-competency achievement from question bank mappings (`qbank_comp_ext_qmap`) and quiz attempt data whenever an assessment is linked to a Quiz, eliminating the need for manual score entry in `practical_entry.php`.
+  - Added new badge styles (`.oral-badge`, `.assign-badge`) and bilingual language strings in Arabic and English.
 
 ### v3.19.14 (2026082114) — 2026-08-21
 - **Enhancement (Flexible Retake Quiz Name Detection):** Expanded the separate-quiz retake detection engine in `group_exam_analytics.php` to recognise all common retake naming conventions — not just `Retake 1` / `Retake 2`. The system now matches any quiz whose name contains a retake indicator combined with a number or ordinal, in any position or format:

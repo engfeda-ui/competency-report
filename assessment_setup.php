@@ -47,11 +47,23 @@ $PAGE->set_heading($course->fullname . ' — ' . get_string('assessmentsetup', '
 $action = optional_param('action', '', PARAM_ALPHA);
 
 if ($action === 'add' && confirm_sesskey()) {
-    $type     = optional_param('assessment_type', 'quiz', PARAM_ALPHA);
+    $type     = optional_param('assessment_type', 'quiz', PARAM_ALPHANUMEXT);
     $name     = trim(optional_param('assessment_name', '', PARAM_TEXT));
+    $activity = optional_param('assessment_activity', '', PARAM_ALPHANUMEXT);
     $quizid   = optional_param('assessment_quizid', null, PARAM_INT);
     $assignid = optional_param('assessment_assignid', null, PARAM_INT);
     $weight   = optional_param('assessment_weight', 0.0, PARAM_FLOAT);
+
+    // Parse unified activity selector (e.g. quiz_22 or assign_5).
+    if (!empty($activity)) {
+        if (strpos($activity, 'quiz_') === 0) {
+            $quizid = (int)substr($activity, 5);
+            $assignid = null;
+        } else if (strpos($activity, 'assign_') === 0) {
+            $assignid = (int)substr($activity, 7);
+            $quizid = null;
+        }
+    }
 
     if ($name === '' || $weight < 0) {
         redirect(
@@ -63,7 +75,7 @@ if ($action === 'add' && confirm_sesskey()) {
     }
 
     // Security: verify quiz/assign belongs to this course.
-    if ($type === 'quiz' && $quizid > 0) {
+    if ($quizid > 0) {
         if (!$DB->record_exists('quiz', ['id' => $quizid, 'course' => $courseid])) {
             redirect(
                 new moodle_url('/local/comp_report_ext/assessment_setup.php', ['courseid' => $courseid]),
@@ -73,7 +85,7 @@ if ($action === 'add' && confirm_sesskey()) {
             );
         }
     }
-    if ($type === 'practical' && $assignid > 0) {
+    if ($assignid > 0) {
         if (!$DB->record_exists('assign', ['id' => $assignid, 'course' => $courseid])) {
             redirect(
                 new moodle_url('/local/comp_report_ext/assessment_setup.php', ['courseid' => $courseid]),
@@ -84,12 +96,13 @@ if ($action === 'add' && confirm_sesskey()) {
         }
     }
 
+    $validtypes = ['quiz', 'practical', 'oral', 'assign'];
     $record = new stdClass();
     $record->courseid     = $courseid;
-    $record->quizid       = ($type === 'quiz' && $quizid > 0) ? $quizid : null;
-    $record->assignid     = ($type === 'practical' && $assignid > 0) ? $assignid : null;
+    $record->quizid       = ($quizid > 0) ? $quizid : null;
+    $record->assignid     = ($assignid > 0) ? $assignid : null;
     $record->name         = $name;
-    $record->type         = ($type === 'practical') ? 'practical' : 'quiz';
+    $record->type         = in_array($type, $validtypes) ? $type : 'quiz';
     $record->weight       = $weight;
     $record->timecreated  = time();
     $record->timemodified = time();

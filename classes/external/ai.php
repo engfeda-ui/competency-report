@@ -189,7 +189,7 @@ class ai extends external_api {
 
                     foreach ($asmts as $asmt) {
                         $asmtname = $asmt->name . ' (Weight: ' . (float)$asmt->weight . '%)';
-                        if ($asmt->type === 'quiz' && !empty($asmt->quizid)) {
+                        if (!empty($asmt->quizid)) {
                             [$insql, $inparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED);
                             $inparams['quizid'] = $asmt->quizid;
                             $sql = "SELECT AVG(qa.sumgrades) AS avggrade, q.sumgrades AS maxgrade
@@ -199,7 +199,7 @@ class ai extends external_api {
                             $res = $DB->get_record_sql($sql, $inparams);
                             $rate = ($res && $res->maxgrade > 0) ? round(($res->avggrade / $res->maxgrade) * 100, 1) : 0;
                             $rates[$asmtname] = $rate;
-                        } else if ($asmt->type === 'practical') {
+                        } else if ($asmt->type === 'practical' || !empty($asmt->assignid)) {
                             [$insql, $inparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED);
                             $inparams['asmtid'] = $asmt->id;
                             $sql = "SELECT AVG(competency_percent) AS avggrade

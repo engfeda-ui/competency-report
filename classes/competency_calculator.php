@@ -178,10 +178,12 @@ class competency_calculator {
             foreach ($assessments as $assessment) {
                 $scorepct = null;
 
-                if ($assessment->type === 'quiz' && !empty($assessment->quizid)) {
+                if (!empty($assessment->quizid)) {
+                    // Any assessment (quiz, practical, oral) linked to a quiz automatically computes from questions & competency mapping!
                     $qkey = ((int)$assessment->quizid) . '_' . ((int)$comp->id);
                     $scorepct = $quizmap[$qkey] ?? null;
-                } else if ($assessment->type === 'practical') {
+                } else if ($assessment->type === 'practical' || !empty($assessment->assignid)) {
+                    // Legacy manual practical marks entered via practical_entry.php
                     $pkey = ((int)$assessment->id) . '_' . ((int)$comp->id);
                     $scorepct = $practicalmap[$pkey] ?? null;
                 }
