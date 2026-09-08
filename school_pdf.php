@@ -129,7 +129,7 @@ $coursesdata = [];
 $totalmasterysum = 0;
 
 if (!empty($courseids)) {
-    list($cinsql, $cinparams) = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED);
+    [$cinsql, $cinparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED);
     $coursesinfo = $DB->get_records_sql("
         SELECT c.id, c.fullname, c.shortname, c.category, cc.name AS category_name
         FROM {course} c

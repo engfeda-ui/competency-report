@@ -41,7 +41,6 @@ use advanced_testcase;
  * @covers \local_comp_report_ext\competency_calculator
  */
 class competency_calculator_test extends advanced_testcase {
-
     /**
      * Set up testing environment and ensure dependency tables exist.
      */
