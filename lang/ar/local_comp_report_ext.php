@@ -378,7 +378,7 @@ $string['trend_steady']             = 'مستقر ⚖️';
 $string['trend_declining']          = 'يحتاج تركيز 📉';
 $string['success_threshold_line']   = 'حد الاجتياز (60%)';
 
-// نصوص لوحة تحكم المنشأة / التقرير العام المؤسسي.
+// Institutional dashboard strings.
 $string['institutional_dashboard_title'] = 'لوحة تحكم كفايات المنشأة والمقررات';
 $string['active_courses_count']          = 'المقررات النشطة المقيّمة';
 $string['total_evaluated_students']      = 'إجمالي الطلاب المقيّمين';

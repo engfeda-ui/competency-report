@@ -41,6 +41,29 @@ use advanced_testcase;
  * @covers \local_comp_report_ext\competency_calculator
  */
 class competency_calculator_test extends advanced_testcase {
+
+    /**
+     * Set up testing environment and ensure dependency tables exist.
+     */
+    protected function setUp(): void {
+        global $DB;
+        parent::setUp();
+        $this->resetAfterTest(true);
+
+        $dbman = $DB->get_manager();
+        if (!$dbman->table_exists('qbank_comp_ext_qmap')) {
+            $table = new \xmldb_table('qbank_comp_ext_qmap');
+            $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+            $table->add_field('courseid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+            $table->add_field('questionid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+            $table->add_field('competencyid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+            $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+            $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+            $table->add_index('course_question_idx', XMLDB_INDEX_NOTUNIQUE, ['courseid', 'questionid']);
+            $dbman->create_table($table);
+        }
+    }
+
     // Helpers.
 
     /**

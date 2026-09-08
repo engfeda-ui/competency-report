@@ -65,22 +65,22 @@ foreach ($categories as $cat) {
 }
 
 // SQL filtering clause for categories.
-$catwhere_q = '';
-$catwhere_p = '';
-$params_q = [];
-$params_p = [];
+$catwhereq = '';
+$catwherep = '';
+$paramsq = [];
+$paramsp = [];
 
 if ($categoryid > 0) {
-    $catwhere_q = ' AND c.category = :catid ';
-    $catwhere_p = ' AND c.category = :catid ';
-    $params_q['catid'] = $categoryid;
-    $params_p['catid'] = $categoryid;
+    $catwhereq = ' AND c.category = :catid ';
+    $catwherep = ' AND c.category = :catid ';
+    $paramsq['catid'] = $categoryid;
+    $paramsp['catid'] = $categoryid;
 }
 
 // 4. Efficient Data Aggregations (Single-pass SQL queries).
 
 // A. Theory Competency Aggregations per Course.
-$sql_theory = "
+$sqltheory = "
     SELECT q.course AS courseid,
            COUNT(DISTINCT quiza.userid) AS student_count,
            COUNT(DISTINCT m.competencyid) AS comp_count,
@@ -97,13 +97,13 @@ $sql_theory = "
         FROM {question_attempt_steps}
         GROUP BY questionattemptid
     ) qas ON qas.questionattemptid = qa.id
-    WHERE quiza.state = 'finished' AND q.course != " . SITEID . " $catwhere_q
+    WHERE quiza.state = 'finished' AND q.course != " . SITEID . " $catwhereq
     GROUP BY q.course
 ";
-$theory_by_course = $DB->get_records_sql($sql_theory, $params_q);
+$theorybycourse = $DB->get_records_sql($sqltheory, $paramsq);
 
 // B. Practical Competency Aggregations per Course.
-$sql_practical = "
+$sqlpractical = "
     SELECT pr.courseid,
            COUNT(DISTINCT pr.studentid) AS student_count,
            COUNT(DISTINCT pr.competencyid) AS comp_count,
@@ -111,13 +111,13 @@ $sql_practical = "
            COUNT(pr.id) AS total_entries
     FROM {local_comp_report_ext_prac} pr
     JOIN {course} c ON c.id = pr.courseid
-    WHERE pr.courseid != " . SITEID . " $catwhere_p
+    WHERE pr.courseid != " . SITEID . " $catwherep
     GROUP BY pr.courseid
 ";
-$practical_by_course = $DB->get_records_sql($sql_practical, $params_p);
+$practicalbycourse = $DB->get_records_sql($sqlpractical, $paramsp);
 
 // C. Site-wide Competency Performance (for Top/Lowest Rankings).
-$sql_comps_theory = "
+$sqlcompstheory = "
     SELECT comp.id, comp.shortname, comp.description,
            CAST(SUM(qa.maxfraction) AS DECIMAL(12, 1)) AS attempts,
            CAST(SUM(qas.fraction) AS DECIMAL(12, 1)) AS correct
@@ -133,25 +133,25 @@ $sql_comps_theory = "
         FROM {question_attempt_steps}
         GROUP BY questionattemptid
     ) qas ON qas.questionattemptid = qa.id
-    WHERE quiza.state = 'finished' AND q.course != " . SITEID . " $catwhere_q
+    WHERE quiza.state = 'finished' AND q.course != " . SITEID . " $catwhereq
     GROUP BY comp.id, comp.shortname, comp.description
 ";
-$comps_theory = $DB->get_records_sql($sql_comps_theory, $params_q);
+$compstheory = $DB->get_records_sql($sqlcompstheory, $paramsq);
 
-$sql_comps_prac = "
+$sqlcompsprac = "
     SELECT comp.id, comp.shortname, comp.description,
            AVG(pr.competency_percent) AS avg_percent,
            COUNT(pr.id) AS entries
     FROM {competency} comp
     JOIN {local_comp_report_ext_prac} pr ON pr.competencyid = comp.id
     JOIN {course} c ON c.id = pr.courseid
-    WHERE pr.courseid != " . SITEID . " $catwhere_p
+    WHERE pr.courseid != " . SITEID . " $catwherep
     GROUP BY comp.id, comp.shortname, comp.description
 ";
-$comps_prac = $DB->get_records_sql($sql_comps_prac, $params_p);
+$compsprac = $DB->get_records_sql($sqlcompsprac, $paramsp);
 
 // D. Total Distinct Evaluated Students.
-$sql_students = "
+$sqlstudents = "
     SELECT COUNT(DISTINCT all_students.userid) AS total_students
     FROM (
         SELECT quiza.userid
@@ -161,36 +161,36 @@ $sql_students = "
         JOIN {question_usages} qu ON qu.id = quiza.uniqueid
         JOIN {question_attempts} qa ON qa.questionusageid = qu.id
         JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
-        WHERE quiza.state = 'finished' AND q.course != " . SITEID . " $catwhere_q
+        WHERE quiza.state = 'finished' AND q.course != " . SITEID . " $catwhereq
         UNION
         SELECT pr.studentid AS userid
         FROM {local_comp_report_ext_prac} pr
         JOIN {course} c ON c.id = pr.courseid
-        WHERE pr.courseid != " . SITEID . " $catwhere_p
+        WHERE pr.courseid != " . SITEID . " $catwherep
     ) all_students
 ";
-$total_evaluated_students = (int)$DB->get_field_sql($sql_students, array_merge($params_q, $params_p));
+$totalevaluatedstudents = (int)$DB->get_field_sql($sqlstudents, array_merge($paramsq, $paramsp));
 
 // 5. Build Course Master List & KPI Metrics.
-$course_ids = array_unique(array_merge(
-    array_keys($theory_by_course),
-    array_keys($practical_by_course)
+$courseids = array_unique(array_merge(
+    array_keys($theorybycourse),
+    array_keys($practicalbycourse)
 ));
 
-$courses_data = [];
-$total_mastery_sum = 0;
-$evaluated_courses_count = 0;
+$coursesdata = [];
+$totalmasterysum = 0;
+$evaluatedcoursescount = 0;
 
-$tier_high_count = 0;
-$tier_mod_count  = 0;
-$tier_low_count  = 0;
+$tierhighcount = 0;
+$tiermodcount  = 0;
+$tierlowcount  = 0;
 
-$chart_course_labels = [];
-$chart_course_data   = [];
+$chartcourselabels = [];
+$chartcoursedata   = [];
 
-if (!empty($course_ids)) {
-    list($cinsql, $cinparams) = $DB->get_in_or_equal($course_ids, SQL_PARAMS_NAMED);
-    $courses_info = $DB->get_records_sql("
+if (!empty($courseids)) {
+    list($cinsql, $cinparams) = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED);
+    $coursesinfo = $DB->get_records_sql("
         SELECT c.id, c.fullname, c.shortname, c.category, cc.name AS category_name
         FROM {course} c
         LEFT JOIN {course_categories} cc ON cc.id = c.category
@@ -198,142 +198,145 @@ if (!empty($course_ids)) {
         ORDER BY cc.name ASC, c.fullname ASC
     ", $cinparams);
 
-    foreach ($course_ids as $cid) {
-        if (!isset($courses_info[$cid])) {
+    foreach ($courseids as $cid) {
+        if (!isset($coursesinfo[$cid])) {
             continue;
         }
-        $cinfo = $courses_info[$cid];
+        $cinfo = $coursesinfo[$cid];
 
         // Theory metrics.
-        $has_theory = isset($theory_by_course[$cid]) && $theory_by_course[$cid]->attempts > 0;
-        $theory_rate = $has_theory ? round(($theory_by_course[$cid]->correct / $theory_by_course[$cid]->attempts) * 100, 1) : null;
-        $theory_students = $has_theory ? (int)$theory_by_course[$cid]->student_count : 0;
+        $hastheory = isset($theorybycourse[$cid]) && $theorybycourse[$cid]->attempts > 0;
+        $theoryrate = $hastheory ? round(($theorybycourse[$cid]->correct / $theorybycourse[$cid]->attempts) * 100, 1) : null;
+        $theorystudents = $hastheory ? (int)$theorybycourse[$cid]->student_count : 0;
 
         // Practical metrics.
-        $has_prac = isset($practical_by_course[$cid]) && $practical_by_course[$cid]->total_entries > 0;
-        $prac_rate = $has_prac ? round((float)$practical_by_course[$cid]->avg_percent, 1) : null;
-        $prac_students = $has_prac ? (int)$practical_by_course[$cid]->student_count : 0;
+        $hasprac = isset($practicalbycourse[$cid]) && $practicalbycourse[$cid]->total_entries > 0;
+        $pracrate = $hasprac ? round((float)$practicalbycourse[$cid]->avg_percent, 1) : null;
+        $pracstudents = $hasprac ? (int)$practicalbycourse[$cid]->student_count : 0;
 
         // Overall calculation for course.
-        $overall_rate = 0.0;
-        if ($has_theory && $has_prac) {
-            $overall_rate = round(($theory_rate + $prac_rate) / 2, 1);
-        } else if ($has_theory) {
-            $overall_rate = $theory_rate;
-        } else if ($has_prac) {
-            $overall_rate = $prac_rate;
+        $overallrate = 0.0;
+        if ($hastheory && $hasprac) {
+            $overallrate = round(($theoryrate + $pracrate) / 2, 1);
+        } else if ($hastheory) {
+            $overallrate = $theoryrate;
+        } else if ($hasprac) {
+            $overallrate = $pracrate;
         }
 
-        $total_students = max($theory_students, $prac_students);
+        $totalstudents = max($theorystudents, $pracstudents);
 
         // Tier classification.
-        if ($overall_rate >= 80) {
-            $tier_high_count++;
-            $status_key = 'status_excellent';
-            $badge_class = 'badge-success text-white';
-            $row_class = 'table-success';
-        } else if ($overall_rate >= 60) {
-            $tier_mod_count++;
-            $status_key = 'status_competent';
-            $badge_class = 'badge-info text-white';
-            $row_class = 'table-info';
+        if ($overallrate >= 80) {
+            $tierhighcount++;
+            $statuskey = 'status_excellent';
+            $badgeclass = 'badge-success text-white';
+            $rowclass = 'table-success';
+        } else if ($overallrate >= 60) {
+            $tiermodcount++;
+            $statuskey = 'status_competent';
+            $badgeclass = 'badge-info text-white';
+            $rowclass = 'table-info';
         } else {
-            $tier_low_count++;
-            $status_key = 'status_at_risk';
-            $badge_class = 'badge-danger text-white';
-            $row_class = 'table-danger';
+            $tierlowcount++;
+            $statuskey = 'status_at_risk';
+            $badgeclass = 'badge-danger text-white';
+            $rowclass = 'table-danger';
         }
 
-        $courses_data[] = [
+        $coursesdata[] = [
             'id'             => $cid,
             'fullname'       => format_string($cinfo->fullname),
             'shortname'      => format_string($cinfo->shortname),
             'category_name'  => format_string($cinfo->category_name ?? get_string('all_categories', 'local_comp_report_ext')),
-            'students_count' => $total_students,
-            'theory_rate'    => $has_theory ? number_format($theory_rate, 1) . '%' : '—',
-            'prac_rate'      => $has_prac ? number_format($prac_rate, 1) . '%' : '—',
-            'overall_rate'   => number_format($overall_rate, 1) . '%',
-            'raw_overall'    => $overall_rate,
-            'status_label'   => get_string($status_key, 'local_comp_report_ext'),
-            'badge_class'    => $badge_class,
-            'row_class'      => $row_class,
-            'report_url'     => (new moodle_url('/local/comp_report_ext/course_master_report.php', ['courseid' => $cid]))->out(false),
+            'students_count' => $totalstudents,
+            'theory_rate'    => $hastheory ? number_format($theoryrate, 1) . '%' : '—',
+            'prac_rate'      => $hasprac ? number_format($pracrate, 1) . '%' : '—',
+            'overall_rate'   => number_format($overallrate, 1) . '%',
+            'raw_overall'    => $overallrate,
+            'status_label'   => get_string($statuskey, 'local_comp_report_ext'),
+            'badge_class'    => $badgeclass,
+            'row_class'      => $rowclass,
+            'report_url'     => (new moodle_url(
+                '/local/comp_report_ext/course_master_report.php',
+                ['courseid' => $cid]
+            ))->out(false),
         ];
 
-        $total_mastery_sum += $overall_rate;
-        $evaluated_courses_count++;
+        $totalmasterysum += $overallrate;
+        $evaluatedcoursescount++;
 
         // Add to chart arrays.
-        $chart_course_labels[] = format_string($cinfo->shortname);
-        $chart_course_data[]   = $overall_rate;
+        $chartcourselabels[] = format_string($cinfo->shortname);
+        $chartcoursedata[]   = $overallrate;
     }
 }
 
 // 6. Overall Institutional KPI Calculations.
-$overall_institution_mastery = $evaluated_courses_count > 0 ? round($total_mastery_sum / $evaluated_courses_count, 1) : 0.0;
+$overallinstitutionmastery = $evaluatedcoursescount > 0 ? round($totalmasterysum / $evaluatedcoursescount, 1) : 0.0;
 
 // 7. Site-wide Competencies Ranking (Top 5 & Lowest 5).
-$all_comps = [];
-foreach ($comps_theory as $compid => $ct) {
+$allcomps = [];
+foreach ($compstheory as $compid => $ct) {
     $crate = $ct->attempts > 0 ? ($ct->correct / $ct->attempts) * 100 : 0;
-    $all_comps[$compid] = [
+    $allcomps[$compid] = [
         'id'          => $compid,
         'shortname'   => format_string($ct->shortname),
         'description' => html_entity_decode(strip_tags($ct->description), ENT_QUOTES, 'UTF-8'),
         'rates'       => [$crate],
     ];
 }
-foreach ($comps_prac as $compid => $cp) {
-    if (!isset($all_comps[$compid])) {
-        $all_comps[$compid] = [
+foreach ($compsprac as $compid => $cp) {
+    if (!isset($allcomps[$compid])) {
+        $allcomps[$compid] = [
             'id'          => $compid,
             'shortname'   => format_string($cp->shortname),
             'description' => html_entity_decode(strip_tags($cp->description), ENT_QUOTES, 'UTF-8'),
             'rates'       => [],
         ];
     }
-    $all_comps[$compid]['rates'][] = (float)$cp->avg_percent;
+    $allcomps[$compid]['rates'][] = (float)$cp->avg_percent;
 }
 
-$ranked_comps = [];
-foreach ($all_comps as $compid => $cinfo) {
-    $comp_avg = !empty($cinfo['rates']) ? round(array_sum($cinfo['rates']) / count($cinfo['rates']), 1) : 0.0;
-    $ranked_comps[] = [
+$rankedcomps = [];
+foreach ($allcomps as $compid => $cinfo) {
+    $compavg = !empty($cinfo['rates']) ? round(array_sum($cinfo['rates']) / count($cinfo['rates']), 1) : 0.0;
+    $rankedcomps[] = [
         'id'          => $compid,
         'shortname'   => $cinfo['shortname'],
         'description' => $cinfo['description'],
-        'rate'        => $comp_avg,
-        'rate_str'    => number_format($comp_avg, 1) . '%',
-        'is_high'     => $comp_avg >= 70,
-        'is_low'      => $comp_avg < 60,
+        'rate'        => $compavg,
+        'rate_str'    => number_format($compavg, 1) . '%',
+        'is_high'     => $compavg >= 70,
+        'is_low'      => $compavg < 60,
     ];
 }
 
-usort($ranked_comps, function ($a, $b) {
+usort($rankedcomps, function ($a, $b) {
     return $b['rate'] <=> $a['rate'];
 });
 
-$top_5_competencies    = array_slice($ranked_comps, 0, 5);
-$lowest_5_competencies = array_reverse(array_slice(array_reverse($ranked_comps), 0, 5));
-$total_assessed_comps  = count($ranked_comps);
+$top5competencies    = array_slice($rankedcomps, 0, 5);
+$lowest5competencies = array_reverse(array_slice(array_reverse($rankedcomps), 0, 5));
+$totalassessedcomps  = count($rankedcomps);
 
 // 8. Package Data for Output.
 $renderdata = new stdClass();
-$renderdata->has_data                    = !empty($courses_data);
+$renderdata->has_data                    = !empty($coursesdata);
 $renderdata->categoryid                  = $categoryid;
 $renderdata->categories                  = $catoptions;
-$renderdata->courses                     = $courses_data;
-$renderdata->total_courses               = $evaluated_courses_count;
-$renderdata->total_students              = number_format($total_evaluated_students);
-$renderdata->total_competencies          = number_format($total_assessed_comps);
-$renderdata->overall_mastery             = number_format($overall_institution_mastery, 1);
-$renderdata->top_competencies            = $top_5_competencies;
-$renderdata->lowest_competencies         = $lowest_5_competencies;
+$renderdata->courses                     = $coursesdata;
+$renderdata->total_courses               = $evaluatedcoursescount;
+$renderdata->total_students              = number_format($totalevaluatedstudents);
+$renderdata->total_competencies          = number_format($totalassessedcomps);
+$renderdata->overall_mastery             = number_format($overallinstitutionmastery, 1);
+$renderdata->top_competencies            = $top5competencies;
+$renderdata->lowest_competencies         = $lowest5competencies;
 
 // Chart JSON Payloads.
-$renderdata->chart_courses_labels_json   = json_encode($chart_course_labels);
-$renderdata->chart_courses_data_json     = json_encode($chart_course_data);
-$renderdata->chart_dist_data_json        = json_encode([$tier_high_count, $tier_mod_count, $tier_low_count]);
+$renderdata->chart_courses_labels_json   = json_encode($chartcourselabels);
+$renderdata->chart_courses_data_json     = json_encode($chartcoursedata);
+$renderdata->chart_dist_data_json        = json_encode([$tierhighcount, $tiermodcount, $tierlowcount]);
 
 $renderdata->pdf_url = (new moodle_url('/local/comp_report_ext/school_pdf.php', ['categoryid' => $categoryid]))->out(false);
 

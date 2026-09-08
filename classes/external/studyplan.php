@@ -78,11 +78,12 @@ class studyplan extends external_api {
     /**
      * Execute generate_study_plan external web service call.
      *
-     * @param int $courseid
-     * @param int $userid
-     * @param string $language
-     * @param int $numsessions
-     * @return array
+     * @param int $courseid The course ID.
+     * @param int $userid The user ID.
+     * @param string $language The output language code.
+     * @param int $numsessions Number of study sessions.
+     * @param int $quizid Optional quiz ID.
+     * @return array The study plan response structure.
      */
     public static function generate_study_plan(
         int $courseid,

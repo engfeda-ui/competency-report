@@ -83,10 +83,12 @@ class assessment_setup_page implements renderable, templatable {
             global $DB;
             if (!empty($a->quizid)) {
                 $quiz = $DB->get_record('quiz', ['id' => $a->quizid], 'name');
-                $row->associatedactivity = $quiz ? $quiz->name . ' (' . get_string('quiz', 'local_comp_report_ext') . ')' : 'Unknown Quiz';
+                $actlabel = get_string('quiz', 'local_comp_report_ext');
+                $row->associatedactivity = $quiz ? $quiz->name . ' (' . $actlabel . ')' : 'Unknown Quiz';
             } else if (!empty($a->assignid)) {
                 $assign = $DB->get_record('assign', ['id' => $a->assignid], 'name');
-                $row->associatedactivity = $assign ? $assign->name . ' (' . get_string('pluginname', 'mod_assign') . ')' : 'Unknown Assignment';
+                $assignlabel = get_string('pluginname', 'mod_assign');
+                $row->associatedactivity = $assign ? $assign->name . ' (' . $assignlabel . ')' : 'Unknown Assignment';
             } else {
                 $row->associatedactivity = '—';
             }

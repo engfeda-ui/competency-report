@@ -26,9 +26,12 @@
 /**
  * Main function to generate comments based on competency stats.
  *
- * @param array  $stats   The competency shortname and success rates.
+ * @param array  $stats The competency shortname and success rates.
  * @param string $context The context of the comment (student or school).
- * @return string
+ * @param string $customprompt Optional custom prompt text.
+ * @param string $focustype The focus type for the feedback.
+ * @param array  $contextdetails Optional rich context details.
+ * @return string The generated comment.
  */
 function local_comp_report_ext_generate_comment(
     array $stats,
@@ -132,9 +135,12 @@ function local_comp_report_ext_rule_based_comment(array $stats) {
 /**
  * AI-based comment generation using OpenAI API.
  *
- * @param array  $stats
- * @param string $context
- * @return string
+ * @param array  $stats The competency stats array.
+ * @param string $context The context of the comment (student or school).
+ * @param string $customprompt Optional custom prompt text.
+ * @param string $focustype The focus type for the feedback.
+ * @param array  $contextdetails Optional rich context details.
+ * @return string The generated AI comment.
  */
 function local_comp_report_ext_ai_comment(
     array $stats,
@@ -527,6 +533,7 @@ function local_comp_report_ext_structured_comment(array $stats) {
  * Converts raw Markdown tables in LLM responses to beautiful, styled HTML tables.
  * Falls back safely if the text does not contain any markdown tables.
  *
+ * @param string $html The input HTML containing potential markdown tables.
  * @return string The parsed HTML with styled tables.
  */
 function local_comp_report_ext_markdown_to_html_table($html) {

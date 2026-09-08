@@ -35,7 +35,14 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout qbank_comp_ext dependency
+        uses: actions/checkout@v4
+        with:
+          repository: engfeda-ui/competency
+          path: question/bank/comp_ext
+
+      - name: Checkout local_comp_report_ext
+        uses: actions/checkout@v4
         with:
           path: local/comp_report_ext
 

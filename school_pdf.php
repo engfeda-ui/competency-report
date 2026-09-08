@@ -40,32 +40,32 @@ $categoryid = optional_param('categoryid', 0, PARAM_INT);
 $courseid   = optional_param('courseid', 0, PARAM_INT);
 
 // 3. Category Filter.
-$catwhere_q = '';
-$catwhere_p = '';
-$params_q = [];
-$params_p = [];
+$catwhereq = '';
+$catwherep = '';
+$paramsq = [];
+$paramsp = [];
 
-$category_name = get_string('all_categories', 'local_comp_report_ext');
+$categoryname = get_string('all_categories', 'local_comp_report_ext');
 if ($categoryid > 0) {
-    $catwhere_q = ' AND c.category = :catid ';
-    $catwhere_p = ' AND c.category = :catid ';
-    $params_q['catid'] = $categoryid;
-    $params_p['catid'] = $categoryid;
+    $catwhereq = ' AND c.category = :catid ';
+    $catwherep = ' AND c.category = :catid ';
+    $paramsq['catid'] = $categoryid;
+    $paramsp['catid'] = $categoryid;
     $catrec = $DB->get_record('course_categories', ['id' => $categoryid]);
     if ($catrec) {
-        $category_name = format_string($catrec->name);
+        $categoryname = format_string($catrec->name);
     }
 }
 
 if ($courseid > 0) {
-    $catwhere_q .= ' AND q.course = :cid ';
-    $catwhere_p .= ' AND pr.courseid = :cid ';
-    $params_q['cid'] = $courseid;
-    $params_p['cid'] = $courseid;
+    $catwhereq .= ' AND q.course = :cid ';
+    $catwherep .= ' AND pr.courseid = :cid ';
+    $paramsq['cid'] = $courseid;
+    $paramsp['cid'] = $courseid;
 }
 
 // 4. Data Aggregations.
-$sql_theory = "
+$sqltheory = "
     SELECT q.course AS courseid,
            COUNT(DISTINCT quiza.userid) AS student_count,
            COUNT(DISTINCT m.competencyid) AS comp_count,
@@ -82,12 +82,12 @@ $sql_theory = "
         FROM {question_attempt_steps}
         GROUP BY questionattemptid
     ) qas ON qas.questionattemptid = qa.id
-    WHERE quiza.state = 'finished' AND q.course != " . SITEID . " $catwhere_q
+    WHERE quiza.state = 'finished' AND q.course != " . SITEID . " $catwhereq
     GROUP BY q.course
 ";
-$theory_by_course = $DB->get_records_sql($sql_theory, $params_q);
+$theorybycourse = $DB->get_records_sql($sqltheory, $paramsq);
 
-$sql_practical = "
+$sqlpractical = "
     SELECT pr.courseid,
            COUNT(DISTINCT pr.studentid) AS student_count,
            COUNT(DISTINCT pr.competencyid) AS comp_count,
@@ -95,12 +95,12 @@ $sql_practical = "
            COUNT(pr.id) AS total_entries
     FROM {local_comp_report_ext_prac} pr
     JOIN {course} c ON c.id = pr.courseid
-    WHERE pr.courseid != " . SITEID . " $catwhere_p
+    WHERE pr.courseid != " . SITEID . " $catwherep
     GROUP BY pr.courseid
 ";
-$practical_by_course = $DB->get_records_sql($sql_practical, $params_p);
+$practicalbycourse = $DB->get_records_sql($sqlpractical, $paramsp);
 
-$sql_students = "
+$sqlstudents = "
     SELECT COUNT(DISTINCT all_students.userid) AS total_students
     FROM (
         SELECT quiza.userid
@@ -110,27 +110,27 @@ $sql_students = "
         JOIN {question_usages} qu ON qu.id = quiza.uniqueid
         JOIN {question_attempts} qa ON qa.questionusageid = qu.id
         JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
-        WHERE quiza.state = 'finished' AND q.course != " . SITEID . " $catwhere_q
+        WHERE quiza.state = 'finished' AND q.course != " . SITEID . " $catwhereq
         UNION
         SELECT pr.studentid AS userid
         FROM {local_comp_report_ext_prac} pr
         JOIN {course} c ON c.id = pr.courseid
-        WHERE pr.courseid != " . SITEID . " $catwhere_p
+        WHERE pr.courseid != " . SITEID . " $catwherep
     ) all_students
 ";
-$total_evaluated_students = (int)$DB->get_field_sql($sql_students, array_merge($params_q, $params_p));
+$totalevaluatedstudents = (int)$DB->get_field_sql($sqlstudents, array_merge($paramsq, $paramsp));
 
-$course_ids = array_unique(array_merge(
-    array_keys($theory_by_course),
-    array_keys($practical_by_course)
+$courseids = array_unique(array_merge(
+    array_keys($theorybycourse),
+    array_keys($practicalbycourse)
 ));
 
-$courses_data = [];
-$total_mastery_sum = 0;
+$coursesdata = [];
+$totalmasterysum = 0;
 
-if (!empty($course_ids)) {
-    list($cinsql, $cinparams) = $DB->get_in_or_equal($course_ids, SQL_PARAMS_NAMED);
-    $courses_info = $DB->get_records_sql("
+if (!empty($courseids)) {
+    list($cinsql, $cinparams) = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED);
+    $coursesinfo = $DB->get_records_sql("
         SELECT c.id, c.fullname, c.shortname, c.category, cc.name AS category_name
         FROM {course} c
         LEFT JOIN {course_categories} cc ON cc.id = c.category
@@ -138,48 +138,48 @@ if (!empty($course_ids)) {
         ORDER BY cc.name ASC, c.fullname ASC
     ", $cinparams);
 
-    foreach ($course_ids as $cid) {
-        if (!isset($courses_info[$cid])) {
+    foreach ($courseids as $cid) {
+        if (!isset($coursesinfo[$cid])) {
             continue;
         }
-        $cinfo = $courses_info[$cid];
+        $cinfo = $coursesinfo[$cid];
 
-        $has_theory = isset($theory_by_course[$cid]) && $theory_by_course[$cid]->attempts > 0;
-        $theory_rate = $has_theory ? round(($theory_by_course[$cid]->correct / $theory_by_course[$cid]->attempts) * 100, 1) : null;
-        $theory_students = $has_theory ? (int)$theory_by_course[$cid]->student_count : 0;
+        $hastheory = isset($theorybycourse[$cid]) && $theorybycourse[$cid]->attempts > 0;
+        $theoryrate = $hastheory ? round(($theorybycourse[$cid]->correct / $theorybycourse[$cid]->attempts) * 100, 1) : null;
+        $theorystudents = $hastheory ? (int)$theorybycourse[$cid]->student_count : 0;
 
-        $has_prac = isset($practical_by_course[$cid]) && $practical_by_course[$cid]->total_entries > 0;
-        $prac_rate = $has_prac ? round((float)$practical_by_course[$cid]->avg_percent, 1) : null;
-        $prac_students = $has_prac ? (int)$practical_by_course[$cid]->student_count : 0;
+        $hasprac = isset($practicalbycourse[$cid]) && $practicalbycourse[$cid]->total_entries > 0;
+        $pracrate = $hasprac ? round((float)$practicalbycourse[$cid]->avg_percent, 1) : null;
+        $pracstudents = $hasprac ? (int)$practicalbycourse[$cid]->student_count : 0;
 
-        $overall_rate = 0.0;
-        if ($has_theory && $has_prac) {
-            $overall_rate = round(($theory_rate + $prac_rate) / 2, 1);
-        } else if ($has_theory) {
-            $overall_rate = $theory_rate;
-        } else if ($has_prac) {
-            $overall_rate = $prac_rate;
+        $overallrate = 0.0;
+        if ($hastheory && $hasprac) {
+            $overallrate = round(($theoryrate + $pracrate) / 2, 1);
+        } else if ($hastheory) {
+            $overallrate = $theoryrate;
+        } else if ($hasprac) {
+            $overallrate = $pracrate;
         }
 
-        $total_students = max($theory_students, $prac_students);
-        $total_mastery_sum += $overall_rate;
+        $totalstudents = max($theorystudents, $pracstudents);
+        $totalmasterysum += $overallrate;
 
-        $courses_data[] = [
+        $coursesdata[] = [
             'id'             => $cid,
             'fullname'       => format_string($cinfo->fullname),
             'shortname'      => format_string($cinfo->shortname),
-            'category_name'  => format_string($cinfo->category_name ?? $category_name),
-            'students_count' => $total_students,
-            'theory_rate'    => $has_theory ? number_format($theory_rate, 1) . '%' : '—',
-            'prac_rate'      => $has_prac ? number_format($prac_rate, 1) . '%' : '—',
-            'overall_rate'   => number_format($overall_rate, 1) . '%',
-            'raw_overall'    => $overall_rate,
+            'category_name'  => format_string($cinfo->category_name ?? $categoryname),
+            'students_count' => $totalstudents,
+            'theory_rate'    => $hastheory ? number_format($theoryrate, 1) . '%' : '—',
+            'prac_rate'      => $hasprac ? number_format($pracrate, 1) . '%' : '—',
+            'overall_rate'   => number_format($overallrate, 1) . '%',
+            'raw_overall'    => $overallrate,
         ];
     }
 }
 
-$evaluated_courses_count = count($courses_data);
-$overall_institution_mastery = $evaluated_courses_count > 0 ? round($total_mastery_sum / $evaluated_courses_count, 1) : 0.0;
+$evaluatedcoursescount = count($coursesdata);
+$overallinstitutionmastery = $evaluatedcoursescount > 0 ? round($totalmasterysum / $evaluatedcoursescount, 1) : 0.0;
 
 // 5. PDF Setup (TCPDF).
 $reporttitle = get_string('institutional_dashboard_title', 'local_comp_report_ext');
@@ -203,7 +203,7 @@ $pdf->SetFont('freeserif', 'B', 15);
 $pdf->Cell(0, 8, $reporttitle, 0, 1, 'L');
 
 $pdf->SetFont('freeserif', '', 9);
-$pdf->Cell(0, 5, get_string('category', 'core') . ": " . $category_name, 0, 1, 'L');
+$pdf->Cell(0, 5, get_string('category', 'core') . ": " . $categoryname, 0, 1, 'L');
 $dateconfig = get_string('strftimedatetimeshort', 'langconfig');
 $pdf->Cell(0, 5, get_string('creation_date', 'local_comp_report_ext') . ": " . userdate(time(), $dateconfig), 0, 1, 'L');
 $pdf->Ln(4);
@@ -218,18 +218,23 @@ $kpihtml = '
         <th width="25%">' . get_string('status', 'local_comp_report_ext') . '</th>
     </tr>
     <tr align="center" style="font-size: 11pt; font-weight: bold;">
-        <td width="25%">' . $evaluated_courses_count . '</td>
-        <td width="25%">' . number_format($total_evaluated_students) . '</td>
-        <td width="25%" style="color: #059669;">%' . number_format($overall_institution_mastery, 1) . '</td>
-        <td width="25%">' . ($overall_institution_mastery >= 70 ? get_string('status_excellent', 'local_comp_report_ext') : get_string('status_competent', 'local_comp_report_ext')) . '</td>
+        <td width="25%">' . $evaluatedcoursescount . '</td>
+        <td width="25%">' . number_format($totalevaluatedstudents) . '</td>
+        <td width="25%" style="color: #059669;">%' . number_format($overallinstitutionmastery, 1) . '</td>
+        <td width="25%">' . (
+            $overallinstitutionmastery >= 70 ?
+            get_string('status_excellent', 'local_comp_report_ext') :
+            get_string('status_competent', 'local_comp_report_ext')
+        ) . '</td>
     </tr>
 </table>';
 $pdf->writeHTML($kpihtml, true, false, true, false, '');
 $pdf->Ln(4);
 
 // Courses Breakdown Table.
+$coursesoverviewtitle = get_string('courses_overview_title', 'local_comp_report_ext');
 $tablehtml = '
-<h4 style="font-size: 11pt; font-weight: bold; margin-bottom: 4px;">' . get_string('courses_overview_title', 'local_comp_report_ext') . '</h4>
+<h4 style="font-size: 11pt; font-weight: bold; margin-bottom: 4px;">' . $coursesoverviewtitle . '</h4>
 <table border="1" cellpadding="5" style="font-size: 8.5pt;">
     <thead>
         <tr bgcolor="#f1f5f9" style="font-weight: bold; text-align: center;">
@@ -244,12 +249,14 @@ $tablehtml = '
     </thead>
     <tbody>';
 
-foreach ($courses_data as $c) {
+foreach ($coursesdata as $c) {
     $bgcolor = $c['raw_overall'] >= 80 ? '#ecfdf5' : ($c['raw_overall'] >= 60 ? '#eff6ff' : '#fef2f2');
+    $cfull = s($c['fullname']);
+    $cshort = s($c['shortname']);
     $tablehtml .= '
         <tr bgcolor="' . $bgcolor . '">
             <td width="8%" align="center">' . $c['id'] . '</td>
-            <td width="32%"><b>' . s($c['fullname']) . '</b><br><small style="color: #64748b;">(' . s($c['shortname']) . ')</small></td>
+            <td width="32%"><b>' . $cfull . '</b><br><small style="color: #64748b;">(' . $cshort . ')</small></td>
             <td width="20%">' . s($c['category_name']) . '</td>
             <td width="10%" align="center"><b>' . $c['students_count'] . '</b></td>
             <td width="10%" align="center">' . $c['theory_rate'] . '</td>
