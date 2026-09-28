@@ -38,7 +38,7 @@
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h5 class="mb-0"><i class="fa fa-list-check me-2"></i>{{#str}}configuredassessments, local_comp_report_ext{{/str}}</h5>
-            <span class="badge bg-light text-dark">{{#str}}totalweightlabel, local_comp_report_ext{{/str}}: {{totalweight}}%</span>
+            <span id="total-weight-badge" class="badge bg-light text-dark" data-label="{{#str}}totalweightlabel, local_comp_report_ext{{/str}}">{{#str}}totalweightlabel, local_comp_report_ext{{/str}}: <span id="total-weight-value">{{totalweight}}</span>%</span>
         </div>
         <div class="card-body p-0">
             {{#hasassessments}}

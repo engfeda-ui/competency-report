@@ -42,6 +42,38 @@ define([], function() {
         }
     };
 
+    /**
+     * Recalculates total weights in real time and updates badge.
+     */
+    var recalcTotalWeight = function() {
+        var badge = document.getElementById('total-weight-badge');
+        var valEl = document.getElementById('total-weight-value');
+        if (!badge || !valEl) {
+            return;
+        }
+        var weightInputs = document.querySelectorAll('input[name^="weight["]');
+        var sum = 0;
+        weightInputs.forEach(function(inp) {
+            var val = parseFloat(inp.value);
+            if (!isNaN(val)) {
+                sum += val;
+            }
+        });
+
+        // Round to 2 decimal places to avoid floating point issues.
+        var rounded = Math.round(sum * 100) / 100;
+        valEl.textContent = rounded;
+
+        badge.classList.remove('bg-success', 'bg-warning', 'bg-danger', 'bg-light', 'text-white', 'text-dark');
+        if (Math.abs(rounded - 100) < 0.01) {
+            badge.classList.add('bg-success', 'text-white');
+        } else if (rounded > 100) {
+            badge.classList.add('bg-danger', 'text-white');
+        } else {
+            badge.classList.add('bg-warning', 'text-dark');
+        }
+    };
+
     return {
         /**
          * Initialize event listeners for the assessment setup form.
@@ -67,7 +99,23 @@ define([], function() {
                     autoFillName(this);
                 });
             }
+
+            // Live weight recalculation
+            document.addEventListener('input', function(e) {
+                if (e.target && e.target.name && e.target.name.indexOf('weight[') === 0) {
+                    recalcTotalWeight();
+                }
+            });
+            document.addEventListener('change', function(e) {
+                if (e.target && e.target.name && e.target.name.indexOf('weight[') === 0) {
+                    recalcTotalWeight();
+                }
+            });
+
+            // Initial badge styling on load
+            recalcTotalWeight();
         },
-        autoFillName: autoFillName
+        autoFillName: autoFillName,
+        recalcTotalWeight: recalcTotalWeight
     };
 });
