@@ -117,6 +117,24 @@ if ($action === 'add' && confirm_sesskey()) {
     );
 }
 
+$deleteid = optional_param('deleteid', 0, PARAM_INT);
+if (!$deleteid) {
+    $deleteid = optional_param('delete_id', 0, PARAM_INT);
+}
+
+if (($action === 'delete' || $deleteid > 0) && confirm_sesskey()) {
+    if (!$deleteid) {
+        $deleteid = required_param('deleteid', PARAM_INT);
+    }
+    $DB->delete_records('local_comp_report_ext_asmt', ['id' => $deleteid, 'courseid' => $courseid]);
+    redirect(
+        new moodle_url('/local/comp_report_ext/assessment_setup.php', ['courseid' => $courseid]),
+        get_string('assessmentdeleted', 'local_comp_report_ext'),
+        null,
+        \core\output\notification::NOTIFY_SUCCESS
+    );
+}
+
 if ($action === 'update' && confirm_sesskey()) {
     $names   = optional_param_array('name', [], PARAM_TEXT);
     $weights = optional_param_array('weight', [], PARAM_FLOAT);
@@ -143,24 +161,6 @@ if ($action === 'update' && confirm_sesskey()) {
     redirect(
         new moodle_url('/local/comp_report_ext/assessment_setup.php', ['courseid' => $courseid]),
         get_string('assessmentsaved', 'local_comp_report_ext'),
-        null,
-        \core\output\notification::NOTIFY_SUCCESS
-    );
-}
-
-$deleteid = optional_param('deleteid', 0, PARAM_INT);
-if (!$deleteid) {
-    $deleteid = optional_param('delete_id', 0, PARAM_INT);
-}
-
-if (($action === 'delete' || $deleteid > 0) && confirm_sesskey()) {
-    if (!$deleteid) {
-        $deleteid = required_param('deleteid', PARAM_INT);
-    }
-    $DB->delete_records('local_comp_report_ext_asmt', ['id' => $deleteid, 'courseid' => $courseid]);
-    redirect(
-        new moodle_url('/local/comp_report_ext/assessment_setup.php', ['courseid' => $courseid]),
-        get_string('assessmentdeleted', 'local_comp_report_ext'),
         null,
         \core\output\notification::NOTIFY_SUCCESS
     );

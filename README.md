@@ -5,7 +5,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.25.2-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.25.3-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -577,6 +577,9 @@ npx grunt amd --files=local/comp_report_ext
 - **Bug Fix:** Fixed Radar Chart auto-scaling distortion by forcing scale constraints to a fixed baseline of `0` to `100` (`scales.r.min/max`).
 - **UI Enhancement:** Improved Top Strength and Critical Gap KPI card layout to let long competency titles wrap cleanly without truncation.
 - **UI Enhancement:** Fixed undefined legend display on Mastery Distribution chart and forced all chart Y-axis baselines to scale properly.
+### v3.25.3 (2026092801) — 2026-09-28
+- **Fix (Assessment Setup Delete):** Re-ordered POST action processing in `assessment_setup.php` so delete requests (`deleteid` / `action === 'delete'`) execute with higher precedence than form batch weight updates (`action === 'update'`).
+- **Fix (Browser Confirm Block):** Removed `onclick="return confirm(...);"` from the delete button in `templates/assessment_setup_page.mustache` and ensured `formnovalidate` so modern browser dialog suppression cannot silently block or cancel assessment deletion.
 
 ### v3.7.7 (2026080307) — 2026-08-03
 - **Feature:** Added **Group Analytics Dashboard** (`group_analytics_dashboard.php`). This high-level dashboard provides cohort-level overview charts and visual analytics for trainers without individual student rows. Features include:
