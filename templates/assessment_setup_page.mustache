@@ -77,11 +77,15 @@
                                     </div>
                                 </td>
                                 <td class="text-center">
-                                    <a href="{{deleteurl}}"
-                                       class="btn btn-sm btn-outline-danger"
-                                       onclick="return confirm('{{#str}}confirmdelete, local_comp_report_ext{{/str}}');">
+                                    <button type="submit"
+                                            name="delete_id"
+                                            value="{{id}}"
+                                            class="btn btn-sm btn-outline-danger"
+                                            formnovalidate
+                                            onclick="return confirm('{{#str}}confirmdelete, local_comp_report_ext{{/str}}');"
+                                            title="{{#str}}delete{{/str}}">
                                         <i class="fa fa-trash"></i>
-                                    </a>
+                                    </button>
                                 </td>
                             </tr>
                             {{/assessments}}

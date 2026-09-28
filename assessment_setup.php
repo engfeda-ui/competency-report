@@ -148,8 +148,15 @@ if ($action === 'update' && confirm_sesskey()) {
     );
 }
 
-if ($action === 'delete' && confirm_sesskey()) {
-    $deleteid = required_param('deleteid', PARAM_INT);
+$deleteid = optional_param('deleteid', 0, PARAM_INT);
+if (!$deleteid) {
+    $deleteid = optional_param('delete_id', 0, PARAM_INT);
+}
+
+if (($action === 'delete' || $deleteid > 0) && confirm_sesskey()) {
+    if (!$deleteid) {
+        $deleteid = required_param('deleteid', PARAM_INT);
+    }
     $DB->delete_records('local_comp_report_ext_asmt', ['id' => $deleteid, 'courseid' => $courseid]);
     redirect(
         new moodle_url('/local/comp_report_ext/assessment_setup.php', ['courseid' => $courseid]),
