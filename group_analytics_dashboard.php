@@ -97,6 +97,9 @@ if ($groupid > 0) {
 }
 
 $calculator = new \local_comp_report_ext\competency_calculator($courseid);
+if (!empty($students)) {
+    $calculator->preload_user_data(array_map('intval', array_keys($students)));
+}
 $compscores = [];
 $studentaverages = [];
 

@@ -103,20 +103,25 @@ $rawcomps = $DB->get_records_sql("
            SUM(qa.maxfraction) AS attempts,
            SUM(qas.fraction) AS correct
     FROM {quiz_attempts} quiza
-    JOIN {quiz} quiz ON quiz.id = quiza.quiz
+    JOIN {quiz} quiz ON quiz.id = quiza.quiz AND quiz.course = :courseid1
     JOIN {question_usages} qu ON qu.id = quiza.uniqueid
     JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-    JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
+    JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid AND m.courseid = :courseid2
     JOIN {competency} c ON c.id = m.competencyid
     JOIN (
-        SELECT MAX(fraction) AS fraction, questionattemptid
-        FROM {question_attempt_steps}
-        GROUP BY questionattemptid
+        SELECT s.questionattemptid, MAX(s.fraction) AS fraction
+        FROM {question_attempt_steps} s
+        JOIN {question_attempts} qa2 ON qa2.id = s.questionattemptid
+        JOIN {question_usages} qu2 ON qu2.id = qa2.questionusageid
+        JOIN {quiz_attempts} qa3 ON qa3.uniqueid = qu2.id
+        JOIN {quiz} q2 ON q2.id = qa3.quiz
+        WHERE q2.course = :courseid3 AND qa3.state = 'finished'
+        GROUP BY s.questionattemptid
     ) qas ON qas.questionattemptid = qa.id
-    WHERE quiz.course = :courseid AND quiza.state = 'finished'
+    WHERE quiza.state = 'finished'
     GROUP BY c.id, c.shortname
     ORDER BY c.shortname ASC
-", ['courseid' => $courseid]);
+", ['courseid1' => $courseid, 'courseid2' => $courseid, 'courseid3' => $courseid]);
 
 $renderdata->competencies = [];
 foreach ($rawcomps as $rc) {
@@ -155,21 +160,30 @@ $groupcompraw = $DB->get_records_sql("
         SUM(qa.maxfraction) AS total_max,
         SUM(qas.fraction) AS total_fraction
     FROM {quiz_attempts} quiza
+    JOIN {quiz} q ON q.id = quiza.quiz AND q.course = :courseid1
     JOIN {question_usages} qu ON qu.id = quiza.uniqueid
     JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-    JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
+    JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid AND m.courseid = :courseid2
     JOIN {groups_members} gm ON gm.userid = quiza.userid
+    JOIN {groups} g ON g.id = gm.groupid AND g.courseid = :courseid3
     JOIN (
-        SELECT MAX(fraction) AS fraction, questionattemptid
-        FROM {question_attempt_steps}
-        GROUP BY questionattemptid
+        SELECT s.questionattemptid, MAX(s.fraction) AS fraction
+        FROM {question_attempt_steps} s
+        JOIN {question_attempts} qa2 ON qa2.id = s.questionattemptid
+        JOIN {question_usages} qu2 ON qu2.id = qa2.questionusageid
+        JOIN {quiz_attempts} qa3 ON qa3.uniqueid = qu2.id
+        JOIN {quiz} q2 ON q2.id = qa3.quiz
+        WHERE q2.course = :courseid4 AND qa3.state = 'finished'
+        GROUP BY s.questionattemptid
     ) qas ON qas.questionattemptid = qa.id
     WHERE quiza.state = 'finished'
-      AND quiza.userid IN (
-          SELECT userid FROM {groups_members} WHERE groupid IN (SELECT id FROM {groups} WHERE courseid = :courseid)
-      )
     GROUP BY gm.groupid, m.competencyid
-", ['courseid' => $courseid]);
+", [
+    'courseid1' => $courseid,
+    'courseid2' => $courseid,
+    'courseid3' => $courseid,
+    'courseid4' => $courseid,
+]);
 
 $groupmap = [];
 foreach ($groupcompraw as $gr) {

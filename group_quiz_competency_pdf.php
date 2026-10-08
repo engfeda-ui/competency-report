@@ -88,6 +88,7 @@ if (!empty($students)) {
     [$insql, $inparams] = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'uid');
     $inparams['quizid'] = $quizid;
 
+    $inparams['subquizid'] = $quizid;
     $rawscores = (array)$DB->get_records_sql("
         SELECT
             CONCAT(quiza.userid, '_', m.competencyid) as unique_key,
@@ -98,9 +99,13 @@ if (!empty($students)) {
         JOIN {question_attempts} qa ON qa.questionusageid = qu.id
         JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
         JOIN (
-            SELECT questionattemptid, MAX(fraction) AS fraction
-            FROM {question_attempt_steps}
-            GROUP BY questionattemptid
+            SELECT s.questionattemptid, MAX(s.fraction) AS fraction
+            FROM {question_attempt_steps} s
+            JOIN {question_attempts} qa2 ON qa2.id = s.questionattemptid
+            JOIN {question_usages} qu2 ON qu2.id = qa2.questionusageid
+            JOIN {quiz_attempts} qa3 ON qa3.uniqueid = qu2.id
+            WHERE qa3.quiz = :subquizid AND qa3.state = 'finished'
+            GROUP BY s.questionattemptid
         ) qas ON qas.questionattemptid = qa.id
         WHERE quiza.quiz = :quizid AND quiza.state = 'finished'
           AND quiza.userid $insql

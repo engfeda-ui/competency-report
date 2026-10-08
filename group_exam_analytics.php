@@ -579,20 +579,21 @@ if ($quiz) {
     $questions = $DB->get_records_sql($qsql, ['quizid' => $quiz->id]);
 
     if (!empty($questions)) {
-        // Calculate average fraction per question.
-        foreach ($questions as $q) {
-            $fracsql = "
-                SELECT AVG(qas.fraction) AS avgfrac
-                  FROM {question_attempts} qa
-                  JOIN {question_attempt_steps} qas ON qas.questionattemptid = qa.id
-                  JOIN {quiz_attempts} qua ON qua.uniqueid = qa.questionusageid
-                 WHERE qua.quiz = :quizid
-                   AND qua.state = 'finished'
-                   AND qa.questionid = :questionid
-                   AND qas.fraction IS NOT NULL";
-            $res = $DB->get_record_sql($fracsql, ['quizid' => $quiz->id, 'questionid' => $q->id], IGNORE_MISSING);
+        // Calculate average fraction per question in a single bulk query (O(1) instead of N queries).
+        $fracsql = "
+            SELECT qa.questionid, AVG(qas.fraction) AS avgfrac
+              FROM {question_attempts} qa
+              JOIN {question_attempt_steps} qas ON qas.questionattemptid = qa.id
+              JOIN {quiz_attempts} qua ON qua.uniqueid = qa.questionusageid
+             WHERE qua.quiz = :quizid
+               AND qua.state = 'finished'
+               AND qas.fraction IS NOT NULL
+             GROUP BY qa.questionid";
+        $fracmap = $DB->get_records_sql_menu($fracsql, ['quizid' => $quiz->id]);
 
-            $pval = ($res && $res->avgfrac !== null) ? round((float)$res->avgfrac * 100, 1) : 0.0;
+        foreach ($questions as $q) {
+            $avgfrac = $fracmap[$q->id] ?? null;
+            $pval = ($avgfrac !== null) ? round((float)$avgfrac * 100, 1) : 0.0;
             $qname = html_entity_decode(format_string($q->name), ENT_QUOTES, 'UTF-8');
             if (mb_strlen($qname) > 25) {
                 $qname = mb_substr($qname, 0, 22) . '...';

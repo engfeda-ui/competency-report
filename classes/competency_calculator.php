@@ -60,6 +60,9 @@ class competency_calculator {
     /** @var array|null Bulk-preloaded practical rates: [userid][asmtid_compid] => percentage */
     private $practicalratescache = null;
 
+    /** @var array|null Bulk-preloaded legacy unweighted rates: [userid][compid] => result array */
+    private $legacyscorescache = null;
+
     /** @var array Instance-cached competency lists keyed by filtercompetencyid (0 = unfiltered) */
     private $compscache = [];
 
@@ -260,10 +263,15 @@ class competency_calculator {
         if (empty($userids)) {
             $this->quizratescache = [];
             $this->practicalratescache = [];
+            $this->legacyscorescache = [];
             return;
         }
-        $this->quizratescache      = $this->get_quiz_rates_bulk($userids);
-        $this->practicalratescache = $this->get_practical_rates_bulk($userids);
+        if ($this->has_assessments()) {
+            $this->quizratescache      = $this->get_quiz_rates_bulk($userids);
+            $this->practicalratescache = $this->get_practical_rates_bulk($userids);
+        } else {
+            $this->legacyscorescache   = $this->get_legacy_rates_bulk($userids);
+        }
     }
 
     /**
@@ -386,44 +394,55 @@ class competency_calculator {
     }
 
     /**
-     * Legacy fallback: plain (un-weighted) average across ALL quizzes.
-     * Used when no assessment weights have been configured for the course.
+     * Fetch unweighted plain competency scores for many users in ONE bulk query.
      *
-     * @param int $userid
-     * @param int|null $filtercompetencyid
-     * @return array  Same structure as get_student_scores() but without breakdown.
+     * @param array $userids
+     * @return array [userid => [compid => result_array]]
      */
-    private function legacy_plain_scores(int $userid, ?int $filtercompetencyid): array {
+     private function get_legacy_rates_bulk(array $userids): array {
         global $DB;
 
-        $threshold = (int)(get_config('local_comp_report_ext', 'success_threshold') ?: 60);
+        if (empty($userids)) {
+            return [];
+        }
 
-        $sql = "SELECT c.id, c.shortname, c.description, c.descriptionformat,
+        [$insql, $inparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, 'uida');
+        [$insql2, $inparams2] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, 'uidb');
+
+        $sql = "SELECT CONCAT(quiza.userid, '_', c.id) AS ukey, quiza.userid, c.id AS compid,
+                       c.shortname, c.description, c.descriptionformat,
                        SUM(qa.maxfraction) AS maxf,
                        SUM(qas.fraction)   AS gotf
                   FROM {quiz_attempts} quiza
-                  JOIN {question_usages} qu   ON qu.id = quiza.uniqueid
-                  JOIN {question_attempts} qa  ON qa.questionusageid = qu.id
                   JOIN {quiz} quiz             ON quiz.id = quiza.quiz
-                  JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
+                  JOIN {question_usages} qu    ON qu.id = quiza.uniqueid
+                  JOIN {question_attempts} qa  ON qa.questionusageid = qu.id
+                  JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid AND m.courseid = :courseid1
                   JOIN {competency} c          ON c.id = m.competencyid
                   JOIN (
-                      SELECT questionattemptid, MAX(fraction) AS fraction
-                        FROM {question_attempt_steps}
-                       GROUP BY questionattemptid
+                      SELECT s.questionattemptid, MAX(s.fraction) AS fraction
+                        FROM {question_attempt_steps} s
+                        JOIN {question_attempts} qa2 ON qa2.id = s.questionattemptid
+                        JOIN {question_usages} qu2   ON qu2.id = qa2.questionusageid
+                        JOIN {quiz_attempts} qa3     ON qa3.uniqueid = qu2.id
+                        JOIN {quiz} q2               ON q2.id = qa3.quiz
+                       WHERE q2.course = :courseid2
+                         AND qa3.state = 'finished'
+                         AND qa3.userid $insql
+                       GROUP BY s.questionattemptid
                   ) qas ON qas.questionattemptid = qa.id
-                 WHERE quiz.course   = :courseid
-                   AND quiza.userid  = :userid
-                   AND quiza.state   = 'finished'";
+                 WHERE quiz.course  = :courseid3
+                   AND quiza.state  = 'finished'
+                   AND quiza.userid $insql2
+                 GROUP BY quiza.userid, c.id, c.shortname, c.description, c.descriptionformat";
 
-        $params = ['courseid' => $this->courseid, 'userid' => $userid];
+        $params = array_merge($inparams, $inparams2, [
+            'courseid1' => $this->courseid,
+            'courseid2' => $this->courseid,
+            'courseid3' => $this->courseid,
+        ]);
 
-        if ($filtercompetencyid) {
-            $sql .= ' AND c.id = :compid';
-            $params['compid'] = $filtercompetencyid;
-        }
-        $sql .= ' GROUP BY c.id, c.shortname, c.description, c.descriptionformat';
-
+        $threshold = (int)(get_config('local_comp_report_ext', 'success_threshold') ?: 60);
         $rows = $DB->get_records_sql($sql, $params);
 
         $result = [];
@@ -432,14 +451,44 @@ class competency_calculator {
                 continue;
             }
             $pct = ($row->gotf / $row->maxf) * 100.0;
-            $result[$row->id] = [
-                'competency' => $row,
+            $result[(int)$row->userid][(int)$row->compid] = [
+                'competency' => (object)[
+                    'id'                => $row->compid,
+                    'shortname'         => $row->shortname,
+                    'description'       => $row->description,
+                    'descriptionformat' => $row->descriptionformat,
+                ],
                 'percent'    => round($pct, 1),
                 'passed'     => $pct >= $threshold,
-                'breakdown'  => [], // No breakdown in legacy mode.
+                'breakdown'  => [],
             ];
         }
         return $result;
+    }
+
+    /**
+     * Legacy fallback: plain (un-weighted) average across ALL quizzes.
+     * Used when no assessment weights have been configured for the course.
+     *
+     * @param int $userid
+     * @param int|null $filtercompetencyid
+     * @return array  Same structure as get_student_scores() but without breakdown.
+     */
+    private function legacy_plain_scores(int $userid, ?int $filtercompetencyid): array {
+        if ($this->legacyscorescache !== null) {
+            $userres = $this->legacyscorescache[$userid] ?? [];
+            if ($filtercompetencyid) {
+                return isset($userres[$filtercompetencyid]) ? [$filtercompetencyid => $userres[$filtercompetencyid]] : [];
+            }
+            return $userres;
+        }
+
+        $single = $this->get_legacy_rates_bulk([$userid]);
+        $userres = $single[$userid] ?? [];
+        if ($filtercompetencyid) {
+            return isset($userres[$filtercompetencyid]) ? [$filtercompetencyid => $userres[$filtercompetencyid]] : [];
+        }
+        return $userres;
     }
 
     /**
