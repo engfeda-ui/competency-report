@@ -49,9 +49,18 @@
     </ul>
 
     {{#has_data}}
+        <div class="d-flex justify-content-end mb-2">
+            <button type="button" class="btn btn-outline-secondary btn-sm mr-2" onclick="window.print()">
+                <i class="fa fa-print mr-1"></i> {{#str}}print, core{{/str}}
+            </button>
+            <button type="button" id="btn-export-student-class-excel" class="btn btn-outline-success btn-sm">
+                <i class="fa fa-file-excel-o mr-1"></i> {{#str}}exportexcel, local_comp_report_ext{{/str}}
+            </button>
+        </div>
+
         {{! Comparison Table }}
         <div class="table-responsive">
-            <table class="generaltable table-hover mt-3 shadow-sm bg-white border w-100">
+            <table id="student-class-table" class="generaltable table-hover mt-3 shadow-sm bg-white border w-100">
                 <thead class="thead-dark">
                     <tr>
                         <th>{{#str}}competencyname, local_comp_report_ext{{/str}}</th>
@@ -86,12 +95,33 @@
         {{> local_comp_report_ext/ai_commentary_widget }}
 
         {{#js}}
-        require(['local_comp_report_ext/visualizer'], function(Visualizer) {
+        require(['jquery', 'local_comp_report_ext/visualizer'], function($, Visualizer) {
             const canvas = document.getElementById('studentClassChart');
             if (canvas) {
                 const config = JSON.parse(canvas.getAttribute('data-chart-config'));
                 Visualizer.initStudentClass(config);
             }
+
+            $('#btn-export-student-class-excel').on('click', function() {
+                var rows = [];
+                rows.push(['"{{#str}}competencyname, local_comp_report_ext{{/str}}"', '"{{#str}}courseavg, local_comp_report_ext{{/str}}"', '"{{#str}}classavg, local_comp_report_ext{{/str}}"', '"{{#str}}myavg, local_comp_report_ext{{/str}}"'].join(','));
+                $('#student-class-table tbody tr').each(function() {
+                    var cols = [];
+                    $(this).find('td').each(function() {
+                        var text = $(this).text().replace(/\s+/g, ' ').trim();
+                        cols.push('"' + text.replace(/"/g, '""') + '"');
+                    });
+                    if (cols.length) { rows.push(cols.join(',')); }
+                });
+                var csvContent = '\uFEFF' + rows.join('\n');
+                var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                var link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'Student_Class_Comparison_' + new Date().toISOString().slice(0,10) + '.csv';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
         });
         {{/js}}
     {{/has_data}}

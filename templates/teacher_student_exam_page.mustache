@@ -49,9 +49,18 @@
 
     {{#has_selection}}
         {{#has_rows}}
+            <div class="d-flex justify-content-end mb-2">
+                <button type="button" class="btn btn-outline-secondary btn-sm mr-2" onclick="window.print()">
+                    <i class="fa fa-print mr-1"></i> {{#str}}print, core{{/str}}
+                </button>
+                <button type="button" id="btn-export-teacher-exam-excel" class="btn btn-outline-success btn-sm">
+                    <i class="fa fa-file-excel-o mr-1"></i> {{#str}}exportexcel, local_comp_report_ext{{/str}}
+                </button>
+            </div>
+
             {{! Data Table }}
             <div class="table-responsive">
-                <table class="generaltable table table-hover shadow-sm bg-white border">
+                <table id="teacher-student-exam-table" class="generaltable table table-hover shadow-sm bg-white border">
                     <thead class="thead-dark">
                         <tr>
                             <th>{{#str}}competency, local_comp_report_ext{{/str}}</th>
@@ -94,11 +103,32 @@
 </div>
 
 {{#js}}
-require(['local_comp_report_ext/visualizer'], function(Visualizer) {
+require(['jquery', 'local_comp_report_ext/visualizer'], function($, Visualizer) {
     const canvas = document.getElementById('teacher_student_chart');
     if (canvas) {
         const config = JSON.parse(canvas.getAttribute('data-config'));
         Visualizer.initBarChart('teacher_student_chart', config.labels, config.values, config.label);
     }
+
+    $('#btn-export-teacher-exam-excel').on('click', function() {
+        var rows = [];
+        rows.push(['"{{#str}}competency, local_comp_report_ext{{/str}}"', '"{{#str}}questioncount, local_comp_report_ext{{/str}}"', '"{{#str}}correctcount, local_comp_report_ext{{/str}}"', '"{{#str}}successrate, local_comp_report_ext{{/str}}"'].join(','));
+        $('#teacher-student-exam-table tbody tr').each(function() {
+            var cols = [];
+            $(this).find('td').each(function() {
+                var text = $(this).text().replace(/\s+/g, ' ').trim();
+                cols.push('"' + text.replace(/"/g, '""') + '"');
+            });
+            if (cols.length) { rows.push(cols.join(',')); }
+        });
+        var csvContent = '\uFEFF' + rows.join('\n');
+        var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        var link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'Teacher_Student_Exam_Analysis_' + new Date().toISOString().slice(0,10) + '.csv';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
 });
 {{/js}}

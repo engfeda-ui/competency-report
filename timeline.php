@@ -54,14 +54,15 @@ $params = ['courseid' => $courseid, 'userid' => $USER->id];
 // We are calculating the date filter.
 if ($days > 0) {
     $cutoff = time() - ($days * 86400);
-    $where .= " AND qas2.timecreated > :cutoff";
+    $where .= " AND qas.timecreated > :cutoff";
     $params['cutoff'] = $cutoff;
 }
+$params['subcourseid'] = $courseid;
 
 // SQL Query: Made database independent (Cross-DB).
-$sql = "SELECT qas2.id AS stepid,
+$sql = "SELECT qas.id AS stepid,
                c.shortname,
-               qas2.timecreated,
+               qas.timecreated,
                qa.maxfraction AS attemptmax,
                qas.fraction AS stepfraction
         FROM {quiz_attempts} quiza
@@ -72,17 +73,18 @@ $sql = "SELECT qas2.id AS stepid,
         JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
         JOIN {competency} c ON c.id = m.competencyid
         JOIN (
-            SELECT questionattemptid, MAX(id) as id, MAX(timecreated) AS timecreated
-            FROM {question_attempt_steps}
-            GROUP BY questionattemptid
-        ) qas2 ON qas2.questionattemptid = qa.id
-        JOIN (
-            SELECT MAX(fraction) AS fraction, questionattemptid
-            FROM {question_attempt_steps}
-            GROUP BY questionattemptid
+            SELECT s.questionattemptid, MAX(s.id) AS id, MAX(s.timecreated) AS timecreated, MAX(s.fraction) AS fraction
+              FROM {question_attempt_steps} s
+              JOIN {question_attempts} qa2 ON qa2.id = s.questionattemptid
+              JOIN {question_usages} qu2   ON qu2.id = qa2.questionusageid
+              JOIN {quiz_attempts} qa3     ON qa3.uniqueid = qu2.id
+              JOIN {quiz} q2               ON q2.id = qa3.quiz
+             WHERE q2.course = :subcourseid
+               AND qa3.state = 'finished'
+             GROUP BY s.questionattemptid
         ) qas ON qas.questionattemptid = qa.id
         WHERE $where
-        ORDER BY qas2.timecreated ASC";
+        ORDER BY qas.timecreated ASC";
 
 $rows = $DB->get_records_sql($sql, $params);
 

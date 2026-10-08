@@ -59,14 +59,20 @@ $coursesql = "SELECT c.id, c.shortname,
               JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
               JOIN {competency} c ON c.id = m.competencyid
               JOIN (
-                  SELECT MAX(fraction) AS fraction, questionattemptid
-                  FROM {question_attempt_steps}
-                  GROUP BY questionattemptid
+                  SELECT s.questionattemptid, MAX(s.fraction) AS fraction
+                    FROM {question_attempt_steps} s
+                    JOIN {question_attempts} qa2 ON qa2.id = s.questionattemptid
+                    JOIN {question_usages} qu2   ON qu2.id = qa2.questionusageid
+                    JOIN {quiz_attempts} qa3     ON qa3.uniqueid = qu2.id
+                    JOIN {quiz} q2               ON q2.id = qa3.quiz
+                   WHERE q2.course = :subcourseid1
+                     AND qa3.state = 'finished'
+                   GROUP BY s.questionattemptid
               ) qas ON qas.questionattemptid = qa.id
               WHERE quiz.course = :courseid AND quiza.state = 'finished'
               GROUP BY c.id, c.shortname";
 
-$coursedata = $DB->get_records_sql($coursesql, ['courseid' => $courseid]);
+$coursedata = $DB->get_records_sql($coursesql, ['courseid' => $courseid, 'subcourseid1' => $courseid]);
 
 $renderdata = new stdClass();
 $renderdata->courseid = $courseid;
@@ -89,17 +95,24 @@ if (!empty($coursedata)) {
                      JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
                      JOIN {competency} c ON c.id = m.competencyid
                      JOIN (
-                         SELECT MAX(fraction) AS fraction, questionattemptid
-                         FROM {question_attempt_steps}
-                         GROUP BY questionattemptid
+                         SELECT s.questionattemptid, MAX(s.fraction) AS fraction
+                           FROM {question_attempt_steps} s
+                           JOIN {question_attempts} qa2 ON qa2.id = s.questionattemptid
+                           JOIN {question_usages} qu2   ON qu2.id = qa2.questionusageid
+                           JOIN {quiz_attempts} qa3     ON qa3.uniqueid = qu2.id
+                           JOIN {quiz} q2               ON q2.id = qa3.quiz
+                          WHERE q2.course = :subcourseid2
+                            AND qa3.state = 'finished'
+                          GROUP BY s.questionattemptid
                      ) qas ON qas.questionattemptid = qa.id
                      WHERE quiz.course = :courseid
                        AND quiza.state = 'finished'
                        AND u.department = :dept
                      GROUP BY c.id, c.shortname";
         $renderdata->classdata = $DB->get_records_sql($classsql, [
-            'courseid' => $courseid,
-            'dept'     => $USER->department,
+            'courseid'     => $courseid,
+            'subcourseid2' => $courseid,
+            'dept'         => $USER->department,
         ]);
     }
 
@@ -114,17 +127,24 @@ if (!empty($coursedata)) {
                    JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
                    JOIN {competency} c ON c.id = m.competencyid
                    JOIN (
-                       SELECT MAX(fraction) AS fraction, questionattemptid
-                       FROM {question_attempt_steps}
-                       GROUP BY questionattemptid
+                       SELECT s.questionattemptid, MAX(s.fraction) AS fraction
+                         FROM {question_attempt_steps} s
+                         JOIN {question_attempts} qa2 ON qa2.id = s.questionattemptid
+                         JOIN {question_usages} qu2   ON qu2.id = qa2.questionusageid
+                         JOIN {quiz_attempts} qa3     ON qa3.uniqueid = qu2.id
+                         JOIN {quiz} q2               ON q2.id = qa3.quiz
+                        WHERE q2.course = :subcourseid3
+                          AND qa3.state = 'finished'
+                        GROUP BY s.questionattemptid
                    ) qas ON qas.questionattemptid = qa.id
                    WHERE quiz.course = :courseid
                      AND quiza.state = 'finished'
                      AND quiza.userid = :userid
                    GROUP BY c.id, c.shortname";
     $renderdata->studentdata = $DB->get_records_sql($studentsql, [
-        'courseid' => $courseid,
-        'userid'   => $USER->id,
+        'courseid'     => $courseid,
+        'subcourseid3' => $courseid,
+        'userid'       => $USER->id,
     ]);
 }
 

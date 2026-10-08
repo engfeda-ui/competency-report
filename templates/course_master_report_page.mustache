@@ -29,7 +29,10 @@
                 {{#str}}coursemasterreport_desc, local_comp_report_ext{{/str}}
             </p>
         </div>
-        <div class="mt-3 mt-md-0">
+        <div class="mt-3 mt-md-0 d-flex">
+            <a href="course_master_report_excel.php?courseid={{courseid}}" class="btn btn-outline-success btn-lg font-weight-bold shadow-sm mr-2" style="border-radius: 8px;" target="_blank">
+                <i class="fa fa-file-excel-o mr-2"></i> {{#str}}exportexcel, local_comp_report_ext{{/str}}
+            </a>
             <button id="btn-export-master-pdf-top" class="btn btn-outline-danger btn-lg font-weight-bold shadow-sm" style="border-radius: 8px;">
                 <i class="fa fa-file-pdf-o mr-2"></i> {{#str}}exportpdf, local_comp_report_ext{{/str}}
             </button>

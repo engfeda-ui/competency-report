@@ -103,9 +103,19 @@
 
         {{! 2. Summary Table }}
         {{#rows.0}}
-        <h4 class="mt-4">{{#str}}summaryreport, local_comp_report_ext{{/str}}</h4>
+        <div class="d-flex justify-content-between align-items-center mt-4 mb-2">
+            <h4 class="mb-0">{{#str}}summaryreport, local_comp_report_ext{{/str}}</h4>
+            <div>
+                <button type="button" class="btn btn-outline-secondary btn-sm mr-2" onclick="window.print()">
+                    <i class="fa fa-print mr-1"></i> {{#str}}print, core{{/str}}
+                </button>
+                <button type="button" id="btn-export-comp-exams-excel" class="btn btn-outline-success btn-sm">
+                    <i class="fa fa-file-excel-o mr-1"></i> {{#str}}exportexcel, local_comp_report_ext{{/str}}
+                </button>
+            </div>
+        </div>
         <div class="table-responsive">
-            <table class="generaltable table table-hover shadow-sm bg-white">
+            <table id="comp-exams-summary-table" class="generaltable table table-hover shadow-sm bg-white">
                 <thead class="thead-dark">
                     <tr>
                         <th>{{#str}}quiz, local_comp_report_ext{{/str}}</th>
@@ -181,8 +191,29 @@
 </div>
 
 {{#js}}
-require(['core/form-autocomplete', 'local_comp_report_ext/modal_viewer'], function(Autocomplete, ModalViewer) {
+require(['jquery', 'core/form-autocomplete', 'local_comp_report_ext/modal_viewer'], function($, Autocomplete, ModalViewer) {
     Autocomplete.enhance('#id_competency_select', false, false, "{{#str}}selectcompetency, local_comp_report_ext{{/str}}");
     ModalViewer.init('.view-question-modal');
+
+    $('#btn-export-comp-exams-excel').on('click', function() {
+        var rows = [];
+        rows.push(['"{{#str}}quiz, local_comp_report_ext{{/str}}"', '"{{#str}}question, local_comp_report_ext{{/str}}"', '"{{#str}}correct, local_comp_report_ext{{/str}}"', '"{{#str}}success, local_comp_report_ext{{/str}}"'].join(','));
+        $('#comp-exams-summary-table tbody tr, #comp-exams-summary-table tfoot tr').each(function() {
+            var cols = [];
+            $(this).find('td').each(function() {
+                var text = $(this).text().replace(/\s+/g, ' ').trim();
+                cols.push('"' + text.replace(/"/g, '""') + '"');
+            });
+            if (cols.length) { rows.push(cols.join(',')); }
+        });
+        var csvContent = '\uFEFF' + rows.join('\n');
+        var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        var link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'Competency_Quizzes_Summary_' + new Date().toISOString().slice(0,10) + '.csv';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
 });
 {{/js}}

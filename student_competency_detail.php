@@ -60,14 +60,20 @@ $sql = "SELECT c.id, c.shortname, c.description,
         JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
         JOIN {competency} c ON c.id = m.competencyid
         JOIN (
-            SELECT MAX(fraction) AS fraction, questionattemptid
-            FROM {question_attempt_steps}
-            GROUP BY questionattemptid
+            SELECT s.questionattemptid, MAX(s.fraction) AS fraction
+              FROM {question_attempt_steps} s
+              JOIN {question_attempts} qa2 ON qa2.id = s.questionattemptid
+              JOIN {question_usages} qu2   ON qu2.id = qa2.questionusageid
+              JOIN {quiz_attempts} qa3     ON qa3.uniqueid = qu2.id
+              JOIN {quiz} q2               ON q2.id = qa3.quiz
+             WHERE q2.course = :subcourseid1
+               AND qa3.state = 'finished'
+             GROUP BY s.questionattemptid
         ) qas ON qas.questionattemptid = qa.id
         WHERE quiz.course = :courseid AND quiza.userid = :userid AND quiza.state = 'finished'
         GROUP BY c.id, c.shortname, c.description";
 
-$rows = $DB->get_records_sql($sql, ['courseid' => $courseid, 'userid' => $userid]);
+$rows = $DB->get_records_sql($sql, ['courseid' => $courseid, 'subcourseid1' => $courseid, 'userid' => $userid]);
 
 // 2. Prepare success rates for AI processing.
 $rates = [];
@@ -149,9 +155,13 @@ if (!empty($bestattids)) {
           JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
           JOIN {competency} c ON c.id = m.competencyid
           JOIN (
-              SELECT MAX(fraction) AS fraction, questionattemptid
-                FROM {question_attempt_steps}
-            GROUP BY questionattemptid
+              SELECT s.questionattemptid, MAX(s.fraction) AS fraction
+                FROM {question_attempt_steps} s
+                JOIN {question_attempts} qa2 ON qa2.id = s.questionattemptid
+                JOIN {question_usages} qu2   ON qu2.id = qa2.questionusageid
+                JOIN {quiz_attempts} qa3     ON qa3.uniqueid = qu2.id
+               WHERE qa3.id $insql
+               GROUP BY s.questionattemptid
           ) qas ON qas.questionattemptid = qa.id
          WHERE quiza.id $insql
       GROUP BY quiza.quiz, c.id";

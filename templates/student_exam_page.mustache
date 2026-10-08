@@ -78,6 +78,15 @@
 
     {{#quizid}}
         {{#has_data}}
+            <div class="d-flex justify-content-end mb-2">
+                <button type="button" class="btn btn-outline-secondary btn-sm mr-2" onclick="window.print()">
+                    <i class="fa fa-print mr-1"></i> {{#str}}print, core{{/str}}
+                </button>
+                <button type="button" id="btn-export-student-exam-excel" class="btn btn-outline-success btn-sm">
+                    <i class="fa fa-file-excel-o mr-1"></i> {{#str}}exportexcel, local_comp_report_ext{{/str}}
+                </button>
+            </div>
+
             {{! 2. Competency Analysis Table }}
             <div class="table-responsive">
                 <table class="generaltable table table-hover mt-3 shadow-sm bg-white">
@@ -110,13 +119,34 @@
             </div>
 
             {{#js}}
-            require(['local_comp_report_ext/visualizer'], function(Visualizer) {
+            require(['jquery', 'local_comp_report_ext/visualizer'], function($, Visualizer) {
                 const canvas = document.getElementById('studentexamchart');
                 if (canvas) {
                     // Extract and parse the chart configuration from data attribute.
                     const config = JSON.parse(canvas.getAttribute('data-chart-config'));
                     Visualizer.initStudentExam(config);
                 }
+
+                $('#btn-export-student-exam-excel').on('click', function() {
+                    var rows = [];
+                    rows.push(['"{{#str}}competencycode, local_comp_report_ext{{/str}}"', '"{{#str}}competency, local_comp_report_ext{{/str}}"', '"{{#str}}success, local_comp_report_ext{{/str}}"'].join(','));
+                    $('.generaltable tbody tr').each(function() {
+                        var cols = [];
+                        $(this).find('td').each(function() {
+                            var text = $(this).text().replace(/\s+/g, ' ').trim();
+                            cols.push('"' + text.replace(/"/g, '""') + '"');
+                        });
+                        if (cols.length) { rows.push(cols.join(',')); }
+                    });
+                    var csvContent = '\uFEFF' + rows.join('\n');
+                    var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                    var link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = 'Exam_Competency_' + new Date().toISOString().slice(0,10) + '.csv';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                });
             });
             {{/js}}
 

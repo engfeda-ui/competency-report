@@ -57,6 +57,12 @@
 
         <button type="submit" class="btn btn-primary"><i class="fa fa-eye mr-1"></i> {{strshowstudents}}</button>
         {{#has_data}}
+        <a href="group_analytics_dashboard_excel.php?courseid={{courseid}}&groupid={{groupid}}" class="btn btn-outline-success font-weight-bold shadow-sm ml-2" target="_blank">
+            <i class="fa fa-file-excel-o mr-1"></i> {{#str}}exportexcel, local_comp_report_ext{{/str}}
+        </a>
+        <a href="group_analytics_dashboard_pdf.php?courseid={{courseid}}&groupid={{groupid}}" class="btn btn-outline-danger font-weight-bold shadow-sm ml-2" target="_blank">
+            <i class="fa fa-file-pdf-o mr-1"></i> {{#str}}exportpdf, local_comp_report_ext{{/str}}
+        </a>
         <button id="btn-print-analytics" type="button" class="btn btn-outline-primary font-weight-bold shadow-sm ml-2">
             <i class="fa fa-print mr-1"></i> {{strprintreport}}
         </button>

@@ -42,6 +42,7 @@ $courseid   = optional_param('courseid', 0, PARAM_INT);
 // 3. Category Filter.
 $catwhereq = '';
 $catwherep = '';
+$subcatwhere = '';
 $paramsq = [];
 $paramsp = [];
 
@@ -49,7 +50,9 @@ $categoryname = get_string('all_categories', 'local_comp_report_ext');
 if ($categoryid > 0) {
     $catwhereq = ' AND c.category = :catid ';
     $catwherep = ' AND c.category = :catid ';
+    $subcatwhere = ' AND c2.category = :subcatid ';
     $paramsq['catid'] = $categoryid;
+    $paramsq['subcatid'] = $categoryid;
     $paramsp['catid'] = $categoryid;
     $catrec = $DB->get_record('course_categories', ['id' => $categoryid]);
     if ($catrec) {
@@ -60,7 +63,9 @@ if ($categoryid > 0) {
 if ($courseid > 0) {
     $catwhereq .= ' AND q.course = :cid ';
     $catwherep .= ' AND pr.courseid = :cid ';
+    $subcatwhere .= ' AND q2.course = :subcid ';
     $paramsq['cid'] = $courseid;
+    $paramsq['subcid'] = $courseid;
     $paramsp['cid'] = $courseid;
 }
 
@@ -78,9 +83,15 @@ $sqltheory = "
     JOIN {question_attempts} qa ON qa.questionusageid = qu.id
     JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
     JOIN (
-        SELECT MAX(fraction) AS fraction, questionattemptid
-        FROM {question_attempt_steps}
-        GROUP BY questionattemptid
+        SELECT s.questionattemptid, MAX(s.fraction) AS fraction
+        FROM {question_attempt_steps} s
+        JOIN {question_attempts} qa2 ON qa2.id = s.questionattemptid
+        JOIN {question_usages} qu2 ON qu2.id = qa2.questionusageid
+        JOIN {quiz_attempts} qa3 ON qa3.uniqueid = qu2.id
+        JOIN {quiz} q2 ON q2.id = qa3.quiz
+        JOIN {course} c2 ON c2.id = q2.course
+        WHERE qa3.state = 'finished' AND q2.course != " . SITEID . " $subcatwhere
+        GROUP BY s.questionattemptid
     ) qas ON qas.questionattemptid = qa.id
     WHERE quiza.state = 'finished' AND q.course != " . SITEID . " $catwhereq
     GROUP BY q.course

@@ -134,9 +134,15 @@ if ($userid && $competencyid) {
                    JOIN {question_attempts} qa ON qa.questionusageid = qu.id
                    JOIN {qbank_comp_ext_qmap} map ON map.questionid = qa.questionid
                    JOIN (
-                       SELECT MAX(fraction) AS fraction, questionattemptid
-                       FROM {question_attempt_steps}
-                       GROUP BY questionattemptid
+                       SELECT s.questionattemptid, MAX(s.fraction) AS fraction
+                         FROM {question_attempt_steps} s
+                         JOIN {question_attempts} qa2 ON qa2.id = s.questionattemptid
+                         JOIN {question_usages} qu2   ON qu2.id = qa2.questionusageid
+                         JOIN {quiz_attempts} qa3     ON qa3.uniqueid = qu2.id
+                         JOIN {quiz} q2               ON q2.id = qa3.quiz
+                        WHERE q2.course = :subcourseid
+                          AND qa3.state = 'finished'
+                        GROUP BY s.questionattemptid
                    ) qas ON qas.questionattemptid = qa.id
                    WHERE map.competencyid = :competencyid
                      AND quiza.userid = :userid
@@ -146,7 +152,7 @@ if ($userid && $competencyid) {
 
     $summaryrows = $DB->get_records_sql(
         $sqlsummary,
-        ['competencyid' => $competencyid, 'userid' => $userid, 'courseid' => $courseid]
+        ['competencyid' => $competencyid, 'userid' => $userid, 'courseid' => $courseid, 'subcourseid' => $courseid]
     );
 
     $tq = 0;

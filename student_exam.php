@@ -81,15 +81,21 @@ if ($quizid) {
             JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
             JOIN {competency} c ON c.id = m.competencyid
             JOIN (
-                SELECT MAX(fraction) AS fraction, questionattemptid
-                FROM {question_attempt_steps}
-                GROUP BY questionattemptid
+                SELECT s.questionattemptid, MAX(s.fraction) AS fraction
+                  FROM {question_attempt_steps} s
+                  JOIN {question_attempts} qa2 ON qa2.id = s.questionattemptid
+                  JOIN {question_usages} qu2   ON qu2.id = qa2.questionusageid
+                  JOIN {quiz_attempts} qa3     ON qa3.uniqueid = qu2.id
+                 WHERE qa3.quiz = ?
+                   AND qa3.userid = ?
+                   AND qa3.state = 'finished'
+                 GROUP BY s.questionattemptid
             ) qas ON qas.questionattemptid = qa.id
             WHERE quiz.id = ? AND quiza.userid = ? AND quiza.state = 'finished'
             GROUP BY c.shortname, c.description
             ORDER BY c.shortname";
 
-    $renderdata->rows = $DB->get_records_sql($sql, [$quizid, $USER->id]);
+    $renderdata->rows = $DB->get_records_sql($sql, [$quizid, $USER->id, $quizid, $USER->id]);
 }
 
 // 3. Output Generation.

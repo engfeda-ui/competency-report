@@ -79,6 +79,7 @@ class class_report_page implements renderable, templatable {
         $export->chart_config = json_encode($this->data->chart_params);
         $export->courseid = $this->data->courseid;
         $export->userid = !empty($this->data->userid) ? $this->data->userid : 0;
+        $export->competencyid = !empty($this->data->competencyid) ? $this->data->competencyid : 0;
         $export->context_type = 'student';
 
         return $export;

@@ -89,11 +89,14 @@
             </table>
         </div>
 
-        {{! PDF Report Export Button }}
-        <div class="mt-4">
-            <button id="btn-export-student-pdf-top" class="btn btn-secondary shadow-sm">
-                <i class="fa fa-file-pdf-o"></i> {{#str}}pdfmystudent, local_comp_report_ext{{/str}}
+        {{! PDF and Excel Report Export Buttons }}
+        <div class="mt-4 d-flex">
+            <button id="btn-export-student-pdf-top" class="btn btn-secondary shadow-sm mr-2">
+                <i class="fa fa-file-pdf-o mr-1"></i> {{#str}}pdfmystudent, local_comp_report_ext{{/str}}
             </button>
+            <a href="student_report_excel.php?courseid={{courseid}}&userid={{userid}}" class="btn btn-outline-success shadow-sm" target="_blank">
+                <i class="fa fa-file-excel-o mr-1"></i> {{#str}}exportexcel, local_comp_report_ext{{/str}}
+            </a>
         </div>
 
         {{#has_radar}}

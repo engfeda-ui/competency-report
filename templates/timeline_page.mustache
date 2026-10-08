@@ -69,6 +69,11 @@
 
     {{! 2. Chart Visualization Card }}
     {{#has_data}}
+    <div class="d-flex justify-content-end mb-2">
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print()">
+            <i class="fa fa-print mr-1"></i> {{#str}}print, core{{/str}}
+        </button>
+    </div>
     <div class="card p-4 shadow-sm bg-white border-0">
         <div style="height:450px; width:100%; position: relative;">
             {{! IMPORTANT: The ID must match 'timeline' for visualizer.js integration }}

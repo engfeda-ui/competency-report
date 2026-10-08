@@ -5,7 +5,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.26.3-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.26.4-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -83,6 +83,15 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 ---
 
 ## 📋 Changelog
+
+### v3.26.4 — 2026-10-08
+- **Comprehensive Performance Scoping Across All 12 Remaining Files & Universal PDF/Excel Exports:**
+  - **Zero-Delay Scoping for `{question_attempt_steps}`:** Eliminated all remaining unbounded full-table scans across `student_report.php`, `student_class.php`, `student_competency_detail.php`, `student_competency_exams.php`, `student_exam.php`, `teacher_student_competency.php`, `teacher_student_exam.php`, `timeline.php`, `parent_pdf.php`, `studyplan_pdf.php`, `school_report.php`, and `school_pdf.php`. Every query is strictly scoped to finished attempts in the target course/category, ensuring instantaneous sub-second execution across all Moodle reports.
+  - **New Excel Exporter for Course Master Report (`course_master_report_excel.php`):** Added native multi-sheet Excel workbook export ("Overview & Quizzes", "Competencies", "Group Matrix") and wired export button in `templates/course_master_report_page.mustache`.
+  - **New Excel Exporter for Group Analytics Dashboard (`group_analytics_dashboard_excel.php`):** Implemented multi-sheet Excel export covering KPI stats, competency rankings, and student mastery rosters; wired both PDF and Excel export buttons in `templates/group_analytics_dashboard_page.mustache`.
+  - **New Excel Exporter for Class Report (`class_report_excel.php`):** Added native Excel workbook export comparing course average, class average, and student scores with summary averages row; wired export button in `templates/class_report_page.mustache`.
+  - **New Excel Exporter for Student Report Card (`student_report_excel.php`):** Added student competency card Excel export and wired button in `templates/student_report_page.mustache`.
+  - **Universal PDF & Excel Export Across Student & Teacher Views:** Added Print/PDF and instant Excel export buttons with UTF-8 BOM encoding across `templates/student_exam_page.mustache`, `templates/student_competency_exams_page.mustache`, `templates/student_class_page.mustache`, `templates/teacher_student_exam_page.mustache`, `templates/teacher_student_competency_page.mustache`, and `templates/timeline_page.mustache`. Every single data view now has full PDF and Excel export capabilities.
 
 ### v3.26.3 — 2026-10-08
 - **Chart Rendering & Performance Acceleration Fixes:**

@@ -66,6 +66,7 @@ if ($userid > 0 && $userid != $USER->id) {
 $renderdata = new stdClass();
 $renderdata->courseid = $courseid;
 $renderdata->userid = $userid;
+$renderdata->competencyid = $competency;
 $renderdata->rows = [];
 
 // Course General SQL.

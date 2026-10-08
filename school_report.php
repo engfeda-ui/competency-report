@@ -69,11 +69,16 @@ $catwhereq = '';
 $catwherep = '';
 $paramsq = [];
 $paramsp = [];
+$catwhereq = '';
+$catwherep = '';
+$subcatwhere = '';
 
 if ($categoryid > 0) {
     $catwhereq = ' AND c.category = :catid ';
     $catwherep = ' AND c.category = :catid ';
+    $subcatwhere = ' AND c2.category = :subcatid ';
     $paramsq['catid'] = $categoryid;
+    $paramsq['subcatid'] = $categoryid;
     $paramsp['catid'] = $categoryid;
 }
 
@@ -93,9 +98,15 @@ $sqltheory = "
     JOIN {question_attempts} qa ON qa.questionusageid = qu.id
     JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
     JOIN (
-        SELECT MAX(fraction) AS fraction, questionattemptid
-        FROM {question_attempt_steps}
-        GROUP BY questionattemptid
+        SELECT s.questionattemptid, MAX(s.fraction) AS fraction
+        FROM {question_attempt_steps} s
+        JOIN {question_attempts} qa2 ON qa2.id = s.questionattemptid
+        JOIN {question_usages} qu2 ON qu2.id = qa2.questionusageid
+        JOIN {quiz_attempts} qa3 ON qa3.uniqueid = qu2.id
+        JOIN {quiz} q2 ON q2.id = qa3.quiz
+        JOIN {course} c2 ON c2.id = q2.course
+        WHERE qa3.state = 'finished' AND q2.course != " . SITEID . " $subcatwhere
+        GROUP BY s.questionattemptid
     ) qas ON qas.questionattemptid = qa.id
     WHERE quiza.state = 'finished' AND q.course != " . SITEID . " $catwhereq
     GROUP BY q.course
@@ -129,9 +140,15 @@ $sqlcompstheory = "
     JOIN {quiz} q ON q.id = quiza.quiz
     JOIN {course} c ON c.id = q.course
     JOIN (
-        SELECT MAX(fraction) AS fraction, questionattemptid
-        FROM {question_attempt_steps}
-        GROUP BY questionattemptid
+        SELECT s.questionattemptid, MAX(s.fraction) AS fraction
+        FROM {question_attempt_steps} s
+        JOIN {question_attempts} qa2 ON qa2.id = s.questionattemptid
+        JOIN {question_usages} qu2 ON qu2.id = qa2.questionusageid
+        JOIN {quiz_attempts} qa3 ON qa3.uniqueid = qu2.id
+        JOIN {quiz} q2 ON q2.id = qa3.quiz
+        JOIN {course} c2 ON c2.id = q2.course
+        WHERE qa3.state = 'finished' AND q2.course != " . SITEID . " $subcatwhere
+        GROUP BY s.questionattemptid
     ) qas ON qas.questionattemptid = qa.id
     WHERE quiza.state = 'finished' AND q.course != " . SITEID . " $catwhereq
     GROUP BY comp.id, comp.shortname, comp.description
