@@ -32,6 +32,7 @@ $quizid   = optional_param('quizid', 0, PARAM_INT);
 
 // 2. Security and Access Controls.
 require_login($courseid);
+$course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
 $context = context_course::instance($courseid);
 require_capability('mod/quiz:viewreports', $context);
 

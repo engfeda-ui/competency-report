@@ -5,7 +5,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.26.2-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.26.3-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -83,6 +83,13 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 ---
 
 ## 📋 Changelog
+
+### v3.26.3 — 2026-10-08
+- **Chart Rendering & Performance Acceleration Fixes:**
+  - **Restored Blank Charts in `group_exam_analytics`:** Exported missing properties (`gaussian_curve_json`, `stats_mean`, `stats_sigma`) in `group_exam_analytics_page.php` and added mustache fallback brackets. Fixed JavaScript `SyntaxError: Unexpected token ','` that broke rendering across all 4 charts (Histogram, Tiers, Difficulty, Discrimination).
+  - **Sub-Second Acceleration for `class_report`:** Scoped the `{question_attempt_steps}` subquery to course quizzes (`q2.course = :subcourseid AND qa3.state = 'finished'`), eliminating 3 sequential full-table scans across 141,650+ records when loading and filtering by student.
+  - **Explicit Form Actions Across All Group Reports:** Added explicit `action` attributes to filter forms in `group_exam_analytics.php`, `group_quiz_competency.php`, `group_competency.php`, `group_assessment_distribution.php`, and `group_analytics_dashboard.php` to prevent erratic form submissions and navigation errors.
+  - **Defined `$course` Object Guard:** Ensured `$course = $DB->get_record('course', ...)` is initialized before page headings in `group_competency.php`, `group_quiz_competency.php`, and `group_assessment_distribution.php`.
 
 ### v3.26.2 — 2026-10-08
 - **High-Performance Query Scoping & Sub-Second Report Acceleration:**

@@ -31,6 +31,7 @@ $selectedasmtids = optional_param_array('assessmentids', [], PARAM_INT);
 
 // 2. Security and Access Controls.
 require_login($courseid);
+$course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
 $context = context_course::instance($courseid);
 $canviewext = has_capability('local/comp_report_ext:viewreports', $context);
 $canviewold = has_capability('local/competency_report:viewreports', $context);

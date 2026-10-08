@@ -44,7 +44,7 @@
     </ul>
 
     <!-- Filter Form -->
-    <form method="get" class="form-inline mb-4 bg-light p-3 rounded shadow-sm">
+    <form method="get" action="group_exam_analytics.php" class="form-inline mb-4 bg-light p-3 rounded shadow-sm">
         <input type="hidden" name="courseid" value="{{courseid}}">
         <div class="form-group mr-3">
             <label class="font-weight-bold mr-2 mb-0"><i class="fa fa-users mr-1"></i> {{#str}}group, local_comp_report_ext{{/str}}</label>
@@ -422,12 +422,12 @@ require(['core/chartjs', 'jquery'], function(Chart, $) {
     new Chart(histCtx, {
         type: 'bar',
         data: {
-            labels: {{{histogram_labels_json}}},
+            labels: {{{histogram_labels_json}}}{{^histogram_labels_json}}[]{{/histogram_labels_json}},
             datasets: [
                 {
                     type: 'line',
                     label: '{{#str}}stats_gaussian_curve, local_comp_report_ext{{/str}}',
-                    data: {{{gaussian_curve_json}}},
+                    data: {{{gaussian_curve_json}}}{{^gaussian_curve_json}}[]{{/gaussian_curve_json}},
                     borderColor: '#4f46e5',
                     backgroundColor: 'rgba(79, 70, 229, 0.1)',
                     borderWidth: 2.5,
@@ -439,7 +439,7 @@ require(['core/chartjs', 'jquery'], function(Chart, $) {
                 {
                     type: 'bar',
                     label: '{{#str}}user, local_comp_report_ext{{/str}}',
-                    data: {{{histogram_data_json}}},
+                    data: {{{histogram_data_json}}}{{^histogram_data_json}}[]{{/histogram_data_json}},
                     backgroundColor: [
                         '#ef4444', '#ef4444', '#ef4444', '#ef4444',
                         '#f97316', '#f97316', '#f97316', '#f97316',
@@ -471,7 +471,7 @@ require(['core/chartjs', 'jquery'], function(Chart, $) {
             onClick: function(evt, activeElements) {
                 if (activeElements && activeElements.length > 0) {
                     var index = activeElements[0].index;
-                    var binLabels = {{{histogram_labels_json}}};
+                    var binLabels = {{{histogram_labels_json}}}{{^histogram_labels_json}}[]{{/histogram_labels_json}};
                     var binLabel = binLabels[index] || '';
 
                     var list = studentsData.filter(function(s) { return s.bin_20 === index; });
@@ -494,7 +494,7 @@ require(['core/chartjs', 'jquery'], function(Chart, $) {
                 '{{#str}}grade_tier_outstanding, local_comp_report_ext{{/str}}'
             ],
             datasets: [{
-                data: {{{tier_data_json}}},
+                data: {{{tier_data_json}}}{{^tier_data_json}}[]{{/tier_data_json}},
                 backgroundColor: [
                     'rgba(239, 68, 68, 0.85)',
                     'rgba(245, 158, 11, 0.85)',
@@ -532,10 +532,10 @@ require(['core/chartjs', 'jquery'], function(Chart, $) {
     new Chart(diffCtx, {
         type: 'bar',
         data: {
-            labels: {{{item_labels_json}}},
+            labels: {{{item_labels_json}}}{{^item_labels_json}}[]{{/item_labels_json}},
             datasets: [{
                 label: 'Difficulty Index (p-value %)',
-                data: {{{item_difficulty_json}}},
+                data: {{{item_difficulty_json}}}{{^item_difficulty_json}}[]{{/item_difficulty_json}},
                 backgroundColor: 'rgba(59, 130, 246, 0.75)',
                 borderColor: '#2563EB',
                 borderWidth: 1
@@ -555,10 +555,10 @@ require(['core/chartjs', 'jquery'], function(Chart, $) {
     new Chart(discCtx, {
         type: 'bar',
         data: {
-            labels: {{{item_labels_json}}},
+            labels: {{{item_labels_json}}}{{^item_labels_json}}[]{{/item_labels_json}},
             datasets: [{
                 label: 'Discrimination Index (%)',
-                data: {{{item_discrim_json}}},
+                data: {{{item_discrim_json}}}{{^item_discrim_json}}[]{{/item_discrim_json}},
                 backgroundColor: 'rgba(16, 185, 129, 0.75)',
                 borderColor: '#059669',
                 borderWidth: 1

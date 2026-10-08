@@ -63,8 +63,12 @@ class group_exam_analytics_page implements renderable, templatable {
         $d->highest_score         = $this->data->highest_score;
         $d->lowest_score          = $this->data->lowest_score;
 
+        $d->stats_mean            = $this->data->stats_mean ?? '0.0';
+        $d->stats_sigma           = $this->data->stats_sigma ?? '0.0';
+
         $d->histogram_labels_json = $this->data->histogram_labels_json;
         $d->histogram_data_json   = $this->data->histogram_data_json;
+        $d->gaussian_curve_json   = $this->data->gaussian_curve_json ?? '[]';
         $d->tier_data_json        = $this->data->tier_data_json;
         $d->item_labels_json      = $this->data->item_labels_json;
         $d->item_difficulty_json  = $this->data->item_difficulty_json;
