@@ -104,6 +104,20 @@ if ($groupid > 0) {
 
 $calculator = new \local_comp_report_ext\competency_calculator($courseid);
 
+/**
+ * Sanitize cell values against CSV/Excel Formula Injection.
+ *
+ * @param mixed $val
+ * @return string
+ */
+function safe_excel_str($val): string {
+    $str = (string)$val;
+    if ($str !== '' && in_array($str[0], ['=', '+', '-', '@', "\t", "\r"])) {
+        return "'" . $str;
+    }
+    return $str;
+}
+
 // 3. Create Excel Workbook.
 $cleanfilename = 'Assessment_Distribution_' . clean_filename(format_string($course->shortname)) . '_' . date('Ymd_His') . '.xlsx';
 $workbook = new MoodleExcelWorkbook($cleanfilename);
@@ -210,9 +224,9 @@ foreach ($students as $student) {
         $totalpercent = ($totweight > 0) ? round(($totweighted / $totweight) * 100.0, 1) : null;
 
         $col = 0;
-        $worksheet->write_string($row, $col++, $sname, $format_cell_bold);
-        $worksheet->write_string($row, $col++, $gname, $format_cell_left);
-        $worksheet->write_string($row, $col++, format_string($comp->shortname), $format_cell_left);
+        $worksheet->write_string($row, $col++, safe_excel_str($sname), $format_cell_bold);
+        $worksheet->write_string($row, $col++, safe_excel_str($gname), $format_cell_left);
+        $worksheet->write_string($row, $col++, safe_excel_str(format_string($comp->shortname)), $format_cell_left);
 
         foreach ($selectedasmts as $asmt) {
             $foundcell = null;

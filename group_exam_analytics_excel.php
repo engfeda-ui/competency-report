@@ -119,7 +119,21 @@ if (!empty($studentids)) {
     }
 }
 
-$threshold = (int)(get_config('local_comp_report_ext', 'success_threshold') ?: 60);
+/**
+ * Sanitize cell values against CSV/Excel Formula Injection.
+ *
+ * @param mixed $val
+ * @return string
+ */
+function safe_excel_str($val): string {
+    $str = (string)$val;
+    if ($str !== '' && in_array($str[0], ['=', '+', '-', '@', "\t", "\r"])) {
+        return "'" . $str;
+    }
+    return $str;
+}
+
+$threshold = (float)(get_config('local_comp_report_ext', 'success_threshold') ?: 60.0);
 
 if ($quiz && !empty($students)) {
     $sumgradesmax = (float)($quiz->sumgrades > 0 ? $quiz->sumgrades : 100.0);
@@ -140,13 +154,61 @@ if ($quiz && !empty($students)) {
         }
     }
 
-    foreach ($students as $student) {
-        $attempts = $DB->get_records_sql(
-            "SELECT id, attempt, sumgrades FROM {quiz_attempts}
-              WHERE quiz = :quizid AND userid = :userid AND state = 'finished'
-           ORDER BY attempt ASC",
-            ['quizid' => $quiz->id, 'userid' => $student->id]
+    // Bulk-load student attempts for primary quiz and retakes (eliminates N+1 queries).
+    $user_attempts = [];
+    $user_r1_attempts = [];
+    $user_r2_attempts = [];
+
+    if (!empty($studentids)) {
+        [$u_insql, $u_inparams] = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'attuid');
+        $u_inparams['aquizid'] = $quiz->id;
+        $all_attempts = $DB->get_records_sql(
+            "SELECT id, userid, attempt, sumgrades FROM {quiz_attempts}
+              WHERE quiz = :aquizid AND userid $u_insql AND state = 'finished'
+           ORDER BY userid ASC, attempt ASC",
+            $u_inparams
         );
+        foreach ($all_attempts as $att) {
+            $user_attempts[$att->userid][] = $att;
+        }
+
+        if (!empty($retake1quizzes)) {
+            $r1quizids = array_keys($retake1quizzes);
+            [$r1q_insql, $r1q_params] = $DB->get_in_or_equal($r1quizids, SQL_PARAMS_NAMED, 'r1qid');
+            [$r1u_insql, $r1u_params] = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'r1uid');
+            $all_r1 = $DB->get_records_sql(
+                "SELECT id, userid, quiz, sumgrades FROM {quiz_attempts}
+                  WHERE quiz $r1q_insql AND userid $r1u_insql AND state = 'finished'
+               ORDER BY userid ASC, sumgrades DESC, timefinish DESC",
+                array_merge($r1q_params, $r1u_params)
+            );
+            foreach ($all_r1 as $att) {
+                if (!isset($user_r1_attempts[$att->userid])) {
+                    $user_r1_attempts[$att->userid] = $att;
+                }
+            }
+        }
+
+        if (!empty($retake2quizzes)) {
+            $r2quizids = array_keys($retake2quizzes);
+            [$r2q_insql, $r2q_params] = $DB->get_in_or_equal($r2quizids, SQL_PARAMS_NAMED, 'r2qid');
+            [$r2u_insql, $r2u_params] = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'r2uid');
+            $all_r2 = $DB->get_records_sql(
+                "SELECT id, userid, quiz, sumgrades FROM {quiz_attempts}
+                  WHERE quiz $r2q_insql AND userid $r2u_insql AND state = 'finished'
+               ORDER BY userid ASC, sumgrades DESC, timefinish DESC",
+                array_merge($r2q_params, $r2u_params)
+            );
+            foreach ($all_r2 as $att) {
+                if (!isset($user_r2_attempts[$att->userid])) {
+                    $user_r2_attempts[$att->userid] = $att;
+                }
+            }
+        }
+    }
+
+    foreach ($students as $student) {
+        $attempts = $user_attempts[$student->id] ?? [];
 
         $attscores = [];
         $attraws   = [];
@@ -165,41 +227,19 @@ if ($quiz && !empty($students)) {
         $att3score = $attscores[3] ?? null;
 
         // Fallback to separate retake quizzes.
-        if ($att2score === null && !empty($retake1quizzes)) {
-            $retake1quizids = array_keys($retake1quizzes);
-            [$in1sql, $in1params] = $DB->get_in_or_equal($retake1quizids, SQL_PARAMS_NAMED, 'rq1');
-            $in1params['userid'] = $student->id;
-            $r1attempts = $DB->get_records_sql(
-                "SELECT id, quiz, sumgrades FROM {quiz_attempts}
-                  WHERE quiz $in1sql AND userid = :userid AND state = 'finished'
-               ORDER BY sumgrades DESC",
-                $in1params, 0, 1
-            );
-            if (!empty($r1attempts)) {
-                $r1att = reset($r1attempts);
-                $r1max = (float)($retake1quizzes[$r1att->quiz]->sumgrades > 0 ? $retake1quizzes[$r1att->quiz]->sumgrades : 100.0);
-                if ($r1att->sumgrades !== null) {
-                    $att2score = round(((float)$r1att->sumgrades / $r1max) * 100.0, 1);
-                }
+        if ($att2score === null && isset($user_r1_attempts[$student->id])) {
+            $r1att = $user_r1_attempts[$student->id];
+            $r1max = (float)($retake1quizzes[$r1att->quiz]->sumgrades > 0 ? $retake1quizzes[$r1att->quiz]->sumgrades : 100.0);
+            if ($r1att->sumgrades !== null) {
+                $att2score = round(((float)$r1att->sumgrades / $r1max) * 100.0, 1);
             }
         }
 
-        if ($att3score === null && !empty($retake2quizzes)) {
-            $retake2quizids = array_keys($retake2quizzes);
-            [$in2sql, $in2params] = $DB->get_in_or_equal($retake2quizids, SQL_PARAMS_NAMED, 'rq2');
-            $in2params['userid'] = $student->id;
-            $r2attempts = $DB->get_records_sql(
-                "SELECT id, quiz, sumgrades FROM {quiz_attempts}
-                  WHERE quiz $in2sql AND userid = :userid AND state = 'finished'
-               ORDER BY sumgrades DESC",
-                $in2params, 0, 1
-            );
-            if (!empty($r2attempts)) {
-                $r2att = reset($r2attempts);
-                $r2max = (float)($retake2quizzes[$r2att->quiz]->sumgrades > 0 ? $retake2quizzes[$r2att->quiz]->sumgrades : 100.0);
-                if ($r2att->sumgrades !== null) {
-                    $att3score = round(((float)$r2att->sumgrades / $r2max) * 100.0, 1);
-                }
+        if ($att3score === null && isset($user_r2_attempts[$student->id])) {
+            $r2att = $user_r2_attempts[$student->id];
+            $r2max = (float)($retake2quizzes[$r2att->quiz]->sumgrades > 0 ? $retake2quizzes[$r2att->quiz]->sumgrades : 100.0);
+            if ($r2att->sumgrades !== null) {
+                $att3score = round(((float)$r2att->sumgrades / $r2max) * 100.0, 1);
             }
         }
 
@@ -396,16 +436,16 @@ $idx = 1;
 foreach ($studentlist as $s) {
     $c = 0;
     $ws_roster->write_number($r, $c++, $idx++, $format_cell);
-    $ws_roster->write_string($r, $c++, $s['fullname'], $format_cell_bold);
-    $ws_roster->write_string($r, $c++, $s['group'], $format_cell_left);
-    $ws_roster->write_string($r, $c++, $s['att1'], $format_cell);
-    $ws_roster->write_string($r, $c++, $s['att2'], $format_cell);
-    $ws_roster->write_string($r, $c++, $s['att3'], $format_cell);
-    $ws_roster->write_string($r, $c++, $s['finalscore'], $format_cell_bold);
-    $ws_roster->write_string($r, $c++, $s['finalgrade'], $format_cell);
+    $ws_roster->write_string($r, $c++, safe_excel_str($s['fullname']), $format_cell_bold);
+    $ws_roster->write_string($r, $c++, safe_excel_str($s['group']), $format_cell_left);
+    $ws_roster->write_string($r, $c++, safe_excel_str($s['att1']), $format_cell);
+    $ws_roster->write_string($r, $c++, safe_excel_str($s['att2']), $format_cell);
+    $ws_roster->write_string($r, $c++, safe_excel_str($s['att3']), $format_cell);
+    $ws_roster->write_string($r, $c++, safe_excel_str($s['finalscore']), $format_cell_bold);
+    $ws_roster->write_string($r, $c++, safe_excel_str($s['finalgrade']), $format_cell);
     $ws_roster->write_number($r, $c++, $s['retakes'], $format_cell);
-    $ws_roster->write_string($r, $c++, $s['status'], $format_cell);
-    $ws_roster->write_string($r++, $c++, $s['tier'], $format_cell);
+    $ws_roster->write_string($r, $c++, safe_excel_str($s['status']), $format_cell);
+    $ws_roster->write_string($r++, $c++, safe_excel_str($s['tier']), $format_cell);
 }
 
 $workbook->close();

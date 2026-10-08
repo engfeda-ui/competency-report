@@ -149,6 +149,20 @@ if (!empty($students)) {
     );
 }
 
+/**
+ * Sanitize cell values against CSV/Excel Formula Injection.
+ *
+ * @param mixed $val
+ * @return string
+ */
+function safe_excel_str($val): string {
+    $str = (string)$val;
+    if ($str !== '' && in_array($str[0], ['=', '+', '-', '@', "\t", "\r"])) {
+        return "'" . $str;
+    }
+    return $str;
+}
+
 // 4. Create Excel Workbook.
 $cleanfilename = 'Quiz_Competency_' . clean_filename($quizname) . '_' . date('Ymd_His') . '.xlsx';
 $workbook = new MoodleExcelWorkbook($cleanfilename);
@@ -250,10 +264,10 @@ $totalgrades  = [];
 foreach ($students as $s) {
     $col = 0;
     $worksheet->write_number($row, $col++, $index++, $format_cell);
-    $worksheet->write_string($row, $col++, fullname($s), $format_cell_bold);
+    $worksheet->write_string($row, $col++, safe_excel_str(fullname($s)), $format_cell_bold);
 
     $gtext = !empty($usergroups[$s->id]) ? implode(', ', $usergroups[$s->id]) : '—';
-    $worksheet->write_string($row, $col++, $gtext, $format_cell_left);
+    $worksheet->write_string($row, $col++, safe_excel_str($gtext), $format_cell_left);
 
     // Quiz Grade.
     if (isset($graderecords[$s->id])) {

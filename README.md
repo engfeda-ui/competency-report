@@ -5,7 +5,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.26.0-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.26.1-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -474,7 +474,12 @@ npx grunt amd --files=local/comp_report_ext
 
 ## 📋 Changelog
 
-### v3.26.0 (2026100800) — 2026-10-08
+### v3.26.1 (2026100801) — 2026-10-08
+- **Hardening & Performance (OpenCode Multi-Agent Audit Implementation):**
+  - **Eliminated N+1 Query Bottlenecks:** Refactored `group_exam_analytics.php` and `group_exam_analytics_excel.php` to bulk-fetch all student attempts for the primary quiz and retakes in 3 indexed batch queries, completely eliminating individual per-student SQL queries in loops.
+  - **Excel Formula Injection (CSV/Formula Injection) Protection:** Added `safe_excel_str()` across all Excel exporters (`group_exam_analytics_excel.php`, `group_competency_excel.php`, `group_quiz_competency_excel.php`, `group_assessment_distribution_excel.php`), prefixing any cell value starting with `=`, `+`, `-`, or `@` to prevent arbitrary spreadsheet formula execution.
+  - **Dynamic Threshold Synchronization:** Unified the 60% retake passing cap and tier thresholding to dynamically inherit the administrator-configured `success_threshold` setting.
+
 - **Feature (Student Group Display Across All Group Reports):**
   - Surfaced student group cohort names as badges next to student names in **Group Competency Analysis** (`group_competency.php`), **Quiz Competency Analysis** (`group_quiz_competency.php`), **Group Assessment Distribution** (`group_assessment_distribution.php`), and **Analytics by Grades** (`group_exam_analytics.php`), making it effortless for instructors to identify student cohorts in "All Groups" views.
 - **Feature (Enterprise Native Excel & PDF Exports Across All Reports):**

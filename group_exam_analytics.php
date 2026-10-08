@@ -229,15 +229,62 @@ if ($quiz && !empty($students)) {
         }
     }
 
-    foreach ($students as $student) {
-        // 1. Fetch finished attempts from the primary quiz ordered by attempt number.
-        $attempts = $DB->get_records_sql(
-            "SELECT id, attempt, sumgrades, timefinish
-               FROM {quiz_attempts}
-              WHERE quiz = :quizid AND userid = :userid AND state = 'finished'
-           ORDER BY attempt ASC",
-            ['quizid' => $quiz->id, 'userid' => $student->id]
+    // Bulk-load student attempts for primary quiz and retakes (eliminates N+1 queries).
+    $user_attempts = [];
+    $user_r1_attempts = [];
+    $user_r2_attempts = [];
+
+    if (!empty($studentids)) {
+        [$u_insql, $u_inparams] = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'attuid');
+        $u_inparams['aquizid'] = $quiz->id;
+        $all_attempts = $DB->get_records_sql(
+            "SELECT id, userid, attempt, sumgrades, timefinish FROM {quiz_attempts}
+              WHERE quiz = :aquizid AND userid $u_insql AND state = 'finished'
+           ORDER BY userid ASC, attempt ASC",
+            $u_inparams
         );
+        foreach ($all_attempts as $att) {
+            $user_attempts[$att->userid][] = $att;
+        }
+
+        if (!empty($retake1quizzes)) {
+            $r1quizids = array_keys($retake1quizzes);
+            [$r1q_insql, $r1q_params] = $DB->get_in_or_equal($r1quizids, SQL_PARAMS_NAMED, 'r1qid');
+            [$r1u_insql, $r1u_params] = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'r1uid');
+            $all_r1 = $DB->get_records_sql(
+                "SELECT id, userid, quiz, sumgrades, timefinish FROM {quiz_attempts}
+                  WHERE quiz $r1q_insql AND userid $r1u_insql AND state = 'finished'
+               ORDER BY userid ASC, sumgrades DESC, timefinish DESC",
+                array_merge($r1q_params, $r1u_params)
+            );
+            foreach ($all_r1 as $att) {
+                if (!isset($user_r1_attempts[$att->userid])) {
+                    $user_r1_attempts[$att->userid] = $att;
+                }
+            }
+        }
+
+        if (!empty($retake2quizzes)) {
+            $r2quizids = array_keys($retake2quizzes);
+            [$r2q_insql, $r2q_params] = $DB->get_in_or_equal($r2quizids, SQL_PARAMS_NAMED, 'r2qid');
+            [$r2u_insql, $r2u_params] = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'r2uid');
+            $all_r2 = $DB->get_records_sql(
+                "SELECT id, userid, quiz, sumgrades, timefinish FROM {quiz_attempts}
+                  WHERE quiz $r2q_insql AND userid $r2u_insql AND state = 'finished'
+               ORDER BY userid ASC, sumgrades DESC, timefinish DESC",
+                array_merge($r2q_params, $r2u_params)
+            );
+            foreach ($all_r2 as $att) {
+                if (!isset($user_r2_attempts[$att->userid])) {
+                    $user_r2_attempts[$att->userid] = $att;
+                }
+            }
+        }
+    }
+
+    foreach ($students as $student) {
+        // 1. Finished attempts from the primary quiz.
+        $attempts = $user_attempts[$student->id] ?? [];
 
         $attscores = [];
         $attraws   = [];
@@ -264,55 +311,27 @@ if ($quiz && !empty($students)) {
         $att3raw = $attraws[3] ?? null;
         $att3max = $attmaxs[3] ?? null;
 
-        // 2. Fallback / Integration: Check separate Retake 1 quizzes if no 2nd attempt found on main quiz.
-        if ($att2score === null && !empty($retake1quizzes)) {
-            $retake1quizids = array_keys($retake1quizzes);
-            [$in1sql, $in1params] = $DB->get_in_or_equal($retake1quizids, SQL_PARAMS_NAMED, 'rq1');
-            $in1params['userid'] = $student->id;
-            $r1attempts = $DB->get_records_sql(
-                "SELECT id, quiz, sumgrades, timefinish
-                   FROM {quiz_attempts}
-                  WHERE quiz $in1sql AND userid = :userid AND state = 'finished'
-               ORDER BY sumgrades DESC, timefinish DESC",
-                $in1params,
-                0,
-                1
-            );
-            if (!empty($r1attempts)) {
-                $r1att = reset($r1attempts);
-                $quizgrade = $retake1quizzes[$r1att->quiz]->sumgrades;
-                $r1max = (float)($quizgrade > 0 ? $quizgrade : 100.0);
-                if ($r1att->sumgrades !== null) {
-                    $att2score = round(((float)$r1att->sumgrades / $r1max) * 100.0, 1);
-                    $att2raw   = (float)$r1att->sumgrades;
-                    $att2max   = $r1max;
-                }
+        // 2. Fallback to separate Retake 1 quizzes if no 2nd attempt on main quiz.
+        if ($att2score === null && isset($user_r1_attempts[$student->id])) {
+            $r1att = $user_r1_attempts[$student->id];
+            $quizgrade = $retake1quizzes[$r1att->quiz]->sumgrades;
+            $r1max = (float)($quizgrade > 0 ? $quizgrade : 100.0);
+            if ($r1att->sumgrades !== null) {
+                $att2score = round(((float)$r1att->sumgrades / $r1max) * 100.0, 1);
+                $att2raw   = (float)$r1att->sumgrades;
+                $att2max   = $r1max;
             }
         }
 
-        // 3. Fallback / Integration: Check separate Retake 2 quizzes if no 3rd attempt found on main quiz.
-        if ($att3score === null && !empty($retake2quizzes)) {
-            $retake2quizids = array_keys($retake2quizzes);
-            [$in2sql, $in2params] = $DB->get_in_or_equal($retake2quizids, SQL_PARAMS_NAMED, 'rq2');
-            $in2params['userid'] = $student->id;
-            $r2attempts = $DB->get_records_sql(
-                "SELECT id, quiz, sumgrades, timefinish
-                   FROM {quiz_attempts}
-                  WHERE quiz $in2sql AND userid = :userid AND state = 'finished'
-               ORDER BY sumgrades DESC, timefinish DESC",
-                $in2params,
-                0,
-                1
-            );
-            if (!empty($r2attempts)) {
-                $r2att = reset($r2attempts);
-                $quizgrade2 = $retake2quizzes[$r2att->quiz]->sumgrades;
-                $r2max = (float)($quizgrade2 > 0 ? $quizgrade2 : 100.0);
-                if ($r2att->sumgrades !== null) {
-                    $att3score = round(((float)$r2att->sumgrades / $r2max) * 100.0, 1);
-                    $att3raw   = (float)$r2att->sumgrades;
-                    $att3max   = $r2max;
-                }
+        // 3. Fallback to separate Retake 2 quizzes if no 3rd attempt on main quiz.
+        if ($att3score === null && isset($user_r2_attempts[$student->id])) {
+            $r2att = $user_r2_attempts[$student->id];
+            $quizgrade2 = $retake2quizzes[$r2att->quiz]->sumgrades;
+            $r2max = (float)($quizgrade2 > 0 ? $quizgrade2 : 100.0);
+            if ($r2att->sumgrades !== null) {
+                $att3score = round(((float)$r2att->sumgrades / $r2max) * 100.0, 1);
+                $att3raw   = (float)$r2att->sumgrades;
+                $att3max   = $r2max;
             }
         }
 
