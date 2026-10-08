@@ -80,39 +80,27 @@ if (empty($competencies)) {
     throw new moodle_exception('nocompetencies', 'local_comp_report_ext');
 }
 
-// 3. Performance data query.
-$scoremap = [];
+// 3. Bulk-load student groups and compute scores using central competency_calculator.
+$usergroups = [];
+$groupscores = [];
 if (!empty($students)) {
     $studentids = array_keys($students);
     [$insql, $inparams] = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'uid');
 
-    $rawscores = (array) $DB->get_records_sql("
-        SELECT
-            CONCAT(quiza.userid, '_', m.competencyid) as unique_key,
-            quiza.userid,
-            m.competencyid,
-            SUM(qa.maxfraction) AS total_max,
-            SUM(qas.fraction) AS total_fraction
-        FROM {quiz_attempts} quiza
-        JOIN {question_usages} qu ON qu.id = quiza.uniqueid
-        JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-        JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
-        JOIN (
-            SELECT questionattemptid, MAX(fraction) AS fraction
-            FROM {question_attempt_steps}
-            GROUP BY questionattemptid
-        ) qas ON qas.questionattemptid = qa.id
-        WHERE quiza.state = 'finished'
-          AND quiza.userid $insql
-        GROUP BY quiza.userid, m.competencyid
-    ", $inparams);
+    $gmrecords = $DB->get_records_sql("
+        SELECT gm.id, gm.userid, g.id AS groupid, g.name AS groupname
+          FROM {groups_members} gm
+          JOIN {groups} g ON g.id = gm.groupid
+         WHERE g.courseid = :courseid AND gm.userid $insql
+      ORDER BY g.name ASC
+    ", array_merge(['courseid' => $courseid], $inparams));
 
-    foreach ($rawscores as $rs) {
-        $scoremap[$rs->userid][$rs->competencyid] = [
-            'att' => (float)$rs->total_max,
-            'cor' => (float)$rs->total_fraction,
-        ];
+    foreach ($gmrecords as $gm) {
+        $usergroups[$gm->userid][] = format_string($gm->groupname);
     }
+
+    $calculator = new \local_comp_report_ext\competency_calculator($courseid);
+    $groupscores = $calculator->get_group_scores($studentids);
 }
 
 // 4. Calculate Column Widths dynamically.
@@ -138,35 +126,37 @@ $tablehtml .= '<tbody>';
 $grouptotals = [];
 
 foreach ($students as $s) {
+    $sname = fullname($s);
+    $ginfo = !empty($usergroups[$s->id]) ? implode(', ', $usergroups[$s->id]) : '';
+    $namelabel = '<b>' . s($sname) . '</b>';
+    if ($ginfo) {
+        $namelabel .= '<br><span style="color:#6c757d; font-size:7pt;">(' . s($ginfo) . ')</span>';
+    }
+
     $tablehtml .= '<tr>';
-    $tablehtml .= '  <td width="' . $studentwidth . '%"><b>' . s(fullname($s)) . '</b></td>';
+    $tablehtml .= '  <td width="' . $studentwidth . '%">' . $namelabel . '</td>';
 
     foreach ($competencies as $c) {
         $celltext = '-';
         $bgcolor = '#ffffff';
 
-        if (isset($scoremap[$s->id][$c->id])) {
-            $att = $scoremap[$s->id][$c->id]['att'];
-            $cor = $scoremap[$s->id][$c->id]['cor'];
+        if (isset($groupscores[$s->id][$c->id])) {
+            $rate = (float)$groupscores[$s->id][$c->id];
+            $celltext = '%' . number_format($rate, 1);
 
-            if ($att > 0) {
-                $rate = ($cor / $att) * 100;
-                $celltext = '%' . number_format($rate, 1);
-
-                // Premium HSL-tailored colors.
-                if ($rate >= 80) {
-                    $bgcolor = '#e6ffec'; // Green.
-                } else if ($rate >= 60) {
-                    $bgcolor = '#e6f2ff'; // Blue.
-                } else if ($rate >= 40) {
-                    $bgcolor = '#fff9e6'; // Orange.
-                } else {
-                    $bgcolor = '#ffe6e6'; // Red.
-                }
-
-                $grouptotals[$c->id]['att'] = ($grouptotals[$c->id]['att'] ?? 0) + $att;
-                $grouptotals[$c->id]['cor'] = ($grouptotals[$c->id]['cor'] ?? 0) + $cor;
+            // Premium HSL-tailored colors.
+            if ($rate >= 80) {
+                $bgcolor = '#e6ffec'; // Green.
+            } else if ($rate >= 60) {
+                $bgcolor = '#e6f2ff'; // Blue.
+            } else if ($rate >= 40) {
+                $bgcolor = '#fff9e6'; // Orange.
+            } else {
+                $bgcolor = '#ffe6e6'; // Red.
             }
+
+            $grouptotals[$c->id]['sum']   = ($grouptotals[$c->id]['sum'] ?? 0) + $rate;
+            $grouptotals[$c->id]['count'] = ($grouptotals[$c->id]['count'] ?? 0) + 1;
         }
 
         $tablehtml .= '  <td width="' . $compwidth . '%" align="center" bgcolor="' . $bgcolor . '" style="font-weight: bold;">'
@@ -183,11 +173,11 @@ foreach ($competencies as $c) {
     $celltext = '-';
     $bgcolor = '#e9ecef';
 
-    $tatt = $grouptotals[$c->id]['att'] ?? 0;
-    $tcor = $grouptotals[$c->id]['cor'] ?? 0;
+    $tcount = $grouptotals[$c->id]['count'] ?? 0;
+    $tsum   = $grouptotals[$c->id]['sum'] ?? 0;
 
-    if ($tatt > 0) {
-        $trate = ($tcor / $tatt) * 100;
+    if ($tcount > 0) {
+        $trate = $tsum / $tcount;
         $celltext = '%' . number_format($trate, 1);
         if ($trate >= 80) {
             $bgcolor = '#d4edda';

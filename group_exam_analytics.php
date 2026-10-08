@@ -164,9 +164,25 @@ if ($groupid > 0) {
     );
 }
 
-// 3. Collect Raw Quiz Scores for Students.
+// 3. Collect Raw Quiz Scores for Students & Bulk-load Groups.
 $studentlist = [];
 $rawscores = [];
+$usergroups = [];
+
+$studentids = array_keys($students);
+if (!empty($studentids)) {
+    [$insql, $inparams] = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'uid');
+    $gmrecords = $DB->get_records_sql("
+        SELECT gm.id, gm.userid, g.id AS groupid, g.name AS groupname
+          FROM {groups_members} gm
+          JOIN {groups} g ON g.id = gm.groupid
+         WHERE g.courseid = :courseid AND gm.userid $insql
+      ORDER BY g.name ASC
+    ", array_merge(['courseid' => $courseid], $inparams));
+    foreach ($gmrecords as $gm) {
+        $usergroups[$gm->userid][] = format_string($gm->groupname);
+    }
+}
 
 $threshold = (int)(get_config('local_comp_report_ext', 'success_threshold') ?: 60);
 
@@ -427,6 +443,7 @@ if ($quiz && !empty($students)) {
                 'index'               => count($studentlist) + 1,
                 'id'                  => (int)$student->id,
                 'fullname'            => fullname($student),
+                'group_name'          => !empty($usergroups[$student->id]) ? implode(', ', $usergroups[$student->id]) : '',
                 'attempt1_score'      => ($att1score !== null) ? number_format($att1score, 1) . '%' : '—',
                 'attempt1_grade'      => $att1grade,
                 'attempt1_items'      => $att1items,
@@ -448,6 +465,7 @@ if ($quiz && !empty($students)) {
                 'retake_status_badge' => $retakestatusbadge,
                 'needs_remediation'   => $needsremediation,
                 'decile_bin'          => $decilebin,
+                'bin_20'              => min(19, (int)floor($scorepct / 5)),
                 'detail_url'          => (new moodle_url('/local/comp_report_ext/student_competency_detail.php', [
                     'courseid' => $courseid,
                     'userid'   => $student->id,
@@ -457,15 +475,21 @@ if ($quiz && !empty($students)) {
     }
 }
 
-// 4. Calculate KPIs & Chart Data.
+// 4. Calculate KPIs, 20-Bin Histogram & Gaussian Distribution (Bell Curve).
 $hasdata = !empty($rawscores);
 $examavg = 0.0;
 $passrate = 0.0;
 $highestscore = 0.0;
 $lowestscore = 0.0;
 
-$histogramlabels = ['0-10%', '11-20%', '21-30%', '31-40%', '41-50%', '51-60%', '61-70%', '71-80%', '81-90%', '91-100%'];
-$scorehistogram  = array_fill(0, 10, 0);
+$binlabels20 = [];
+for ($b = 0; $b < 20; $b++) {
+    $binlabels20[] = ($b * 5) . '–' . (($b + 1) * 5) . '%';
+}
+$scorehistogram20 = array_fill(0, 20, 0);
+$gaussiancurve    = array_fill(0, 20, 0.0);
+$statmean         = 0.0;
+$statsigma        = 0.0;
 
 $tiercounts = [
     'failed'      => 0,
@@ -475,18 +499,23 @@ $tiercounts = [
 ];
 
 if ($hasdata) {
-    $examavg = round(array_sum($rawscores) / count($rawscores), 1);
+    $n = count($rawscores);
+    $examavg = round(array_sum($rawscores) / $n, 1);
+    $statmean = $examavg;
     $highestscore = max($rawscores);
     $lowestscore = min($rawscores);
 
     $passedcount = 0;
+    $sumsq = 0.0;
     foreach ($rawscores as $score) {
         if ($score >= $threshold) {
             $passedcount++;
         }
-        // Histogram deciles.
-        $bin = min(9, (int)floor($score / 10));
-        $scorehistogram[$bin]++;
+        $sumsq += pow($score - $statmean, 2);
+
+        // 20-bin histogram (5% intervals).
+        $bin20 = min(19, (int)floor($score / 5));
+        $scorehistogram20[$bin20]++;
 
         // Academic tiers.
         if ($score < 60) {
@@ -499,7 +528,20 @@ if ($hasdata) {
             $tiercounts['outstanding']++;
         }
     }
-    $passrate = round(($passedcount / count($rawscores)) * 100, 1);
+    $passrate = round(($passedcount / $n) * 100, 1);
+    $variance = ($n > 1) ? ($sumsq / ($n - 1)) : 0.0;
+    $statsigma = round(sqrt($variance), 1);
+
+    // Compute normal distribution bell curve values for the 20 bins.
+    if ($statsigma > 0.1) {
+        $invsqrt2pi = 1.0 / sqrt(2.0 * M_PI);
+        for ($b = 0; $b < 20; $b++) {
+            $midx = ($b * 5.0) + 2.5;
+            $z = ($midx - $statmean) / $statsigma;
+            $pdf = ($invsqrt2pi / $statsigma) * exp(-0.5 * $z * $z);
+            $gaussiancurve[$b] = round($n * 5.0 * $pdf, 2);
+        }
+    }
 }
 
 // 5. Calculate Psychometric Question Item Difficulty (p-value) & Discrimination.
@@ -560,8 +602,12 @@ $renderdata->pass_rate         = number_format($passrate, 1);
 $renderdata->highest_score     = number_format($highestscore, 1);
 $renderdata->lowest_score      = number_format($lowestscore, 1);
 
-$renderdata->histogram_labels_json = json_encode($histogramlabels);
-$renderdata->histogram_data_json   = json_encode($scorehistogram);
+$renderdata->stats_mean        = number_format($statmean, 1);
+$renderdata->stats_sigma       = number_format($statsigma, 1);
+
+$renderdata->histogram_labels_json = json_encode($binlabels20);
+$renderdata->histogram_data_json   = json_encode($scorehistogram20);
+$renderdata->gaussian_curve_json   = json_encode($gaussiancurve);
 
 $renderdata->tier_data_json        = json_encode([
     $tiercounts['failed'],

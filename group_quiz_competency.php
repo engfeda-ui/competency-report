@@ -155,6 +155,22 @@ if ($quizid > 0) {
             $ginparams
         );
 
+        // Bulk-load student groups in this course to avoid N+1 queries.
+        $gmparams = array_merge(['courseid' => $courseid], $inparams);
+        unset($gmparams['quizid']);
+        $gmrecords = $DB->get_records_sql("
+            SELECT gm.id, gm.userid, g.id AS groupid, g.name AS groupname
+              FROM {groups_members} gm
+              JOIN {groups} g ON g.id = gm.groupid
+             WHERE g.courseid = :courseid AND gm.userid $insql
+          ORDER BY g.name ASC
+        ", $gmparams);
+
+        $usergroups = [];
+        foreach ($gmrecords as $gm) {
+            $usergroups[$gm->userid][] = format_string($gm->groupname);
+        }
+
         // Process rows for each student and their competency rates.
         $renderdata->students = [];
         $grouptotals  = [];
@@ -168,6 +184,7 @@ if ($quizid > 0) {
                 'userid'   => $s->id,
             ]);
             $row->studentlink = html_writer::link($detailurl, fullname($s), ['target' => '_blank']);
+            $row->groupname = !empty($usergroups[$s->id]) ? implode(', ', $usergroups[$s->id]) : '';
             $row->scores = [];
 
             // Quiz grade column.

@@ -68,6 +68,12 @@
 
         <button type="submit" class="btn btn-primary"><i class="fa fa-eye mr-1"></i> {{strshowstudents}}</button>
         {{#has_data}}
+        <a href="group_exam_analytics_excel.php?courseid={{courseid}}&groupid={{groupid}}&quizid={{quizid}}" class="btn btn-outline-success font-weight-bold shadow-sm ml-2" target="_blank">
+            <i class="fa fa-file-excel-o mr-1"></i> {{#str}}exportexcel, local_comp_report_ext{{/str}}
+        </a>
+        <a href="group_exam_analytics_pdf.php?courseid={{courseid}}&groupid={{groupid}}&quizid={{quizid}}" class="btn btn-outline-danger font-weight-bold shadow-sm ml-2" target="_blank">
+            <i class="fa fa-file-pdf-o mr-1"></i> {{#str}}exportpdf, local_comp_report_ext{{/str}}
+        </a>
         <button id="btn-print-analytics" type="button" class="btn btn-outline-primary font-weight-bold shadow-sm ml-2">
             <i class="fa fa-print mr-1"></i> {{strprintreport}}
         </button>
@@ -147,7 +153,11 @@
         <div class="col-md-6 mb-4">
             <div class="card shadow-sm h-100">
                 <div class="card-header bg-white font-weight-bold border-bottom-0 pb-0 pt-3 d-flex justify-content-between align-items-center">
-                    <span><i class="fa fa-bar-chart text-primary mr-1"></i> {{#str}}exam_grade_histogram, local_comp_report_ext{{/str}}</span>
+                    <span>
+                        <i class="fa fa-bar-chart text-primary mr-1"></i> {{#str}}exam_grade_histogram, local_comp_report_ext{{/str}}
+                        <span class="badge badge-light border text-primary ml-2 font-weight-normal">{{#str}}stats_mean, local_comp_report_ext{{/str}}: {{stats_mean}}%</span>
+                        <span class="badge badge-light border text-secondary ml-1 font-weight-normal">{{#str}}stats_sigma, local_comp_report_ext{{/str}}: {{stats_sigma}}</span>
+                    </span>
                     <small class="text-muted"><i class="fa fa-hand-pointer-o mr-1"></i> Click any bar to drill down</small>
                 </div>
                 <div class="card-body p-3" style="position: relative; height: 360px; width: 100%;">
@@ -225,9 +235,14 @@
                     </thead>
                     <tbody>
                         {{#student_list}}
-                        <tr class="roster-row" data-tier="{{tier}}" data-remediation="{{#needs_remediation}}1{{/needs_remediation}}{{^needs_remediation}}0{{/needs_remediation}}" data-decile="{{decile_bin}}">
+                        <tr class="roster-row" data-tier="{{tier}}" data-remediation="{{#needs_remediation}}1{{/needs_remediation}}{{^needs_remediation}}0{{/needs_remediation}}" data-decile="{{decile_bin}}" data-bin="{{bin_20}}">
                             <td class="pl-4 align-middle text-muted small">{{index}}</td>
-                            <td class="font-weight-bold align-middle">{{fullname}}</td>
+                            <td class="font-weight-bold align-middle">
+                                {{fullname}}
+                                {{#group_name}}
+                                    <span class="badge badge-secondary ml-1 font-weight-normal small">{{group_name}}</span>
+                                {{/group_name}}
+                            </td>
                             <td class="text-center align-middle">
                                 <span class="font-weight-bold text-dark">{{attempt1_score}}</span>
                                 {{#attempt1_grade}}
@@ -366,6 +381,9 @@ require(['core/chartjs', 'jquery'], function(Chart, $) {
                 $row.show();
             } else if (filterType === 'remediation' || filterType === 'failed') {
                 if ($row.data('remediation') == 1) { $row.show(); } else { $row.hide(); }
+            } else if (filterType.indexOf('bin_') === 0) {
+                var bin = filterType.replace('bin_', '');
+                if ($row.data('bin') == bin) { $row.show(); } else { $row.hide(); }
             } else if (filterType.indexOf('decile_') === 0) {
                 var decile = filterType.replace('decile_', '');
                 if ($row.data('decile') == decile) { $row.show(); } else { $row.hide(); }
@@ -399,47 +417,50 @@ require(['core/chartjs', 'jquery'], function(Chart, $) {
         window.print();
     });
 
-    // 1. Raw Exam Score Decile Histogram Bar Chart
+    // 1. Raw Exam Score 20-Bin Histogram Bar Chart with Gaussian Bell Curve Overlay
     var histCtx = document.getElementById('chart-exam-histogram').getContext('2d');
     new Chart(histCtx, {
         type: 'bar',
         data: {
             labels: {{{histogram_labels_json}}},
-            datasets: [{
-                label: '{{#str}}user, local_comp_report_ext{{/str}}',
-                data: {{{histogram_data_json}}},
-                backgroundColor: [
-                    'rgba(220, 38, 38, 0.75)',
-                    'rgba(239, 68, 68, 0.75)',
-                    'rgba(249, 115, 22, 0.75)',
-                    'rgba(245, 158, 11, 0.75)',
-                    'rgba(234, 179, 8, 0.75)',
-                    'rgba(202, 138, 4, 0.75)',
-                    'rgba(59, 130, 246, 0.75)',
-                    'rgba(37, 99, 235, 0.75)',
-                    'rgba(16, 185, 129, 0.75)',
-                    'rgba(5, 150, 105, 0.75)'
-                ],
-                borderColor: [
-                    '#DC2626',
-                    '#EF4444',
-                    '#F97316',
-                    '#F59E0B',
-                    '#EAB308',
-                    '#CA8A04',
-                    '#3B82F6',
-                    '#2563EB',
-                    '#10B981',
-                    '#059669'
-                ],
-                borderWidth: 1
-            }]
+            datasets: [
+                {
+                    type: 'line',
+                    label: '{{#str}}stats_gaussian_curve, local_comp_report_ext{{/str}}',
+                    data: {{{gaussian_curve_json}}},
+                    borderColor: '#4f46e5',
+                    backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                    borderWidth: 2.5,
+                    fill: false,
+                    tension: 0.4,
+                    pointRadius: 0,
+                    order: 1
+                },
+                {
+                    type: 'bar',
+                    label: '{{#str}}user, local_comp_report_ext{{/str}}',
+                    data: {{{histogram_data_json}}},
+                    backgroundColor: [
+                        '#ef4444', '#ef4444', '#ef4444', '#ef4444',
+                        '#f97316', '#f97316', '#f97316', '#f97316',
+                        '#f59e0b', '#f59e0b', '#eab308', '#eab308',
+                        '#3b82f6', '#3b82f6', '#2563eb', '#2563eb',
+                        '#10b981', '#10b981', '#059669', '#059669'
+                    ],
+                    borderWidth: 1,
+                    order: 2
+                }
+            ]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: { display: false }
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: { boxWidth: 12, font: { size: 11 } }
+                }
             },
             scales: {
                 y: {
@@ -450,12 +471,12 @@ require(['core/chartjs', 'jquery'], function(Chart, $) {
             onClick: function(evt, activeElements) {
                 if (activeElements && activeElements.length > 0) {
                     var index = activeElements[0].index;
-                    var labels = ['0-10%', '11-20%', '21-30%', '31-40%', '41-50%', '51-60%', '61-70%', '71-80%', '81-90%', '91-100%'];
-                    var binLabel = labels[index];
+                    var binLabels = {{{histogram_labels_json}}};
+                    var binLabel = binLabels[index] || '';
 
-                    var list = studentsData.filter(function(s) { return s.decile_bin === index; });
+                    var list = studentsData.filter(function(s) { return s.bin_20 === index; });
                     openDrilldownModal('Students with Score ' + binLabel + ' (' + list.length + ')', list);
-                    filterRosterTable('decile_' + index);
+                    filterRosterTable('bin_' + index);
                 }
             }
         }

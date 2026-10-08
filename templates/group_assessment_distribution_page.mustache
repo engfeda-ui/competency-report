@@ -89,6 +89,9 @@
                     <i class="fa fa-filter mr-1"></i> {{#str}}show, local_comp_report_ext{{/str}}
                 </button>
                 {{#has_data}}
+                    <button id="btn-export-asmtdist-excel-top" type="button" class="btn btn-outline-success font-weight-bold shadow-sm mr-2">
+                        <i class="fa fa-file-excel-o mr-1"></i> {{#str}}exportexcel, local_comp_report_ext{{/str}}
+                    </button>
                     <button id="btn-export-asmtdist-pdf-top" class="btn btn-outline-danger font-weight-bold shadow-sm">
                         <i class="fa fa-file-pdf-o mr-1"></i> {{#str}}exportpdf, local_comp_report_ext{{/str}}
                     </button>
@@ -194,6 +197,24 @@ require(['jquery'], function($) {
             }));
         });
 
+        $('body').append(form);
+        form.submit();
+        form.remove();
+    });
+
+    $('#btn-export-asmtdist-excel-top').on('click', function(e) {
+        e.preventDefault();
+        var form = $('<form>', {
+            action: M.cfg.wwwroot + '/local/comp_report_ext/group_assessment_distribution_excel.php',
+            method: 'GET',
+            target: '_blank'
+        });
+        form.append($('<input>', { type: 'hidden', name: 'courseid', value: "{{courseid}}" }));
+        form.append($('<input>', { type: 'hidden', name: 'groupid', value: "{{groupid}}" }));
+        var asmtIds = JSON.parse('{{{validasmtids_json}}}' || '[]');
+        $.each(asmtIds, function(i, id) {
+            form.append($('<input>', { type: 'hidden', name: 'assessmentids[]', value: id }));
+        });
         $('body').append(form);
         form.submit();
         form.remove();

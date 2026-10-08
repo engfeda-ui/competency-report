@@ -80,6 +80,9 @@
 
         <button type="submit" class="btn btn-primary mr-2">{{#str}}show, local_comp_report_ext{{/str}}</button>
         {{#has_data}}
+            <a href="group_quiz_competency_excel.php?courseid={{courseid}}&groupid={{groupid}}&quizid={{quizid}}" class="btn btn-outline-success font-weight-bold shadow-sm mr-2" target="_blank">
+                <i class="fa fa-file-excel-o mr-1"></i> {{#str}}exportexcel, local_comp_report_ext{{/str}}
+            </a>
             <button id="btn-export-group-quiz-pdf-top" class="btn btn-outline-danger font-weight-bold shadow-sm">
                 <i class="fa fa-file-pdf-o mr-1"></i> {{#str}}exportpdf, local_comp_report_ext{{/str}}
             </button>
@@ -102,7 +105,12 @@
                 <tbody>
                     {{#students}}
                         <tr>
-                            <td>{{{studentlink}}}</td>
+                            <td>
+                                {{{studentlink}}}
+                                {{#groupname}}
+                                    <span class="badge badge-secondary ml-2 font-weight-normal">{{groupname}}</span>
+                                {{/groupname}}
+                            </td>
                             <td class="text-center" style="color: {{quiz_grade_color}}; font-weight: bold;">
                                 {{#quiz_grade}}{{quiz_grade}} / {{quiz_maxgrade}}{{/quiz_grade}}
                                 {{^quiz_grade}}-{{/quiz_grade}}

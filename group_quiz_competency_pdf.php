@@ -106,6 +106,22 @@ if (!empty($students)) {
           AND quiza.userid $insql
         GROUP BY quiza.userid, m.competencyid", $inparams);
 
+    // Bulk-load student groups in this course to avoid N+1 queries.
+    $usergroups = [];
+    $gmparams = array_merge(['courseid' => $courseid], $inparams);
+    unset($gmparams['quizid']);
+    $gmrecords = $DB->get_records_sql("
+        SELECT gm.id, gm.userid, g.id AS groupid, g.name AS groupname
+          FROM {groups_members} gm
+          JOIN {groups} g ON g.id = gm.groupid
+         WHERE g.courseid = :courseid AND gm.userid $insql
+      ORDER BY g.name ASC
+    ", $gmparams);
+
+    foreach ($gmrecords as $gm) {
+        $usergroups[$gm->userid][] = format_string($gm->groupname);
+    }
+
     foreach ($rawscores as $rs) {
         $scoremap[$rs->userid][$rs->competencyid] = [
             'att' => (float)$rs->total_max,
@@ -135,8 +151,15 @@ $tablehtml .= '<tbody>';
 $grouptotals = [];
 
 foreach ($students as $s) {
+    $sname = fullname($s);
+    $ginfo = !empty($usergroups[$s->id]) ? implode(', ', $usergroups[$s->id]) : '';
+    $namelabel = '<b>' . s($sname) . '</b>';
+    if ($ginfo) {
+        $namelabel .= '<br><span style="color:#6c757d; font-size:7pt;">(' . s($ginfo) . ')</span>';
+    }
+
     $tablehtml .= '<tr>';
-    $tablehtml .= '  <td width="' . $studentwidth . '%"><b>' . s(fullname($s)) . '</b></td>';
+    $tablehtml .= '  <td width="' . $studentwidth . '%">' . $namelabel . '</td>';
 
     foreach ($competencies as $c) {
         $celltext = '-';

@@ -5,7 +5,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.25.4-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.26.0-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -473,6 +473,18 @@ npx grunt amd --files=local/comp_report_ext
 ---
 
 ## 📋 Changelog
+
+### v3.26.0 (2026100800) — 2026-10-08
+- **Feature (Student Group Display Across All Group Reports):**
+  - Surfaced student group cohort names as badges next to student names in **Group Competency Analysis** (`group_competency.php`), **Quiz Competency Analysis** (`group_quiz_competency.php`), **Group Assessment Distribution** (`group_assessment_distribution.php`), and **Analytics by Grades** (`group_exam_analytics.php`), making it effortless for instructors to identify student cohorts in "All Groups" views.
+- **Feature (Enterprise Native Excel & PDF Exports Across All Reports):**
+  - Added native binary Excel (`.xlsx`) export via `MoodleExcelWorkbook` for all 4 group reports (`group_competency_excel.php`, `group_quiz_competency_excel.php`, `group_assessment_distribution_excel.php`, `group_exam_analytics_excel.php`) with Navy headers, auto-calculated column widths, and grade summaries.
+  - Added structured PDF export for Exam Analytics (`group_exam_analytics_pdf.php`) and updated existing PDF exports to include student group cohort info.
+- **Feature (Psychometric 20-Bin Grade Histogram & Gaussian Bell Curve Overlay):**
+  - Upgraded Exam Analytics (`group_exam_analytics.php`) with a 20-bin histogram (5% bins: 0–5% ... 95–100%) and Gaussian normal distribution curve overlay ($\mu$ and $\sigma$ metrics) directly mirroring the SANAD platform (`itp.sanad.ws`).
+  - Added interactive 20-bin student drill-down modal on chart click.
+- **Bug Fix & Unification (Competency Calculator Parity):**
+  - Unified competency rate calculation in `group_competency.php` with `\local_comp_report_ext\competency_calculator`, ensuring mathematical consistency with student detail reports and assessment weight configurations.
 
 ### v3.25.2 — 2026-09-28
 - **Hardened Assessment Setup Deletion (`formnovalidate` & Dual POST/GET Pipeline):**
