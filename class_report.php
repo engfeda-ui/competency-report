@@ -76,9 +76,9 @@ $coursesql = "SELECT c.id, c.shortname,
               FROM {quiz_attempts} quiza
               JOIN {question_usages} qu ON qu.id = quiza.uniqueid
               JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-              JOIN {quiz} quiz ON quiz.id = quiza.quiz
-              JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
-              JOIN {competency} c ON c.id = m.competencyid
+               JOIN {quiz} quiz ON quiz.id = quiza.quiz
+               JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid AND m.courseid = :mapcourseid
+               JOIN {competency} c ON c.id = m.competencyid
               JOIN (SELECT s.questionattemptid, MAX(s.fraction) AS fraction
                       FROM {question_attempt_steps} s
                       JOIN {question_attempts} qa2 ON qa2.id = s.questionattemptid
@@ -95,7 +95,8 @@ if ($competency) {
 }
 $coursesql .= " GROUP BY c.id, c.shortname";
 
-$params = ['courseid' => $courseid, 'subcourseid' => $courseid, 'competencyid' => $competency];
+$params = ['courseid' => $courseid, 'subcourseid' => $courseid, 'mapcourseid' => $courseid,
+    'competencyid' => $competency];
 $coursedata = $DB->get_records_sql($coursesql, $params);
 
 if (!empty($coursedata)) {
@@ -126,6 +127,7 @@ if (!empty($coursedata)) {
             $classparams = array_merge([
                 'courseid'     => $courseid,
                 'subcourseid'  => $courseid,
+                'mapcourseid'  => $courseid,
                 'competencyid' => $competency,
             ], $groupparams);
             $classdata = $DB->get_records_sql($classsql, $classparams);
@@ -146,6 +148,7 @@ if (!empty($coursedata)) {
                 $classdata = $DB->get_records_sql($classsql, [
                     'courseid' => $courseid,
                     'subcourseid' => $courseid,
+                    'mapcourseid' => $courseid,
                     'dept' => $userdept,
                     'competencyid' => $competency,
                 ]);
@@ -166,6 +169,7 @@ if (!empty($coursedata)) {
         $studentdata = $DB->get_records_sql($studentsql, [
             'courseid' => $courseid,
             'subcourseid' => $courseid,
+            'mapcourseid' => $courseid,
             'userid' => $userid,
             'competencyid' => $competency,
         ]);

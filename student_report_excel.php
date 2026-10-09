@@ -24,6 +24,7 @@
 
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->libdir . '/excellib.class.php');
+require_once(__DIR__ . '/lib.php');
 
 $courseid = required_param('courseid', PARAM_INT);
 $userid   = optional_param('userid', 0, PARAM_INT);
@@ -118,15 +119,13 @@ foreach ($classavgrows as $cr) {
 /**
  * Sanitize a string for Excel export to prevent formula injection.
  *
+ * Delegates to the canonical lib helper.
+ *
  * @param mixed $str
  * @return string
  */
 function safe_excel_str($str): string {
-    $clean = clean_param(strip_tags((string)$str), PARAM_TEXT);
-    if ($clean !== '' && in_array($clean[0], ['=', '+', '-', '@'], true)) {
-        return "'" . $clean;
-    }
-    return $clean;
+    return local_comp_report_ext_safe_excel_str($str);
 }
 
 $filename = clean_filename('ReportCard_' . $student->username . '_' . date('Ymd_His') . '.xlsx');

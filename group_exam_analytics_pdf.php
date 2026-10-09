@@ -120,47 +120,34 @@ if (!empty($studentids)) {
     }
 }
 
-$threshold = (int)(get_config('local_comp_report_ext', 'success_threshold') ?: 60);
+$threshold = (float)(get_config('local_comp_report_ext', 'success_threshold') ?: 60.0);
+$passcap = round($threshold, 1);
 
 if ($quiz && !empty($students)) {
     $sumgradesmax = (float)($quiz->sumgrades > 0 ? $quiz->sumgrades : 100.0);
     $quizmaxgrade = (float)($quiz->grade > 0 ? $quiz->grade : $sumgradesmax);
 
-    // Retake detection.
-    $retake1quizzes = [];
-    $retake2quizzes = [];
-    foreach ($allquizzes as $cq) {
-        if ((int)$cq->id === (int)$quiz->id) {
-            continue;
-        }
-        $cname = $cq->name;
-        $r1regex = '/(retake[\s\-]*1|1[\s]*st[\s]*retake|first[\s\-]*retake|' .
-            'إعادة[\s]*1|الإعادة[\s]*الأولى|الدور[\s]*الثاني|محاولة[\s]*2)/iu';
-        $r2regex = '/(retake[\s\-]*2|2[\s]*nd[\s]*retake|second[\s\-]*retake|' .
-            'إعادة[\s]*2|الإعادة[\s]*الثانية|الدور[\s]*الثالث|محاولة[\s]*3)/iu';
-        $isretake1 = preg_match($r1regex, $cname);
-        $isretake2 = preg_match($r2regex, $cname);
-        if ($isretake1) {
-            $retake1quizzes[$cq->id] = $cq;
-        } else if ($isretake2) {
-            $retake2quizzes[$cq->id] = $cq;
-        }
-    }
+    // Retake detection + bulk attempts (shared helpers, 3 queries).
+    [$retake1quizzes, $retake2quizzes] =
+        local_comp_report_ext_detect_retake_quizzes($allquizzes, (int)$quiz->id);
+    [$userattempts, $userr1attempts, $userr2attempts] = local_comp_report_ext_bulk_load_quiz_attempts(
+        (int)$quiz->id,
+        $studentids,
+        $retake1quizzes,
+        $retake2quizzes
+    );
 
     foreach ($students as $student) {
-        $attempts = $DB->get_records_sql(
-            "SELECT id, attempt, sumgrades FROM {quiz_attempts}
-              WHERE quiz = :quizid AND userid = :userid AND state = 'finished'
-           ORDER BY attempt ASC",
-            ['quizid' => $quiz->id, 'userid' => $student->id]
-        );
+        $attempts = $userattempts[$student->id] ?? [];
 
         $attscores = [];
+        $attraws = [];
         if (!empty($attempts)) {
             foreach ($attempts as $att) {
                 if ($att->sumgrades !== null) {
                     $attnum = (int)$att->attempt;
                     $attscores[$attnum] = round(((float)$att->sumgrades / $sumgradesmax) * 100.0, 1);
+                    $attraws[$attnum] = (float)$att->sumgrades;
                 }
             }
         }
@@ -169,46 +156,26 @@ if ($quiz && !empty($students)) {
         $att2score = $attscores[2] ?? null;
         $att3score = $attscores[3] ?? null;
 
-        // Fallback to separate retake quizzes.
-        if ($att2score === null && !empty($retake1quizzes)) {
-            $retake1quizids = array_keys($retake1quizzes);
-            [$in1sql, $in1params] = $DB->get_in_or_equal($retake1quizids, SQL_PARAMS_NAMED, 'rq1');
-            $in1params['userid'] = $student->id;
-            $r1attempts = $DB->get_records_sql(
-                "SELECT id, quiz, sumgrades FROM {quiz_attempts}
-                  WHERE quiz $in1sql AND userid = :userid AND state = 'finished'
-               ORDER BY sumgrades DESC",
-                $in1params,
-                0,
-                1
-            );
-            if (!empty($r1attempts)) {
-                $r1att = reset($r1attempts);
-                $r1max = (float)($retake1quizzes[$r1att->quiz]->sumgrades > 0 ? $retake1quizzes[$r1att->quiz]->sumgrades : 100.0);
-                if ($r1att->sumgrades !== null) {
-                    $att2score = round(((float)$r1att->sumgrades / $r1max) * 100.0, 1);
-                }
+        $att1raw = $attraws[1] ?? null;
+        $att2raw = $attraws[2] ?? null;
+        $att3raw = $attraws[3] ?? null;
+
+        // Fallback to separate retake quizzes (in-memory, no per-student queries).
+        if ($att2score === null && isset($userr1attempts[$student->id])) {
+            $r1att = $userr1attempts[$student->id];
+            $r1max = (float)($retake1quizzes[$r1att->quiz]->sumgrades > 0 ? $retake1quizzes[$r1att->quiz]->sumgrades : 100.0);
+            if ($r1att->sumgrades !== null) {
+                $att2score = round(((float)$r1att->sumgrades / $r1max) * 100.0, 1);
+                $att2raw = (float)$r1att->sumgrades;
             }
         }
 
-        if ($att3score === null && !empty($retake2quizzes)) {
-            $retake2quizids = array_keys($retake2quizzes);
-            [$in2sql, $in2params] = $DB->get_in_or_equal($retake2quizids, SQL_PARAMS_NAMED, 'rq2');
-            $in2params['userid'] = $student->id;
-            $r2attempts = $DB->get_records_sql(
-                "SELECT id, quiz, sumgrades FROM {quiz_attempts}
-                  WHERE quiz $in2sql AND userid = :userid AND state = 'finished'
-               ORDER BY sumgrades DESC",
-                $in2params,
-                0,
-                1
-            );
-            if (!empty($r2attempts)) {
-                $r2att = reset($r2attempts);
-                $r2max = (float)($retake2quizzes[$r2att->quiz]->sumgrades > 0 ? $retake2quizzes[$r2att->quiz]->sumgrades : 100.0);
-                if ($r2att->sumgrades !== null) {
-                    $att3score = round(((float)$r2att->sumgrades / $r2max) * 100.0, 1);
-                }
+        if ($att3score === null && isset($userr2attempts[$student->id])) {
+            $r2att = $userr2attempts[$student->id];
+            $r2max = (float)($retake2quizzes[$r2att->quiz]->sumgrades > 0 ? $retake2quizzes[$r2att->quiz]->sumgrades : 100.0);
+            if ($r2att->sumgrades !== null) {
+                $att3score = round(((float)$r2att->sumgrades / $r2max) * 100.0, 1);
+                $att3raw = (float)$r2att->sumgrades;
             }
         }
 
@@ -217,33 +184,45 @@ if ($quiz && !empty($students)) {
             $retakecount = ($att2score !== null ? 1 : 0) + ($att3score !== null ? 1 : 0);
 
             $scorepct = 0.0;
+            $finalraw = 0.0;
             $statuslabel = '—';
 
-            // 60% retake policy cap.
-            if ($att1score !== null && $att1score >= 60.0) {
+            // Retake policy cap at configured threshold (same formula as HTML view).
+            if ($att1score !== null && $att1score >= $threshold) {
                 $scorepct = $att1score;
+                $finalraw = (float)$att1raw;
                 $statuslabel = get_string('passed_first_attempt', 'local_comp_report_ext');
-            } else if ($att2score !== null && $att2score >= 60.0) {
-                $scorepct = 60.0;
-                $statuslabel = get_string('passed_retake_1', 'local_comp_report_ext') . ' (Cap 60%)';
-            } else if ($att3score !== null && $att3score >= 60.0) {
-                $scorepct = 60.0;
-                $statuslabel = get_string('passed_retake_2', 'local_comp_report_ext') . ' (Cap 60%)';
+            } else if ($att2score !== null && $att2score >= $threshold) {
+                $scorepct = $passcap;
+                $finalraw = round(($threshold / 100.0) * $sumgradesmax, 2);
+                $statuslabel = get_string('passed_retake_1', 'local_comp_report_ext') . ' (Cap ' . $passcap . '%)';
+            } else if ($att3score !== null && $att3score >= $threshold) {
+                $scorepct = $passcap;
+                $finalraw = round(($threshold / 100.0) * $sumgradesmax, 2);
+                $statuslabel = get_string('passed_retake_2', 'local_comp_report_ext') . ' (Cap ' . $passcap . '%)';
             } else {
                 $scorepct = !empty($validscores) ? max($validscores) : 0.0;
+                if ($att1score !== null && $att1score === $scorepct) {
+                    $finalraw = (float)$att1raw;
+                } else if ($att2score !== null && $att2score === $scorepct) {
+                    $finalraw = (float)$att2raw;
+                } else if ($att3score !== null && $att3score === $scorepct) {
+                    $finalraw = (float)$att3raw;
+                }
                 $statuslabel = get_string('failed_status', 'local_comp_report_ext');
             }
 
             $rawscores[] = $scorepct;
 
+            $finalgradeval = ($sumgradesmax > 0) ? round(($finalraw / $sumgradesmax) * $quizmaxgrade, 2) : 0.0;
             $studentlist[] = [
                 'fullname'   => fullname($student),
                 'group'      => !empty($usergroups[$student->id]) ? implode(', ', $usergroups[$student->id]) : '—',
-                'att1'       => ($att1score !== null) ? '%' . number_format($att1score, 1) : '—',
-                'att2'       => ($att2score !== null) ? '%' . number_format($att2score, 1) : '—',
-                'att3'       => ($att3score !== null) ? '%' . number_format($att3score, 1) : '—',
-                'finalscore' => '%' . number_format($scorepct, 1),
-                'finalgrade' => number_format(($scorepct / 100.0) * $quizmaxgrade, 1) . ' / ' . number_format($quizmaxgrade, 1),
+                'att1'       => ($att1score !== null) ? number_format($att1score, 1) . '%' : '—',
+                'att2'       => ($att2score !== null) ? number_format($att2score, 1) . '%' : '—',
+                'att3'       => ($att3score !== null) ? number_format($att3score, 1) . '%' : '—',
+                'finalscore' => number_format($scorepct, 1) . '%',
+                'finalgrade' => number_format($finalgradeval, 2) . ' / ' . number_format($quizmaxgrade, 2),
                 'status'     => $statuslabel,
             ];
         }
@@ -302,19 +281,19 @@ $html .= '<p style="color:#64748b; font-size:9pt; margin-top:0;"><b>'
 $html .= '<table cellpadding="6" style="margin-bottom:12px; font-size:9pt; border-collapse:collapse;"><tr>';
 $html .= '<td style="background-color:#eff6ff; border:1px solid #bfdbfe; width:16%; text-align:center;">'
     . '<b>' . get_string('exam_avg_score', 'local_comp_report_ext') . '</b><br>'
-    . '<span style="font-size:12pt; color:#1d4ed8;">%' . number_format($examavg, 1) . '</span></td>';
+    . '<span style="font-size:12pt; color:#1d4ed8;">' . number_format($examavg, 1) . '%</span></td>';
 $html .= '<td style="background-color:#f0fdf4; border:1px solid #bbf7d0; width:16%; text-align:center;">'
     . '<b>' . get_string('exam_pass_rate_label', 'local_comp_report_ext') . '</b><br>'
-    . '<span style="font-size:12pt; color:#15803d;">%' . number_format($passrate, 1) . '</span></td>';
+    . '<span style="font-size:12pt; color:#15803d;">' . number_format($passrate, 1) . '%</span></td>';
 $html .= '<td style="background-color:#fefce8; border:1px solid #fef08a; width:16%; text-align:center;">'
     . '<b>' . get_string('exam_highest_score', 'local_comp_report_ext') . '</b><br>'
-    . '<span style="font-size:12pt; color:#a16207;">%' . number_format($highestscore, 1) . '</span></td>';
+    . '<span style="font-size:12pt; color:#a16207;">' . number_format($highestscore, 1) . '%</span></td>';
 $html .= '<td style="background-color:#fff1f2; border:1px solid #fecdd3; width:16%; text-align:center;">'
     . '<b>' . get_string('exam_lowest_score', 'local_comp_report_ext') . '</b><br>'
-    . '<span style="font-size:12pt; color:#be123c;">%' . number_format($lowestscore, 1) . '</span></td>';
+    . '<span style="font-size:12pt; color:#be123c;">' . number_format($lowestscore, 1) . '%</span></td>';
 $html .= '<td style="background-color:#f8fafc; border:1px solid #e2e8f0; width:18%; text-align:center;">'
     . '<b>' . get_string('stats_mean', 'local_comp_report_ext') . '</b><br>'
-    . '<span style="font-size:12pt; color:#334155;">%' . number_format($examavg, 1) . '</span></td>';
+    . '<span style="font-size:12pt; color:#334155;">' . number_format($examavg, 1) . '%</span></td>';
 $html .= '<td style="background-color:#f8fafc; border:1px solid #e2e8f0; width:18%; text-align:center;">'
     . '<b>' . get_string('stats_sigma', 'local_comp_report_ext') . '</b><br>'
     . '<span style="font-size:12pt; color:#334155;">' . number_format($statsigma, 1) . '</span></td>';

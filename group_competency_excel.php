@@ -24,6 +24,7 @@
 
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->libdir . '/excellib.class.php');
+require_once(__DIR__ . '/lib.php');
 
 $courseid = required_param('courseid', PARAM_INT);
 $groupid  = optional_param('groupid', 0, PARAM_INT);
@@ -104,15 +105,13 @@ if (!empty($students)) {
 /**
  * Sanitize cell values against CSV/Excel Formula Injection.
  *
+ * Delegates to the canonical lib helper.
+ *
  * @param mixed $val
  * @return string
  */
 function safe_excel_str($val): string {
-    $str = (string)$val;
-    if ($str !== '' && in_array($str[0], ['=', '+', '-', '@', "\t", "\r"])) {
-        return "'" . $str;
-    }
-    return $str;
+    return local_comp_report_ext_safe_excel_str($val);
 }
 
 // 4. Create Excel Workbook.
@@ -180,10 +179,11 @@ $formattotalleft = $workbook->add_format([
 
 // Write Title & Metadata.
 $row = 0;
-$titletext = format_string($course->fullname) . ' — ' . get_string('groupperformance', 'local_comp_report_ext');
+$titletext = safe_excel_str(format_string($course->fullname)) . ' — ' .
+    get_string('groupperformance', 'local_comp_report_ext');
 $worksheet->write_string($row, 0, $titletext, $formattitle);
 $row++;
-$metatext = get_string('group', 'local_comp_report_ext') . ': ' . $groupname . '  |  ' . userdate(time());
+$metatext = get_string('group', 'local_comp_report_ext') . ': ' . safe_excel_str($groupname) . '  |  ' . userdate(time());
 $worksheet->write_string($row, 0, $metatext, $formatmeta);
 $row += 2;
 
@@ -194,7 +194,7 @@ $worksheet->write_string($row, $col++, get_string('student', 'local_comp_report_
 $worksheet->write_string($row, $col++, get_string('group', 'local_comp_report_ext'), $formatheaderleft);
 
 foreach ($competencies as $c) {
-    $worksheet->write_string($row, $col++, format_string($c->shortname), $formatheader);
+    $worksheet->write_string($row, $col++, safe_excel_str(format_string($c->shortname)), $formatheader);
 }
 $worksheet->write_string($row, $col++, get_string('averagegrade', 'local_comp_report_ext'), $formatheader);
 $row++;

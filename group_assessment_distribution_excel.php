@@ -24,6 +24,7 @@
 
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->libdir . '/excellib.class.php');
+require_once(__DIR__ . '/lib.php');
 
 $courseid        = required_param('courseid', PARAM_INT);
 $groupid         = optional_param('groupid', 0, PARAM_INT);
@@ -107,15 +108,13 @@ $calculator = new \local_comp_report_ext\competency_calculator($courseid);
 /**
  * Sanitize cell values against CSV/Excel Formula Injection.
  *
+ * Delegates to the canonical lib helper.
+ *
  * @param mixed $val
  * @return string
  */
 function safe_excel_str($val): string {
-    $str = (string)$val;
-    if ($str !== '' && in_array($str[0], ['=', '+', '-', '@', "\t", "\r"])) {
-        return "'" . $str;
-    }
-    return $str;
+    return local_comp_report_ext_safe_excel_str($val);
 }
 
 // 3. Create Excel Workbook.

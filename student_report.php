@@ -128,7 +128,7 @@ $chartdata = json_encode([
     'labels'   => $chartlabels,
     'student'  => $chartstudent,
     'class'    => $chartclass,
-]);
+], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
 
 // 4. Prepare Render Data Object.
 $renderdata = new stdClass();

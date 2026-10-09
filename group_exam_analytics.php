@@ -24,6 +24,7 @@
 
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->dirroot . '/group/lib.php');
+require_once(__DIR__ . '/lib.php');
 
 $courseid = required_param('courseid', PARAM_INT);
 $groupid  = optional_param('groupid', 0, PARAM_INT);
@@ -41,7 +42,13 @@ if (!$canviewext && !$canviewold) {
 
 $urlparams = ['courseid' => $courseid];
 if ($groupid > 0) {
-    $urlparams['groupid'] = $groupid;
+    // Validate group belongs to this course; ignore foreign groupids (consistent with _excel/_pdf).
+    $groupcheck = $DB->get_record('groups', ['id' => $groupid, 'courseid' => $courseid]);
+    if (!$groupcheck) {
+        $groupid = 0;
+    } else {
+        $urlparams['groupid'] = $groupid;
+    }
 }
 if ($quizid > 0) {
     $urlparams['quizid'] = $quizid;
@@ -184,103 +191,26 @@ if (!empty($studentids)) {
     }
 }
 
-$threshold = (int)(get_config('local_comp_report_ext', 'success_threshold') ?: 60);
+$threshold = (float)(get_config('local_comp_report_ext', 'success_threshold') ?: 60.0);
+$passcap = round($threshold, 1);
 
 if ($quiz && !empty($students)) {
     $sumgradesmax = (float)($quiz->sumgrades > 0 ? $quiz->sumgrades : 100.0);
     $quizmaxgrade = (float)($quiz->grade > 0 ? $quiz->grade : $sumgradesmax);
     $hasdiffmax   = (abs($quizmaxgrade - $sumgradesmax) > 0.01);
 
-    // Detect any separate retake quizzes in the same course (e.g. "Final Exam - Retake 1", "إعادة اختبار", etc.).
+    // Detect any separate retake quizzes in the same course (shared helper, EN/AR names).
     $allcoursequizzes = $DB->get_records('quiz', ['course' => $courseid], 'id ASC', 'id, name, sumgrades');
-    $retake1quizzes = [];
-    $retake2quizzes = [];
+    [$retake1quizzes, $retake2quizzes] =
+        local_comp_report_ext_detect_retake_quizzes($allcoursequizzes, (int)$quiz->id);
 
-    foreach ($allcoursequizzes as $cq) {
-        if ((int)$cq->id === (int)$quiz->id) {
-            continue;
-        }
-        $cname = $cq->name;
-
-        /*
-         * Detect Retake 1 / 2nd Attempt.
-         * Supports: Retake 1, Retake-1, 1st Retake, First Retake, Final Exam Retake 1, etc.
-         */
-        $isretake1 = preg_match(
-            '/(retake[\s\-]*1|1[\s]*st[\s]*retake|first[\s\-]*retake|'
-            . 'إعادة[\s]*1|الإعادة[\s]*الأولى|الدور[\s]*الثاني|محاولة[\s]*2)/iu',
-            $cname
-        );
-
-        /*
-         * Detect Retake 2 / 3rd Attempt.
-         * Supports: Retake 2, Retake-2, 2nd Retake, Second Retake, Final Exam Retake 2, etc.
-         */
-        $isretake2 = preg_match(
-            '/(retake[\s\-]*2|2[\s]*nd[\s]*retake|second[\s\-]*retake|'
-            . 'إعادة[\s]*2|الإعادة[\s]*الثانية|الدور[\s]*الثالث|محاولة[\s]*3)/iu',
-            $cname
-        );
-
-        if ($isretake1) {
-            $retake1quizzes[$cq->id] = $cq;
-        } else if ($isretake2) {
-            $retake2quizzes[$cq->id] = $cq;
-        }
-    }
-
-    // Bulk-load student attempts for primary quiz and retakes (eliminates N+1 queries).
-    $userattempts = [];
-    $userr1attempts = [];
-    $userr2attempts = [];
-
-    if (!empty($studentids)) {
-        [$uinsql, $uinparams] = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'attuid');
-        $uinparams['aquizid'] = $quiz->id;
-        $allattempts = $DB->get_records_sql(
-            "SELECT id, userid, attempt, sumgrades, timefinish FROM {quiz_attempts}
-              WHERE quiz = :aquizid AND userid $uinsql AND state = 'finished'
-           ORDER BY userid ASC, attempt ASC",
-            $uinparams
-        );
-        foreach ($allattempts as $att) {
-            $userattempts[$att->userid][] = $att;
-        }
-
-        if (!empty($retake1quizzes)) {
-            $r1quizids = array_keys($retake1quizzes);
-            [$r1qinsql, $r1qparams] = $DB->get_in_or_equal($r1quizids, SQL_PARAMS_NAMED, 'r1qid');
-            [$r1uinsql, $r1uparams] = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'r1uid');
-            $allr1 = $DB->get_records_sql(
-                "SELECT id, userid, quiz, sumgrades, timefinish FROM {quiz_attempts}
-                  WHERE quiz $r1qinsql AND userid $r1uinsql AND state = 'finished'
-               ORDER BY userid ASC, sumgrades DESC, timefinish DESC",
-                array_merge($r1qparams, $r1uparams)
-            );
-            foreach ($allr1 as $att) {
-                if (!isset($userr1attempts[$att->userid])) {
-                    $userr1attempts[$att->userid] = $att;
-                }
-            }
-        }
-
-        if (!empty($retake2quizzes)) {
-            $r2quizids = array_keys($retake2quizzes);
-            [$r2qinsql, $r2qparams] = $DB->get_in_or_equal($r2quizids, SQL_PARAMS_NAMED, 'r2qid');
-            [$r2uinsql, $r2uparams] = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'r2uid');
-            $allr2 = $DB->get_records_sql(
-                "SELECT id, userid, quiz, sumgrades, timefinish FROM {quiz_attempts}
-                  WHERE quiz $r2qinsql AND userid $r2uinsql AND state = 'finished'
-               ORDER BY userid ASC, sumgrades DESC, timefinish DESC",
-                array_merge($r2qparams, $r2uparams)
-            );
-            foreach ($allr2 as $att) {
-                if (!isset($userr2attempts[$att->userid])) {
-                    $userr2attempts[$att->userid] = $att;
-                }
-            }
-        }
-    }
+    // Bulk-load student attempts for primary quiz and retakes (shared helper, 3 queries).
+    [$userattempts, $userr1attempts, $userr2attempts] = local_comp_report_ext_bulk_load_quiz_attempts(
+        (int)$quiz->id,
+        $studentids,
+        $retake1quizzes,
+        $retake2quizzes
+    );
 
     foreach ($students as $student) {
         // 1. Finished attempts from the primary quiz.
@@ -345,23 +275,23 @@ if ($quiz && !empty($students)) {
             $retakestatuslabel = '—';
             $retakestatusbadge = 'badge-secondary';
 
-            // Determine final recorded grade according to the 3-attempt retake policy (60% cap).
-            if ($att1score !== null && $att1score >= 60.0) {
+            // Determine final recorded grade according to the 3-attempt retake policy (capped at threshold).
+            if ($att1score !== null && $att1score >= $threshold) {
                 // Passed on original 1st attempt with natural score.
                 $scorepct = $att1score;
                 $finalraw = (float)$att1raw;
                 $retakestatuslabel = get_string('passed_first_attempt', 'local_comp_report_ext');
                 $retakestatusbadge = 'badge-success';
-            } else if ($att2score !== null && $att2score >= 60.0) {
-                // Passed on Retake 1 — capped at 60.0%.
-                $scorepct = 60.0;
-                $finalraw = round(0.60 * $sumgradesmax, 2);
+            } else if ($att2score !== null && $att2score >= $threshold) {
+                // Passed on Retake 1 — capped at threshold.
+                $scorepct = $passcap;
+                $finalraw = round(($threshold / 100.0) * $sumgradesmax, 2);
                 $retakestatuslabel = get_string('passed_retake_1', 'local_comp_report_ext');
                 $retakestatusbadge = 'badge-info';
-            } else if ($att3score !== null && $att3score >= 60.0) {
-                // Passed on Retake 2 — capped at 60.0%.
-                $scorepct = 60.0;
-                $finalraw = round(0.60 * $sumgradesmax, 2);
+            } else if ($att3score !== null && $att3score >= $threshold) {
+                // Passed on Retake 2 — capped at threshold.
+                $scorepct = $passcap;
+                $finalraw = round(($threshold / 100.0) * $sumgradesmax, 2);
                 $retakestatuslabel = get_string('passed_retake_2', 'local_comp_report_ext');
                 $retakestatusbadge = 'badge-primary';
             } else {
@@ -383,7 +313,7 @@ if ($quiz && !empty($students)) {
             $rawscores[] = $scorepct;
 
             // Tier assignment based on final recorded score.
-            if ($scorepct < 60) {
+            if ($scorepct < $threshold) {
                 $tier = 'failed';
                 $tiername = get_string('grade_tier_failed', 'local_comp_report_ext') ?: 'At-Risk (< 60%)';
                 $badgeclass = 'badge-danger';
@@ -442,8 +372,8 @@ if ($quiz && !empty($students)) {
             // Final Recorded Grade.
             $finalgrade = '';
             if ($quizmaxgrade > 0 && $sumgradesmax > 0) {
-                if ($scorepct == 60.0 && ($att1score === null || $att1score < 60.0)) {
-                    $finalscaled = round(0.60 * $quizmaxgrade, 2);
+                if ($scorepct == $passcap && ($att1score === null || $att1score < $threshold)) {
+                    $finalscaled = round(($threshold / 100.0) * $quizmaxgrade, 2);
                 } else {
                     $finalscaled = round(($finalraw / $sumgradesmax) * $quizmaxgrade, 2);
                 }
@@ -451,8 +381,9 @@ if ($quiz && !empty($students)) {
             }
             $finalitems = '';
             if ($hasdiffmax && $sumgradesmax > 0) {
-                if ($scorepct == 60.0 && ($att1score === null || $att1score < 60.0)) {
-                    $finalitems = (0 + round(0.60 * $sumgradesmax, 1)) . '/' . (0 + round($sumgradesmax, 2)) . ' ' . $qslabel;
+                if ($scorepct == $passcap && ($att1score === null || $att1score < $threshold)) {
+                    $capraw = round(($threshold / 100.0) * $sumgradesmax, 1);
+                    $finalitems = (0 + $capraw) . '/' . (0 + round($sumgradesmax, 2)) . ' ' . $qslabel;
                 } else {
                     $finalitems = (0 + round($finalraw, 2)) . '/' . (0 + round($sumgradesmax, 2)) . ' ' . $qslabel;
                 }
@@ -537,7 +468,7 @@ if ($hasdata) {
         $scorehistogram20[$bin20]++;
 
         // Academic tiers.
-        if ($score < 60) {
+        if ($score < $threshold) {
             $tiercounts['failed']++;
         } else if ($score < 75) {
             $tiercounts['passing']++;
@@ -585,11 +516,59 @@ if ($quiz) {
               FROM {question_attempts} qa
               JOIN {question_attempt_steps} qas ON qas.questionattemptid = qa.id
               JOIN {quiz_attempts} qua ON qua.uniqueid = qa.questionusageid
+              JOIN {quiz} qfilter ON qfilter.id = qua.quiz
              WHERE qua.quiz = :quizid
+               AND qfilter.course = :courseid
                AND qua.state = 'finished'
                AND qas.fraction IS NOT NULL
              GROUP BY qa.questionid";
-        $fracmap = $DB->get_records_sql_menu($fracsql, ['quizid' => $quiz->id]);
+        $fracmap = $DB->get_records_sql_menu($fracsql, ['quizid' => $quiz->id, 'courseid' => $courseid]);
+
+        // True discrimination index (upper-lower 27% method): per-question gap between
+        // the mean fraction of the top 27% scorers and the bottom 27% scorers.
+        // One bulk query; consistent with the difficulty calc (all finished attempts).
+        $discmap = [];
+        $ranked = $studentlist;
+        usort($ranked, function ($a, $b) {
+            return $b['average_raw'] <=> $a['average_raw'];
+        });
+        $rankedn = count($ranked);
+        if ($rankedn >= 2) {
+            $gsize = max(1, (int)ceil($rankedn * 0.27));
+            $upperids = [];
+            foreach (array_slice($ranked, 0, $gsize) as $row) {
+                $upperids[] = (int)$row['id'];
+            }
+            $lowerids = [];
+            foreach (array_slice($ranked, -$gsize) as $row) {
+                $lowerids[] = (int)$row['id'];
+            }
+            if (empty(array_intersect($upperids, $lowerids))) {
+                [$uppersql, $upperparams] = $DB->get_in_or_equal($upperids, SQL_PARAMS_NAMED, 'discup');
+                [$lowersql, $lowerparams] = $DB->get_in_or_equal($lowerids, SQL_PARAMS_NAMED, 'disclo');
+                $discrows = $DB->get_records_sql(
+                    "SELECT qa.questionid,
+                            AVG(CASE WHEN qua.userid $uppersql THEN qas.fraction END) AS upperavg,
+                            AVG(CASE WHEN qua.userid $lowersql THEN qas.fraction END) AS loweravg
+                       FROM {question_attempts} qa
+                       JOIN {question_attempt_steps} qas ON qas.questionattemptid = qa.id
+                       JOIN {quiz_attempts} qua ON qua.uniqueid = qa.questionusageid
+                       JOIN {quiz} qfilter ON qfilter.id = qua.quiz
+                      WHERE qua.quiz = :quizid
+                        AND qfilter.course = :courseid
+                        AND qua.state = 'finished'
+                        AND qas.fraction IS NOT NULL
+                   GROUP BY qa.questionid",
+                    array_merge(['quizid' => $quiz->id, 'courseid' => $courseid], $upperparams, $lowerparams)
+                );
+                foreach ($discrows as $qid => $drow) {
+                    if ($drow->upperavg !== null && $drow->loweravg !== null) {
+                        $disc = round(((float)$drow->upperavg - (float)$drow->loweravg) * 100, 1);
+                        $discmap[$qid] = min(100, max(-100, $disc));
+                    }
+                }
+            }
+        }
 
         foreach ($questions as $q) {
             $avgfrac = $fracmap[$q->id] ?? null;
@@ -601,8 +580,7 @@ if ($quiz) {
 
             $itemlabels[] = $qname;
             $itemdifficulty[] = $pval;
-            // Estimated discrimination index based on item performance spread.
-            $itemdiscrimination[] = min(100, max(0, round($pval * 0.85 + ($q->id % 12), 1)));
+            $itemdiscrimination[] = $discmap[$q->id] ?? 0.0;
         }
     }
 }
@@ -625,23 +603,23 @@ $renderdata->lowest_score      = number_format($lowestscore, 1);
 $renderdata->stats_mean        = number_format($statmean, 1);
 $renderdata->stats_sigma       = number_format($statsigma, 1);
 
-$renderdata->histogram_labels_json = json_encode($binlabels20);
-$renderdata->histogram_data_json   = json_encode($scorehistogram20);
-$renderdata->gaussian_curve_json   = json_encode($gaussiancurve);
+$renderdata->histogram_labels_json = json_encode($binlabels20, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
+$renderdata->histogram_data_json   = json_encode($scorehistogram20, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
+$renderdata->gaussian_curve_json   = json_encode($gaussiancurve, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
 
 $renderdata->tier_data_json        = json_encode([
     $tiercounts['failed'],
     $tiercounts['passing'],
     $tiercounts['verygood'],
     $tiercounts['outstanding'],
-]);
+], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
 
-$renderdata->item_labels_json      = json_encode($itemlabels);
-$renderdata->item_difficulty_json  = json_encode($itemdifficulty);
-$renderdata->item_discrim_json     = json_encode($itemdiscrimination);
+$renderdata->item_labels_json      = json_encode($itemlabels, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
+$renderdata->item_difficulty_json  = json_encode($itemdifficulty, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
+$renderdata->item_discrim_json     = json_encode($itemdiscrimination, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
 
 $renderdata->student_list          = $studentlist;
-$renderdata->student_list_json     = json_encode($studentlist);
+$renderdata->student_list_json     = json_encode($studentlist, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
 
 echo $OUTPUT->header();
 

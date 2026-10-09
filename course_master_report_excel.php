@@ -24,6 +24,7 @@
 
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->libdir . '/excellib.class.php');
+require_once(__DIR__ . '/lib.php');
 
 $courseid = required_param('courseid', PARAM_INT);
 
@@ -152,15 +153,23 @@ foreach ($groupcompraw as $gr) {
 /**
  * Sanitize a string for Excel export to prevent formula injection.
  *
+ * Delegates to the canonical lib helper (kept name for file-local calls).
+ *
  * @param mixed $str
  * @return string
  */
 function safe_str($str): string {
-    $clean = clean_param(strip_tags((string)$str), PARAM_TEXT);
-    if ($clean !== '' && in_array($clean[0], ['=', '+', '-', '@'], true)) {
-        return "'" . $clean;
-    }
-    return $clean;
+    return local_comp_report_ext_safe_excel_str($str);
+}
+
+/**
+ * Alias with the unified exporter name.
+ *
+ * @param mixed $str
+ * @return string
+ */
+function safe_excel_str($str): string {
+    return local_comp_report_ext_safe_excel_str($str);
 }
 
 $filename = clean_filename('Course_Master_' . $course->shortname . '_' . date('Ymd_His') . '.xlsx');

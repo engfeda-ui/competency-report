@@ -160,11 +160,13 @@ $criticalgap = !empty($compstats) ? end($compstats)['shortname'] . ' (' . end($c
 /**
  * Sanitize string for Excel output.
  *
+ * Delegates to the canonical lib helper.
+ *
  * @param mixed $str
  * @return string
  */
 function safe_excel_str($str): string {
-    return clean_param(strip_tags((string)$str), PARAM_TEXT);
+    return local_comp_report_ext_safe_excel_str($str);
 }
 
 $filename = clean_filename('Group_Analytics_' . $course->shortname . '_' . date('Ymd_His') . '.xlsx');

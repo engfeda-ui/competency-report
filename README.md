@@ -5,7 +5,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.26.6-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.26.9-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -83,6 +83,44 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 ---
 
 ## 📋 Changelog
+
+### v3.26.9 (2026100905) — 2026-10-09
+- **Shared Helpers & True Psychometrics (Future Batch):**
+  - **Single-Source Retake/Bulk Logic:** New `local_comp_report_ext_detect_retake_quizzes()` and `local_comp_report_ext_bulk_load_quiz_attempts()` in `lib.php`; HTML/Excel/PDF now call them (regex copies 3 to 1, ~90 duplicated lines removed).
+  - **True Discrimination Index:** Upper-lower 27% method in one bulk `CASE WHEN` query per question (`upper mean minus lower mean`, range -100 to 100); chart axis widened to -100/100 so weak items show honestly; psychometric queries now course-scoped via `quiz.course`.
+- **Verification:** `php -l` clean; all lines <= 132 chars; PDF loop 0 DB calls.
+
+### v3.26.8 (2026100904) — 2026-10-09
+- **Deep-Audit Batch (IDOR, XSS, Consistency, Accuracy):**
+  - **IDOR Fixed:** `studyplan_pdf.php` now mirrors `parent_pdf.php` — viewing another user's plan requires `viewreports`, own plan requires `viewownreport`.
+  - **XSS Hardened:** `JSON_HEX_TAG | HEX_APOS | HEX_QUOT | HEX_AMP` added to `group_analytics_dashboard.php`, `school_report.php`, `student_report.php`, `student_competency_detail.php`, `group_assessment_distribution.php`.
+  - **Grade Accuracy Unified:** `group_exam_analytics_excel.php` and `_pdf.php` now use the HTML formula (`finalraw/sumgradesmax x quizmaxgrade`, 2 decimals), correct `%` suffix position, raw tracking for separate retakes, and dynamic tier labels from `$threshold`.
+  - **Excel Defense Unified:** Canonical `local_comp_report_ext_safe_excel_str()` in `lib.php` (`= + - @ TAB CR LF` + strip); all 8 exporters delegate to it; titles/metadata/headers wrapped.
+  - **Honesty Fix:** Placeholder spread in `group_exam_analytics.php` relabelled (not a true discrimination index); calculator thresholds `(int)` to `(float)`; single merged Changelog section; pre-existing long line in `studyplan_pdf.php` wrapped.
+- **Verification:** `php -l` clean on 17 files; all lines <= 132 chars; PDF loop 0 DB calls.
+
+### v3.26.7 (2026100903) — 2026-10-09
+- **P0 Performance & Security Fixes (Audit Follow-up):**
+  - **PDF N+1 Eliminated:** `group_exam_analytics_pdf.php` now bulk-loads primary + retake attempts in 3 indexed queries (was up to 3N per-student queries); in-memory fallback, zero DB calls inside student loop.
+  - **Excel Formula Injection Hardened:** `group_analytics_dashboard_excel.php::safe_excel_str()` now prefixes `= + - @ TAB CR LF` matching all other exporters.
+  - **Course-Scoped Joins:** `class_report.php` and `class_report_excel.php` constrain `qbank_comp_ext_qmap` with `m.courseid = :mapcourseid` to prevent cross-course contamination.
+  - **Threshold Unification:** Retake cap, tiers, and pass-rate in `group_exam_analytics.php` / `_excel.php` / `_pdf.php` now inherit float `success_threshold` (`$passcap`) instead of hardcoded 60.0.
+  - **XSS Hardening:** All `json_encode` for Mustache `{{{ }}}` now use `JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP`; `groupid` validated against `courseid` in `group_exam_analytics.php`.
+- **Verification:** `php -l` clean on all 7 touched files; all lines <= 132 chars; PDF loop contains 0 DB calls.
+
+### v3.26.6 (2026100902) — 2026-10-09
+- **CodeChecker Refinement:**
+  - Fixed anonymous closure spacing `function ($a, $b)` in `group_analytics_dashboard_excel.php`.
+  - Standardized inline comment capitalization and ending punctuation in `group_analytics_dashboard_excel.php` and `group_exam_analytics_excel.php`.
+
+### v3.26.5 (2026100901) — 2026-10-09
+- **CodeChecker & Moodle Coding Standard Compliance:**
+  - Resolved all 12 failing CodeSniffer errors across reports, calculators, and Excel/PDF generators.
+  - Eliminated all variable naming violations (removed underscores from variables across `group_exam_analytics.php`, `student_report_excel.php`, `class_report_excel.php`, `course_master_report_excel.php`, `group_assessment_distribution_excel.php`, `group_competency_excel.php`, `group_quiz_competency_excel.php`, `group_analytics_dashboard_excel.php`, `group_exam_analytics_excel.php`).
+  - Added missing function docblocks for `safe_excel_str` and `safe_str` with parameter/return types.
+  - Fixed PSR-12 multi-line control structure spacing and function call argument signatures.
+  - Enforced strict <= 132 character line length across all PHP source files.
+  - Fixed indentation alignment in `classes/competency_calculator.php`.
 
 ### v3.26.4 — 2026-10-08
 - **Comprehensive Performance Scoping Across All 12 Remaining Files & Universal PDF/Excel Exports:**
@@ -495,22 +533,6 @@ npx grunt amd --files=local/comp_report_ext
 - **Coding Standards:** Compliant with Moodle's `PHP_CodeSniffer` (PHPCS) ruleset.
 
 ---
-
-## 📋 Changelog
-
-### v3.26.6 (2026100902) — 2026-10-09
-- **CodeChecker Refinement:**
-  - Fixed anonymous closure spacing `function ($a, $b)` in `group_analytics_dashboard_excel.php`.
-  - Standardized inline comment capitalization and ending punctuation in `group_analytics_dashboard_excel.php` and `group_exam_analytics_excel.php`.
-
-### v3.26.5 (2026100901) — 2026-10-09
-- **CodeChecker & Moodle Coding Standard Compliance:**
-  - Resolved all 12 failing CodeSniffer errors across reports, calculators, and Excel/PDF generators.
-  - Eliminated all variable naming violations (removed underscores from variables across `group_exam_analytics.php`, `student_report_excel.php`, `class_report_excel.php`, `course_master_report_excel.php`, `group_assessment_distribution_excel.php`, `group_competency_excel.php`, `group_quiz_competency_excel.php`, `group_analytics_dashboard_excel.php`, `group_exam_analytics_excel.php`).
-  - Added missing function docblocks for `safe_excel_str` and `safe_str` with parameter/return types.
-  - Fixed PSR-12 multi-line control structure spacing and function call argument signatures.
-  - Enforced strict <= 132 character line length across all PHP source files.
-  - Fixed indentation alignment in `classes/competency_calculator.php`.
 
 ### v3.26.1 (2026100801) — 2026-10-08
 - **Hardening & Performance (OpenCode Multi-Agent Audit Implementation):**

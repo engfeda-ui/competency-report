@@ -24,6 +24,7 @@
 
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->libdir . '/excellib.class.php');
+require_once(__DIR__ . '/lib.php');
 
 $courseid   = required_param('courseid', PARAM_INT);
 $userid     = optional_param('userid', 0, PARAM_INT);
@@ -55,9 +56,9 @@ $coursesql = "SELECT c.id, c.shortname,
               FROM {quiz_attempts} quiza
               JOIN {question_usages} qu ON qu.id = quiza.uniqueid
               JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-              JOIN {quiz} quiz ON quiz.id = quiza.quiz
-              JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
-              JOIN {competency} c ON c.id = m.competencyid
+               JOIN {quiz} quiz ON quiz.id = quiza.quiz
+               JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid AND m.courseid = :mapcourseid
+               JOIN {competency} c ON c.id = m.competencyid
               JOIN (SELECT s.questionattemptid, MAX(s.fraction) AS fraction
                       FROM {question_attempt_steps} s
                       JOIN {question_attempts} qa2 ON qa2.id = s.questionattemptid
@@ -74,7 +75,8 @@ if ($competency) {
 }
 $coursesql .= " GROUP BY c.id, c.shortname ORDER BY c.shortname ASC";
 
-$params = ['courseid' => $courseid, 'subcourseid' => $courseid, 'competencyid' => $competency];
+$params = ['courseid' => $courseid, 'subcourseid' => $courseid, 'mapcourseid' => $courseid,
+    'competencyid' => $competency];
 $coursedata = $DB->get_records_sql($coursesql, $params);
 
 $classdata = [];
@@ -104,6 +106,7 @@ if (!empty($coursedata) && $userid) {
         $classparams = array_merge([
             'courseid'     => $courseid,
             'subcourseid'  => $courseid,
+            'mapcourseid'  => $courseid,
             'competencyid' => $competency,
         ], $groupparams);
         $classdata = $DB->get_records_sql($classsql, $classparams);
@@ -123,6 +126,7 @@ if (!empty($coursedata) && $userid) {
             $classdata = $DB->get_records_sql($classsql, [
                 'courseid' => $courseid,
                 'subcourseid' => $courseid,
+                'mapcourseid' => $courseid,
                 'dept' => $userdept,
                 'competencyid' => $competency,
             ]);
@@ -141,6 +145,7 @@ if (!empty($coursedata) && $userid) {
     $studentdata = $DB->get_records_sql($studentsql, [
         'courseid' => $courseid,
         'subcourseid' => $courseid,
+        'mapcourseid' => $courseid,
         'userid' => $userid,
         'competencyid' => $competency,
     ]);
@@ -149,15 +154,13 @@ if (!empty($coursedata) && $userid) {
 /**
  * Sanitize a string for Excel export to prevent formula injection.
  *
+ * Delegates to the canonical lib helper.
+ *
  * @param mixed $str
  * @return string
  */
 function safe_excel_str($str): string {
-    $clean = clean_param(strip_tags((string)$str), PARAM_TEXT);
-    if ($clean !== '' && in_array($clean[0], ['=', '+', '-', '@'], true)) {
-        return "'" . $clean;
-    }
-    return $clean;
+    return local_comp_report_ext_safe_excel_str($str);
 }
 
 $filename = clean_filename('Class_Report_' . $course->shortname . '_' . date('Ymd_His') . '.xlsx');

@@ -771,3 +771,122 @@ function local_comp_report_ext_build_studyplan_prompt(
 
     return $prompt;
 }
+
+/**
+ * Sanitize a value for Excel cell output (formula injection defense).
+ *
+ * Single canonical implementation used by all *_excel.php exporters.
+ * Prefixes values starting with =, +, -, @, TAB, CR or LF.
+ *
+ * @param mixed $value Cell value.
+ * @return string Safe string.
+ */
+function local_comp_report_ext_safe_excel_str($value): string {
+    $clean = clean_param(strip_tags((string)$value), PARAM_TEXT);
+    if ($clean !== '' && in_array($clean[0], ['=', '+', '-', '@', "\t", "\r", "\n"], true)) {
+        return "'" . $clean;
+    }
+    return $clean;
+}
+
+/**
+ * Detect separate retake quizzes for a primary quiz in the same course.
+ *
+ * Single canonical implementation shared by the Exam Analytics HTML view
+ * and its Excel/PDF exporters. Matches Retake 1/2 naming in English/Arabic.
+ *
+ * @param array $allquizzes All course quizzes keyed by id (with name property).
+ * @param int $quizid Primary quiz id to exclude.
+ * @return array [retake1quizzes, retake2quizzes] keyed by quiz id.
+ */
+function local_comp_report_ext_detect_retake_quizzes(array $allquizzes, int $quizid): array {
+    $retake1quizzes = [];
+    $retake2quizzes = [];
+    $r1pattern = '/(retake[\s\-]*1|1[\s]*st[\s]*retake|first[\s\-]*retake|'
+        . 'إعادة[\s]*1|الإعادة[\s]*الأولى|الدور[\s]*الثاني|محاولة[\s]*2)/iu';
+    $r2pattern = '/(retake[\s\-]*2|2[\s]*nd[\s]*retake|second[\s\-]*retake|'
+        . 'إعادة[\s]*2|الإعادة[\s]*الثانية|الدور[\s]*الثالث|محاولة[\s]*3)/iu';
+    foreach ($allquizzes as $cq) {
+        if ((int)$cq->id === $quizid) {
+            continue;
+        }
+        if (preg_match($r1pattern, $cq->name)) {
+            $retake1quizzes[$cq->id] = $cq;
+        } else if (preg_match($r2pattern, $cq->name)) {
+            $retake2quizzes[$cq->id] = $cq;
+        }
+    }
+    return [$retake1quizzes, $retake2quizzes];
+}
+
+/**
+ * Bulk-load finished quiz attempts for students (eliminates N+1 queries).
+ *
+ * Single canonical implementation shared by the Exam Analytics HTML view
+ * and its Excel/PDF exporters. Runs exactly 3 indexed queries regardless
+ * of cohort size: primary attempts plus best retake-1/retake-2 attempts.
+ *
+ * @param int $quizid Primary quiz id.
+ * @param array $studentids Enrolled student ids.
+ * @param array $retake1quizzes Retake-1 quizzes keyed by id.
+ * @param array $retake2quizzes Retake-2 quizzes keyed by id.
+ * @return array [userattempts, userr1attempts, userr2attempts].
+ */
+function local_comp_report_ext_bulk_load_quiz_attempts(
+    int $quizid,
+    array $studentids,
+    array $retake1quizzes,
+    array $retake2quizzes
+): array {
+    global $DB;
+    $userattempts = [];
+    $userr1attempts = [];
+    $userr2attempts = [];
+    if (empty($studentids)) {
+        return [$userattempts, $userr1attempts, $userr2attempts];
+    }
+    [$uinsql, $uinparams] = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'attuid');
+    $uinparams['aquizid'] = $quizid;
+    $allattempts = $DB->get_records_sql(
+        "SELECT id, userid, attempt, quiz, sumgrades, timefinish FROM {quiz_attempts}
+          WHERE quiz = :aquizid AND userid $uinsql AND state = 'finished'
+       ORDER BY userid ASC, attempt ASC",
+        $uinparams
+    );
+    foreach ($allattempts as $att) {
+        $userattempts[$att->userid][] = $att;
+    }
+    if (!empty($retake1quizzes)) {
+        $r1quizids = array_keys($retake1quizzes);
+        [$r1qinsql, $r1qparams] = $DB->get_in_or_equal($r1quizids, SQL_PARAMS_NAMED, 'r1qid');
+        [$r1uinsql, $r1uparams] = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'r1uid');
+        $allr1 = $DB->get_records_sql(
+            "SELECT id, userid, quiz, sumgrades, timefinish FROM {quiz_attempts}
+              WHERE quiz $r1qinsql AND userid $r1uinsql AND state = 'finished'
+           ORDER BY userid ASC, sumgrades DESC, timefinish DESC",
+            array_merge($r1qparams, $r1uparams)
+        );
+        foreach ($allr1 as $att) {
+            if (!isset($userr1attempts[$att->userid])) {
+                $userr1attempts[$att->userid] = $att;
+            }
+        }
+    }
+    if (!empty($retake2quizzes)) {
+        $r2quizids = array_keys($retake2quizzes);
+        [$r2qinsql, $r2qparams] = $DB->get_in_or_equal($r2quizids, SQL_PARAMS_NAMED, 'r2qid');
+        [$r2uinsql, $r2uparams] = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'r2uid');
+        $allr2 = $DB->get_records_sql(
+            "SELECT id, userid, quiz, sumgrades, timefinish FROM {quiz_attempts}
+              WHERE quiz $r2qinsql AND userid $r2uinsql AND state = 'finished'
+           ORDER BY userid ASC, sumgrades DESC, timefinish DESC",
+            array_merge($r2qparams, $r2uparams)
+        );
+        foreach ($allr2 as $att) {
+            if (!isset($userr2attempts[$att->userid])) {
+                $userr2attempts[$att->userid] = $att;
+            }
+        }
+    }
+    return [$userattempts, $userr1attempts, $userr2attempts];
+}

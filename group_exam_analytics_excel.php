@@ -24,6 +24,7 @@
 
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->libdir . '/excellib.class.php');
+require_once(__DIR__ . '/lib.php');
 
 $courseid = required_param('courseid', PARAM_INT);
 $groupid  = optional_param('groupid', 0, PARAM_INT);
@@ -122,94 +123,31 @@ if (!empty($studentids)) {
 /**
  * Sanitize cell values against CSV/Excel Formula Injection.
  *
+ * Delegates to the canonical lib helper.
+ *
  * @param mixed $val
  * @return string
  */
 function safe_excel_str($val): string {
-    $str = (string)$val;
-    if ($str !== '' && in_array($str[0], ['=', '+', '-', '@', "\t", "\r"])) {
-        return "'" . $str;
-    }
-    return $str;
+    return local_comp_report_ext_safe_excel_str($val);
 }
 
 $threshold = (float)(get_config('local_comp_report_ext', 'success_threshold') ?: 60.0);
+$passcap = round($threshold, 1);
 
 if ($quiz && !empty($students)) {
     $sumgradesmax = (float)($quiz->sumgrades > 0 ? $quiz->sumgrades : 100.0);
     $quizmaxgrade = (float)($quiz->grade > 0 ? $quiz->grade : $sumgradesmax);
 
-    // Retake quizzes detection.
-    $retake1quizzes = [];
-    $retake2quizzes = [];
-    $r1pattern = '/(retake[\s\-]*1|1[\s]*st[\s]*retake|first[\s\-]*retake|' .
-        'إعادة[\s]*1|الإعادة[\s]*الأولى|الدور[\s]*الثاني|محاولة[\s]*2)/iu';
-    $r2pattern = '/(retake[\s\-]*2|2[\s]*nd[\s]*retake|second[\s\-]*retake|' .
-        'إعادة[\s]*2|الإعادة[\s]*الثانية|الدور[\s]*الثالث|محاولة[\s]*3)/iu';
-    foreach ($allquizzes as $cq) {
-        if ((int)$cq->id === (int)$quiz->id) {
-            continue;
-        }
-        $cname = $cq->name;
-        if (preg_match($r1pattern, $cname)) {
-            $retake1quizzes[$cq->id] = $cq;
-        } else if (preg_match($r2pattern, $cname)) {
-            $retake2quizzes[$cq->id] = $cq;
-        }
-    }
-
-    // Bulk-load student attempts for primary quiz and retakes (eliminates N+1 queries).
-    $userattempts = [];
-    $userr1attempts = [];
-    $userr2attempts = [];
-
-    if (!empty($studentids)) {
-        [$uinsql, $uinparams] = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'attuid');
-        $uinparams['aquizid'] = $quiz->id;
-        $allattempts = $DB->get_records_sql(
-            "SELECT id, userid, attempt, sumgrades FROM {quiz_attempts}
-              WHERE quiz = :aquizid AND userid $uinsql AND state = 'finished'
-           ORDER BY userid ASC, attempt ASC",
-            $uinparams
-        );
-        foreach ($allattempts as $att) {
-            $userattempts[$att->userid][] = $att;
-        }
-
-        if (!empty($retake1quizzes)) {
-            $r1quizids = array_keys($retake1quizzes);
-            [$r1qinsql, $r1qparams] = $DB->get_in_or_equal($r1quizids, SQL_PARAMS_NAMED, 'r1qid');
-            [$r1uinsql, $r1uparams] = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'r1uid');
-            $allr1 = $DB->get_records_sql(
-                "SELECT id, userid, quiz, sumgrades FROM {quiz_attempts}
-                  WHERE quiz $r1qinsql AND userid $r1uinsql AND state = 'finished'
-               ORDER BY userid ASC, sumgrades DESC, timefinish DESC",
-                array_merge($r1qparams, $r1uparams)
-            );
-            foreach ($allr1 as $att) {
-                if (!isset($userr1attempts[$att->userid])) {
-                    $userr1attempts[$att->userid] = $att;
-                }
-            }
-        }
-
-        if (!empty($retake2quizzes)) {
-            $r2quizids = array_keys($retake2quizzes);
-            [$r2qinsql, $r2qparams] = $DB->get_in_or_equal($r2quizids, SQL_PARAMS_NAMED, 'r2qid');
-            [$r2uinsql, $r2uparams] = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'r2uid');
-            $allr2 = $DB->get_records_sql(
-                "SELECT id, userid, quiz, sumgrades FROM {quiz_attempts}
-                  WHERE quiz $r2qinsql AND userid $r2uinsql AND state = 'finished'
-               ORDER BY userid ASC, sumgrades DESC, timefinish DESC",
-                array_merge($r2qparams, $r2uparams)
-            );
-            foreach ($allr2 as $att) {
-                if (!isset($userr2attempts[$att->userid])) {
-                    $userr2attempts[$att->userid] = $att;
-                }
-            }
-        }
-    }
+    // Retake quizzes detection + bulk attempts (shared helpers, 3 queries).
+    [$retake1quizzes, $retake2quizzes] =
+        local_comp_report_ext_detect_retake_quizzes($allquizzes, (int)$quiz->id);
+    [$userattempts, $userr1attempts, $userr2attempts] = local_comp_report_ext_bulk_load_quiz_attempts(
+        (int)$quiz->id,
+        $studentids,
+        $retake1quizzes,
+        $retake2quizzes
+    );
 
     foreach ($students as $student) {
         $attempts = $userattempts[$student->id] ?? [];
@@ -230,12 +168,17 @@ if ($quiz && !empty($students)) {
         $att2score = $attscores[2] ?? null;
         $att3score = $attscores[3] ?? null;
 
-        // Fallback to separate retake quizzes.
+        $att1raw = $attraws[1] ?? null;
+        $att2raw = $attraws[2] ?? null;
+        $att3raw = $attraws[3] ?? null;
+
+        // Fallback to separate retake quizzes (same best-score rule as HTML view).
         if ($att2score === null && isset($userr1attempts[$student->id])) {
             $r1att = $userr1attempts[$student->id];
             $r1max = (float)($retake1quizzes[$r1att->quiz]->sumgrades > 0 ? $retake1quizzes[$r1att->quiz]->sumgrades : 100.0);
             if ($r1att->sumgrades !== null) {
                 $att2score = round(((float)$r1att->sumgrades / $r1max) * 100.0, 1);
+                $att2raw = (float)$r1att->sumgrades;
             }
         }
 
@@ -244,6 +187,7 @@ if ($quiz && !empty($students)) {
             $r2max = (float)($retake2quizzes[$r2att->quiz]->sumgrades > 0 ? $retake2quizzes[$r2att->quiz]->sumgrades : 100.0);
             if ($r2att->sumgrades !== null) {
                 $att3score = round(((float)$r2att->sumgrades / $r2max) * 100.0, 1);
+                $att3raw = (float)$r2att->sumgrades;
             }
         }
 
@@ -252,43 +196,56 @@ if ($quiz && !empty($students)) {
             $retakecount = ($att2score !== null ? 1 : 0) + ($att3score !== null ? 1 : 0);
 
             $scorepct = 0.0;
+            $finalraw = 0.0;
             $statuslabel = '—';
 
-            // 60% retake policy cap.
-            if ($att1score !== null && $att1score >= 60.0) {
+            // Retake policy cap at configured threshold (same formula as HTML view).
+            if ($att1score !== null && $att1score >= $threshold) {
                 $scorepct = $att1score;
+                $finalraw = (float)$att1raw;
                 $statuslabel = get_string('passed_first_attempt', 'local_comp_report_ext');
-            } else if ($att2score !== null && $att2score >= 60.0) {
-                $scorepct = 60.0;
-                $statuslabel = get_string('passed_retake_1', 'local_comp_report_ext') . ' (Cap 60%)';
-            } else if ($att3score !== null && $att3score >= 60.0) {
-                $scorepct = 60.0;
-                $statuslabel = get_string('passed_retake_2', 'local_comp_report_ext') . ' (Cap 60%)';
+            } else if ($att2score !== null && $att2score >= $threshold) {
+                $scorepct = $passcap;
+                $finalraw = round(($threshold / 100.0) * $sumgradesmax, 2);
+                $statuslabel = get_string('passed_retake_1', 'local_comp_report_ext') . ' (Cap ' . $passcap . '%)';
+            } else if ($att3score !== null && $att3score >= $threshold) {
+                $scorepct = $passcap;
+                $finalraw = round(($threshold / 100.0) * $sumgradesmax, 2);
+                $statuslabel = get_string('passed_retake_2', 'local_comp_report_ext') . ' (Cap ' . $passcap . '%)';
             } else {
                 $scorepct = !empty($validscores) ? max($validscores) : 0.0;
+                if ($att1score !== null && $att1score === $scorepct) {
+                    $finalraw = (float)$att1raw;
+                } else if ($att2score !== null && $att2score === $scorepct) {
+                    $finalraw = (float)$att2raw;
+                } else if ($att3score !== null && $att3score === $scorepct) {
+                    $finalraw = (float)$att3raw;
+                }
                 $statuslabel = get_string('failed_status', 'local_comp_report_ext');
             }
 
             $rawscores[] = $scorepct;
 
-            if ($scorepct < 60) {
-                $tiername = 'At-Risk (<60%)';
+            $threshlabel = rtrim(rtrim(number_format($threshold, 1), '0'), '.');
+            if ($scorepct < $threshold) {
+                $tiername = 'At-Risk (<' . $threshlabel . '%)';
             } else if ($scorepct < 75) {
-                $tiername = 'Satisfactory (60–74%)';
+                $tiername = 'Satisfactory (' . $threshlabel . '-74%)';
             } else if ($scorepct < 90) {
-                $tiername = 'Very Good (75–89%)';
+                $tiername = 'Very Good (75-89%)';
             } else {
-                $tiername = 'Outstanding (90–100%)';
+                $tiername = 'Outstanding (90-100%)';
             }
 
+            $finalgradeval = ($sumgradesmax > 0) ? round(($finalraw / $sumgradesmax) * $quizmaxgrade, 2) : 0.0;
             $studentlist[] = [
                 'fullname'   => fullname($student),
                 'group'      => !empty($usergroups[$student->id]) ? implode(', ', $usergroups[$student->id]) : '—',
-                'att1'       => ($att1score !== null) ? '%' . number_format($att1score, 1) : '—',
-                'att2'       => ($att2score !== null) ? '%' . number_format($att2score, 1) : '—',
-                'att3'       => ($att3score !== null) ? '%' . number_format($att3score, 1) : '—',
-                'finalscore' => '%' . number_format($scorepct, 1),
-                'finalgrade' => number_format(($scorepct / 100.0) * $quizmaxgrade, 1) . ' / ' . number_format($quizmaxgrade, 1),
+                'att1'       => ($att1score !== null) ? number_format($att1score, 1) . '%' : '—',
+                'att2'       => ($att2score !== null) ? number_format($att2score, 1) . '%' : '—',
+                'att3'       => ($att3score !== null) ? number_format($att3score, 1) . '%' : '—',
+                'finalscore' => number_format($scorepct, 1) . '%',
+                'finalgrade' => number_format($finalgradeval, 2) . ' / ' . number_format($quizmaxgrade, 2),
                 'retakes'    => $retakecount,
                 'status'     => $statuslabel,
                 'tier'       => $tiername,
@@ -325,7 +282,7 @@ if ($hasdata) {
             $passedcount++;
         }
         $sumsq += pow($score - $examavg, 2);
-        if ($score < 60) {
+        if ($score < $threshold) {
             $tiercounts['failed']++;
         } else if ($score < 75) {
             $tiercounts['passing']++;
@@ -375,8 +332,9 @@ $wssummary->set_column(0, 0, 32);
 $wssummary->set_column(1, 1, 24);
 
 $r = 0;
-$wssummary->write_string($r++, 0, format_string($course->fullname) . ' — ' . $quizname, $formattitle);
-$metatext = get_string('group', 'local_comp_report_ext') . ': ' . $groupname . '  |  ' . userdate(time());
+$titletext = safe_excel_str(format_string($course->fullname)) . ' — ' . safe_excel_str($quizname);
+$wssummary->write_string($r++, 0, $titletext, $formattitle);
+$metatext = get_string('group', 'local_comp_report_ext') . ': ' . safe_excel_str($groupname) . '  |  ' . userdate(time());
 $wssummary->write_string($r++, 0, $metatext, $formatmeta);
 $r++;
 
@@ -390,19 +348,19 @@ $wssummary->write_string($r, 0, 'Students Attempted Exam', $formatkpilabel);
 $wssummary->write_number($r++, 1, count($studentlist), $formatkpival);
 
 $wssummary->write_string($r, 0, get_string('exam_avg_score', 'local_comp_report_ext'), $formatkpilabel);
-$wssummary->write_string($r++, 1, '%' . number_format($examavg, 1), $formatkpival);
+$wssummary->write_string($r++, 1, number_format($examavg, 1) . '%', $formatkpival);
 
 $wssummary->write_string($r, 0, get_string('exam_pass_rate_label', 'local_comp_report_ext'), $formatkpilabel);
-$wssummary->write_string($r++, 1, '%' . number_format($passrate, 1), $formatkpival);
+$wssummary->write_string($r++, 1, number_format($passrate, 1) . '%', $formatkpival);
 
 $wssummary->write_string($r, 0, get_string('exam_highest_score', 'local_comp_report_ext'), $formatkpilabel);
-$wssummary->write_string($r++, 1, '%' . number_format($highestscore, 1), $formatkpival);
+$wssummary->write_string($r++, 1, number_format($highestscore, 1) . '%', $formatkpival);
 
 $wssummary->write_string($r, 0, get_string('exam_lowest_score', 'local_comp_report_ext'), $formatkpilabel);
-$wssummary->write_string($r++, 1, '%' . number_format($lowestscore, 1), $formatkpival);
+$wssummary->write_string($r++, 1, number_format($lowestscore, 1) . '%', $formatkpival);
 
 $wssummary->write_string($r, 0, get_string('stats_mean', 'local_comp_report_ext'), $formatkpilabel);
-$wssummary->write_string($r++, 1, '%' . number_format($examavg, 1), $formatkpival);
+$wssummary->write_string($r++, 1, number_format($examavg, 1) . '%', $formatkpival);
 
 $wssummary->write_string($r, 0, get_string('stats_sigma', 'local_comp_report_ext'), $formatkpilabel);
 $wssummary->write_string($r++, 1, number_format($statsigma, 1), $formatkpival);
@@ -411,16 +369,17 @@ $r += 2;
 $wssummary->write_string($r, 0, 'Academic Performance Tier', $formatheaderleft);
 $wssummary->write_string($r++, 1, 'Student Count', $formatheader);
 
-$wssummary->write_string($r, 0, 'Outstanding (90–100%)', $formatkpilabel);
+$wssummary->write_string($r, 0, 'Outstanding (90-100%)', $formatkpilabel);
 $wssummary->write_number($r++, 1, $tiercounts['outstanding'], $formatkpival);
 
-$wssummary->write_string($r, 0, 'Very Good (75–89%)', $formatkpilabel);
+$wssummary->write_string($r, 0, 'Very Good (75-89%)', $formatkpilabel);
 $wssummary->write_number($r++, 1, $tiercounts['verygood'], $formatkpival);
 
-$wssummary->write_string($r, 0, 'Satisfactory (60–74%)', $formatkpilabel);
+$threshlabel = rtrim(rtrim(number_format($threshold, 1), '0'), '.');
+$wssummary->write_string($r, 0, 'Satisfactory (' . $threshlabel . '-74%)', $formatkpilabel);
 $wssummary->write_number($r++, 1, $tiercounts['passing'], $formatkpival);
 
-$wssummary->write_string($r, 0, 'At-Risk / Failed (<60%)', $formatkpilabel);
+$wssummary->write_string($r, 0, 'At-Risk / Failed (<' . $threshlabel . '%)', $formatkpilabel);
 $wssummary->write_number($r++, 1, $tiercounts['failed'], $formatkpival);
 
 // Sheet 2: Student Score Roster.

@@ -130,7 +130,7 @@ class competency_calculator {
             return $this->legacy_plain_scores($userid, $filtercompetencyid);
         }
 
-        $threshold = (int)(get_config('local_comp_report_ext', 'success_threshold') ?: 60);
+        $threshold = (float)(get_config('local_comp_report_ext', 'success_threshold') ?: 60.0);
 
         // Fetch all competencies that have question mappings in this course
         // (instance-cached; identical for every student).
@@ -442,7 +442,7 @@ class competency_calculator {
             'courseid3' => $this->courseid,
         ]);
 
-        $threshold = (int)(get_config('local_comp_report_ext', 'success_threshold') ?: 60);
+        $threshold = (float)(get_config('local_comp_report_ext', 'success_threshold') ?: 60.0);
         $rows = $DB->get_records_sql($sql, $params);
 
         $result = [];

@@ -350,10 +350,11 @@ $renderdata->overall_mastery             = number_format($overallinstitutionmast
 $renderdata->top_competencies            = $top5competencies;
 $renderdata->lowest_competencies         = $lowest5competencies;
 
-// Chart JSON Payloads.
-$renderdata->chart_courses_labels_json   = json_encode($chartcourselabels);
-$renderdata->chart_courses_data_json     = json_encode($chartcoursedata);
-$renderdata->chart_dist_data_json        = json_encode([$tierhighcount, $tiermodcount, $tierlowcount]);
+// Chart JSON Payloads (HEX-escaped for safe {{{ }}} injection).
+$jsonflags = JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP;
+$renderdata->chart_courses_labels_json   = json_encode($chartcourselabels, $jsonflags);
+$renderdata->chart_courses_data_json     = json_encode($chartcoursedata, $jsonflags);
+$renderdata->chart_dist_data_json        = json_encode([$tierhighcount, $tiermodcount, $tierlowcount], $jsonflags);
 
 $renderdata->pdf_url = (new moodle_url('/local/comp_report_ext/school_pdf.php', ['categoryid' => $categoryid]))->out(false);
 

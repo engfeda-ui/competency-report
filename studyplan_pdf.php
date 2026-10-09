@@ -38,14 +38,21 @@ $sessions = max(1, min(60, $sessions));
 $maxwords = max(200, min(1200, $sessions * 60));
 $midpoint = (int)round($sessions / 2);
 
-// 2. Auth.
+// 2. Auth: users may view their own plan, viewing others requires teacher capability.
 require_login($courseid);
 $context = context_course::instance($courseid);
 
 if (empty($userid)) {
     $userid = $USER->id;
 }
-if (
+if ($userid != $USER->id) {
+    $canviewext = has_capability('local/comp_report_ext:viewreports', $context);
+    $canviewold = has_capability('local/competency_report:viewreports', $context);
+    $canviewquiz = has_capability('mod/quiz:viewreports', $context);
+    if (!$canviewext && !$canviewold && !$canviewquiz) {
+        require_capability('local/comp_report_ext:viewreports', $context);
+    }
+} else if (
     !has_capability('local/comp_report_ext:viewownreport', $context)
     && !has_capability('local/comp_report_ext:viewreports', $context)
     && !has_capability('local/competency_report:viewownreport', $context)
@@ -183,7 +190,12 @@ $pdf->Ln(5);
 if (!empty($weak)) {
     $pdf->SetFont('freeserif', 'B', 10);
     $pdf->SetFillColor(220, 235, 255);
-    $title = '(!)  ' . ($language === 'Arabic' ? 'الكفايات التي تحتاج علاجاً' : 'Competencies Requiring Remediation');
+    if ($language === 'Arabic') {
+        $titlelabel = 'الكفايات التي تحتاج علاجاً';
+    } else {
+        $titlelabel = 'Competencies Requiring Remediation';
+    }
+    $title = '(!)  ' . $titlelabel;
     $pdf->Cell(0, 8, $title, 1, 1, 'L', true);
 
     $pdf->SetFont('freeserif', 'B', 9);

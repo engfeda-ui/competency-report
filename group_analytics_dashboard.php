@@ -306,26 +306,27 @@ $renderdata->remediation_rate  = number_format($remediationpercent, 1);
 $renderdata->top_strength      = $topstrength;
 $renderdata->critical_gap      = $criticalgap;
 
-// JSON strings for Chart.js rendering scripts.
-$renderdata->radar_labels_json = json_encode($radarlabels);
-$renderdata->radar_data_json   = json_encode($radardata);
+// JSON strings for Chart.js rendering scripts (HEX-escaped for safe {{{ }}} injection).
+$jsonflags = JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP;
+$renderdata->radar_labels_json = json_encode($radarlabels, $jsonflags);
+$renderdata->radar_data_json   = json_encode($radardata, $jsonflags);
 
 $renderdata->dist_data_json    = json_encode([
     $distribution['critical'],
     $distribution['developing'],
     $distribution['proficient'],
     $distribution['exemplary'],
-]);
+], $jsonflags);
 
-$renderdata->histogram_labels_json = json_encode($histogramlabels);
-$renderdata->histogram_data_json   = json_encode($scorehistogram);
+$renderdata->histogram_labels_json = json_encode($histogramlabels, $jsonflags);
+$renderdata->histogram_data_json   = json_encode($scorehistogram, $jsonflags);
 
-$renderdata->gap_labels_json    = json_encode($radarlabels);
-$renderdata->gap_theory_json    = json_encode($theorydata);
-$renderdata->gap_practice_json  = json_encode($practicedata);
+$renderdata->gap_labels_json    = json_encode($radarlabels, $jsonflags);
+$renderdata->gap_theory_json    = json_encode($theorydata, $jsonflags);
+$renderdata->gap_practice_json  = json_encode($practicedata, $jsonflags);
 
 $renderdata->student_list      = $studentlist;
-$renderdata->student_list_json = json_encode($studentlist);
+$renderdata->student_list_json = json_encode($studentlist, $jsonflags);
 
 // Output rendering.
 echo $OUTPUT->header();
