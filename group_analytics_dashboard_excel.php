@@ -129,7 +129,7 @@ foreach ($students as $student) {
     }
 }
 
-// Aggregated KPIs
+// Aggregated KPIs.
 $totalstudents = count($studentaverages);
 $cohortavg = ($totalstudents > 0) ? round(array_sum($studentaverages) / $totalstudents, 1) : 0.0;
 $remediationcount = 0;
@@ -150,7 +150,7 @@ foreach ($compscores as $cid => $cdata) {
         'count'     => count($scores),
     ];
 }
-usort($compstats, function($a, $b) {
+usort($compstats, function ($a, $b) {
     return $b['avg'] <=> $a['avg'];
 });
 
@@ -195,7 +195,7 @@ $formatkpilbl = $workbook->add_format(['bold' => 1, 'bg_color' => 'cyan', 'borde
 $formatkpival = $workbook->add_format(['bold' => 1, 'size' => 12, 'border' => 1, 'align' => 'center']);
 
 // -------------------------------------------------------------
-// Sheet 1: Dashboard & Competencies
+// Sheet 1: Dashboard & Competencies.
 $ws1 = $workbook->add_worksheet('KPIs & Competencies');
 $titletext1 = safe_excel_str($course->fullname) . ' — ' .
     get_string('group_analytics_dashboard', 'local_comp_report_ext');
@@ -205,7 +205,7 @@ $metatext1 = get_string('group', 'local_comp_report_ext') . ': ' .
     safe_excel_str($groupname) . ' | ' . userdate(time());
 $ws1->write_string(1, 0, $metatext1, $formatmeta);
 
-// KPI Overview
+// KPI Overview.
 $kpiavg = get_string('kpi_average_mastery', 'local_comp_report_ext') ?: 'Average Mastery';
 $ws1->write_string(3, 0, $kpiavg, $formatkpilbl);
 
@@ -224,7 +224,7 @@ $ws1->write_string(4, 1, $remedstat, $formatkpival);
 $ws1->write_string(4, 2, safe_excel_str($topstrength), $formatkpival);
 $ws1->write_string(4, 3, safe_excel_str($criticalgap), $formatkpival);
 
-// Competencies Ranking Table
+// Competencies Ranking Table.
 $row = 6;
 $ws1->write_string($row, 0, '#', $formatheader);
 $ws1->write_string($row, 1, get_string('competencycode', 'local_comp_report_ext'), $formatheaderleft);
@@ -247,7 +247,7 @@ foreach ($compstats as $cs) {
 }
 
 // -------------------------------------------------------------
-// Sheet 2: Student Roster
+// Sheet 2: Student Roster.
 $ws2 = $workbook->add_worksheet('Student Roster');
 $titletext2 = safe_excel_str($course->fullname) . ' — ' . get_string('students', 'local_comp_report_ext');
 $ws2->write_string(0, 0, $titletext2, $formattitle);

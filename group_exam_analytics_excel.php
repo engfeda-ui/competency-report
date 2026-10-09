@@ -369,7 +369,7 @@ $formatcellbold = $workbook->add_format(['bold' => 1, 'border' => 1, 'align' => 
 $formatkpilabel = $workbook->add_format(['bold' => 1, 'bg_color' => '#f1f5f9', 'border' => 1, 'align' => 'left']);
 $formatkpival   = $workbook->add_format(['bold' => 1, 'border' => 1, 'align' => 'center']);
 
-// --- Sheet 1: Summary & Psychometrics ---
+// Sheet 1: Summary & Psychometrics.
 $wssummary = $workbook->add_worksheet('Overview & KPIs');
 $wssummary->set_column(0, 0, 32);
 $wssummary->set_column(1, 1, 24);
@@ -423,7 +423,7 @@ $wssummary->write_number($r++, 1, $tiercounts['passing'], $formatkpival);
 $wssummary->write_string($r, 0, 'At-Risk / Failed (<60%)', $formatkpilabel);
 $wssummary->write_number($r++, 1, $tiercounts['failed'], $formatkpival);
 
-// --- Sheet 2: Student Score Roster ---
+// Sheet 2: Student Score Roster.
 $wsroster = $workbook->add_worksheet('Student Roster');
 $wsroster->set_column(0, 0, 5);
 $wsroster->set_column(1, 1, 28);
