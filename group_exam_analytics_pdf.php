@@ -134,9 +134,15 @@ if ($quiz && !empty($students)) {
             continue;
         }
         $cname = $cq->name;
-        if (preg_match('/(retake[\s\-]*1|1[\s]*st[\s]*retake|first[\s\-]*retake|إعادة[\s]*1|الإعادة[\s]*الأولى|الدور[\s]*الثاني|محاولة[\s]*2)/iu', $cname)) {
+        $r1regex = '/(retake[\s\-]*1|1[\s]*st[\s]*retake|first[\s\-]*retake|' .
+            'إعادة[\s]*1|الإعادة[\s]*الأولى|الدور[\s]*الثاني|محاولة[\s]*2)/iu';
+        $r2regex = '/(retake[\s\-]*2|2[\s]*nd[\s]*retake|second[\s\-]*retake|' .
+            'إعادة[\s]*2|الإعادة[\s]*الثانية|الدور[\s]*الثالث|محاولة[\s]*3)/iu';
+        $isretake1 = preg_match($r1regex, $cname);
+        $isretake2 = preg_match($r2regex, $cname);
+        if ($isretake1) {
             $retake1quizzes[$cq->id] = $cq;
-        } else if (preg_match('/(retake[\s\-]*2|2[\s]*nd[\s]*retake|second[\s\-]*retake|إعادة[\s]*2|الإعادة[\s]*الثانية|الدور[\s]*الثالث|محاولة[\s]*3)/iu', $cname)) {
+        } else if ($isretake2) {
             $retake2quizzes[$cq->id] = $cq;
         }
     }
@@ -172,7 +178,9 @@ if ($quiz && !empty($students)) {
                 "SELECT id, quiz, sumgrades FROM {quiz_attempts}
                   WHERE quiz $in1sql AND userid = :userid AND state = 'finished'
                ORDER BY sumgrades DESC",
-                $in1params, 0, 1
+                $in1params,
+                0,
+                1
             );
             if (!empty($r1attempts)) {
                 $r1att = reset($r1attempts);
@@ -191,7 +199,9 @@ if ($quiz && !empty($students)) {
                 "SELECT id, quiz, sumgrades FROM {quiz_attempts}
                   WHERE quiz $in2sql AND userid = :userid AND state = 'finished'
                ORDER BY sumgrades DESC",
-                $in2params, 0, 1
+                $in2params,
+                0,
+                1
             );
             if (!empty($r2attempts)) {
                 $r2att = reset($r2attempts);
@@ -281,18 +291,33 @@ local_comp_report_ext_render_pdf_header_logos($pdf, true);
 $pdf->SetFont('freeserif', '', 10);
 
 // Title & Meta.
-$html = '<h2 style="color:#1e293b; margin-bottom:4px;">' . s(format_string($course->fullname)) . ' — ' . s($quizname) . '</h2>';
-$html .= '<p style="color:#64748b; font-size:9pt; margin-top:0;"><b>' . get_string('group', 'local_comp_report_ext') . ':</b> ' . s($groupname)
-    . '  |  <b>' . get_string('creation_date', 'local_comp_report_ext') . ':</b> ' . userdate(time()) . '</p>';
+$html = '<h2 style="color:#1e293b; margin-bottom:4px;">'
+    . s(format_string($course->fullname)) . ' — ' . s($quizname) . '</h2>';
+$html .= '<p style="color:#64748b; font-size:9pt; margin-top:0;"><b>'
+    . get_string('group', 'local_comp_report_ext') . ':</b> ' . s($groupname)
+    . '  |  <b>' . get_string('creation_date', 'local_comp_report_ext') . ':</b> '
+    . userdate(time()) . '</p>';
 
 // KPI Cards Grid.
 $html .= '<table cellpadding="6" style="margin-bottom:12px; font-size:9pt; border-collapse:collapse;"><tr>';
-$html .= '<td style="background-color:#eff6ff; border:1px solid #bfdbfe; width:16%; text-align:center;"><b>' . get_string('exam_avg_score', 'local_comp_report_ext') . '</b><br><span style="font-size:12pt; color:#1d4ed8;">%' . number_format($examavg, 1) . '</span></td>';
-$html .= '<td style="background-color:#f0fdf4; border:1px solid #bbf7d0; width:16%; text-align:center;"><b>' . get_string('exam_pass_rate_label', 'local_comp_report_ext') . '</b><br><span style="font-size:12pt; color:#15803d;">%' . number_format($passrate, 1) . '</span></td>';
-$html .= '<td style="background-color:#fefce8; border:1px solid #fef08a; width:16%; text-align:center;"><b>' . get_string('exam_highest_score', 'local_comp_report_ext') . '</b><br><span style="font-size:12pt; color:#a16207;">%' . number_format($highestscore, 1) . '</span></td>';
-$html .= '<td style="background-color:#fff1f2; border:1px solid #fecdd3; width:16%; text-align:center;"><b>' . get_string('exam_lowest_score', 'local_comp_report_ext') . '</b><br><span style="font-size:12pt; color:#be123c;">%' . number_format($lowestscore, 1) . '</span></td>';
-$html .= '<td style="background-color:#f8fafc; border:1px solid #e2e8f0; width:18%; text-align:center;"><b>' . get_string('stats_mean', 'local_comp_report_ext') . '</b><br><span style="font-size:12pt; color:#334155;">%' . number_format($examavg, 1) . '</span></td>';
-$html .= '<td style="background-color:#f8fafc; border:1px solid #e2e8f0; width:18%; text-align:center;"><b>' . get_string('stats_sigma', 'local_comp_report_ext') . '</b><br><span style="font-size:12pt; color:#334155;">' . number_format($statsigma, 1) . '</span></td>';
+$html .= '<td style="background-color:#eff6ff; border:1px solid #bfdbfe; width:16%; text-align:center;">'
+    . '<b>' . get_string('exam_avg_score', 'local_comp_report_ext') . '</b><br>'
+    . '<span style="font-size:12pt; color:#1d4ed8;">%' . number_format($examavg, 1) . '</span></td>';
+$html .= '<td style="background-color:#f0fdf4; border:1px solid #bbf7d0; width:16%; text-align:center;">'
+    . '<b>' . get_string('exam_pass_rate_label', 'local_comp_report_ext') . '</b><br>'
+    . '<span style="font-size:12pt; color:#15803d;">%' . number_format($passrate, 1) . '</span></td>';
+$html .= '<td style="background-color:#fefce8; border:1px solid #fef08a; width:16%; text-align:center;">'
+    . '<b>' . get_string('exam_highest_score', 'local_comp_report_ext') . '</b><br>'
+    . '<span style="font-size:12pt; color:#a16207;">%' . number_format($highestscore, 1) . '</span></td>';
+$html .= '<td style="background-color:#fff1f2; border:1px solid #fecdd3; width:16%; text-align:center;">'
+    . '<b>' . get_string('exam_lowest_score', 'local_comp_report_ext') . '</b><br>'
+    . '<span style="font-size:12pt; color:#be123c;">%' . number_format($lowestscore, 1) . '</span></td>';
+$html .= '<td style="background-color:#f8fafc; border:1px solid #e2e8f0; width:18%; text-align:center;">'
+    . '<b>' . get_string('stats_mean', 'local_comp_report_ext') . '</b><br>'
+    . '<span style="font-size:12pt; color:#334155;">%' . number_format($examavg, 1) . '</span></td>';
+$html .= '<td style="background-color:#f8fafc; border:1px solid #e2e8f0; width:18%; text-align:center;">'
+    . '<b>' . get_string('stats_sigma', 'local_comp_report_ext') . '</b><br>'
+    . '<span style="font-size:12pt; color:#334155;">' . number_format($statsigma, 1) . '</span></td>';
 $html .= '</tr></table><br>';
 
 // Student Scores Roster.
@@ -318,7 +343,9 @@ foreach ($studentlist as $st) {
     $html .= '<td width="10%" align="center">' . $st['att1'] . '</td>';
     $html .= '<td width="10%" align="center">' . $st['att2'] . '</td>';
     $html .= '<td width="10%" align="center">' . $st['att3'] . '</td>';
-    $html .= '<td width="12%" align="center" style="font-weight:bold; color:#1d4ed8;">' . $st['finalscore'] . '<br><small style="font-size:7pt; color:#64748b;">(' . $st['finalgrade'] . ')</small></td>';
+    $html .= '<td width="12%" align="center" style="font-weight:bold; color:#1d4ed8;">'
+        . $st['finalscore'] . '<br><small style="font-size:7pt; color:#64748b;">('
+        . $st['finalgrade'] . ')</small></td>';
     $html .= '<td width="13%" align="center">' . s($st['status']) . '</td>';
     $html .= '</tr>';
 }

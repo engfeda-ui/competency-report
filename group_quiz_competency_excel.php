@@ -174,17 +174,17 @@ $workbook = new MoodleExcelWorkbook($cleanfilename);
 $worksheet = $workbook->add_worksheet(mb_substr(clean_param($quizname, PARAM_TEXT), 0, 31));
 
 // Formatting styles.
-$format_title = $workbook->add_format([
+$formattitle = $workbook->add_format([
     'bold' => 1,
     'size' => 14,
     'align' => 'left',
     'color' => 'navy',
 ]);
-$format_meta = $workbook->add_format([
+$formatmeta = $workbook->add_format([
     'size' => 10,
     'color' => 'gray',
 ]);
-$format_header = $workbook->add_format([
+$formatheader = $workbook->add_format([
     'bold' => 1,
     'color' => 'white',
     'bg_color' => 'navy',
@@ -192,7 +192,7 @@ $format_header = $workbook->add_format([
     'align' => 'center',
     'valign' => 'vcenter',
 ]);
-$format_header_left = $workbook->add_format([
+$formatheaderleft = $workbook->add_format([
     'bold' => 1,
     'color' => 'white',
     'bg_color' => 'navy',
@@ -200,30 +200,30 @@ $format_header_left = $workbook->add_format([
     'align' => 'left',
     'valign' => 'vcenter',
 ]);
-$format_cell = $workbook->add_format([
+$formatcell = $workbook->add_format([
     'border' => 1,
     'align' => 'center',
     'valign' => 'vcenter',
 ]);
-$format_cell_left = $workbook->add_format([
+$formatcellleft = $workbook->add_format([
     'border' => 1,
     'align' => 'left',
     'valign' => 'vcenter',
 ]);
-$format_cell_bold = $workbook->add_format([
+$formatcellbold = $workbook->add_format([
     'bold' => 1,
     'border' => 1,
     'align' => 'left',
     'valign' => 'vcenter',
 ]);
-$format_total = $workbook->add_format([
+$formattotal = $workbook->add_format([
     'bold' => 1,
     'bg_color' => 'silver',
     'border' => 1,
     'align' => 'center',
     'valign' => 'vcenter',
 ]);
-$format_total_left = $workbook->add_format([
+$formattotalleft = $workbook->add_format([
     'bold' => 1,
     'bg_color' => 'silver',
     'border' => 1,
@@ -233,20 +233,23 @@ $format_total_left = $workbook->add_format([
 
 // Write Title & Metadata.
 $row = 0;
-$worksheet->write_string($row, 0, format_string($course->fullname) . ' — ' . $quizname, $format_title);
+$titletext = format_string($course->fullname) . ' — ' . $quizname;
+$worksheet->write_string($row, 0, $titletext, $formattitle);
 $row++;
-$worksheet->write_string($row, 0, get_string('group', 'local_comp_report_ext') . ': ' . $groupname . '  |  ' . userdate(time()), $format_meta);
+$metatext = get_string('group', 'local_comp_report_ext') . ': ' . $groupname . '  |  ' . userdate(time());
+$worksheet->write_string($row, 0, $metatext, $formatmeta);
 $row += 2;
 
 // Table Headers.
 $col = 0;
-$worksheet->write_string($row, $col++, '#', $format_header);
-$worksheet->write_string($row, $col++, get_string('student', 'local_comp_report_ext'), $format_header_left);
-$worksheet->write_string($row, $col++, get_string('group', 'local_comp_report_ext'), $format_header_left);
-$worksheet->write_string($row, $col++, get_string('grade', 'local_comp_report_ext') . ' / ' . number_format($maxgrade, 1), $format_header);
+$worksheet->write_string($row, $col++, '#', $formatheader);
+$worksheet->write_string($row, $col++, get_string('student', 'local_comp_report_ext'), $formatheaderleft);
+$worksheet->write_string($row, $col++, get_string('group', 'local_comp_report_ext'), $formatheaderleft);
+$gradeheader = get_string('grade', 'local_comp_report_ext') . ' / ' . number_format($maxgrade, 1);
+$worksheet->write_string($row, $col++, $gradeheader, $formatheader);
 
 foreach ($competencies as $c) {
-    $worksheet->write_string($row, $col++, format_string($c->shortname), $format_header);
+    $worksheet->write_string($row, $col++, format_string($c->shortname), $formatheader);
 }
 $row++;
 
@@ -255,10 +258,10 @@ $worksheet->set_column(0, 0, 5);
 $worksheet->set_column(1, 1, 30);
 $worksheet->set_column(2, 2, 20);
 $worksheet->set_column(3, 3, 16);
-$col_idx = 4;
+$colidx = 4;
 foreach ($competencies as $c) {
-    $worksheet->set_column($col_idx, $col_idx, max(14, mb_strlen(format_string($c->shortname)) + 4));
-    $col_idx++;
+    $worksheet->set_column($colidx, $colidx, max(14, mb_strlen(format_string($c->shortname)) + 4));
+    $colidx++;
 }
 
 // Table Rows.
@@ -268,19 +271,20 @@ $totalgrades  = [];
 
 foreach ($students as $s) {
     $col = 0;
-    $worksheet->write_number($row, $col++, $index++, $format_cell);
-    $worksheet->write_string($row, $col++, safe_excel_str(fullname($s)), $format_cell_bold);
+    $worksheet->write_number($row, $col++, $index++, $formatcell);
+    $worksheet->write_string($row, $col++, safe_excel_str(fullname($s)), $formatcellbold);
 
     $gtext = !empty($usergroups[$s->id]) ? implode(', ', $usergroups[$s->id]) : '—';
-    $worksheet->write_string($row, $col++, safe_excel_str($gtext), $format_cell_left);
+    $worksheet->write_string($row, $col++, safe_excel_str($gtext), $formatcellleft);
 
     // Quiz Grade.
     if (isset($graderecords[$s->id])) {
         $sgrade = (float)$graderecords[$s->id]->grade;
-        $worksheet->write_string($row, $col++, number_format($sgrade, 1) . ' / ' . number_format($maxgrade, 1), $format_cell);
+        $gradestr = number_format($sgrade, 1) . ' / ' . number_format($maxgrade, 1);
+        $worksheet->write_string($row, $col++, $gradestr, $formatcell);
         $totalgrades[] = $sgrade;
     } else {
-        $worksheet->write_string($row, $col++, '—', $format_cell);
+        $worksheet->write_string($row, $col++, '—', $formatcell);
     }
 
     // Competencies.
@@ -290,14 +294,14 @@ foreach ($students as $s) {
             $cor = $scoremap[$s->id][$c->id]['cor'];
             if ($att > 0) {
                 $rate = ($cor / $att) * 100;
-                $worksheet->write_string($row, $col++, '%' . number_format($rate, 1), $format_cell);
+                $worksheet->write_string($row, $col++, '%' . number_format($rate, 1), $formatcell);
                 $grouptotals[$c->id]['att'] = ($grouptotals[$c->id]['att'] ?? 0) + $att;
                 $grouptotals[$c->id]['cor'] = ($grouptotals[$c->id]['cor'] ?? 0) + $cor;
             } else {
-                $worksheet->write_string($row, $col++, '—', $format_cell);
+                $worksheet->write_string($row, $col++, '—', $formatcell);
             }
         } else {
-            $worksheet->write_string($row, $col++, '—', $format_cell);
+            $worksheet->write_string($row, $col++, '—', $formatcell);
         }
     }
     $row++;
@@ -305,15 +309,16 @@ foreach ($students as $s) {
 
 // Total / Summary Row.
 $col = 0;
-$worksheet->write_string($row, $col++, '', $format_total);
-$worksheet->write_string($row, $col++, get_string('total', 'local_comp_report_ext'), $format_total_left);
-$worksheet->write_string($row, $col++, '', $format_total);
+$worksheet->write_string($row, $col++, '', $formattotal);
+$worksheet->write_string($row, $col++, get_string('total', 'local_comp_report_ext'), $formattotalleft);
+$worksheet->write_string($row, $col++, '', $formattotal);
 
 if (!empty($totalgrades)) {
     $avggrade = round(array_sum($totalgrades) / count($totalgrades), 1);
-    $worksheet->write_string($row, $col++, number_format($avggrade, 1) . ' / ' . number_format($maxgrade, 1), $format_total);
+    $avgstr = number_format($avggrade, 1) . ' / ' . number_format($maxgrade, 1);
+    $worksheet->write_string($row, $col++, $avgstr, $formattotal);
 } else {
-    $worksheet->write_string($row, $col++, '—', $format_total);
+    $worksheet->write_string($row, $col++, '—', $formattotal);
 }
 
 foreach ($competencies as $c) {
@@ -321,9 +326,9 @@ foreach ($competencies as $c) {
     $tcor = $grouptotals[$c->id]['cor'] ?? 0;
     if ($tatt > 0) {
         $trate = round(($tcor / $tatt) * 100, 1);
-        $worksheet->write_string($row, $col++, '%' . number_format($trate, 1), $format_total);
+        $worksheet->write_string($row, $col++, '%' . number_format($trate, 1), $formattotal);
     } else {
-        $worksheet->write_string($row, $col++, '—', $format_total);
+        $worksheet->write_string($row, $col++, '—', $formattotal);
     }
 }
 

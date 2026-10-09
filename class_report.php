@@ -123,7 +123,11 @@ if (!empty($coursedata)) {
                 "WHERE quiz.course = :courseid AND gm.groupid " . $groupinsql,
                 $classsql
             );
-            $classparams = array_merge(['courseid' => $courseid, 'subcourseid' => $courseid, 'competencyid' => $competency], $groupparams);
+            $classparams = array_merge([
+                'courseid'     => $courseid,
+                'subcourseid'  => $courseid,
+                'competencyid' => $competency,
+            ], $groupparams);
             $classdata = $DB->get_records_sql($classsql, $classparams);
         } else {
             // 2. Fallback: check user department if set.

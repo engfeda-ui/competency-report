@@ -399,7 +399,7 @@ class competency_calculator {
      * @param array $userids
      * @return array [userid => [compid => result_array]]
      */
-     private function get_legacy_rates_bulk(array $userids): array {
+    private function get_legacy_rates_bulk(array $userids): array {
         global $DB;
 
         if (empty($userids)) {

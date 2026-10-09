@@ -149,17 +149,26 @@ foreach ($groupcompraw as $gr) {
     ];
 }
 
-// Helper safely format strings.
+/**
+ * Sanitize a string for Excel export to prevent formula injection.
+ *
+ * @param mixed $str
+ * @return string
+ */
 function safe_str($str): string {
-    return clean_param(strip_tags((string)$str), PARAM_TEXT);
+    $clean = clean_param(strip_tags((string)$str), PARAM_TEXT);
+    if ($clean !== '' && in_array($clean[0], ['=', '+', '-', '@'], true)) {
+        return "'" . $clean;
+    }
+    return $clean;
 }
 
 $filename = clean_filename('Course_Master_' . $course->shortname . '_' . date('Ymd_His') . '.xlsx');
 $workbook = new MoodleExcelWorkbook($filename);
 
-$format_title = $workbook->add_format(['bold' => 1, 'size' => 14, 'align' => 'left']);
-$format_meta  = $workbook->add_format(['italic' => 1, 'size' => 10, 'color' => 'gray']);
-$format_header = $workbook->add_format([
+$formattitle = $workbook->add_format(['bold' => 1, 'size' => 14, 'align' => 'left']);
+$formatmeta  = $workbook->add_format(['italic' => 1, 'size' => 10, 'color' => 'gray']);
+$formatheader = $workbook->add_format([
     'bold' => 1,
     'bg_color' => 'navy',
     'color' => 'white',
@@ -167,7 +176,7 @@ $format_header = $workbook->add_format([
     'align' => 'center',
     'valign' => 'vcenter',
 ]);
-$format_header_left = $workbook->add_format([
+$formatheaderleft = $workbook->add_format([
     'bold' => 1,
     'bg_color' => 'navy',
     'color' => 'white',
@@ -175,38 +184,42 @@ $format_header_left = $workbook->add_format([
     'align' => 'left',
     'valign' => 'vcenter',
 ]);
-$format_cell = $workbook->add_format(['border' => 1, 'align' => 'center', 'valign' => 'vcenter']);
-$format_cell_left = $workbook->add_format(['border' => 1, 'align' => 'left', 'valign' => 'vcenter']);
-$format_cell_bold = $workbook->add_format(['bold' => 1, 'border' => 1, 'align' => 'left', 'valign' => 'vcenter']);
-$format_stat_lbl = $workbook->add_format(['bold' => 1, 'bg_color' => 'cyan', 'border' => 1, 'align' => 'center']);
-$format_stat_val = $workbook->add_format(['bold' => 1, 'size' => 12, 'border' => 1, 'align' => 'center']);
+$formatcell = $workbook->add_format(['border' => 1, 'align' => 'center', 'valign' => 'vcenter']);
+$formatcellleft = $workbook->add_format(['border' => 1, 'align' => 'left', 'valign' => 'vcenter']);
+$formatcellbold = $workbook->add_format(['bold' => 1, 'border' => 1, 'align' => 'left', 'valign' => 'vcenter']);
+$formatstatlbl = $workbook->add_format(['bold' => 1, 'bg_color' => 'cyan', 'border' => 1, 'align' => 'center']);
+$formatstatval = $workbook->add_format(['bold' => 1, 'size' => 12, 'border' => 1, 'align' => 'center']);
 
 // -------------------------------------------------------------
-// Sheet 1: Quizzes & Overview
+// Sheet 1: Quizzes & Overview.
 $ws1 = $workbook->add_worksheet('Overview & Quizzes');
-$ws1->write_string(0, 0, safe_str($course->fullname) . ' — ' . $reporttitle, $format_title);
-$ws1->write_string(1, 0, get_string('course', 'moodle') . ': ' . safe_str($course->shortname) . ' | ' . userdate(time()), $format_meta);
+$titlestr = safe_str($course->fullname) . ' — ' . $reporttitle;
+$ws1->write_string(0, 0, $titlestr, $formattitle);
 
-// KPI Stats
-$ws1->write_string(3, 0, get_string('allusers', 'local_comp_report_ext'), $format_stat_lbl);
-$ws1->write_string(3, 1, get_string('selectgroup', 'local_comp_report_ext'), $format_stat_lbl);
-$ws1->write_string(3, 2, get_string('allcompetencies', 'local_comp_report_ext'), $format_stat_lbl);
-$ws1->write_string(3, 3, get_string('searchquiz', 'local_comp_report_ext'), $format_stat_lbl);
+$metastr = get_string('course', 'moodle') . ': '
+    . safe_str($course->shortname) . ' | ' . userdate(time());
+$ws1->write_string(1, 0, $metastr, $formatmeta);
 
-$ws1->write_number(4, 0, $studentscount, $format_stat_val);
-$ws1->write_number(4, 1, $groupscount, $format_stat_val);
-$ws1->write_number(4, 2, $compscount, $format_stat_val);
-$ws1->write_number(4, 3, $quizzescount, $format_stat_val);
+// KPI Stats.
+$ws1->write_string(3, 0, get_string('allusers', 'local_comp_report_ext'), $formatstatlbl);
+$ws1->write_string(3, 1, get_string('selectgroup', 'local_comp_report_ext'), $formatstatlbl);
+$ws1->write_string(3, 2, get_string('allcompetencies', 'local_comp_report_ext'), $formatstatlbl);
+$ws1->write_string(3, 3, get_string('searchquiz', 'local_comp_report_ext'), $formatstatlbl);
 
-// Quizzes Table
+$ws1->write_number(4, 0, $studentscount, $formatstatval);
+$ws1->write_number(4, 1, $groupscount, $formatstatval);
+$ws1->write_number(4, 2, $compscount, $formatstatval);
+$ws1->write_number(4, 3, $quizzescount, $formatstatval);
+
+// Quizzes Table.
 $row = 6;
-$ws1->write_string($row, 0, '#', $format_header);
-$ws1->write_string($row, 1, get_string('quizname', 'local_comp_report_ext'), $format_header_left);
-$ws1->write_string($row, 2, get_string('questioncount', 'local_comp_report_ext'), $format_header);
-$ws1->write_string($row, 3, get_string('attempts', 'local_comp_report_ext'), $format_header);
-$ws1->write_string($row, 4, get_string('averagegrade', 'local_comp_report_ext'), $format_header);
-$ws1->write_string($row, 5, get_string('maxgrade', 'local_comp_report_ext'), $format_header);
-$ws1->write_string($row, 6, get_string('successrate', 'local_comp_report_ext'), $format_header);
+$ws1->write_string($row, 0, '#', $formatheader);
+$ws1->write_string($row, 1, get_string('quizname', 'local_comp_report_ext'), $formatheaderleft);
+$ws1->write_string($row, 2, get_string('questioncount', 'local_comp_report_ext'), $formatheader);
+$ws1->write_string($row, 3, get_string('attempts', 'local_comp_report_ext'), $formatheader);
+$ws1->write_string($row, 4, get_string('averagegrade', 'local_comp_report_ext'), $formatheader);
+$ws1->write_string($row, 5, get_string('maxgrade', 'local_comp_report_ext'), $formatheader);
+$ws1->write_string($row, 6, get_string('successrate', 'local_comp_report_ext'), $formatheader);
 $row++;
 
 $ws1->set_column(0, 0, 5);
@@ -219,28 +232,30 @@ foreach ($rawquizzes as $qz) {
     $max = (float)$qz->maxgrade;
     $rate = ($max > 0) ? round(($avg / $max) * 100, 1) : 0;
 
-    $ws1->write_number($row, 0, $idx++, $format_cell);
-    $ws1->write_string($row, 1, safe_str($qz->name), $format_cell_bold);
-    $ws1->write_number($row, 2, (int)$qz->numquestions, $format_cell);
-    $ws1->write_number($row, 3, (int)$qz->attempts, $format_cell);
-    $ws1->write_number($row, 4, $avg, $format_cell);
-    $ws1->write_number($row, 5, $max, $format_cell);
-    $ws1->write_string($row, 6, $rate . '%', $format_cell);
+    $ws1->write_number($row, 0, $idx++, $formatcell);
+    $ws1->write_string($row, 1, safe_str($qz->name), $formatcellbold);
+    $ws1->write_number($row, 2, (int)$qz->numquestions, $formatcell);
+    $ws1->write_number($row, 3, (int)$qz->attempts, $formatcell);
+    $ws1->write_number($row, 4, $avg, $formatcell);
+    $ws1->write_number($row, 5, $max, $formatcell);
+    $ws1->write_string($row, 6, $rate . '%', $formatcell);
     $row++;
 }
 
 // -------------------------------------------------------------
-// Sheet 2: Competency Rates
+// Sheet 2: Competency Rates.
 $ws2 = $workbook->add_worksheet('Competencies');
-$ws2->write_string(0, 0, safe_str($course->fullname) . ' — ' . get_string('competency_overview_title', 'local_comp_report_ext'), $format_title);
-$ws2->write_string(1, 0, userdate(time()), $format_meta);
+$compheading = safe_str($course->fullname) . ' — '
+    . get_string('competency_overview_title', 'local_comp_report_ext');
+$ws2->write_string(0, 0, $compheading, $formattitle);
+$ws2->write_string(1, 0, userdate(time()), $formatmeta);
 
 $row = 3;
-$ws2->write_string($row, 0, '#', $format_header);
-$ws2->write_string($row, 1, get_string('competencycode', 'local_comp_report_ext'), $format_header_left);
-$ws2->write_string($row, 2, get_string('questioncount', 'local_comp_report_ext'), $format_header);
-$ws2->write_string($row, 3, get_string('correctcount', 'local_comp_report_ext'), $format_header);
-$ws2->write_string($row, 4, get_string('successrate', 'local_comp_report_ext'), $format_header);
+$ws2->write_string($row, 0, '#', $formatheader);
+$ws2->write_string($row, 1, get_string('competencycode', 'local_comp_report_ext'), $formatheaderleft);
+$ws2->write_string($row, 2, get_string('questioncount', 'local_comp_report_ext'), $formatheader);
+$ws2->write_string($row, 3, get_string('correctcount', 'local_comp_report_ext'), $formatheader);
+$ws2->write_string($row, 4, get_string('successrate', 'local_comp_report_ext'), $formatheader);
 $row++;
 
 $ws2->set_column(0, 0, 5);
@@ -253,28 +268,30 @@ foreach ($rawcomps as $rc) {
     $cor = (float)$rc->correct;
     $crate = ($att > 0) ? round(($cor / $att) * 100, 1) : 0;
 
-    $ws2->write_number($row, 0, $idx++, $format_cell);
-    $ws2->write_string($row, 1, safe_str($rc->shortname), $format_cell_bold);
-    $ws2->write_number($row, 2, round($att, 1), $format_cell);
-    $ws2->write_number($row, 3, round($cor, 1), $format_cell);
-    $ws2->write_string($row, 4, $crate . '%', $format_cell);
+    $ws2->write_number($row, 0, $idx++, $formatcell);
+    $ws2->write_string($row, 1, safe_str($rc->shortname), $formatcellbold);
+    $ws2->write_number($row, 2, round($att, 1), $formatcell);
+    $ws2->write_number($row, 3, round($cor, 1), $formatcell);
+    $ws2->write_string($row, 4, $crate . '%', $formatcell);
     $row++;
 }
 
 // -------------------------------------------------------------
-// Sheet 3: Group Matrix
+// Sheet 3: Group Matrix.
 $ws3 = $workbook->add_worksheet('Group Matrix');
-$ws3->write_string(0, 0, safe_str($course->fullname) . ' — ' . get_string('groupcomparison', 'local_comp_report_ext'), $format_title);
-$ws3->write_string(1, 0, userdate(time()), $format_meta);
+$groupheading = safe_str($course->fullname) . ' — '
+    . get_string('groupcomparison', 'local_comp_report_ext');
+$ws3->write_string(0, 0, $groupheading, $formattitle);
+$ws3->write_string(1, 0, userdate(time()), $formatmeta);
 
 $row = 3;
 $col = 0;
-$ws3->write_string($row, $col++, '#', $format_header);
-$ws3->write_string($row, $col++, get_string('group', 'local_comp_report_ext'), $format_header_left);
+$ws3->write_string($row, $col++, '#', $formatheader);
+$ws3->write_string($row, $col++, get_string('group', 'local_comp_report_ext'), $formatheaderleft);
 foreach ($compslist as $c) {
-    $ws3->write_string($row, $col++, safe_str($c->shortname), $format_header);
+    $ws3->write_string($row, $col++, safe_str($c->shortname), $formatheader);
 }
-$ws3->write_string($row, $col++, get_string('overall_performance', 'local_comp_report_ext'), $format_header);
+$ws3->write_string($row, $col++, get_string('overall_performance', 'local_comp_report_ext'), $formatheader);
 $row++;
 
 $ws3->set_column(0, 0, 5);
@@ -286,24 +303,24 @@ for ($cidx = 2; $cidx <= $col; $cidx++) {
 $idx = 1;
 foreach ($groups as $g) {
     $cpos = 0;
-    $ws3->write_number($row, $cpos++, $idx++, $format_cell);
-    $ws3->write_string($row, $cpos++, safe_str($g->name), $format_cell_bold);
+    $ws3->write_number($row, $cpos++, $idx++, $formatcell);
+    $ws3->write_string($row, $cpos++, safe_str($g->name), $formatcellbold);
 
     $sumrates = 0;
     $ratedcomps = 0;
     foreach ($compslist as $c) {
         if (isset($groupmap[$g->id][$c->id]) && $groupmap[$g->id][$c->id]['att'] > 0) {
             $grate = round(($groupmap[$g->id][$c->id]['cor'] / $groupmap[$g->id][$c->id]['att']) * 100, 1);
-            $ws3->write_string($row, $cpos++, $grate . '%', $format_cell);
+            $ws3->write_string($row, $cpos++, $grate . '%', $formatcell);
             $sumrates += $grate;
             $ratedcomps++;
         } else {
-            $ws3->write_string($row, $cpos++, '—', $format_cell);
+            $ws3->write_string($row, $cpos++, '—', $formatcell);
         }
     }
 
     $overall = ($ratedcomps > 0) ? round($sumrates / $ratedcomps, 1) : 0;
-    $ws3->write_string($row, $cpos++, ($ratedcomps > 0 ? $overall . '%' : '—'), $format_cell);
+    $ws3->write_string($row, $cpos++, ($ratedcomps > 0 ? $overall . '%' : '—'), $formatcell);
     $row++;
 }
 

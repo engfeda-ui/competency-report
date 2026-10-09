@@ -101,7 +101,11 @@ if (!empty($coursedata) && $userid) {
             "WHERE quiz.course = :courseid AND gm.groupid " . $groupinsql,
             $classsql
         );
-        $classparams = array_merge(['courseid' => $courseid, 'subcourseid' => $courseid, 'competencyid' => $competency], $groupparams);
+        $classparams = array_merge([
+            'courseid'     => $courseid,
+            'subcourseid'  => $courseid,
+            'competencyid' => $competency,
+        ], $groupparams);
         $classdata = $DB->get_records_sql($classsql, $classparams);
     } else {
         $userdept = $DB->get_field('user', 'department', ['id' => $userid]);
@@ -142,16 +146,26 @@ if (!empty($coursedata) && $userid) {
     ]);
 }
 
+/**
+ * Sanitize a string for Excel export to prevent formula injection.
+ *
+ * @param mixed $str
+ * @return string
+ */
 function safe_excel_str($str): string {
-    return clean_param(strip_tags((string)$str), PARAM_TEXT);
+    $clean = clean_param(strip_tags((string)$str), PARAM_TEXT);
+    if ($clean !== '' && in_array($clean[0], ['=', '+', '-', '@'], true)) {
+        return "'" . $clean;
+    }
+    return $clean;
 }
 
 $filename = clean_filename('Class_Report_' . $course->shortname . '_' . date('Ymd_His') . '.xlsx');
 $workbook = new MoodleExcelWorkbook($filename);
 
-$format_title = $workbook->add_format(['bold' => 1, 'size' => 14, 'align' => 'left']);
-$format_meta  = $workbook->add_format(['italic' => 1, 'size' => 10, 'color' => 'gray']);
-$format_header = $workbook->add_format([
+$formattitle = $workbook->add_format(['bold' => 1, 'size' => 14, 'align' => 'left']);
+$formatmeta  = $workbook->add_format(['italic' => 1, 'size' => 10, 'color' => 'gray']);
+$formatheader = $workbook->add_format([
     'bold' => 1,
     'bg_color' => 'navy',
     'color' => 'white',
@@ -159,7 +173,7 @@ $format_header = $workbook->add_format([
     'align' => 'center',
     'valign' => 'vcenter',
 ]);
-$format_header_left = $workbook->add_format([
+$formatheaderleft = $workbook->add_format([
     'bold' => 1,
     'bg_color' => 'navy',
     'color' => 'white',
@@ -167,29 +181,42 @@ $format_header_left = $workbook->add_format([
     'align' => 'left',
     'valign' => 'vcenter',
 ]);
-$format_cell = $workbook->add_format(['border' => 1, 'align' => 'center', 'valign' => 'vcenter']);
-$format_cell_bold = $workbook->add_format(['bold' => 1, 'border' => 1, 'align' => 'left', 'valign' => 'vcenter']);
-$format_total = $workbook->add_format(['bold' => 1, 'bg_color' => 'silver', 'border' => 1, 'align' => 'center', 'valign' => 'vcenter']);
-$format_total_left = $workbook->add_format(['bold' => 1, 'bg_color' => 'silver', 'border' => 1, 'align' => 'left', 'valign' => 'vcenter']);
+$formatcell = $workbook->add_format(['border' => 1, 'align' => 'center', 'valign' => 'vcenter']);
+$formatcellbold = $workbook->add_format(['bold' => 1, 'border' => 1, 'align' => 'left', 'valign' => 'vcenter']);
+$formattotal = $workbook->add_format([
+    'bold' => 1,
+    'bg_color' => 'silver',
+    'border' => 1,
+    'align' => 'center',
+    'valign' => 'vcenter',
+]);
+$formattotalleft = $workbook->add_format([
+    'bold' => 1,
+    'bg_color' => 'silver',
+    'border' => 1,
+    'align' => 'left',
+    'valign' => 'vcenter',
+]);
 
 $worksheet = $workbook->add_worksheet('Class Competencies');
 
-$worksheet->write_string(0, 0, safe_excel_str($course->fullname) . ' — ' . get_string('studentclassreport', 'local_comp_report_ext'), $format_title);
+$titlestr = safe_excel_str($course->fullname) . ' — ' . get_string('studentclassreport', 'local_comp_report_ext');
+$worksheet->write_string(0, 0, $titlestr, $formattitle);
 $metatext = get_string('course', 'moodle') . ': ' . safe_excel_str($course->shortname);
 if (!empty($studentname)) {
     $metatext .= ' | ' . get_string('student', 'local_comp_report_ext') . ': ' . safe_excel_str($studentname);
 }
 $metatext .= ' | ' . userdate(time());
-$worksheet->write_string(1, 0, $metatext, $format_meta);
+$worksheet->write_string(1, 0, $metatext, $formatmeta);
 
 $row = 3;
 $col = 0;
-$worksheet->write_string($row, $col++, '#', $format_header);
-$worksheet->write_string($row, $col++, get_string('competencyname', 'local_comp_report_ext'), $format_header_left);
-$worksheet->write_string($row, $col++, get_string('courseavg', 'local_comp_report_ext'), $format_header);
-$worksheet->write_string($row, $col++, get_string('classavg', 'local_comp_report_ext'), $format_header);
+$worksheet->write_string($row, $col++, '#', $formatheader);
+$worksheet->write_string($row, $col++, get_string('competencyname', 'local_comp_report_ext'), $formatheaderleft);
+$worksheet->write_string($row, $col++, get_string('courseavg', 'local_comp_report_ext'), $formatheader);
+$worksheet->write_string($row, $col++, get_string('classavg', 'local_comp_report_ext'), $formatheader);
 if ($userid > 0) {
-    $worksheet->write_string($row, $col++, get_string('studentavg', 'local_comp_report_ext'), $format_header);
+    $worksheet->write_string($row, $col++, get_string('studentavg', 'local_comp_report_ext'), $formatheader);
 }
 $row++;
 
@@ -211,12 +238,12 @@ foreach ($coursedata as $cid => $c) {
         round(($studentdata[$cid]->correct / $studentdata[$cid]->attempts) * 100, 1) : 0;
 
     $cpos = 0;
-    $worksheet->write_number($row, $cpos++, $idx++, $format_cell);
-    $worksheet->write_string($row, $cpos++, safe_excel_str($c->shortname), $format_cell_bold);
-    $worksheet->write_string($row, $cpos++, $courserate . '%', $format_cell);
-    $worksheet->write_string($row, $cpos++, $classrate . '%', $format_cell);
+    $worksheet->write_number($row, $cpos++, $idx++, $formatcell);
+    $worksheet->write_string($row, $cpos++, safe_excel_str($c->shortname), $formatcellbold);
+    $worksheet->write_string($row, $cpos++, $courserate . '%', $formatcell);
+    $worksheet->write_string($row, $cpos++, $classrate . '%', $formatcell);
     if ($userid > 0) {
-        $worksheet->write_string($row, $cpos++, $studrate . '%', $format_cell);
+        $worksheet->write_string($row, $cpos++, $studrate . '%', $formatcell);
         $sumstud += $studrate;
     }
 
@@ -228,12 +255,14 @@ foreach ($coursedata as $cid => $c) {
 
 if ($count > 0) {
     $cpos = 0;
-    $worksheet->write_string($row, $cpos++, '', $format_total);
-    $worksheet->write_string($row, $cpos++, get_string('total', 'moodle') . ' / ' . get_string('averagegrade', 'local_comp_report_ext'), $format_total_left);
-    $worksheet->write_string($row, $cpos++, round($sumcourse / $count, 1) . '%', $format_total);
-    $worksheet->write_string($row, $cpos++, round($sumclass / $count, 1) . '%', $format_total);
+    $worksheet->write_string($row, $cpos++, '', $formattotal);
+    $totalheading = get_string('total', 'moodle') . ' / '
+        . get_string('averagegrade', 'local_comp_report_ext');
+    $worksheet->write_string($row, $cpos++, $totalheading, $formattotalleft);
+    $worksheet->write_string($row, $cpos++, round($sumcourse / $count, 1) . '%', $formattotal);
+    $worksheet->write_string($row, $cpos++, round($sumclass / $count, 1) . '%', $formattotal);
     if ($userid > 0) {
-        $worksheet->write_string($row, $cpos++, round($sumstud / $count, 1) . '%', $format_total);
+        $worksheet->write_string($row, $cpos++, round($sumstud / $count, 1) . '%', $formattotal);
     }
 }
 

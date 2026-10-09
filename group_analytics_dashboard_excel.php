@@ -157,6 +157,12 @@ usort($compstats, function($a, $b) {
 $topstrength = !empty($compstats) ? $compstats[0]['shortname'] . ' (' . $compstats[0]['avg'] . '%)' : '—';
 $criticalgap = !empty($compstats) ? end($compstats)['shortname'] . ' (' . end($compstats)['avg'] . '%)' : '—';
 
+/**
+ * Sanitize string for Excel output.
+ *
+ * @param mixed $str
+ * @return string
+ */
 function safe_excel_str($str): string {
     return clean_param(strip_tags((string)$str), PARAM_TEXT);
 }
@@ -164,9 +170,9 @@ function safe_excel_str($str): string {
 $filename = clean_filename('Group_Analytics_' . $course->shortname . '_' . date('Ymd_His') . '.xlsx');
 $workbook = new MoodleExcelWorkbook($filename);
 
-$format_title = $workbook->add_format(['bold' => 1, 'size' => 14, 'align' => 'left']);
-$format_meta  = $workbook->add_format(['italic' => 1, 'size' => 10, 'color' => 'gray']);
-$format_header = $workbook->add_format([
+$formattitle = $workbook->add_format(['bold' => 1, 'size' => 14, 'align' => 'left']);
+$formatmeta  = $workbook->add_format(['italic' => 1, 'size' => 10, 'color' => 'gray']);
+$formatheader = $workbook->add_format([
     'bold' => 1,
     'bg_color' => 'navy',
     'color' => 'white',
@@ -174,7 +180,7 @@ $format_header = $workbook->add_format([
     'align' => 'center',
     'valign' => 'vcenter',
 ]);
-$format_header_left = $workbook->add_format([
+$formatheaderleft = $workbook->add_format([
     'bold' => 1,
     'bg_color' => 'navy',
     'color' => 'white',
@@ -182,35 +188,49 @@ $format_header_left = $workbook->add_format([
     'align' => 'left',
     'valign' => 'vcenter',
 ]);
-$format_cell = $workbook->add_format(['border' => 1, 'align' => 'center', 'valign' => 'vcenter']);
-$format_cell_left = $workbook->add_format(['border' => 1, 'align' => 'left', 'valign' => 'vcenter']);
-$format_cell_bold = $workbook->add_format(['bold' => 1, 'border' => 1, 'align' => 'left', 'valign' => 'vcenter']);
-$format_kpi_lbl = $workbook->add_format(['bold' => 1, 'bg_color' => 'cyan', 'border' => 1, 'align' => 'center']);
-$format_kpi_val = $workbook->add_format(['bold' => 1, 'size' => 12, 'border' => 1, 'align' => 'center']);
+$formatcell = $workbook->add_format(['border' => 1, 'align' => 'center', 'valign' => 'vcenter']);
+$formatcellleft = $workbook->add_format(['border' => 1, 'align' => 'left', 'valign' => 'vcenter']);
+$formatcellbold = $workbook->add_format(['bold' => 1, 'border' => 1, 'align' => 'left', 'valign' => 'vcenter']);
+$formatkpilbl = $workbook->add_format(['bold' => 1, 'bg_color' => 'cyan', 'border' => 1, 'align' => 'center']);
+$formatkpival = $workbook->add_format(['bold' => 1, 'size' => 12, 'border' => 1, 'align' => 'center']);
 
 // -------------------------------------------------------------
 // Sheet 1: Dashboard & Competencies
 $ws1 = $workbook->add_worksheet('KPIs & Competencies');
-$ws1->write_string(0, 0, safe_excel_str($course->fullname) . ' — ' . get_string('group_analytics_dashboard', 'local_comp_report_ext'), $format_title);
-$ws1->write_string(1, 0, get_string('group', 'local_comp_report_ext') . ': ' . safe_excel_str($groupname) . ' | ' . userdate(time()), $format_meta);
+$titletext1 = safe_excel_str($course->fullname) . ' — ' .
+    get_string('group_analytics_dashboard', 'local_comp_report_ext');
+$ws1->write_string(0, 0, $titletext1, $formattitle);
+
+$metatext1 = get_string('group', 'local_comp_report_ext') . ': ' .
+    safe_excel_str($groupname) . ' | ' . userdate(time());
+$ws1->write_string(1, 0, $metatext1, $formatmeta);
 
 // KPI Overview
-$ws1->write_string(3, 0, get_string('kpi_average_mastery', 'local_comp_report_ext') ?: 'Average Mastery', $format_kpi_lbl);
-$ws1->write_string(3, 1, get_string('kpi_remediation_rate', 'local_comp_report_ext') ?: 'Needs Support Rate', $format_kpi_lbl);
-$ws1->write_string(3, 2, get_string('kpi_top_strength', 'local_comp_report_ext') ?: 'Top Strength', $format_kpi_lbl);
-$ws1->write_string(3, 3, get_string('kpi_critical_gap', 'local_comp_report_ext') ?: 'Critical Gap', $format_kpi_lbl);
+$kpiavg = get_string('kpi_average_mastery', 'local_comp_report_ext') ?: 'Average Mastery';
+$ws1->write_string(3, 0, $kpiavg, $formatkpilbl);
 
-$ws1->write_string(4, 0, $cohortavg . '%', $format_kpi_val);
-$ws1->write_string(4, 1, $remediationpct . '% (' . $remediationcount . '/' . $totalstudents . ')', $format_kpi_val);
-$ws1->write_string(4, 2, safe_excel_str($topstrength), $format_kpi_val);
-$ws1->write_string(4, 3, safe_excel_str($criticalgap), $format_kpi_val);
+$kpiremed = get_string('kpi_remediation_rate', 'local_comp_report_ext') ?: 'Needs Support Rate';
+$ws1->write_string(3, 1, $kpiremed, $formatkpilbl);
+
+$kpitop = get_string('kpi_top_strength', 'local_comp_report_ext') ?: 'Top Strength';
+$ws1->write_string(3, 2, $kpitop, $formatkpilbl);
+
+$kpicrit = get_string('kpi_critical_gap', 'local_comp_report_ext') ?: 'Critical Gap';
+$ws1->write_string(3, 3, $kpicrit, $formatkpilbl);
+
+$ws1->write_string(4, 0, $cohortavg . '%', $formatkpival);
+$remedstat = $remediationpct . '% (' . $remediationcount . '/' . $totalstudents . ')';
+$ws1->write_string(4, 1, $remedstat, $formatkpival);
+$ws1->write_string(4, 2, safe_excel_str($topstrength), $formatkpival);
+$ws1->write_string(4, 3, safe_excel_str($criticalgap), $formatkpival);
 
 // Competencies Ranking Table
 $row = 6;
-$ws1->write_string($row, 0, '#', $format_header);
-$ws1->write_string($row, 1, get_string('competencycode', 'local_comp_report_ext'), $format_header_left);
-$ws1->write_string($row, 2, get_string('students_count', 'local_comp_report_ext') ?: 'Students Assessed', $format_header);
-$ws1->write_string($row, 3, get_string('averagegrade', 'local_comp_report_ext'), $format_header);
+$ws1->write_string($row, 0, '#', $formatheader);
+$ws1->write_string($row, 1, get_string('competencycode', 'local_comp_report_ext'), $formatheaderleft);
+$countheader = get_string('students_count', 'local_comp_report_ext') ?: 'Students Assessed';
+$ws1->write_string($row, 2, $countheader, $formatheader);
+$ws1->write_string($row, 3, get_string('averagegrade', 'local_comp_report_ext'), $formatheader);
 $row++;
 
 $ws1->set_column(0, 0, 5);
@@ -219,25 +239,31 @@ $ws1->set_column(2, 3, 20);
 
 $idx = 1;
 foreach ($compstats as $cs) {
-    $ws1->write_number($row, 0, $idx++, $format_cell);
-    $ws1->write_string($row, 1, safe_excel_str($cs['shortname']), $format_cell_bold);
-    $ws1->write_number($row, 2, (int)$cs['count'], $format_cell);
-    $ws1->write_string($row, 3, $cs['avg'] . '%', $format_cell);
+    $ws1->write_number($row, 0, $idx++, $formatcell);
+    $ws1->write_string($row, 1, safe_excel_str($cs['shortname']), $formatcellbold);
+    $ws1->write_number($row, 2, (int)$cs['count'], $formatcell);
+    $ws1->write_string($row, 3, $cs['avg'] . '%', $formatcell);
     $row++;
 }
 
 // -------------------------------------------------------------
 // Sheet 2: Student Roster
 $ws2 = $workbook->add_worksheet('Student Roster');
-$ws2->write_string(0, 0, safe_excel_str($course->fullname) . ' — ' . get_string('students', 'local_comp_report_ext'), $format_title);
-$ws2->write_string(1, 0, get_string('group', 'local_comp_report_ext') . ': ' . safe_excel_str($groupname) . ' | ' . userdate(time()), $format_meta);
+$titletext2 = safe_excel_str($course->fullname) . ' — ' . get_string('students', 'local_comp_report_ext');
+$ws2->write_string(0, 0, $titletext2, $formattitle);
+
+$metatext2 = get_string('group', 'local_comp_report_ext') . ': ' .
+    safe_excel_str($groupname) . ' | ' . userdate(time());
+$ws2->write_string(1, 0, $metatext2, $formatmeta);
 
 $row = 3;
-$ws2->write_string($row, 0, '#', $format_header);
-$ws2->write_string($row, 1, get_string('student', 'local_comp_report_ext'), $format_header_left);
-$ws2->write_string($row, 2, get_string('averagegrade', 'local_comp_report_ext'), $format_header);
-$ws2->write_string($row, 3, get_string('performance_tier', 'local_comp_report_ext') ?: 'Performance Tier', $format_header_left);
-$ws2->write_string($row, 4, get_string('needs_remediation', 'local_comp_report_ext') ?: 'Needs Support', $format_header);
+$ws2->write_string($row, 0, '#', $formatheader);
+$ws2->write_string($row, 1, get_string('student', 'local_comp_report_ext'), $formatheaderleft);
+$ws2->write_string($row, 2, get_string('averagegrade', 'local_comp_report_ext'), $formatheader);
+$tierheader = get_string('performance_tier', 'local_comp_report_ext') ?: 'Performance Tier';
+$ws2->write_string($row, 3, $tierheader, $formatheaderleft);
+$remedheader = get_string('needs_remediation', 'local_comp_report_ext') ?: 'Needs Support';
+$ws2->write_string($row, 4, $remedheader, $formatheader);
 $row++;
 
 $ws2->set_column(0, 0, 5);
@@ -246,11 +272,11 @@ $ws2->set_column(2, 4, 20);
 
 $idx = 1;
 foreach ($studentlist as $st) {
-    $ws2->write_number($row, 0, $idx++, $format_cell);
-    $ws2->write_string($row, 1, safe_excel_str($st['name']), $format_cell_bold);
-    $ws2->write_string($row, 2, $st['avgpct'] . '%', $format_cell);
-    $ws2->write_string($row, 3, safe_excel_str($st['tier']), $format_cell_left);
-    $ws2->write_string($row, 4, safe_excel_str($st['remediate']), $format_cell);
+    $ws2->write_number($row, 0, $idx++, $formatcell);
+    $ws2->write_string($row, 1, safe_excel_str($st['name']), $formatcellbold);
+    $ws2->write_string($row, 2, $st['avgpct'] . '%', $formatcell);
+    $ws2->write_string($row, 3, safe_excel_str($st['tier']), $formatcellleft);
+    $ws2->write_string($row, 4, safe_excel_str($st['remediate']), $formatcell);
     $row++;
 }
 

@@ -142,73 +142,77 @@ if ($quiz && !empty($students)) {
     // Retake quizzes detection.
     $retake1quizzes = [];
     $retake2quizzes = [];
+    $r1pattern = '/(retake[\s\-]*1|1[\s]*st[\s]*retake|first[\s\-]*retake|' .
+        'إعادة[\s]*1|الإعادة[\s]*الأولى|الدور[\s]*الثاني|محاولة[\s]*2)/iu';
+    $r2pattern = '/(retake[\s\-]*2|2[\s]*nd[\s]*retake|second[\s\-]*retake|' .
+        'إعادة[\s]*2|الإعادة[\s]*الثانية|الدور[\s]*الثالث|محاولة[\s]*3)/iu';
     foreach ($allquizzes as $cq) {
         if ((int)$cq->id === (int)$quiz->id) {
             continue;
         }
         $cname = $cq->name;
-        if (preg_match('/(retake[\s\-]*1|1[\s]*st[\s]*retake|first[\s\-]*retake|إعادة[\s]*1|الإعادة[\s]*الأولى|الدور[\s]*الثاني|محاولة[\s]*2)/iu', $cname)) {
+        if (preg_match($r1pattern, $cname)) {
             $retake1quizzes[$cq->id] = $cq;
-        } else if (preg_match('/(retake[\s\-]*2|2[\s]*nd[\s]*retake|second[\s\-]*retake|إعادة[\s]*2|الإعادة[\s]*الثانية|الدور[\s]*الثالث|محاولة[\s]*3)/iu', $cname)) {
+        } else if (preg_match($r2pattern, $cname)) {
             $retake2quizzes[$cq->id] = $cq;
         }
     }
 
     // Bulk-load student attempts for primary quiz and retakes (eliminates N+1 queries).
-    $user_attempts = [];
-    $user_r1_attempts = [];
-    $user_r2_attempts = [];
+    $userattempts = [];
+    $userr1attempts = [];
+    $userr2attempts = [];
 
     if (!empty($studentids)) {
-        [$u_insql, $u_inparams] = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'attuid');
-        $u_inparams['aquizid'] = $quiz->id;
-        $all_attempts = $DB->get_records_sql(
+        [$uinsql, $uinparams] = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'attuid');
+        $uinparams['aquizid'] = $quiz->id;
+        $allattempts = $DB->get_records_sql(
             "SELECT id, userid, attempt, sumgrades FROM {quiz_attempts}
-              WHERE quiz = :aquizid AND userid $u_insql AND state = 'finished'
+              WHERE quiz = :aquizid AND userid $uinsql AND state = 'finished'
            ORDER BY userid ASC, attempt ASC",
-            $u_inparams
+            $uinparams
         );
-        foreach ($all_attempts as $att) {
-            $user_attempts[$att->userid][] = $att;
+        foreach ($allattempts as $att) {
+            $userattempts[$att->userid][] = $att;
         }
 
         if (!empty($retake1quizzes)) {
             $r1quizids = array_keys($retake1quizzes);
-            [$r1q_insql, $r1q_params] = $DB->get_in_or_equal($r1quizids, SQL_PARAMS_NAMED, 'r1qid');
-            [$r1u_insql, $r1u_params] = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'r1uid');
-            $all_r1 = $DB->get_records_sql(
+            [$r1qinsql, $r1qparams] = $DB->get_in_or_equal($r1quizids, SQL_PARAMS_NAMED, 'r1qid');
+            [$r1uinsql, $r1uparams] = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'r1uid');
+            $allr1 = $DB->get_records_sql(
                 "SELECT id, userid, quiz, sumgrades FROM {quiz_attempts}
-                  WHERE quiz $r1q_insql AND userid $r1u_insql AND state = 'finished'
+                  WHERE quiz $r1qinsql AND userid $r1uinsql AND state = 'finished'
                ORDER BY userid ASC, sumgrades DESC, timefinish DESC",
-                array_merge($r1q_params, $r1u_params)
+                array_merge($r1qparams, $r1uparams)
             );
-            foreach ($all_r1 as $att) {
-                if (!isset($user_r1_attempts[$att->userid])) {
-                    $user_r1_attempts[$att->userid] = $att;
+            foreach ($allr1 as $att) {
+                if (!isset($userr1attempts[$att->userid])) {
+                    $userr1attempts[$att->userid] = $att;
                 }
             }
         }
 
         if (!empty($retake2quizzes)) {
             $r2quizids = array_keys($retake2quizzes);
-            [$r2q_insql, $r2q_params] = $DB->get_in_or_equal($r2quizids, SQL_PARAMS_NAMED, 'r2qid');
-            [$r2u_insql, $r2u_params] = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'r2uid');
-            $all_r2 = $DB->get_records_sql(
+            [$r2qinsql, $r2qparams] = $DB->get_in_or_equal($r2quizids, SQL_PARAMS_NAMED, 'r2qid');
+            [$r2uinsql, $r2uparams] = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'r2uid');
+            $allr2 = $DB->get_records_sql(
                 "SELECT id, userid, quiz, sumgrades FROM {quiz_attempts}
-                  WHERE quiz $r2q_insql AND userid $r2u_insql AND state = 'finished'
+                  WHERE quiz $r2qinsql AND userid $r2uinsql AND state = 'finished'
                ORDER BY userid ASC, sumgrades DESC, timefinish DESC",
-                array_merge($r2q_params, $r2u_params)
+                array_merge($r2qparams, $r2uparams)
             );
-            foreach ($all_r2 as $att) {
-                if (!isset($user_r2_attempts[$att->userid])) {
-                    $user_r2_attempts[$att->userid] = $att;
+            foreach ($allr2 as $att) {
+                if (!isset($userr2attempts[$att->userid])) {
+                    $userr2attempts[$att->userid] = $att;
                 }
             }
         }
     }
 
     foreach ($students as $student) {
-        $attempts = $user_attempts[$student->id] ?? [];
+        $attempts = $userattempts[$student->id] ?? [];
 
         $attscores = [];
         $attraws   = [];
@@ -227,16 +231,16 @@ if ($quiz && !empty($students)) {
         $att3score = $attscores[3] ?? null;
 
         // Fallback to separate retake quizzes.
-        if ($att2score === null && isset($user_r1_attempts[$student->id])) {
-            $r1att = $user_r1_attempts[$student->id];
+        if ($att2score === null && isset($userr1attempts[$student->id])) {
+            $r1att = $userr1attempts[$student->id];
             $r1max = (float)($retake1quizzes[$r1att->quiz]->sumgrades > 0 ? $retake1quizzes[$r1att->quiz]->sumgrades : 100.0);
             if ($r1att->sumgrades !== null) {
                 $att2score = round(((float)$r1att->sumgrades / $r1max) * 100.0, 1);
             }
         }
 
-        if ($att3score === null && isset($user_r2_attempts[$student->id])) {
-            $r2att = $user_r2_attempts[$student->id];
+        if ($att3score === null && isset($userr2attempts[$student->id])) {
+            $r2att = $userr2attempts[$student->id];
             $r2max = (float)($retake2quizzes[$r2att->quiz]->sumgrades > 0 ? $retake2quizzes[$r2att->quiz]->sumgrades : 100.0);
             if ($r2att->sumgrades !== null) {
                 $att3score = round(((float)$r2att->sumgrades / $r2max) * 100.0, 1);
@@ -341,111 +345,127 @@ $cleanfilename = 'Exam_Analytics_' . clean_filename($quizname) . '_' . date('Ymd
 $workbook = new MoodleExcelWorkbook($cleanfilename);
 
 // Styles.
-$format_title = $workbook->add_format(['bold' => 1, 'size' => 14, 'color' => 'navy']);
-$format_meta  = $workbook->add_format(['size' => 10, 'color' => 'gray']);
-$format_header = $workbook->add_format(['bold' => 1, 'color' => 'white', 'bg_color' => 'navy', 'border' => 1, 'align' => 'center', 'valign' => 'vcenter']);
-$format_header_left = $workbook->add_format(['bold' => 1, 'color' => 'white', 'bg_color' => 'navy', 'border' => 1, 'align' => 'left', 'valign' => 'vcenter']);
-$format_cell = $workbook->add_format(['border' => 1, 'align' => 'center', 'valign' => 'vcenter']);
-$format_cell_left = $workbook->add_format(['border' => 1, 'align' => 'left', 'valign' => 'vcenter']);
-$format_cell_bold = $workbook->add_format(['bold' => 1, 'border' => 1, 'align' => 'left', 'valign' => 'vcenter']);
-$format_kpi_label = $workbook->add_format(['bold' => 1, 'bg_color' => '#f1f5f9', 'border' => 1, 'align' => 'left']);
-$format_kpi_val   = $workbook->add_format(['bold' => 1, 'border' => 1, 'align' => 'center']);
+$formattitle = $workbook->add_format(['bold' => 1, 'size' => 14, 'color' => 'navy']);
+$formatmeta  = $workbook->add_format(['size' => 10, 'color' => 'gray']);
+$formatheader = $workbook->add_format([
+    'bold' => 1,
+    'color' => 'white',
+    'bg_color' => 'navy',
+    'border' => 1,
+    'align' => 'center',
+    'valign' => 'vcenter',
+]);
+$formatheaderleft = $workbook->add_format([
+    'bold' => 1,
+    'color' => 'white',
+    'bg_color' => 'navy',
+    'border' => 1,
+    'align' => 'left',
+    'valign' => 'vcenter',
+]);
+$formatcell = $workbook->add_format(['border' => 1, 'align' => 'center', 'valign' => 'vcenter']);
+$formatcellleft = $workbook->add_format(['border' => 1, 'align' => 'left', 'valign' => 'vcenter']);
+$formatcellbold = $workbook->add_format(['bold' => 1, 'border' => 1, 'align' => 'left', 'valign' => 'vcenter']);
+$formatkpilabel = $workbook->add_format(['bold' => 1, 'bg_color' => '#f1f5f9', 'border' => 1, 'align' => 'left']);
+$formatkpival   = $workbook->add_format(['bold' => 1, 'border' => 1, 'align' => 'center']);
 
 // --- Sheet 1: Summary & Psychometrics ---
-$ws_summary = $workbook->add_worksheet('Overview & KPIs');
-$ws_summary->set_column(0, 0, 32);
-$ws_summary->set_column(1, 1, 24);
+$wssummary = $workbook->add_worksheet('Overview & KPIs');
+$wssummary->set_column(0, 0, 32);
+$wssummary->set_column(1, 1, 24);
 
 $r = 0;
-$ws_summary->write_string($r++, 0, format_string($course->fullname) . ' — ' . $quizname, $format_title);
-$ws_summary->write_string($r++, 0, get_string('group', 'local_comp_report_ext') . ': ' . $groupname . '  |  ' . userdate(time()), $format_meta);
+$wssummary->write_string($r++, 0, format_string($course->fullname) . ' — ' . $quizname, $formattitle);
+$metatext = get_string('group', 'local_comp_report_ext') . ': ' . $groupname . '  |  ' . userdate(time());
+$wssummary->write_string($r++, 0, $metatext, $formatmeta);
 $r++;
 
-$ws_summary->write_string($r, 0, 'Metric / KPI', $format_header_left);
-$ws_summary->write_string($r++, 1, 'Value', $format_header);
+$wssummary->write_string($r, 0, 'Metric / KPI', $formatheaderleft);
+$wssummary->write_string($r++, 1, 'Value', $formatheader);
 
-$ws_summary->write_string($r, 0, 'Total Enrolled Students', $format_kpi_label);
-$ws_summary->write_number($r++, 1, count($students), $format_kpi_val);
+$wssummary->write_string($r, 0, 'Total Enrolled Students', $formatkpilabel);
+$wssummary->write_number($r++, 1, count($students), $formatkpival);
 
-$ws_summary->write_string($r, 0, 'Students Attempted Exam', $format_kpi_label);
-$ws_summary->write_number($r++, 1, count($studentlist), $format_kpi_val);
+$wssummary->write_string($r, 0, 'Students Attempted Exam', $formatkpilabel);
+$wssummary->write_number($r++, 1, count($studentlist), $formatkpival);
 
-$ws_summary->write_string($r, 0, get_string('exam_avg_score', 'local_comp_report_ext'), $format_kpi_label);
-$ws_summary->write_string($r++, 1, '%' . number_format($examavg, 1), $format_kpi_val);
+$wssummary->write_string($r, 0, get_string('exam_avg_score', 'local_comp_report_ext'), $formatkpilabel);
+$wssummary->write_string($r++, 1, '%' . number_format($examavg, 1), $formatkpival);
 
-$ws_summary->write_string($r, 0, get_string('exam_pass_rate_label', 'local_comp_report_ext'), $format_kpi_label);
-$ws_summary->write_string($r++, 1, '%' . number_format($passrate, 1), $format_kpi_val);
+$wssummary->write_string($r, 0, get_string('exam_pass_rate_label', 'local_comp_report_ext'), $formatkpilabel);
+$wssummary->write_string($r++, 1, '%' . number_format($passrate, 1), $formatkpival);
 
-$ws_summary->write_string($r, 0, get_string('exam_highest_score', 'local_comp_report_ext'), $format_kpi_label);
-$ws_summary->write_string($r++, 1, '%' . number_format($highestscore, 1), $format_kpi_val);
+$wssummary->write_string($r, 0, get_string('exam_highest_score', 'local_comp_report_ext'), $formatkpilabel);
+$wssummary->write_string($r++, 1, '%' . number_format($highestscore, 1), $formatkpival);
 
-$ws_summary->write_string($r, 0, get_string('exam_lowest_score', 'local_comp_report_ext'), $format_kpi_label);
-$ws_summary->write_string($r++, 1, '%' . number_format($lowestscore, 1), $format_kpi_val);
+$wssummary->write_string($r, 0, get_string('exam_lowest_score', 'local_comp_report_ext'), $formatkpilabel);
+$wssummary->write_string($r++, 1, '%' . number_format($lowestscore, 1), $formatkpival);
 
-$ws_summary->write_string($r, 0, get_string('stats_mean', 'local_comp_report_ext'), $format_kpi_label);
-$ws_summary->write_string($r++, 1, '%' . number_format($examavg, 1), $format_kpi_val);
+$wssummary->write_string($r, 0, get_string('stats_mean', 'local_comp_report_ext'), $formatkpilabel);
+$wssummary->write_string($r++, 1, '%' . number_format($examavg, 1), $formatkpival);
 
-$ws_summary->write_string($r, 0, get_string('stats_sigma', 'local_comp_report_ext'), $format_kpi_label);
-$ws_summary->write_string($r++, 1, number_format($statsigma, 1), $format_kpi_val);
+$wssummary->write_string($r, 0, get_string('stats_sigma', 'local_comp_report_ext'), $formatkpilabel);
+$wssummary->write_string($r++, 1, number_format($statsigma, 1), $formatkpival);
 
 $r += 2;
-$ws_summary->write_string($r, 0, 'Academic Performance Tier', $format_header_left);
-$ws_summary->write_string($r++, 1, 'Student Count', $format_header);
+$wssummary->write_string($r, 0, 'Academic Performance Tier', $formatheaderleft);
+$wssummary->write_string($r++, 1, 'Student Count', $formatheader);
 
-$ws_summary->write_string($r, 0, 'Outstanding (90–100%)', $format_kpi_label);
-$ws_summary->write_number($r++, 1, $tiercounts['outstanding'], $format_kpi_val);
+$wssummary->write_string($r, 0, 'Outstanding (90–100%)', $formatkpilabel);
+$wssummary->write_number($r++, 1, $tiercounts['outstanding'], $formatkpival);
 
-$ws_summary->write_string($r, 0, 'Very Good (75–89%)', $format_kpi_label);
-$ws_summary->write_number($r++, 1, $tiercounts['verygood'], $format_kpi_val);
+$wssummary->write_string($r, 0, 'Very Good (75–89%)', $formatkpilabel);
+$wssummary->write_number($r++, 1, $tiercounts['verygood'], $formatkpival);
 
-$ws_summary->write_string($r, 0, 'Satisfactory (60–74%)', $format_kpi_label);
-$ws_summary->write_number($r++, 1, $tiercounts['passing'], $format_kpi_val);
+$wssummary->write_string($r, 0, 'Satisfactory (60–74%)', $formatkpilabel);
+$wssummary->write_number($r++, 1, $tiercounts['passing'], $formatkpival);
 
-$ws_summary->write_string($r, 0, 'At-Risk / Failed (<60%)', $format_kpi_label);
-$ws_summary->write_number($r++, 1, $tiercounts['failed'], $format_kpi_val);
+$wssummary->write_string($r, 0, 'At-Risk / Failed (<60%)', $formatkpilabel);
+$wssummary->write_number($r++, 1, $tiercounts['failed'], $formatkpival);
 
 // --- Sheet 2: Student Score Roster ---
-$ws_roster = $workbook->add_worksheet('Student Roster');
-$ws_roster->set_column(0, 0, 5);
-$ws_roster->set_column(1, 1, 28);
-$ws_roster->set_column(2, 2, 20);
-$ws_roster->set_column(3, 3, 14);
-$ws_roster->set_column(4, 4, 14);
-$ws_roster->set_column(5, 5, 14);
-$ws_roster->set_column(6, 6, 16);
-$ws_roster->set_column(7, 7, 16);
-$ws_roster->set_column(8, 8, 12);
-$ws_roster->set_column(9, 9, 24);
-$ws_roster->set_column(10, 10, 22);
+$wsroster = $workbook->add_worksheet('Student Roster');
+$wsroster->set_column(0, 0, 5);
+$wsroster->set_column(1, 1, 28);
+$wsroster->set_column(2, 2, 20);
+$wsroster->set_column(3, 3, 14);
+$wsroster->set_column(4, 4, 14);
+$wsroster->set_column(5, 5, 14);
+$wsroster->set_column(6, 6, 16);
+$wsroster->set_column(7, 7, 16);
+$wsroster->set_column(8, 8, 12);
+$wsroster->set_column(9, 9, 24);
+$wsroster->set_column(10, 10, 22);
 
 $r = 0;
 $c = 0;
-$ws_roster->write_string($r, $c++, '#', $format_header);
-$ws_roster->write_string($r, $c++, get_string('student', 'local_comp_report_ext'), $format_header_left);
-$ws_roster->write_string($r, $c++, get_string('group', 'local_comp_report_ext'), $format_header_left);
-$ws_roster->write_string($r, $c++, get_string('attempt_number', 'local_comp_report_ext', 1) ?: 'Attempt 1', $format_header);
-$ws_roster->write_string($r, $c++, 'Retake 1', $format_header);
-$ws_roster->write_string($r, $c++, 'Retake 2', $format_header);
-$ws_roster->write_string($r, $c++, 'Final Recorded %', $format_header);
-$ws_roster->write_string($r, $c++, 'Final Grade', $format_header);
-$ws_roster->write_string($r, $c++, 'Retakes', $format_header);
-$ws_roster->write_string($r, $c++, 'Retake Status', $format_header);
-$ws_roster->write_string($r++, $c++, 'Performance Tier', $format_header);
+$wsroster->write_string($r, $c++, '#', $formatheader);
+$wsroster->write_string($r, $c++, get_string('student', 'local_comp_report_ext'), $formatheaderleft);
+$wsroster->write_string($r, $c++, get_string('group', 'local_comp_report_ext'), $formatheaderleft);
+$att1lbl = get_string('attempt_number', 'local_comp_report_ext', 1) ?: 'Attempt 1';
+$wsroster->write_string($r, $c++, $att1lbl, $formatheader);
+$wsroster->write_string($r, $c++, 'Retake 1', $formatheader);
+$wsroster->write_string($r, $c++, 'Retake 2', $formatheader);
+$wsroster->write_string($r, $c++, 'Final Recorded %', $formatheader);
+$wsroster->write_string($r, $c++, 'Final Grade', $formatheader);
+$wsroster->write_string($r, $c++, 'Retakes', $formatheader);
+$wsroster->write_string($r, $c++, 'Retake Status', $formatheader);
+$wsroster->write_string($r++, $c++, 'Performance Tier', $formatheader);
 
 $idx = 1;
 foreach ($studentlist as $s) {
     $c = 0;
-    $ws_roster->write_number($r, $c++, $idx++, $format_cell);
-    $ws_roster->write_string($r, $c++, safe_excel_str($s['fullname']), $format_cell_bold);
-    $ws_roster->write_string($r, $c++, safe_excel_str($s['group']), $format_cell_left);
-    $ws_roster->write_string($r, $c++, safe_excel_str($s['att1']), $format_cell);
-    $ws_roster->write_string($r, $c++, safe_excel_str($s['att2']), $format_cell);
-    $ws_roster->write_string($r, $c++, safe_excel_str($s['att3']), $format_cell);
-    $ws_roster->write_string($r, $c++, safe_excel_str($s['finalscore']), $format_cell_bold);
-    $ws_roster->write_string($r, $c++, safe_excel_str($s['finalgrade']), $format_cell);
-    $ws_roster->write_number($r, $c++, $s['retakes'], $format_cell);
-    $ws_roster->write_string($r, $c++, safe_excel_str($s['status']), $format_cell);
-    $ws_roster->write_string($r++, $c++, safe_excel_str($s['tier']), $format_cell);
+    $wsroster->write_number($r, $c++, $idx++, $formatcell);
+    $wsroster->write_string($r, $c++, safe_excel_str($s['fullname']), $formatcellbold);
+    $wsroster->write_string($r, $c++, safe_excel_str($s['group']), $formatcellleft);
+    $wsroster->write_string($r, $c++, safe_excel_str($s['att1']), $formatcell);
+    $wsroster->write_string($r, $c++, safe_excel_str($s['att2']), $formatcell);
+    $wsroster->write_string($r, $c++, safe_excel_str($s['att3']), $formatcell);
+    $wsroster->write_string($r, $c++, safe_excel_str($s['finalscore']), $formatcellbold);
+    $wsroster->write_string($r, $c++, safe_excel_str($s['finalgrade']), $formatcell);
+    $wsroster->write_number($r, $c++, $s['retakes'], $formatcell);
+    $wsroster->write_string($r, $c++, safe_excel_str($s['status']), $formatcell);
+    $wsroster->write_string($r++, $c++, safe_excel_str($s['tier']), $formatcell);
 }
 
 $workbook->close();

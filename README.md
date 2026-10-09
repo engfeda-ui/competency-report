@@ -5,7 +5,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.26.4-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.26.5-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -497,6 +497,15 @@ npx grunt amd --files=local/comp_report_ext
 ---
 
 ## 📋 Changelog
+
+### v3.26.5 (2026100901) — 2026-10-09
+- **CodeChecker & Moodle Coding Standard Compliance:**
+  - Resolved all 12 failing CodeSniffer errors across reports, calculators, and Excel/PDF generators.
+  - Eliminated all variable naming violations (removed underscores from variables across `group_exam_analytics.php`, `student_report_excel.php`, `class_report_excel.php`, `course_master_report_excel.php`, `group_assessment_distribution_excel.php`, `group_competency_excel.php`, `group_quiz_competency_excel.php`, `group_analytics_dashboard_excel.php`, `group_exam_analytics_excel.php`).
+  - Added missing function docblocks for `safe_excel_str` and `safe_str` with parameter/return types.
+  - Fixed PSR-12 multi-line control structure spacing and function call argument signatures.
+  - Enforced strict <= 132 character line length across all PHP source files.
+  - Fixed indentation alignment in `classes/competency_calculator.php`.
 
 ### v3.26.1 (2026100801) — 2026-10-08
 - **Hardening & Performance (OpenCode Multi-Agent Audit Implementation):**
