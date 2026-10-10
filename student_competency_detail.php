@@ -238,7 +238,7 @@ foreach ($primaryquizzes as $pq) {
                 $r1att = reset($r1attempts);
                 if ($r1att->sumgrades !== null) {
                     $r1max = (float)($r1q->sumgrades > 0 ? $r1q->sumgrades : $sumgradesmax);
-                    $att2score = round(((float)$r1att->sumgrades / $r1max) * 100.0, 1);
+                    $att2score = ($r1max > 0) ? round(((float)$r1att->sumgrades / $r1max) * 100.0, 1) : 0.0;
                     $att2raw   = (float)$r1att->sumgrades;
                     $att2max   = $r1max;
                     break;
@@ -261,7 +261,7 @@ foreach ($primaryquizzes as $pq) {
                 $r2att = reset($r2attempts);
                 if ($r2att->sumgrades !== null) {
                     $r2max = (float)($r2q->sumgrades > 0 ? $r2q->sumgrades : $sumgradesmax);
-                    $att3score = round(((float)$r2att->sumgrades / $r2max) * 100.0, 1);
+                    $att3score = ($r2max > 0) ? round(((float)$r2att->sumgrades / $r2max) * 100.0, 1) : 0.0;
                     $att3raw   = (float)$r2att->sumgrades;
                     $att3max   = $r2max;
                     break;
@@ -316,7 +316,7 @@ foreach ($primaryquizzes as $pq) {
     // Format Attempt 1.
     $att1grade = '';
     $att1items = '';
-    if ($att1raw !== null && $att1max !== null) {
+    if ($att1raw !== null && $att1max !== null && $att1max > 0) {
         $att1scaled = round(($att1raw / $att1max) * $quizmaxgrade, 2);
         $att1grade  = (0 + $att1scaled) . ' / ' . (0 + round($quizmaxgrade, 2));
         if ($hasdiffmax) {
@@ -327,7 +327,7 @@ foreach ($primaryquizzes as $pq) {
     // Format Retake 1.
     $att2grade = '';
     $att2items = '';
-    if ($att2raw !== null && $att2max !== null) {
+    if ($att2raw !== null && $att2max !== null && $att2max > 0) {
         $att2scaled = round(($att2raw / $att2max) * $quizmaxgrade, 2);
         $att2grade  = (0 + $att2scaled) . ' / ' . (0 + round($quizmaxgrade, 2));
         if ($hasdiffmax) {
@@ -338,7 +338,7 @@ foreach ($primaryquizzes as $pq) {
     // Format Retake 2.
     $att3grade = '';
     $att3items = '';
-    if ($att3raw !== null && $att3max !== null) {
+    if ($att3raw !== null && $att3max !== null && $att3max > 0) {
         $att3scaled = round(($att3raw / $att3max) * $quizmaxgrade, 2);
         $att3grade  = (0 + $att3scaled) . ' / ' . (0 + round($quizmaxgrade, 2));
         if ($hasdiffmax) {

@@ -339,7 +339,7 @@ if ($quiz && !empty($students)) {
             // Attempt 1.
             $att1grade = '';
             $att1items = '';
-            if ($att1raw !== null && $att1max !== null) {
+            if ($att1raw !== null && $att1max !== null && $att1max > 0) {
                 $att1scaled = round(($att1raw / $att1max) * $quizmaxgrade, 2);
                 $att1grade  = (0 + $att1scaled) . ' / ' . (0 + round($quizmaxgrade, 2));
                 if ($hasdiffmax) {
@@ -350,7 +350,7 @@ if ($quiz && !empty($students)) {
             // Retake 1.
             $att2grade = '';
             $att2items = '';
-            if ($att2raw !== null && $att2max !== null) {
+            if ($att2raw !== null && $att2max !== null && $att2max > 0) {
                 $att2scaled = round(($att2raw / $att2max) * $quizmaxgrade, 2);
                 $att2grade  = (0 + $att2scaled) . ' / ' . (0 + round($quizmaxgrade, 2));
                 if ($hasdiffmax) {
@@ -361,7 +361,7 @@ if ($quiz && !empty($students)) {
             // Retake 2.
             $att3grade = '';
             $att3items = '';
-            if ($att3raw !== null && $att3max !== null) {
+            if ($att3raw !== null && $att3max !== null && $att3max > 0) {
                 $att3scaled = round(($att3raw / $att3max) * $quizmaxgrade, 2);
                 $att3grade  = (0 + $att3scaled) . ' / ' . (0 + round($quizmaxgrade, 2));
                 if ($hasdiffmax) {
