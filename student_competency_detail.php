@@ -142,7 +142,9 @@ $bestattids = array_map(fn($a) => (int)$a->bestattid, $userfinishedattempts);
 $quizcompdata = [];
 
 if (!empty($bestattids)) {
-    [$insql, $inparams] = $DB->get_in_or_equal($bestattids, SQL_PARAMS_NAMED, 'att');
+    [$insql, $inparams] = $DB->get_in_or_equal($bestattids, SQL_PARAMS_NAMED, 'atta');
+    [$insql2, $inparams2] = $DB->get_in_or_equal($bestattids, SQL_PARAMS_NAMED, 'attb');
+    $allinparams = array_merge($inparams, $inparams2);
     $breakdownsql = "
         SELECT CONCAT(quiza.quiz, '_', c.id) AS quizcompid,
                quiza.quiz AS quizid,
@@ -160,12 +162,12 @@ if (!empty($bestattids)) {
                 JOIN {question_attempts} qa2 ON qa2.id = s.questionattemptid
                 JOIN {question_usages} qu2   ON qu2.id = qa2.questionusageid
                 JOIN {quiz_attempts} qa3     ON qa3.uniqueid = qu2.id
-               WHERE qa3.id $insql
+               WHERE qa3.id $insql2
                GROUP BY s.questionattemptid
           ) qas ON qas.questionattemptid = qa.id
          WHERE quiza.id $insql
       GROUP BY quiza.quiz, c.id";
-    $quizcompdata = $DB->get_records_sql($breakdownsql, $inparams);
+    $quizcompdata = $DB->get_records_sql($breakdownsql, $allinparams);
 }
 
 $qslabel = get_string('questions_abbr', 'local_comp_report_ext');
