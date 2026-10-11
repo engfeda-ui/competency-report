@@ -848,7 +848,7 @@ function local_comp_report_ext_bulk_load_quiz_attempts(
     [$uinsql, $uinparams] = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'attuid');
     $uinparams['aquizid'] = $quizid;
     $allattempts = $DB->get_records_sql(
-        "SELECT id, userid, attempt, quiz, sumgrades, timefinish FROM {quiz_attempts}
+        "SELECT id, userid, attempt, quiz, sumgrades, timefinish, uniqueid FROM {quiz_attempts}
           WHERE quiz = :aquizid AND userid $uinsql AND state = 'finished'
        ORDER BY userid ASC, attempt ASC",
         $uinparams
@@ -861,7 +861,7 @@ function local_comp_report_ext_bulk_load_quiz_attempts(
         [$r1qinsql, $r1qparams] = $DB->get_in_or_equal($r1quizids, SQL_PARAMS_NAMED, 'r1qid');
         [$r1uinsql, $r1uparams] = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'r1uid');
         $allr1 = $DB->get_records_sql(
-            "SELECT id, userid, quiz, sumgrades, timefinish FROM {quiz_attempts}
+            "SELECT id, userid, quiz, sumgrades, timefinish, uniqueid FROM {quiz_attempts}
               WHERE quiz $r1qinsql AND userid $r1uinsql AND state = 'finished'
            ORDER BY userid ASC, sumgrades DESC, timefinish DESC",
             array_merge($r1qparams, $r1uparams)
@@ -877,7 +877,7 @@ function local_comp_report_ext_bulk_load_quiz_attempts(
         [$r2qinsql, $r2qparams] = $DB->get_in_or_equal($r2quizids, SQL_PARAMS_NAMED, 'r2qid');
         [$r2uinsql, $r2uparams] = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'r2uid');
         $allr2 = $DB->get_records_sql(
-            "SELECT id, userid, quiz, sumgrades, timefinish FROM {quiz_attempts}
+            "SELECT id, userid, quiz, sumgrades, timefinish, uniqueid FROM {quiz_attempts}
               WHERE quiz $r2qinsql AND userid $r2uinsql AND state = 'finished'
            ORDER BY userid ASC, sumgrades DESC, timefinish DESC",
             array_merge($r2qparams, $r2uparams)
@@ -890,3 +890,261 @@ function local_comp_report_ext_bulk_load_quiz_attempts(
     }
     return [$userattempts, $userr1attempts, $userr2attempts];
 }
+
+/**
+ * Resolves student assessment scores, retake capping (Option A), and competency mastery.
+ *
+ * Implements Academy Retake Policy:
+ * - Passed Attempt 1 (>= threshold): natural raw score & percentage.
+ * - Failed Attempt 1 (< threshold) and passed Retake 1 or Retake 2 (>= threshold):
+ *   percentage is capped at threshold (e.g. 60%), and raw score = (threshold / 100) * maxgrade.
+ *   Marked as retake attempt with localized label.
+ * - Failed all attempts: highest score achieved.
+ * - Competency mastery fractions are drawn from the chosen winning attempt.
+ *
+ * @param stdClass|null $asmt Assessment record from local_comp_report_ext_asmt.
+ * @param array $students Enrolled student records keyed by id.
+ * @param array $allcoursequizzes All quizzes in course keyed by id.
+ * @param float $threshold Passing threshold (e.g. 60.0).
+ * @param int $courseid Course id.
+ * @return array [$rawgrades, $pctgrades, $retakeinfo, $compgrades, $maxgrade]
+ */
+function local_comp_report_ext_resolve_assessment_data(
+    ?stdClass $asmt,
+    array $students,
+    array $allcoursequizzes,
+    float $threshold,
+    int $courseid
+): array {
+    global $DB;
+
+    $rawgrades  = [];
+    $pctgrades  = [];
+    $retakeinfo = [];
+    $compgrades = [];
+    $maxgrade   = 100.0;
+
+    if (!$asmt || empty($students)) {
+        return [$rawgrades, $pctgrades, $retakeinfo, $compgrades, $maxgrade];
+    }
+
+    $studentids = array_map('intval', array_keys($students));
+    $passcap = round($threshold, 1);
+
+    if (!empty($asmt->quizid)) {
+        $quiz = $allcoursequizzes[$asmt->quizid] ?? $DB->get_record('quiz', ['id' => (int)$asmt->quizid]);
+        if ($quiz) {
+            $sumgradesmax = (float)($quiz->sumgrades > 0 ? $quiz->sumgrades : 100.0);
+            $maxgrade     = (float)($quiz->grade > 0 ? $quiz->grade : $sumgradesmax);
+
+            [$retake1quizzes, $retake2quizzes] =
+                local_comp_report_ext_detect_retake_quizzes($allcoursequizzes, (int)$quiz->id);
+
+            [$userattempts, $userr1attempts, $userr2attempts] = local_comp_report_ext_bulk_load_quiz_attempts(
+                (int)$quiz->id,
+                $studentids,
+                $retake1quizzes,
+                $retake2quizzes
+            );
+
+            $chosenattemptids = [];
+            $chosenuniqueids  = [];
+
+            foreach ($students as $student) {
+                $uid = (int)$student->id;
+                $attempts = $userattempts[$uid] ?? [];
+
+                $attscores = [];
+                $attraws   = [];
+                $attobjs   = [];
+
+                if (!empty($attempts)) {
+                    foreach ($attempts as $att) {
+                        if ($att->sumgrades !== null) {
+                            $attnum = (int)$att->attempt;
+                            $attscores[$attnum] = round(((float)$att->sumgrades / $sumgradesmax) * 100.0, 1);
+                            $attraws[$attnum]   = (float)$att->sumgrades;
+                            $attobjs[$attnum]   = $att;
+                        }
+                    }
+                }
+
+                $att1score = $attscores[1] ?? null;
+                $att2score = $attscores[2] ?? null;
+                $att3score = $attscores[3] ?? null;
+
+                $att1obj   = $attobjs[1] ?? null;
+                $att2obj   = $attobjs[2] ?? null;
+                $att3obj   = $attobjs[3] ?? null;
+
+                if ($att2score === null && isset($userr1attempts[$uid])) {
+                    $r1att = $userr1attempts[$uid];
+                    $r1qgrade = $retake1quizzes[$r1att->quiz]->sumgrades ?? 0;
+                    $r1max = (float)($r1qgrade > 0 ? $r1qgrade : 100.0);
+                    if ($r1att->sumgrades !== null) {
+                        $att2score = round(((float)$r1att->sumgrades / $r1max) * 100.0, 1);
+                        $att2obj   = $r1att;
+                    }
+                }
+
+                if ($att3score === null && isset($userr2attempts[$uid])) {
+                    $r2att = $userr2attempts[$uid];
+                    $r2qgrade = $retake2quizzes[$r2att->quiz]->sumgrades ?? 0;
+                    $r2max = (float)($r2qgrade > 0 ? $r2qgrade : 100.0);
+                    if ($r2att->sumgrades !== null) {
+                        $att3score = round(((float)$r2att->sumgrades / $r2max) * 100.0, 1);
+                        $att3obj   = $r2att;
+                    }
+                }
+
+                $isretake    = false;
+                $retakelabel = '';
+                $retaketitle = '';
+                $scorepct    = null;
+                $finalraw    = null;
+                $chosen      = null;
+
+                if ($att1score !== null && $att1score >= $threshold) {
+                    $scorepct = $att1score;
+                    $finalraw = round(($scorepct / 100.0) * $maxgrade, 2);
+                    $isretake = false;
+                    $chosen   = $att1obj;
+                } else if ($att2score !== null && $att2score >= $threshold) {
+                    $scorepct    = $passcap;
+                    $finalraw    = round(($threshold / 100.0) * $maxgrade, 2);
+                    $isretake    = true;
+                    $retakelabel = get_string('retake_1', 'local_comp_report_ext');
+                    $retaketitle = get_string('passed_retake_1', 'local_comp_report_ext');
+                    $chosen      = $att2obj;
+                } else if ($att3score !== null && $att3score >= $threshold) {
+                    $scorepct    = $passcap;
+                    $finalraw    = round(($threshold / 100.0) * $maxgrade, 2);
+                    $isretake    = true;
+                    $retakelabel = get_string('retake_2', 'local_comp_report_ext');
+                    $retaketitle = get_string('passed_retake_2', 'local_comp_report_ext');
+                    $chosen      = $att3obj;
+                } else {
+                    $candidates = [];
+                    if ($att1score !== null) {
+                        $candidates[] = ['score' => $att1score, 'obj' => $att1obj, 'type' => 0];
+                    }
+                    if ($att2score !== null) {
+                        $candidates[] = ['score' => $att2score, 'obj' => $att2obj, 'type' => 1];
+                    }
+                    if ($att3score !== null) {
+                        $candidates[] = ['score' => $att3score, 'obj' => $att3obj, 'type' => 2];
+                    }
+
+                    if (!empty($candidates)) {
+                        usort($candidates, function ($a, $b) {
+                            return ($b['score'] <=> $a['score']);
+                        });
+                        $best = $candidates[0];
+                        $scorepct = $best['score'];
+                        $finalraw = round(($scorepct / 100.0) * $maxgrade, 2);
+                        $chosen   = $best['obj'];
+                        if ($best['type'] === 1) {
+                            $isretake    = true;
+                            $retakelabel = get_string('retake_1', 'local_comp_report_ext');
+                            $retaketitle = get_string('retake_1', 'local_comp_report_ext');
+                        } else if ($best['type'] === 2) {
+                            $isretake    = true;
+                            $retakelabel = get_string('retake_2', 'local_comp_report_ext');
+                            $retaketitle = get_string('retake_2', 'local_comp_report_ext');
+                        }
+                    }
+                }
+
+                if ($scorepct !== null) {
+                    $pctgrades[$uid]  = $scorepct;
+                    $rawgrades[$uid]  = $finalraw;
+                    $retakeinfo[$uid] = [
+                        'is_retake' => $isretake,
+                        'label'     => $retakelabel,
+                        'title'     => $retaketitle,
+                    ];
+                }
+
+                if ($chosen !== null) {
+                    if (!empty($chosen->id)) {
+                        $chosenattemptids[$chosen->id] = (int)$chosen->id;
+                    }
+                    if (!empty($chosen->uniqueid)) {
+                        $chosenuniqueids[$chosen->uniqueid] = (int)$chosen->uniqueid;
+                    }
+                }
+            }
+
+            // Bulk load competency mastery for chosen attempts.
+            if (!empty($chosenattemptids)) {
+                [$attinsql, $attinparams] = $DB->get_in_or_equal($chosenattemptids, SQL_PARAMS_NAMED, 'caid');
+                $subsql = "";
+                $subparams = [];
+                if (!empty($chosenuniqueids)) {
+                    [$uainsql, $uainparams] = $DB->get_in_or_equal($chosenuniqueids, SQL_PARAMS_NAMED, 'uqid');
+                    $subsql = "WHERE qa2.questionusageid $uainsql";
+                    $subparams = $uainparams;
+                }
+                $compquizsql = "SELECT CONCAT(quiza.userid, '_', m.competencyid) AS ukey,
+                                       quiza.userid, m.competencyid,
+                                       SUM(qa.maxfraction) AS total_max,
+                                       SUM(qas.fraction)   AS total_fraction
+                                  FROM {quiz_attempts} quiza
+                                  JOIN {question_usages} qu    ON qu.id = quiza.uniqueid
+                                  JOIN {question_attempts} qa  ON qa.questionusageid = qu.id
+                                  JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
+                                  JOIN (
+                                      SELECT s.questionattemptid, MAX(s.fraction) AS fraction
+                                        FROM {question_attempt_steps} s
+                                        JOIN {question_attempts} qa2 ON qa2.id = s.questionattemptid
+                                      $subsql
+                                    GROUP BY s.questionattemptid
+                                  ) qas ON qas.questionattemptid = qa.id
+                                 WHERE quiza.id $attinsql
+                                   AND quiza.state = 'finished'
+                              GROUP BY quiza.userid, m.competencyid";
+                $compquizrs = $DB->get_records_sql($compquizsql, array_merge($attinparams, $subparams));
+                foreach ($compquizrs as $r) {
+                    if ($r->total_max > 0) {
+                        $compgrades[(int)$r->userid][(int)$r->competencyid] =
+                            ($r->total_fraction / $r->total_max) * 100.0;
+                    }
+                }
+            }
+        }
+    } else {
+        // Manual practical marks from local_comp_report_ext_prac.
+        [$insql, $inparams] = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'pruid');
+        $pracsql = "SELECT studentid, competencyid, competency_percent
+                      FROM {local_comp_report_ext_prac}
+                     WHERE assessmentid = :pasmtid
+                       AND courseid = :pcourseid
+                       AND studentid $insql";
+        $pracrs = $DB->get_records_sql(
+            $pracsql,
+            array_merge($inparams, ['pasmtid' => (int)$asmt->id, 'pcourseid' => $courseid])
+        );
+        $userpracsums = [];
+        foreach ($pracrs as $pr) {
+            $uid = (int)$pr->studentid;
+            $cid = (int)$pr->competencyid;
+            $pct = (float)$pr->competency_percent;
+            $compgrades[$uid][$cid] = $pct;
+            $userpracsums[$uid][]   = $pct;
+        }
+        foreach ($userpracsums as $uid => $pcts) {
+            $avgpct = array_sum($pcts) / count($pcts);
+            $rawgrades[$uid]  = $avgpct;
+            $pctgrades[$uid]  = $avgpct;
+            $retakeinfo[$uid] = [
+                'is_retake' => false,
+                'label'     => '',
+                'title'     => '',
+            ];
+        }
+        $maxgrade = 100.0;
+    }
+
+    return [$rawgrades, $pctgrades, $retakeinfo, $compgrades, $maxgrade];
+}
+

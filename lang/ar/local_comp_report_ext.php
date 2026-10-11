@@ -451,3 +451,5 @@ $string['student'] = 'الطالب';
 $string['students'] = 'الطلاب';
 $string['score'] = 'الدرجة';
 $string['course'] = 'المقرر';
+$string['retake_badge'] = 'إعادة';
+$string['retake_cap_note'] = 'سقف 60%';

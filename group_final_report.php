@@ -258,143 +258,15 @@ foreach ($oralcomps as $cid => $comp) {
     }
 }
 
-// Bulk preload exam scores and competency mastery.
-$finalrawgrades  = [];
-$oralrawgrades   = [];
-$finalcompgrades = []; // [userid][compid] => percentage float
-$oralcompgrades  = []; // [userid][compid] => percentage float
+// 5. Bulk Preload Exam Scores, Retake Policy Resolution, and Competency Mastery.
+$allcoursequizzes = $DB->get_records('quiz', ['course' => $courseid], 'id ASC', 'id, name, grade, sumgrades');
 
-$finalmaxgrade = 100.0;
-$oralmaxgrade  = 100.0;
+[$finalrawgrades, $finalpctgrades, $finalretakeinfo, $finalcompgrades, $finalmaxgrade] =
+    local_comp_report_ext_resolve_assessment_data($finalasmt, $students, $allcoursequizzes, $threshold, $courseid);
 
-if (!empty($studentids)) {
-    [$insql, $inparams] = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'uid');
+[$oralrawgrades, $oralpctgrades, $oralretakeinfo, $oralcompgrades, $oralmaxgrade] =
+    local_comp_report_ext_resolve_assessment_data($oralasmt, $students, $allcoursequizzes, $threshold, $courseid);
 
-    // --- Final Exam Data ---
-    if ($finalasmt && !empty($finalasmt->quizid)) {
-        $qrecord = $DB->get_record('quiz', ['id' => $finalasmt->quizid], 'id, grade, sumgrades');
-        if ($qrecord) {
-            $finalmaxgrade = ($qrecord->grade > 0) ? (float)$qrecord->grade : (($qrecord->sumgrades > 0) ? (float)$qrecord->sumgrades : 100.0);
-        }
-        $quizgradesparams = array_merge($inparams, ['fquizid' => (int)$finalasmt->quizid]);
-        $gradesrs = $DB->get_records_sql(
-            "SELECT userid, grade FROM {quiz_grades} WHERE quiz = :fquizid AND userid $insql",
-            $quizgradesparams
-        );
-        foreach ($gradesrs as $gr) {
-            $finalrawgrades[(int)$gr->userid] = (float)$gr->grade;
-        }
-
-        // Competency scores for final quiz.
-        $compquizparams = array_merge($inparams, [
-            'fqid'     => (int)$finalasmt->quizid,
-            'subfqid'  => (int)$finalasmt->quizid,
-            'courseid' => $courseid,
-        ]);
-        $compquizsql = "SELECT CONCAT(quiza.userid, '_', m.competencyid) AS ukey,
-                               quiza.userid, m.competencyid,
-                               SUM(qa.maxfraction) AS total_max,
-                               SUM(qas.fraction)   AS total_fraction
-                          FROM {quiz_attempts} quiza
-                          JOIN {question_usages} qu    ON qu.id = quiza.uniqueid
-                          JOIN {question_attempts} qa  ON qa.questionusageid = qu.id
-                          JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
-                          JOIN (
-                              SELECT s.questionattemptid, MAX(s.fraction) AS fraction
-                                FROM {question_attempt_steps} s
-                                JOIN {question_attempts} qa2 ON qa2.id = s.questionattemptid
-                                JOIN {question_usages} qu2   ON qu2.id = qa2.questionusageid
-                                JOIN {quiz_attempts} qa3     ON qa3.uniqueid = qu2.id
-                               WHERE qa3.quiz = :subfqid AND qa3.state = 'finished'
-                            GROUP BY s.questionattemptid
-                          ) qas ON qas.questionattemptid = qa.id
-                         WHERE quiza.quiz = :fqid
-                           AND quiza.state = 'finished'
-                           AND quiza.userid $insql
-                      GROUP BY quiza.userid, m.competencyid";
-        $compquizrs = $DB->get_records_sql($compquizsql, $compquizparams);
-        foreach ($compquizrs as $r) {
-            if ($r->total_max > 0) {
-                $finalcompgrades[(int)$r->userid][(int)$r->competencyid] = ($r->total_fraction / $r->total_max) * 100.0;
-            }
-        }
-    }
-
-    // --- Oral/Practical Exam Data ---
-    if ($oralasmt) {
-        if (!empty($oralasmt->quizid)) {
-            $oqrecord = $DB->get_record('quiz', ['id' => $oralasmt->quizid], 'id, grade, sumgrades');
-            if ($oqrecord) {
-                $oralmaxgrade = ($oqrecord->grade > 0) ? (float)$oqrecord->grade : (($oqrecord->sumgrades > 0) ? (float)$oqrecord->sumgrades : 100.0);
-            }
-            $oralquizparams = array_merge($inparams, ['oquizid' => (int)$oralasmt->quizid]);
-            $ogradesrs = $DB->get_records_sql(
-                "SELECT userid, grade FROM {quiz_grades} WHERE quiz = :oquizid AND userid $insql",
-                $oralquizparams
-            );
-            foreach ($ogradesrs as $gr) {
-                $oralrawgrades[(int)$gr->userid] = (float)$gr->grade;
-            }
-
-            // Competency scores for oral quiz.
-            $compquizparams2 = array_merge($inparams, [
-                'oqid'     => (int)$oralasmt->quizid,
-                'suboqid'  => (int)$oralasmt->quizid,
-            ]);
-            $compquizsql2 = "SELECT CONCAT(quiza.userid, '_', m.competencyid) AS ukey,
-                                    quiza.userid, m.competencyid,
-                                    SUM(qa.maxfraction) AS total_max,
-                                    SUM(qas.fraction)   AS total_fraction
-                               FROM {quiz_attempts} quiza
-                               JOIN {question_usages} qu    ON qu.id = quiza.uniqueid
-                               JOIN {question_attempts} qa  ON qa.questionusageid = qu.id
-                               JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
-                               JOIN (
-                                   SELECT s.questionattemptid, MAX(s.fraction) AS fraction
-                                     FROM {question_attempt_steps} s
-                                     JOIN {question_attempts} qa2 ON qa2.id = s.questionattemptid
-                                     JOIN {question_usages} qu2   ON qu2.id = qa2.questionusageid
-                                     JOIN {quiz_attempts} qa3     ON qa3.uniqueid = qu2.id
-                                    WHERE qa3.quiz = :suboqid AND qa3.state = 'finished'
-                                 GROUP BY s.questionattemptid
-                               ) qas ON qas.questionattemptid = qa.id
-                              WHERE quiza.quiz = :oqid
-                                AND quiza.state = 'finished'
-                                AND quiza.userid $insql
-                           GROUP BY quiza.userid, m.competencyid";
-            $compquizrs2 = $DB->get_records_sql($compquizsql2, $compquizparams2);
-            foreach ($compquizrs2 as $r) {
-                if ($r->total_max > 0) {
-                    $oralcompgrades[(int)$r->userid][(int)$r->competencyid] = ($r->total_fraction / $r->total_max) * 100.0;
-                }
-            }
-        } else {
-            // Manual Practical marks from local_comp_report_ext_prac.
-            $pracparams = array_merge($inparams, [
-                'pasmtid'  => (int)$oralasmt->id,
-                'pcourseid' => $courseid,
-            ]);
-            $pracsql = "SELECT studentid, competencyid, competency_percent
-                          FROM {local_comp_report_ext_prac}
-                         WHERE assessmentid = :pasmtid
-                           AND courseid = :pcourseid
-                           AND studentid $insql";
-            $pracrs = $DB->get_records_sql($pracsql, $pracparams);
-            $userpracsums = [];
-            foreach ($pracrs as $pr) {
-                $uid = (int)$pr->studentid;
-                $cid = (int)$pr->competencyid;
-                $pct = (float)$pr->competency_percent;
-                $oralcompgrades[$uid][$cid] = $pct;
-                $userpracsums[$uid][] = $pct;
-            }
-            foreach ($userpracsums as $uid => $pcts) {
-                $oralrawgrades[$uid] = array_sum($pcts) / count($pcts);
-            }
-            $oralmaxgrade = 100.0;
-        }
-    }
-}
 
 // 6. Build Rows and Aggregations.
 $rows = [];
@@ -421,7 +293,7 @@ foreach ($students as $student) {
     $hasfinalscore = isset($finalrawgrades[$uid]);
     $finalraw      = $hasfinalscore ? $finalrawgrades[$uid] : null;
     $finalvalstr   = ($finalraw !== null) ? number_format($finalraw, 1) : null;
-    $finalpct      = ($finalraw !== null && $finalmaxgrade > 0) ? ($finalraw / $finalmaxgrade) * 100.0 : null;
+    $finalpct      = isset($finalpctgrades[$uid]) ? $finalpctgrades[$uid] : null;
     if ($finalpct !== null) {
         $statfinalscores[] = $finalpct;
     }
@@ -444,7 +316,7 @@ foreach ($students as $student) {
     $hasoralscore = isset($oralrawgrades[$uid]);
     $oralraw      = $hasoralscore ? $oralrawgrades[$uid] : null;
     $oralvalstr   = ($oralraw !== null) ? number_format($oralraw, 1) : null;
-    $oralpct      = ($oralraw !== null && $oralmaxgrade > 0) ? ($oralraw / $oralmaxgrade) * 100.0 : null;
+    $oralpct      = isset($oralpctgrades[$uid]) ? $oralpctgrades[$uid] : null;
     if ($oralpct !== null) {
         $statoralscores[] = $oralpct;
     }
@@ -515,6 +387,9 @@ foreach ($students as $student) {
         ['target' => '_blank', 'class' => 'font-weight-bold text-dark']
     );
 
+    $finalinfo = $finalretakeinfo[$uid] ?? ['is_retake' => false, 'label' => '', 'title' => ''];
+    $oralinfo  = $oralretakeinfo[$uid] ?? ['is_retake' => false, 'label' => '', 'title' => ''];
+
     $rows[] = [
         'idx'                => $studentidx,
         'is_even'            => ($studentidx % 2 === 0),
@@ -526,10 +401,16 @@ foreach ($students as $student) {
         'has_final_score'    => $hasfinalscore,
         'final_score_val'    => $finalvalstr,
         'final_score_pct'    => ($finalpct !== null) ? number_format($finalpct, 1) : null,
+        'final_is_retake'    => $finalinfo['is_retake'],
+        'final_retake_label' => $finalinfo['label'],
+        'final_retake_title' => $finalinfo['title'],
         'final_comp_cells'   => $finalcompcells,
         'has_oral_score'     => $hasoralscore,
         'oral_score_val'     => $oralvalstr,
         'oral_score_pct'     => ($oralpct !== null) ? number_format($oralpct, 1) : null,
+        'oral_is_retake'     => $oralinfo['is_retake'],
+        'oral_retake_label'  => $oralinfo['label'],
+        'oral_retake_title'  => $oralinfo['title'],
         'oral_comp_cells'    => $oralcompcells,
         'has_weighted_grade' => ($weightedgrade !== null),
         'weighted_grade'     => ($weightedgrade !== null) ? number_format($weightedgrade, 1) : null,

@@ -5,7 +5,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.27.2-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.27.3-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -83,6 +83,18 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 ---
 
 ## 📋 Changelog
+
+### v3.27.3 (2026101104) — 2026-10-11
+- **Academy Retake Policy (Option A) & Retake Badge Display across Final Report Suite:**
+  - **Single-Source Assessment & Retake Engine (`local_comp_report_ext_resolve_assessment_data()`):** Created a centralized helper in `lib.php` resolving Option A policy across Web, Excel, and PDF views.
+  - **Academy Retake Policy Implementation:**
+    - If a student passes Attempt 1 (>= 60%): natural raw score & percentage are recorded.
+    - If a student fails Attempt 1 (< 60%) and passes on Retake 1 or Retake 2 (>= 60%): the exam percentage is capped at the success threshold (60.0%), and the raw score is capped accordingly (e.g. 6.0 / 10.0). Competencies are computed from the winning retake attempt.
+    - If a student fails all attempts: the highest score achieved is recorded.
+  - **Clear Visual Retake Indicators:**
+    - **Web Table (`group_final_report_page.mustache`):** Prominent warm badge `[إعادة 1]` / `[Retake 1]` beneath the score with tooltip explaining the 60% cap.
+    - **Excel Export (`group_final_report_excel.php`):** Explicit cell label e.g. `6.0 (الإعادة 1)` / `6.0 (Retake 1)`.
+    - **PDF Export (`group_final_report_pdf.php`):** Clean sub-label `[الإعادة 1]` / `[Retake 1]` beneath the exam score.
 
 ### v3.27.2 (2026101103) — 2026-10-11
 - **Final Report PDF Table Alignment & Completeness Fix (`group_final_report_pdf.php`):**

@@ -452,3 +452,5 @@ $string['student'] = 'Student';
 $string['students'] = 'Students';
 $string['score'] = 'Score';
 $string['course'] = 'Course';
+$string['retake_badge'] = 'Retake';
+$string['retake_cap_note'] = 'Capped at 60%';

@@ -177,126 +177,15 @@ $getcomps = function ($asmt) use ($DB, $courseid) {
 $finalcomps = $getcomps($finalasmt);
 $oralcomps  = $getcomps($oralasmt);
 
-$finalrawgrades  = [];
-$oralrawgrades   = [];
-$finalcompgrades = [];
-$oralcompgrades  = [];
+$threshold = (float)(get_config('local_comp_report_ext', 'success_threshold') ?: 60.0);
+$allcoursequizzes = $DB->get_records('quiz', ['course' => $courseid], 'id ASC', 'id, name, grade, sumgrades');
 
-$finalmaxgrade = 100.0;
-$oralmaxgrade  = 100.0;
+[$finalrawgrades, $finalpctgrades, $finalretakeinfo, $finalcompgrades, $finalmaxgrade] =
+    local_comp_report_ext_resolve_assessment_data($finalasmt, $students, $allcoursequizzes, $threshold, $courseid);
 
-if (!empty($studentids)) {
-    [$insql, $inparams] = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'uid');
+[$oralrawgrades, $oralpctgrades, $oralretakeinfo, $oralcompgrades, $oralmaxgrade] =
+    local_comp_report_ext_resolve_assessment_data($oralasmt, $students, $allcoursequizzes, $threshold, $courseid);
 
-    if ($finalasmt && !empty($finalasmt->quizid)) {
-        $qrecord = $DB->get_record('quiz', ['id' => $finalasmt->quizid], 'id, grade, sumgrades');
-        if ($qrecord) {
-            $finalmaxgrade = ($qrecord->grade > 0)
-                ? (float)$qrecord->grade
-                : (($qrecord->sumgrades > 0) ? (float)$qrecord->sumgrades : 100.0);
-        }
-        $gradesrs = $DB->get_records_sql(
-            "SELECT userid, grade FROM {quiz_grades} WHERE quiz = :fquizid AND userid $insql",
-            array_merge($inparams, ['fquizid' => (int)$finalasmt->quizid])
-        );
-        foreach ($gradesrs as $gr) {
-            $finalrawgrades[(int)$gr->userid] = (float)$gr->grade;
-        }
-
-        $compquizrs = $DB->get_records_sql(
-            "SELECT CONCAT(quiza.userid, '_', m.competencyid) AS ukey, quiza.userid, m.competencyid,
-                    SUM(qa.maxfraction) AS total_max, SUM(qas.fraction) AS total_fraction
-               FROM {quiz_attempts} quiza
-               JOIN {question_usages} qu    ON qu.id = quiza.uniqueid
-               JOIN {question_attempts} qa  ON qa.questionusageid = qu.id
-               JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
-               JOIN (
-                   SELECT s.questionattemptid, MAX(s.fraction) AS fraction
-                     FROM {question_attempt_steps} s
-                     JOIN {quiz_attempts} qa3 ON qa3.uniqueid = (
-                         SELECT qu2.id FROM {question_usages} qu2
-                           JOIN {question_attempts} qa2 ON qa2.questionusageid = qu2.id
-                          WHERE qa2.id = s.questionattemptid LIMIT 1
-                     )
-                    WHERE qa3.quiz = :subfqid AND qa3.state = 'finished'
-                 GROUP BY s.questionattemptid
-               ) qas ON qas.questionattemptid = qa.id
-              WHERE quiza.quiz = :fqid AND quiza.state = 'finished' AND quiza.userid $insql
-           GROUP BY quiza.userid, m.competencyid",
-            array_merge($inparams, ['fqid' => (int)$finalasmt->quizid, 'subfqid' => (int)$finalasmt->quizid])
-        );
-        foreach ($compquizrs as $r) {
-            if ($r->total_max > 0) {
-                $finalcompgrades[(int)$r->userid][(int)$r->competencyid] = ($r->total_fraction / $r->total_max) * 100.0;
-            }
-        }
-    }
-
-    if ($oralasmt) {
-        if (!empty($oralasmt->quizid)) {
-            $oqrecord = $DB->get_record('quiz', ['id' => $oralasmt->quizid], 'id, grade, sumgrades');
-            if ($oqrecord) {
-                $oralmaxgrade = ($oqrecord->grade > 0)
-                    ? (float)$oqrecord->grade
-                    : (($oqrecord->sumgrades > 0) ? (float)$oqrecord->sumgrades : 100.0);
-            }
-            $ogradesrs = $DB->get_records_sql(
-                "SELECT userid, grade FROM {quiz_grades} WHERE quiz = :oquizid AND userid $insql",
-                array_merge($inparams, ['oquizid' => (int)$oralasmt->quizid])
-            );
-            foreach ($ogradesrs as $gr) {
-                $oralrawgrades[(int)$gr->userid] = (float)$gr->grade;
-            }
-
-            $compquizrs2 = $DB->get_records_sql(
-                "SELECT CONCAT(quiza.userid, '_', m.competencyid) AS ukey, quiza.userid, m.competencyid,
-                        SUM(qa.maxfraction) AS total_max, SUM(qas.fraction) AS total_fraction
-                   FROM {quiz_attempts} quiza
-                   JOIN {question_usages} qu    ON qu.id = quiza.uniqueid
-                   JOIN {question_attempts} qa  ON qa.questionusageid = qu.id
-                   JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
-                   JOIN (
-                       SELECT s.questionattemptid, MAX(s.fraction) AS fraction
-                         FROM {question_attempt_steps} s
-                         JOIN {quiz_attempts} qa3 ON qa3.uniqueid = (
-                             SELECT qu2.id FROM {question_usages} qu2
-                               JOIN {question_attempts} qa2 ON qa2.questionusageid = qu2.id
-                              WHERE qa2.id = s.questionattemptid LIMIT 1
-                         )
-                        WHERE qa3.quiz = :suboqid AND qa3.state = 'finished'
-                     GROUP BY s.questionattemptid
-                   ) qas ON qas.questionattemptid = qa.id
-                  WHERE quiza.quiz = :oqid AND quiza.state = 'finished' AND quiza.userid $insql
-               GROUP BY quiza.userid, m.competencyid",
-                array_merge($inparams, ['oqid' => (int)$oralasmt->quizid, 'suboqid' => (int)$oralasmt->quizid])
-            );
-            foreach ($compquizrs2 as $r) {
-                if ($r->total_max > 0) {
-                    $oralcompgrades[(int)$r->userid][(int)$r->competencyid] = ($r->total_fraction / $r->total_max) * 100.0;
-                }
-            }
-        } else {
-            $pracrs = $DB->get_records_sql(
-                "SELECT studentid, competencyid, competency_percent
-                   FROM {local_comp_report_ext_prac}
-                  WHERE assessmentid = :pasmtid AND courseid = :pcourseid AND studentid $insql",
-                array_merge($inparams, ['pasmtid' => (int)$oralasmt->id, 'pcourseid' => $courseid])
-            );
-            $userpracsums = [];
-            foreach ($pracrs as $pr) {
-                $uid = (int)$pr->studentid;
-                $cid = (int)$pr->competencyid;
-                $pct = (float)$pr->competency_percent;
-                $oralcompgrades[$uid][$cid] = $pct;
-                $userpracsums[$uid][] = $pct;
-            }
-            foreach ($userpracsums as $uid => $pcts) {
-                $oralrawgrades[$uid] = array_sum($pcts) / count($pcts);
-            }
-            $oralmaxgrade = 100.0;
-        }
-    }
-}
 
 // Combined unique competencies list for the weighted summary.
 $alluniquecomps = [];
@@ -326,13 +215,13 @@ $passedcount  = 0;
 foreach ($students as $student) {
     $uid = (int)$student->id;
     $finalraw = isset($finalrawgrades[$uid]) ? $finalrawgrades[$uid] : null;
-    $finalpct = ($finalraw !== null && $finalmaxgrade > 0) ? ($finalraw / $finalmaxgrade) * 100.0 : null;
+    $finalpct = isset($finalpctgrades[$uid]) ? $finalpctgrades[$uid] : null;
     if ($finalpct !== null) {
         $statfinal[] = $finalpct;
     }
 
     $oralraw = isset($oralrawgrades[$uid]) ? $oralrawgrades[$uid] : null;
-    $oralpct = ($oralraw !== null && $oralmaxgrade > 0) ? ($oralraw / $oralmaxgrade) * 100.0 : null;
+    $oralpct = isset($oralpctgrades[$uid]) ? $oralpctgrades[$uid] : null;
     if ($oralpct !== null) {
         $statoral[] = $oralpct;
     }
@@ -494,10 +383,10 @@ $tablehtml .= '</thead><tbody>';
 foreach ($students as $student) {
     $uid = (int)$student->id;
     $finalraw = isset($finalrawgrades[$uid]) ? $finalrawgrades[$uid] : null;
-    $finalpct = ($finalraw !== null && $finalmaxgrade > 0) ? ($finalraw / $finalmaxgrade) * 100.0 : null;
+    $finalpct = isset($finalpctgrades[$uid]) ? $finalpctgrades[$uid] : null;
 
     $oralraw = isset($oralrawgrades[$uid]) ? $oralrawgrades[$uid] : null;
-    $oralpct = ($oralraw !== null && $oralmaxgrade > 0) ? ($oralraw / $oralmaxgrade) * 100.0 : null;
+    $oralpct = isset($oralpctgrades[$uid]) ? $oralpctgrades[$uid] : null;
 
     $weightedgrade = null;
     if ($finalpct !== null && $oralpct !== null) {
@@ -517,14 +406,30 @@ foreach ($students as $student) {
     $tablehtml .= '<td width="' . $wgroup . '%">' . s($student->groupname ?: '-') . '</td>';
 
     // Final score.
-    $tablehtml .= '<td width="' . $wpercol . '%"><b>' . (($finalraw !== null) ? number_format($finalraw, 1) : '-') . '</b></td>';
+    $finalcell = '-';
+    if ($finalraw !== null) {
+        $finalcell = '<b>' . number_format($finalraw, 1) . '</b>';
+        if (!empty($finalretakeinfo[$uid]['is_retake'])) {
+            $finalcell .= '<br><span style="color:#b45309;font-size:6.5pt;font-weight:bold;">['
+                . s($finalretakeinfo[$uid]['label']) . ']</span>';
+        }
+    }
+    $tablehtml .= '<td width="' . $wpercol . '%">' . $finalcell . '</td>';
     foreach ($finalcomps as $cid => $comp) {
         $pct = isset($finalcompgrades[$uid][$cid]) ? $finalcompgrades[$uid][$cid] : null;
         $tablehtml .= '<td width="' . $wpercol . '%">' . (($pct !== null) ? number_format($pct, 1) . '%' : '-') . '</td>';
     }
 
     // Oral score.
-    $tablehtml .= '<td width="' . $wpercol . '%"><b>' . (($oralraw !== null) ? number_format($oralraw, 1) : '-') . '</b></td>';
+    $oralcell = '-';
+    if ($oralraw !== null) {
+        $oralcell = '<b>' . number_format($oralraw, 1) . '</b>';
+        if (!empty($oralretakeinfo[$uid]['is_retake'])) {
+            $oralcell .= '<br><span style="color:#b45309;font-size:6.5pt;font-weight:bold;">['
+                . s($oralretakeinfo[$uid]['label']) . ']</span>';
+        }
+    }
+    $tablehtml .= '<td width="' . $wpercol . '%">' . $oralcell . '</td>';
     foreach ($oralcomps as $cid => $comp) {
         $pct = isset($oralcompgrades[$uid][$cid]) ? $oralcompgrades[$uid][$cid] : null;
         $tablehtml .= '<td width="' . $wpercol . '%">' . (($pct !== null) ? number_format($pct, 1) . '%' : '-') . '</td>';
