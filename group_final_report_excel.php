@@ -103,7 +103,7 @@ $roleid = $studentrole ? (int)$studentrole->id : 5;
 
 if ($groupid > 0) {
     $students = (array)$DB->get_records_sql(
-        "SELECT u.id, u.firstname, u.lastname, u.idnumber, :gname AS groupname
+        "SELECT u.id, u.firstname, u.lastname, u.username, u.idnumber, :gname AS groupname
            FROM {groups_members} gm
            JOIN {user} u ON u.id = gm.userid
            JOIN {role_assignments} ra ON ra.userid = u.id
@@ -112,12 +112,12 @@ if ($groupid > 0) {
             AND ctx.instanceid = :courseid
             AND ra.roleid = :roleid
             AND u.deleted = 0
-       ORDER BY u.idnumber ASC, u.lastname ASC, u.firstname ASC",
+       ORDER BY u.username ASC, u.idnumber ASC, u.lastname ASC, u.firstname ASC",
         ['groupid' => $groupid, 'courseid' => $courseid, 'roleid' => $roleid, 'gname' => $groupname]
     );
 } else {
     $students = (array)$DB->get_records_sql(
-        "SELECT DISTINCT u.id, u.firstname, u.lastname, u.idnumber,
+        "SELECT DISTINCT u.id, u.firstname, u.lastname, u.username, u.idnumber,
                 COALESCE(g.name, '') AS groupname
            FROM {role_assignments} ra
            JOIN {context} ctx ON ctx.id = ra.contextid
@@ -127,7 +127,7 @@ if ($groupid > 0) {
           WHERE ctx.instanceid = :courseid2
             AND ra.roleid = :roleid
             AND u.deleted = 0
-       ORDER BY g.name ASC, u.idnumber ASC, u.lastname ASC, u.firstname ASC",
+       ORDER BY g.name ASC, u.username ASC, u.idnumber ASC, u.lastname ASC, u.firstname ASC",
         ['courseid' => $courseid, 'courseid2' => $courseid, 'roleid' => $roleid]
     );
 }
@@ -366,7 +366,8 @@ foreach ($students as $student) {
     $uid = (int)$student->id;
     $c = 0;
 
-    $worksheet->write_string($rowidx, $c++, local_comp_report_ext_safe_excel_str($student->idnumber ?: '—'), $formatcell);
+    $academicid = !empty($student->username) ? $student->username : (!empty($student->idnumber) ? $student->idnumber : '—');
+    $worksheet->write_string($rowidx, $c++, local_comp_report_ext_safe_excel_str($academicid), $formatcell);
     $worksheet->write_string($rowidx, $c++, local_comp_report_ext_safe_excel_str(fullname($student)), $formatcellleft);
     $worksheet->write_string($rowidx, $c++, local_comp_report_ext_safe_excel_str($student->groupname ?: '—'), $formatcell);
 

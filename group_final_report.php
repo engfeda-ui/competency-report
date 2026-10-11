@@ -171,7 +171,7 @@ if ($groupid > 0) {
     $groupobj = $DB->get_record('groups', ['id' => $groupid, 'courseid' => $courseid]);
     $gname = $groupobj ? format_string($groupobj->name) : '';
     $students = (array)$DB->get_records_sql(
-        "SELECT u.id, u.firstname, u.lastname, u.idnumber, u.email,
+        "SELECT u.id, u.firstname, u.lastname, u.username, u.idnumber, u.email,
                 :gname AS groupname, :gid AS student_groupid
            FROM {groups_members} gm
            JOIN {user} u ON u.id = gm.userid
@@ -181,12 +181,12 @@ if ($groupid > 0) {
             AND ctx.instanceid = :courseid
             AND ra.roleid = :roleid
             AND u.deleted = 0
-       ORDER BY u.idnumber ASC, u.lastname ASC, u.firstname ASC",
+       ORDER BY u.username ASC, u.idnumber ASC, u.lastname ASC, u.firstname ASC",
         ['groupid' => $groupid, 'courseid' => $courseid, 'roleid' => $roleid, 'gname' => $gname, 'gid' => $groupid]
     );
 } else {
     $students = (array)$DB->get_records_sql(
-        "SELECT DISTINCT u.id, u.firstname, u.lastname, u.idnumber, u.email,
+        "SELECT DISTINCT u.id, u.firstname, u.lastname, u.username, u.idnumber, u.email,
                 COALESCE(g.name, '') AS groupname, COALESCE(g.id, 0) AS student_groupid
            FROM {role_assignments} ra
            JOIN {context} ctx ON ctx.id = ra.contextid
@@ -196,7 +196,7 @@ if ($groupid > 0) {
           WHERE ctx.instanceid = :courseid2
             AND ra.roleid = :roleid
             AND u.deleted = 0
-       ORDER BY g.name ASC, u.idnumber ASC, u.lastname ASC, u.firstname ASC",
+       ORDER BY g.name ASC, u.username ASC, u.idnumber ASC, u.lastname ASC, u.firstname ASC",
         ['courseid' => $courseid, 'courseid2' => $courseid, 'roleid' => $roleid]
     );
 }
@@ -521,7 +521,7 @@ foreach ($students as $student) {
         'studentid'          => $student->id,
         'studentname'        => fullname($student),
         'studentlink'        => $studentlink,
-        'idnumber'           => !empty($student->idnumber) ? $student->idnumber : '—',
+        'idnumber'           => !empty($student->username) ? $student->username : (!empty($student->idnumber) ? $student->idnumber : '—'),
         'groupname'          => !empty($student->groupname) ? $student->groupname : '—',
         'has_final_score'    => $hasfinalscore,
         'final_score_val'    => $finalvalstr,
