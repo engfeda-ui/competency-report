@@ -5,7 +5,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.27.1-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.27.2-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -83,6 +83,13 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 ---
 
 ## 📋 Changelog
+
+### v3.27.2 (2026101103) — 2026-10-11
+- **Final Report PDF Table Alignment & Completeness Fix (`group_final_report_pdf.php`):**
+  - **Pixel-Perfect Column Alignment:** Resolved TCPDF multi-tier `<thead>` alignment distortion by applying exact matching percentage widths across Tier 1, Tier 2, and data rows.
+  - **Weighted Competencies in PDF:** Added individual weighted competencies (`$alluniquecomps`) to the Course Final Comprehensive Evaluation section of the PDF, achieving 100% parity with Web and Excel reports.
+  - **Executive KPI Strip:** Added a multi-assessment KPI summary strip (Final Exam Avg, Oral Exam Avg, Total Weighted Avg, Pass Rate) above the PDF table.
+  - **Font & Symbol Hardening:** Enforced UTF-8 font rendering (`freeserif`) and normalized unattempted cell indicators and percentage formatting.
 
 ### v3.27.1 (2026101102) — 2026-10-11
 - **Academic ID & Language String Hardening:**
