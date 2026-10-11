@@ -223,3 +223,59 @@
         height: auto !important;
     }
 }
+
+/* Final Comprehensive Evaluation Report Styles */
+.local_comp_report_ext_final_report .final-report-scroll-container {
+    overflow-x: auto;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 8px;
+}
+
+.local_comp_report_ext_final_report .final-report-scroll-container::-webkit-scrollbar {
+    height: 12px;
+    width: 8px;
+}
+
+.local_comp_report_ext_final_report .final-report-scroll-container::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 6px;
+}
+
+.local_comp_report_ext_final_report .final-report-scroll-container::-webkit-scrollbar-thumb {
+    background: #94a3b8;
+    border-radius: 6px;
+    border: 2px solid #f1f5f9;
+}
+
+.local_comp_report_ext_final_report .final-report-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
+}
+
+.local_comp_report_ext_final_report table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.local_comp_report_ext_final_report table td,
+.local_comp_report_ext_final_report table th {
+    white-space: nowrap;
+}
+
+@media print {
+    body#page-local-comp_report_ext-group_final_report #page-header,
+    body#page-local-comp_report_ext-group_final_report .navbar,
+    body#page-local-comp_report_ext-group_final_report .drawer,
+    body#page-local-comp_report_ext-group_final_report .nav-tabs,
+    body#page-local-comp_report_ext-group_final_report form,
+    body#page-local-comp_report_ext-group_final_report footer,
+    body#page-local-comp_report_ext-group_final_report #page-footer {
+        display: none !important;
+    }
+
+    .local_comp_report_ext_final_report .final-report-scroll-container {
+        overflow: visible !important;
+        max-height: none !important;
+    }
+}

@@ -427,3 +427,21 @@ $string['stats_gaussian_curve'] = 'منحنى التوزيع الطبيعي (Bel
 $string['stats_mean'] = 'المتوسط الحسابي (μ)';
 $string['stats_sigma'] = 'الانحراف المعياري (σ)';
 $string['group'] = 'المجموعة';
+
+// Final Comprehensive Evaluation Report strings.
+$string['tab_final_report'] = 'التقرير النهائي';
+$string['final_report_title'] = 'التقييم الشامل والتقرير النهائي للمقرر';
+$string['final_exam'] = 'الامتحان النهائي';
+$string['oral_practical_exam'] = 'الامتحان الشفوي / العملي';
+$string['exam_score_value'] = 'درجة الامتحان';
+$string['competency_percentage'] = 'نسبة الكفاية';
+$string['final_weighted_total'] = 'الدرجة الموزونة';
+$string['final_weighted_competencies'] = 'الكفايات الموزونة';
+$string['overall_status'] = 'النتيجة النهائية';
+$string['select_final_exam'] = 'اختر الامتحان النهائي';
+$string['select_oral_exam'] = 'اختر الامتحان الشفوي / العملي';
+$string['horizontal_scroll_hint'] = 'تلميح: يمكنك التمرير أفقياً عبر شريط التمرير للاطلاع على جميع الاختبارات والكفايات والمجاميع الموزونة.';
+$string['nofinalassessments'] = 'لا توجد تقييمات مرجحة مُعدَّة لهذه الدورة. يرجى استخدام إعداد التقييمات أولاً.';
+$string['status_passed'] = 'اجتاز';
+$string['status_atrisk'] = 'بحاجة لدعم';
+$string['group_final_report_pdf'] = 'تصدير التقرير النهائي PDF';

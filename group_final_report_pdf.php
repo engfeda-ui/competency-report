@@ -1,0 +1,390 @@
+<?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
+/**
+ * Landscape PDF generator for Course Final Comprehensive Evaluation Report.
+ *
+ * @package    local_comp_report_ext
+ * @copyright  2026 Mahmoud Salem
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+require_once(__DIR__ . '/../../config.php');
+require_once($CFG->libdir . '/tcpdf/tcpdf.php');
+require_once(__DIR__ . '/lib.php');
+
+$courseid    = required_param('courseid', PARAM_INT);
+$groupid     = optional_param('groupid', 0, PARAM_INT);
+$finalasmtid = optional_param('finalasmtid', 0, PARAM_INT);
+$oralasmtid  = optional_param('oralasmtid', 0, PARAM_INT);
+
+require_login($courseid);
+$context = context_course::instance($courseid);
+$canviewext = has_capability('local/comp_report_ext:viewreports', $context);
+$canviewold = has_capability('local/competency_report:viewreports', $context);
+if (!$canviewext && !$canviewold) {
+    require_capability('local/comp_report_ext:viewreports', $context);
+}
+
+global $DB;
+
+$course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
+$groupname = get_string('allgroups', 'local_comp_report_ext');
+if ($groupid > 0) {
+    $grouprow  = $DB->get_record('groups', ['id' => $groupid, 'courseid' => $courseid]);
+    $groupname = $grouprow ? format_string($grouprow->name) : $groupname;
+}
+
+$allasmts = $DB->get_records('local_comp_report_ext_asmt', ['courseid' => $courseid], 'weight DESC, id ASC');
+
+if (!empty($allasmts)) {
+    if ($finalasmtid <= 0 || !isset($allasmts[$finalasmtid])) {
+        foreach ($allasmts as $aid => $a) {
+            $namelower = core_text::strtolower($a->name);
+            if (strpos($namelower, 'final') !== false || strpos($namelower, 'نهائي') !== false) {
+                $finalasmtid = (int)$aid;
+                break;
+            }
+        }
+        if ($finalasmtid <= 0) {
+            $firstasmt = reset($allasmts);
+            $finalasmtid = (int)$firstasmt->id;
+        }
+    }
+
+    if ($oralasmtid <= 0 || !isset($allasmts[$oralasmtid]) || $oralasmtid === $finalasmtid) {
+        foreach ($allasmts as $aid => $a) {
+            if ((int)$aid === $finalasmtid) {
+                continue;
+            }
+            $namelower = core_text::strtolower($a->name);
+            if (in_array($a->type, ['oral', 'practical', 'assign'])
+                || strpos($namelower, 'oral') !== false
+                || strpos($namelower, 'شفوي') !== false
+                || strpos($namelower, 'عملي') !== false
+                || strpos($namelower, 'practical') !== false) {
+                $oralasmtid = (int)$aid;
+                break;
+            }
+        }
+        if ($oralasmtid <= 0 || $oralasmtid === $finalasmtid) {
+            foreach ($allasmts as $aid => $a) {
+                if ((int)$aid !== $finalasmtid) {
+                    $oralasmtid = (int)$aid;
+                    break;
+                }
+            }
+        }
+    }
+}
+
+$finalasmt = ($finalasmtid > 0 && isset($allasmts[$finalasmtid])) ? $allasmts[$finalasmtid] : null;
+$oralasmt  = ($oralasmtid > 0 && isset($allasmts[$oralasmtid])) ? $allasmts[$oralasmtid] : null;
+
+// Students.
+$studentrole = $DB->get_record('role', ['shortname' => 'student'], 'id');
+if (!$studentrole) {
+    $studentrole = $DB->get_record('role', ['archetype' => 'student'], 'id');
+}
+$roleid = $studentrole ? (int)$studentrole->id : 5;
+
+if ($groupid > 0) {
+    $students = (array)$DB->get_records_sql(
+        "SELECT u.id, u.firstname, u.lastname, u.idnumber, :gname AS groupname
+           FROM {groups_members} gm
+           JOIN {user} u ON u.id = gm.userid
+           JOIN {role_assignments} ra ON ra.userid = u.id
+           JOIN {context} ctx ON ctx.id = ra.contextid
+          WHERE gm.groupid = :groupid
+            AND ctx.instanceid = :courseid
+            AND ra.roleid = :roleid
+            AND u.deleted = 0
+       ORDER BY u.idnumber ASC, u.lastname ASC, u.firstname ASC",
+        ['groupid' => $groupid, 'courseid' => $courseid, 'roleid' => $roleid, 'gname' => $groupname]
+    );
+} else {
+    $students = (array)$DB->get_records_sql(
+        "SELECT DISTINCT u.id, u.firstname, u.lastname, u.idnumber,
+                COALESCE(g.name, '') AS groupname
+           FROM {role_assignments} ra
+           JOIN {context} ctx ON ctx.id = ra.contextid
+           JOIN {user} u ON u.id = ra.userid
+      LEFT JOIN {groups_members} gm ON gm.userid = u.id
+      LEFT JOIN {groups} g ON g.id = gm.groupid AND g.courseid = :courseid
+          WHERE ctx.instanceid = :courseid2
+            AND ra.roleid = :roleid
+            AND u.deleted = 0
+       ORDER BY g.name ASC, u.idnumber ASC, u.lastname ASC, u.firstname ASC",
+        ['courseid' => $courseid, 'courseid2' => $courseid, 'roleid' => $roleid]
+    );
+}
+
+$studentids = !empty($students) ? array_map('intval', array_keys($students)) : [];
+
+// Competencies.
+$getcomps = function ($asmt) use ($DB, $courseid) {
+    if (!$asmt) {
+        return [];
+    }
+    if (!empty($asmt->quizid)) {
+        $comps = $DB->get_records_sql(
+            "SELECT DISTINCT c.id, c.shortname FROM {quiz_attempts} quiza JOIN {question_usages} qu ON qu.id = quiza.uniqueid JOIN {question_attempts} qa ON qa.questionusageid = qu.id JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid JOIN {competency} c ON c.id = m.competencyid WHERE quiza.quiz = :quizid ORDER BY c.shortname ASC",
+            ['quizid' => (int)$asmt->quizid]
+        );
+        if (empty($comps)) {
+            $comps = $DB->get_records_sql(
+                "SELECT DISTINCT c.id, c.shortname FROM {qbank_comp_ext_qmap} m JOIN {competency} c ON c.id = m.competencyid WHERE m.courseid = :courseid ORDER BY c.shortname ASC",
+                ['courseid' => $courseid]
+            );
+        }
+        return (array)$comps;
+    } else {
+        return (array)$DB->get_records_sql(
+            "SELECT DISTINCT c.id, c.shortname FROM {local_comp_report_ext_prac} p JOIN {competency} c ON c.id = p.competencyid WHERE p.assessmentid = :asmtid AND p.courseid = :courseid ORDER BY c.shortname ASC",
+            ['asmtid' => (int)$asmt->id, 'courseid' => $courseid]
+        );
+    }
+};
+
+$finalcomps = $getcomps($finalasmt);
+$oralcomps  = $getcomps($oralasmt);
+
+$finalrawgrades  = [];
+$oralrawgrades   = [];
+$finalcompgrades = [];
+$oralcompgrades  = [];
+
+$finalmaxgrade = 100.0;
+$oralmaxgrade  = 100.0;
+
+if (!empty($studentids)) {
+    [$insql, $inparams] = $DB->get_in_or_equal($studentids, SQL_PARAMS_NAMED, 'uid');
+
+    if ($finalasmt && !empty($finalasmt->quizid)) {
+        $qrecord = $DB->get_record('quiz', ['id' => $finalasmt->quizid], 'id, grade, sumgrades');
+        if ($qrecord) {
+            $finalmaxgrade = ($qrecord->grade > 0) ? (float)$qrecord->grade : (($qrecord->sumgrades > 0) ? (float)$qrecord->sumgrades : 100.0);
+        }
+        $gradesrs = $DB->get_records_sql(
+            "SELECT userid, grade FROM {quiz_grades} WHERE quiz = :fquizid AND userid $insql",
+            array_merge($inparams, ['fquizid' => (int)$finalasmt->quizid])
+        );
+        foreach ($gradesrs as $gr) {
+            $finalrawgrades[(int)$gr->userid] = (float)$gr->grade;
+        }
+
+        $compquizrs = $DB->get_records_sql(
+            "SELECT CONCAT(quiza.userid, '_', m.competencyid) AS ukey, quiza.userid, m.competencyid,
+                    SUM(qa.maxfraction) AS total_max, SUM(qas.fraction) AS total_fraction
+               FROM {quiz_attempts} quiza
+               JOIN {question_usages} qu    ON qu.id = quiza.uniqueid
+               JOIN {question_attempts} qa  ON qa.questionusageid = qu.id
+               JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
+               JOIN (
+                   SELECT s.questionattemptid, MAX(s.fraction) AS fraction
+                     FROM {question_attempt_steps} s
+                     JOIN {quiz_attempts} qa3 ON qa3.uniqueid = (SELECT qu2.id FROM {question_usages} qu2 JOIN {question_attempts} qa2 ON qa2.questionusageid = qu2.id WHERE qa2.id = s.questionattemptid LIMIT 1)
+                    WHERE qa3.quiz = :subfqid AND qa3.state = 'finished'
+                 GROUP BY s.questionattemptid
+               ) qas ON qas.questionattemptid = qa.id
+              WHERE quiza.quiz = :fqid AND quiza.state = 'finished' AND quiza.userid $insql
+           GROUP BY quiza.userid, m.competencyid",
+            array_merge($inparams, ['fqid' => (int)$finalasmt->quizid, 'subfqid' => (int)$finalasmt->quizid])
+        );
+        foreach ($compquizrs as $r) {
+            if ($r->total_max > 0) {
+                $finalcompgrades[(int)$r->userid][(int)$r->competencyid] = ($r->total_fraction / $r->total_max) * 100.0;
+            }
+        }
+    }
+
+    if ($oralasmt) {
+        if (!empty($oralasmt->quizid)) {
+            $oqrecord = $DB->get_record('quiz', ['id' => $oralasmt->quizid], 'id, grade, sumgrades');
+            if ($oqrecord) {
+                $oralmaxgrade = ($oqrecord->grade > 0) ? (float)$oqrecord->grade : (($oqrecord->sumgrades > 0) ? (float)$oqrecord->sumgrades : 100.0);
+            }
+            $ogradesrs = $DB->get_records_sql(
+                "SELECT userid, grade FROM {quiz_grades} WHERE quiz = :oquizid AND userid $insql",
+                array_merge($inparams, ['oquizid' => (int)$oralasmt->quizid])
+            );
+            foreach ($ogradesrs as $gr) {
+                $oralrawgrades[(int)$gr->userid] = (float)$gr->grade;
+            }
+
+            $compquizrs2 = $DB->get_records_sql(
+                "SELECT CONCAT(quiza.userid, '_', m.competencyid) AS ukey, quiza.userid, m.competencyid,
+                        SUM(qa.maxfraction) AS total_max, SUM(qas.fraction) AS total_fraction
+                   FROM {quiz_attempts} quiza
+                   JOIN {question_usages} qu    ON qu.id = quiza.uniqueid
+                   JOIN {question_attempts} qa  ON qa.questionusageid = qu.id
+                   JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
+                   JOIN (
+                       SELECT s.questionattemptid, MAX(s.fraction) AS fraction
+                         FROM {question_attempt_steps} s
+                         JOIN {quiz_attempts} qa3 ON qa3.uniqueid = (SELECT qu2.id FROM {question_usages} qu2 JOIN {question_attempts} qa2 ON qa2.questionusageid = qu2.id WHERE qa2.id = s.questionattemptid LIMIT 1)
+                        WHERE qa3.quiz = :suboqid AND qa3.state = 'finished'
+                     GROUP BY s.questionattemptid
+                   ) qas ON qas.questionattemptid = qa.id
+                  WHERE quiza.quiz = :oqid AND quiza.state = 'finished' AND quiza.userid $insql
+               GROUP BY quiza.userid, m.competencyid",
+                array_merge($inparams, ['oqid' => (int)$oralasmt->quizid, 'suboqid' => (int)$oralasmt->quizid])
+            );
+            foreach ($compquizrs2 as $r) {
+                if ($r->total_max > 0) {
+                    $oralcompgrades[(int)$r->userid][(int)$r->competencyid] = ($r->total_fraction / $r->total_max) * 100.0;
+                }
+            }
+        } else {
+            $pracrs = $DB->get_records_sql(
+                "SELECT studentid, competencyid, competency_percent FROM {local_comp_report_ext_prac} WHERE assessmentid = :pasmtid AND courseid = :pcourseid AND studentid $insql",
+                array_merge($inparams, ['pasmtid' => (int)$oralasmt->id, 'pcourseid' => $courseid])
+            );
+            $userpracsums = [];
+            foreach ($pracrs as $pr) {
+                $uid = (int)$pr->studentid;
+                $cid = (int)$pr->competencyid;
+                $pct = (float)$pr->competency_percent;
+                $oralcompgrades[$uid][$cid] = $pct;
+                $userpracsums[$uid][] = $pct;
+            }
+            foreach ($userpracsums as $uid => $pcts) {
+                $oralrawgrades[$uid] = array_sum($pcts) / count($pcts);
+            }
+            $oralmaxgrade = 100.0;
+        }
+    }
+}
+
+$threshold   = (float)(get_config('local_comp_report_ext', 'success_threshold') ?: 60.0);
+$finalweight = $finalasmt ? (float)$finalasmt->weight : 50.0;
+$oralweight  = $oralasmt ? (float)$oralasmt->weight : 50.0;
+$totalweight = $finalweight + $oralweight;
+if ($totalweight <= 0) {
+    $totalweight = 100.0;
+}
+
+// TCPDF Generation.
+$pdf = new TCPDF('L', PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+$pdf->SetCreator('Moodle');
+$pdf->SetTitle(get_string('tab_final_report', 'local_comp_report_ext'));
+$pdf->setPrintHeader(false);
+$pdf->setPrintFooter(true);
+
+$isrtl = right_to_left();
+$pdf->setRTL($isrtl);
+
+$pdf->SetMargins(10, 10, 10);
+$pdf->SetAutoPageBreak(true, PDF_MARGIN_BOTTOM);
+$pdf->AddPage();
+
+local_comp_report_ext_render_pdf_header_logos($pdf, true);
+
+// Title.
+$pdf->SetFont('freeserif', 'B', 13);
+$pdf->Cell(0, 7, get_string('tab_final_report', 'local_comp_report_ext') . ' — ' . format_string($course->fullname), 0, 1, 'C');
+$pdf->SetFont('freeserif', '', 9);
+$pdf->Cell(0, 5, get_string('group', 'local_comp_report_ext') . ': ' . $groupname . ' | ' . userdate(time()), 0, 1, 'C');
+$pdf->Ln(3);
+
+// Build HTML table.
+$tablehtml = '<table border="1" cellpadding="3" style="border-collapse: collapse; font-size: 7.5pt; text-align: center;">';
+$tablehtml .= '<thead>';
+
+// Header Tier 1.
+$tablehtml .= '<tr style="font-weight: bold; color: #ffffff;">';
+$tablehtml .= '<th colspan="3" bgcolor="#1e293b" align="center">' . s(get_string('student', 'local_comp_report_ext')) . '</th>';
+$fname = $finalasmt ? format_string($finalasmt->name) : get_string('final_exam', 'local_comp_report_ext');
+$tablehtml .= '<th colspan="' . (1 + count($finalcomps)) . '" bgcolor="#1e40af" align="center">' . s($fname) . ' (' . $finalweight . '%)</th>';
+$oname = $oralasmt ? format_string($oralasmt->name) : get_string('oral_practical_exam', 'local_comp_report_ext');
+$tablehtml .= '<th colspan="' . (1 + count($oralcomps)) . '" bgcolor="#0f766e" align="center">' . s($oname) . ' (' . $oralweight . '%)</th>';
+$tablehtml .= '<th colspan="2" bgcolor="#4338ca" align="center">' . s(get_string('final_report_title', 'local_comp_report_ext')) . '</th>';
+$tablehtml .= '</tr>';
+
+// Header Tier 2.
+$tablehtml .= '<tr bgcolor="#f1f5f9" style="font-weight: bold;">';
+$tablehtml .= '<th width="10%">' . s(get_string('idnumber', 'local_comp_report_ext')) . '</th>';
+$tablehtml .= '<th width="15%" align="left">' . s(get_string('studentname', 'local_comp_report_ext')) . '</th>';
+$tablehtml .= '<th width="8%">' . s(get_string('group', 'local_comp_report_ext')) . '</th>';
+$tablehtml .= '<th width="9%">' . s(get_string('exam_score_value', 'local_comp_report_ext')) . '<br>(/' . number_format($finalmaxgrade, 1) . ')</th>';
+foreach ($finalcomps as $comp) {
+    $tablehtml .= '<th>' . s($comp->shortname) . '<br>(%)</th>';
+}
+$tablehtml .= '<th width="9%">' . s(get_string('exam_score_value', 'local_comp_report_ext')) . '<br>(/' . number_format($oralmaxgrade, 1) . ')</th>';
+foreach ($oralcomps as $comp) {
+    $tablehtml .= '<th>' . s($comp->shortname) . '<br>(%)</th>';
+}
+$tablehtml .= '<th width="10%">' . s(get_string('final_weighted_total', 'local_comp_report_ext')) . '<br>(%)</th>';
+$tablehtml .= '<th width="8%">' . s(get_string('overall_status', 'local_comp_report_ext')) . '</th>';
+$tablehtml .= '</tr>';
+$tablehtml .= '</thead><tbody>';
+
+foreach ($students as $student) {
+    $uid = (int)$student->id;
+    $finalraw = isset($finalrawgrades[$uid]) ? $finalrawgrades[$uid] : null;
+    $finalpct = ($finalraw !== null && $finalmaxgrade > 0) ? ($finalraw / $finalmaxgrade) * 100.0 : null;
+
+    $oralraw = isset($oralrawgrades[$uid]) ? $oralrawgrades[$uid] : null;
+    $oralpct = ($oralraw !== null && $oralmaxgrade > 0) ? ($oralraw / $oralmaxgrade) * 100.0 : null;
+
+    $weightedgrade = null;
+    if ($finalpct !== null && $oralpct !== null) {
+        $weightedgrade = (($finalpct * $finalweight) + ($oralpct * $oralweight)) / $totalweight;
+    } else if ($finalpct !== null) {
+        $weightedgrade = $finalpct;
+    } else if ($oralpct !== null) {
+        $weightedgrade = $oralpct;
+    }
+
+    $ispass = ($weightedgrade !== null && $weightedgrade >= $threshold);
+
+    $tablehtml .= '<tr>';
+    $tablehtml .= '<td>' . s($student->idnumber ?: '—') . '</td>';
+    $tablehtml .= '<td align="left"><b>' . s(fullname($student)) . '</b></td>';
+    $tablehtml .= '<td>' . s($student->groupname ?: '—') . '</td>';
+
+    // Final score.
+    $tablehtml .= '<td><b>' . (($finalraw !== null) ? number_format($finalraw, 1) : '—') . '</b></td>';
+    foreach ($finalcomps as $cid => $comp) {
+        $pct = isset($finalcompgrades[$uid][$cid]) ? $finalcompgrades[$uid][$cid] : null;
+        $tablehtml .= '<td>' . (($pct !== null) ? '%' . number_format($pct, 1) : '—') . '</td>';
+    }
+
+    // Oral score.
+    $tablehtml .= '<td><b>' . (($oralraw !== null) ? number_format($oralraw, 1) : '—') . '</b></td>';
+    foreach ($oralcomps as $cid => $comp) {
+        $pct = isset($oralcompgrades[$uid][$cid]) ? $oralcompgrades[$uid][$cid] : null;
+        $tablehtml .= '<td>' . (($pct !== null) ? '%' . number_format($pct, 1) : '—') . '</td>';
+    }
+
+    // Weighted grade.
+    $color = $ispass ? '#15803d' : '#b91c1c';
+    $tablehtml .= '<td style="color:' . $color . ';"><b>' . (($weightedgrade !== null) ? '%' . number_format($weightedgrade, 1) : '—') . '</b></td>';
+
+    // Status.
+    $statuslabel = ($weightedgrade !== null) ? ($ispass ? get_string('status_passed', 'local_comp_report_ext') : get_string('status_atrisk', 'local_comp_report_ext')) : '—';
+    $tablehtml .= '<td style="color:' . $color . ';">' . s($statuslabel) . '</td>';
+
+    $tablehtml .= '</tr>';
+}
+
+$tablehtml .= '</tbody></table>';
+
+$pdf->writeHTML($tablehtml, true, false, false, false, '');
+
+$cleanfilename = 'Final_Report_' . clean_filename(format_string($course->shortname)) . '_' . date('Ymd_His') . '.pdf';
+$pdf->Output($cleanfilename, 'I');
+exit;

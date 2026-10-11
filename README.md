@@ -5,7 +5,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.26.11-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.27.0-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -83,6 +83,14 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 ---
 
 ## 📋 Changelog
+
+### v3.27.0 (2026101101) — 2026-10-11
+- **New Feature: Course Final Comprehensive Evaluation Report (`group_final_report.php`):**
+  - **Dedicated 6th Navigation Tab:** Added new "Final Report" (`tab_final_report` / "التقرير النهائي") tab across all 6 group reporting suite templates.
+  - **Multi-Assessment Side-by-Side Matrix:** Displays Final Exam score as a value (e.g. raw / max score) alongside its individual competencies (%), Oral/Practical exam score as a value alongside its individual competencies (%), and the combined weighted total evaluation (%).
+  - **Smooth Horizontal Scrolling & Sticky Columns:** Implemented `.final-report-scroll-container` with custom scrollbar and sticky student identifier columns (`idnumber`, `studentname`) ensuring full visibility across large competency matrices.
+  - **Universal Native Export:** Added native multi-tier Excel (`group_final_report_excel.php`) with formula injection protection and Landscape PDF (`group_final_report_pdf.php`) exports.
+  - **Localization:** Full English and Arabic string sets with RTL support.
 
 ### v3.26.11 (2026101002) — 2026-10-10
 - **Exhaustive Codebase Audit & Zero-Division Hardening:**

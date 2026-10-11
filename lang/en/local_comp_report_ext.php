@@ -428,3 +428,21 @@ $string['stats_gaussian_curve'] = 'Gaussian Distribution (Bell Curve)';
 $string['stats_mean'] = 'Mean (μ)';
 $string['stats_sigma'] = 'Std Dev (σ)';
 $string['group'] = 'Group';
+
+// Final Comprehensive Evaluation Report strings.
+$string['tab_final_report'] = 'Final Report';
+$string['final_report_title'] = 'Course Final Comprehensive Evaluation';
+$string['final_exam'] = 'Final Exam';
+$string['oral_practical_exam'] = 'Oral / Practical Exam';
+$string['exam_score_value'] = 'Exam Score';
+$string['competency_percentage'] = 'Competency %';
+$string['final_weighted_total'] = 'Weighted Grade';
+$string['final_weighted_competencies'] = 'Weighted Competencies';
+$string['overall_status'] = 'Final Result';
+$string['select_final_exam'] = 'Select Final Exam';
+$string['select_oral_exam'] = 'Select Oral / Practical Exam';
+$string['horizontal_scroll_hint'] = 'Tip: Scroll horizontally across the table to view all exams, individual competencies, and weighted totals.';
+$string['nofinalassessments'] = 'No configured assessments available for this course. Please configure assessment weights first.';
+$string['status_passed'] = 'Passed';
+$string['status_atrisk'] = 'At Risk';
+$string['group_final_report_pdf'] = 'Export Final Report PDF';

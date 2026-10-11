@@ -1,0 +1,343 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    @template local_comp_report_ext/group_final_report_page
+}}
+<div class="local_comp_report_ext_final_report">
+    <!-- Navigation Tabs -->
+    <ul class="nav nav-tabs mb-4">
+        <li class="nav-item">
+            <a class="nav-link font-weight-bold text-muted" href="group_competency.php?courseid={{courseid}}">
+                <i class="fa fa-list-alt mr-1"></i> {{#str}}tab_by_competency, local_comp_report_ext{{/str}}
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link font-weight-bold text-muted" href="group_quiz_competency.php?courseid={{courseid}}">
+                <i class="fa fa-pencil-square-o mr-1"></i> {{#str}}tab_by_quiz, local_comp_report_ext{{/str}}
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link font-weight-bold text-muted" href="group_assessment_distribution.php?courseid={{courseid}}">
+                <i class="fa fa-balance-scale mr-1"></i> {{#str}}tab_assessment_distribution, local_comp_report_ext{{/str}}
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link font-weight-bold text-muted" href="group_analytics_dashboard.php?courseid={{courseid}}">
+                <i class="fa fa-bar-chart mr-1"></i> {{#str}}tab_analytics_competency, local_comp_report_ext{{/str}}
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link font-weight-bold text-muted" href="group_exam_analytics.php?courseid={{courseid}}">
+                <i class="fa fa-line-chart mr-1"></i> {{#str}}tab_analytics_grades, local_comp_report_ext{{/str}}
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link active font-weight-bold" href="#">
+                <i class="fa fa-graduation-cap mr-1"></i> {{#str}}tab_final_report, local_comp_report_ext{{/str}}
+            </a>
+        </li>
+    </ul>
+
+    {{^has_configured_asmts}}
+        <div class="alert alert-warning shadow-sm">
+            <i class="fa fa-exclamation-triangle mr-2"></i>
+            {{#str}}nofinalassessments, local_comp_report_ext{{/str}}
+            <div class="mt-2">
+                <a href="assessment_setup.php?courseid={{courseid}}" class="btn btn-sm btn-primary">
+                    <i class="fa fa-cog mr-1"></i> {{#str}}goassessmentsetup, local_comp_report_ext{{/str}}
+                </a>
+            </div>
+        </div>
+    {{/has_configured_asmts}}
+
+    {{#has_configured_asmts}}
+        <!-- KPI Summary Cards -->
+        {{#has_data}}
+            <div class="row mb-4">
+                <div class="col-md-3 mb-3">
+                    <div class="card shadow-sm text-white bg-primary p-3 rounded" style="border: none; background: linear-gradient(135deg, #1e40af, #3b82f6) !important;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-uppercase font-weight-bold" style="opacity: 0.9;">{{final_name}}</small>
+                                <h3 class="mb-0 font-weight-bold mt-1">%{{kpis.avg_final}}</h3>
+                                <small style="opacity: 0.85;">{{#str}}final_exam, local_comp_report_ext{{/str}} ({{final_weight}}%)</small>
+                            </div>
+                            <div style="font-size: 2.2rem; opacity: 0.7;"><i class="fa fa-file-text-o"></i></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card shadow-sm text-white p-3 rounded" style="border: none; background: linear-gradient(135deg, #0f766e, #14b8a6) !important;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-uppercase font-weight-bold" style="opacity: 0.9;">{{oral_name}}</small>
+                                <h3 class="mb-0 font-weight-bold mt-1">%{{kpis.avg_oral}}</h3>
+                                <small style="opacity: 0.85;">{{#str}}oral_practical_exam, local_comp_report_ext{{/str}} ({{oral_weight}}%)</small>
+                            </div>
+                            <div style="font-size: 2.2rem; opacity: 0.7;"><i class="fa fa-microphone"></i></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card shadow-sm text-white p-3 rounded" style="border: none; background: linear-gradient(135deg, #4338ca, #6366f1) !important;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-uppercase font-weight-bold" style="opacity: 0.9;">{{#str}}final_weighted_total, local_comp_report_ext{{/str}}</small>
+                                <h3 class="mb-0 font-weight-bold mt-1">%{{kpis.avg_total}}</h3>
+                                <small style="opacity: 0.85;">{{#str}}course, local_comp_report_ext{{/str}} (100%)</small>
+                            </div>
+                            <div style="font-size: 2.2rem; opacity: 0.7;"><i class="fa fa-calculator"></i></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card shadow-sm text-white p-3 rounded" style="border: none; background: linear-gradient(135deg, #059669, #10b981) !important;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-uppercase font-weight-bold" style="opacity: 0.9;">{{#str}}overall_status, local_comp_report_ext{{/str}}</small>
+                                <h3 class="mb-0 font-weight-bold mt-1">%{{kpis.pass_rate}}</h3>
+                                <small style="opacity: 0.85;">{{kpis.passed_students}} / {{kpis.total_students}} {{#str}}students, local_comp_report_ext{{/str}}</small>
+                            </div>
+                            <div style="font-size: 2.2rem; opacity: 0.7;"><i class="fa fa-check-circle"></i></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {{/has_data}}
+
+        <!-- Filter Controls Form -->
+        <form method="get" action="group_final_report.php" class="card card-body bg-light mb-4 shadow-sm">
+            <input type="hidden" name="courseid" value="{{courseid}}">
+
+            <div class="row align-items-end">
+                <div class="col-md-3 mb-2">
+                    <label class="font-weight-bold mb-1"><i class="fa fa-users mr-1"></i> {{#str}}group, local_comp_report_ext{{/str}}</label>
+                    <select name="groupid" class="form-control" onchange="this.form.submit()">
+                        {{#groups}}
+                            <option value="{{id}}" {{#selected}}selected{{/selected}}>{{name}}</option>
+                        {{/groups}}
+                    </select>
+                </div>
+
+                <div class="col-md-3 mb-2">
+                    <label class="font-weight-bold mb-1"><i class="fa fa-file-text-o mr-1"></i> {{#str}}select_final_exam, local_comp_report_ext{{/str}}</label>
+                    <select name="finalasmtid" class="form-control" onchange="this.form.submit()">
+                        {{#final_options}}
+                            <option value="{{id}}" {{#selected}}selected{{/selected}}>{{name}}</option>
+                        {{/final_options}}
+                    </select>
+                </div>
+
+                <div class="col-md-3 mb-2">
+                    <label class="font-weight-bold mb-1"><i class="fa fa-microphone mr-1"></i> {{#str}}select_oral_exam, local_comp_report_ext{{/str}}</label>
+                    <select name="oralasmtid" class="form-control" onchange="this.form.submit()">
+                        {{#oral_options}}
+                            <option value="{{id}}" {{#selected}}selected{{/selected}}>{{name}}</option>
+                        {{/oral_options}}
+                    </select>
+                </div>
+
+                <div class="col-md-3 mb-2 d-flex align-items-center">
+                    <button type="submit" class="btn btn-primary mr-2">
+                        <i class="fa fa-filter mr-1"></i> {{#str}}show, local_comp_report_ext{{/str}}
+                    </button>
+                    {{#has_data}}
+                        <a href="group_final_report_excel.php?courseid={{courseid}}&groupid={{groupid}}&finalasmtid={{finalasmtid}}&oralasmtid={{oralasmtid}}" class="btn btn-outline-success font-weight-bold shadow-sm mr-2" title="{{#str}}exportexcel, local_comp_report_ext{{/str}}">
+                            <i class="fa fa-file-excel-o mr-1"></i> Excel
+                        </a>
+                        <a href="group_final_report_pdf.php?courseid={{courseid}}&groupid={{groupid}}&finalasmtid={{finalasmtid}}&oralasmtid={{oralasmtid}}" target="_blank" class="btn btn-outline-danger font-weight-bold shadow-sm" title="{{#str}}exportpdf, local_comp_report_ext{{/str}}">
+                            <i class="fa fa-file-pdf-o mr-1"></i> PDF
+                        </a>
+                    {{/has_data}}
+                </div>
+            </div>
+        </form>
+
+        {{#has_data}}
+            <!-- Horizontal Scroll Hint Banner -->
+            <div class="alert alert-info py-2 px-3 shadow-sm d-flex align-items-center mb-3" style="border-left: 4px solid #0284c7; background-color: #f0f9ff; color: #0369a1;">
+                <i class="fa fa-arrows-h fa-lg mr-2" style="font-size: 1.3rem;"></i>
+                <span class="font-weight-bold">{{#str}}horizontal_scroll_hint, local_comp_report_ext{{/str}}</span>
+            </div>
+
+            <!-- Responsive Table with Dedicated Horizontal Scrolling & Sticky Student Header -->
+            <div class="table-responsive final-report-scroll-container shadow-sm border rounded bg-white mb-4" style="max-height: 750px; overflow-x: auto; overflow-y: auto;">
+                <table class="table table-bordered table-hover mb-0 text-nowrap" style="min-width: 1200px; font-size: 0.9rem;">
+                    <!-- Tier 1: Group Category Headers -->
+                    <thead>
+                        <tr class="text-white text-center" style="font-size: 0.95rem;">
+                            <!-- Student Info Header -->
+                            <th colspan="3" class="sticky-top" style="background-color: #1e293b; vertical-align: middle; border-right: 2px solid #334155; position: sticky; left: 0; z-index: 15;">
+                                <i class="fa fa-user mr-1"></i> {{#str}}student, local_comp_report_ext{{/str}}
+                            </th>
+
+                            <!-- Final Exam Header -->
+                            <th colspan="{{final_colspan}}" class="sticky-top" style="background-color: #1e40af; vertical-align: middle; border-right: 2px solid #1e3a8a;">
+                                <i class="fa fa-file-text-o mr-1"></i> {{final_name}} <span class="badge badge-light text-primary font-weight-bold ml-1">{{final_weight}}%</span>
+                            </th>
+
+                            <!-- Oral / Practical Exam Header -->
+                            <th colspan="{{oral_colspan}}" class="sticky-top" style="background-color: #0f766e; vertical-align: middle; border-right: 2px solid #115e59;">
+                                <i class="fa fa-microphone mr-1"></i> {{oral_name}} <span class="badge badge-light text-dark font-weight-bold ml-1" style="color: #0f766e !important;">{{oral_weight}}%</span>
+                            </th>
+
+                            <!-- Final Summary Header -->
+                            <th colspan="{{summary_colspan}}" class="sticky-top" style="background-color: #4338ca; vertical-align: middle;">
+                                <i class="fa fa-calculator mr-1"></i> {{#str}}final_report_title, local_comp_report_ext{{/str}} (100%)
+                            </th>
+                        </tr>
+
+                        <!-- Tier 2: Sub-headers for Values and Individual Competencies -->
+                        <tr class="text-center font-weight-bold" style="background-color: #f8fafc; font-size: 0.85rem;">
+                            <!-- Student Columns -->
+                            <th style="vertical-align: middle; min-width: 100px; position: sticky; left: 0; background-color: #f8fafc; z-index: 10;">{{#str}}idnumber, local_comp_report_ext{{/str}}</th>
+                            <th style="vertical-align: middle; min-width: 180px; position: sticky; left: 100px; background-color: #f8fafc; z-index: 10; border-right: 2px solid #cbd5e1;">{{#str}}studentname, local_comp_report_ext{{/str}}</th>
+                            <th style="vertical-align: middle; min-width: 100px; border-right: 2px solid #cbd5e1;">{{#str}}group, local_comp_report_ext{{/str}}</th>
+
+                            <!-- Final Exam Sub-headers: Exam Score Value + Competencies (%) -->
+                            <th style="vertical-align: middle; background-color: #eff6ff; color: #1e40af; min-width: 110px;">
+                                {{#str}}exam_score_value, local_comp_report_ext{{/str}}<br>
+                                <span class="badge badge-primary font-weight-normal">{{#str}}score, local_comp_report_ext{{/str}} / {{final_maxgrade}}</span>
+                            </th>
+                            {{#final_comps}}
+                                <th style="vertical-align: middle; background-color: #eff6ff; min-width: 100px;" title="{{shortname}}">
+                                    {{shortname}}<br>
+                                    <span class="badge badge-light border text-muted">(%)</span>
+                                </th>
+                            {{/final_comps}}
+
+                            <!-- Oral Exam Sub-headers: Exam Score Value + Competencies (%) -->
+                            <th style="vertical-align: middle; background-color: #f0fdfa; color: #0f766e; min-width: 110px; border-left: 2px solid #cbd5e1;">
+                                {{#str}}exam_score_value, local_comp_report_ext{{/str}}<br>
+                                <span class="badge badge-info font-weight-normal">{{#str}}score, local_comp_report_ext{{/str}} / {{oral_maxgrade}}</span>
+                            </th>
+                            {{#oral_comps}}
+                                <th style="vertical-align: middle; background-color: #f0fdfa; min-width: 100px;" title="{{shortname}}">
+                                    {{shortname}}<br>
+                                    <span class="badge badge-light border text-muted">(%)</span>
+                                </th>
+                            {{/oral_comps}}
+
+                            <!-- Final Weighted Sub-headers: Weighted Grade + Competencies (%) + Status -->
+                            <th style="vertical-align: middle; background-color: #eef2ff; color: #4338ca; min-width: 120px; border-left: 2px solid #cbd5e1;">
+                                {{#str}}final_weighted_total, local_comp_report_ext{{/str}}<br>
+                                <span class="badge badge-dark font-weight-normal">(100%)</span>
+                            </th>
+                            {{#weighted_comps}}
+                                <th style="vertical-align: middle; background-color: #eef2ff; min-width: 100px;" title="{{shortname}}">
+                                    {{shortname}}<br>
+                                    <span class="badge badge-light border text-muted">(%)</span>
+                                </th>
+                            {{/weighted_comps}}
+                            <th style="vertical-align: middle; background-color: #eef2ff; min-width: 90px;">
+                                {{#str}}overall_status, local_comp_report_ext{{/str}}
+                            </th>
+                        </tr>
+                    </thead>
+
+                    <!-- Table Data Rows -->
+                    <tbody>
+                        {{#rows}}
+                            <tr class="{{#is_even}}table-light{{/is_even}}">
+                                <!-- Student ID -->
+                                <td style="vertical-align: middle; font-family: monospace; position: sticky; left: 0; background-color: inherit; z-index: 5;" class="text-muted">
+                                    {{idnumber}}
+                                </td>
+
+                                <!-- Student Name (Sticky on Left) -->
+                                <td style="vertical-align: middle; position: sticky; left: 100px; background-color: inherit; z-index: 5; border-right: 2px solid #cbd5e1;">
+                                    {{{studentlink}}}
+                                </td>
+
+                                <!-- Group -->
+                                <td style="vertical-align: middle; text-align: center; border-right: 2px solid #cbd5e1;">
+                                    <span class="badge badge-secondary px-2 py-1">{{groupname}}</span>
+                                </td>
+
+                                <!-- Final Exam Score Value -->
+                                <td style="vertical-align: middle; text-align: center; background-color: #f8fafc; font-weight: bold; font-size: 0.95rem;">
+                                    {{#has_final_score}}
+                                        <span class="text-primary font-weight-bold">{{final_score_val}}</span>
+                                    {{/has_final_score}}
+                                    {{^has_final_score}}<span class="text-muted">—</span>{{/has_final_score}}
+                                </td>
+
+                                <!-- Final Exam Competency Percentages -->
+                                {{#final_comp_cells}}
+                                    <td style="vertical-align: middle; text-align: center; color: {{color}}; font-weight: bold;">
+                                        {{#has_score}}%{{percent}}{{/has_score}}
+                                        {{^has_score}}<span class="text-muted font-weight-normal">—</span>{{/has_score}}
+                                    </td>
+                                {{/final_comp_cells}}
+
+                                <!-- Oral Exam Score Value -->
+                                <td style="vertical-align: middle; text-align: center; background-color: #f8fafc; font-weight: bold; font-size: 0.95rem; border-left: 2px solid #cbd5e1;">
+                                    {{#has_oral_score}}
+                                        <span style="color: #0f766e;" class="font-weight-bold">{{oral_score_val}}</span>
+                                    {{/has_oral_score}}
+                                    {{^has_oral_score}}<span class="text-muted">—</span>{{/has_oral_score}}
+                                </td>
+
+                                <!-- Oral Exam Competency Percentages -->
+                                {{#oral_comp_cells}}
+                                    <td style="vertical-align: middle; text-align: center; color: {{color}}; font-weight: bold;">
+                                        {{#has_score}}%{{percent}}{{/has_score}}
+                                        {{^has_score}}<span class="text-muted font-weight-normal">—</span>{{/has_score}}
+                                    </td>
+                                {{/oral_comp_cells}}
+
+                                <!-- Final Weighted Grade -->
+                                <td style="vertical-align: middle; text-align: center; font-weight: bold; font-size: 1rem; color: {{grade_color}}; border-left: 2px solid #cbd5e1; background-color: #f8fafc;">
+                                    {{#has_weighted_grade}}
+                                        %{{weighted_grade}}
+                                    {{/has_weighted_grade}}
+                                    {{^has_weighted_grade}}<span class="text-muted font-weight-normal">—</span>{{/has_weighted_grade}}
+                                </td>
+
+                                <!-- Weighted Competencies Percentages -->
+                                {{#weighted_comp_cells}}
+                                    <td style="vertical-align: middle; text-align: center; color: {{color}}; font-weight: bold;">
+                                        {{#has_score}}%{{percent}}{{/has_score}}
+                                        {{^has_score}}<span class="text-muted font-weight-normal">—</span>{{/has_score}}
+                                    </td>
+                                {{/weighted_comp_cells}}
+
+                                <!-- Final Pass / At Risk Status -->
+                                <td style="vertical-align: middle; text-align: center;">
+                                    {{#has_weighted_grade}}
+                                        {{#is_passed}}
+                                            <span class="badge badge-success px-2 py-1"><i class="fa fa-check mr-1"></i> {{#str}}status_passed, local_comp_report_ext{{/str}}</span>
+                                        {{/is_passed}}
+                                        {{^is_passed}}
+                                            <span class="badge badge-danger px-2 py-1"><i class="fa fa-exclamation-triangle mr-1"></i> {{#str}}status_atrisk, local_comp_report_ext{{/str}}</span>
+                                        {{/is_passed}}
+                                    {{/has_weighted_grade}}
+                                    {{^has_weighted_grade}}<span class="text-muted">—</span>{{/has_weighted_grade}}
+                                </td>
+                            </tr>
+                        {{/rows}}
+                    </tbody>
+                </table>
+            </div>
+
+            {{! Reusable AI Commentary & Focus Widget }}
+            {{> local_comp_report_ext/ai_commentary_widget }}
+        {{/has_data}}
+
+        {{^has_data}}
+            <div class="alert alert-info shadow-sm">
+                <i class="fa fa-info-circle mr-1"></i> {{#str}}noexamdata, local_comp_report_ext{{/str}}
+            </div>
+        {{/has_data}}
+    {{/has_configured_asmts}}
+</div>
