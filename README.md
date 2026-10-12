@@ -5,7 +5,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.27.4-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.27.5-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -84,7 +84,14 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 
 ## 📋 Changelog
 
-### v3.27.4 (2026101201) — 2026-10-12
+### v3.27.5 (2026101202) — 2026-10-12
+- **Official Course Competency Unification & Duplicate Column Elimination:**
+  - **Single-Source Competency Resolver (`local_comp_report_ext_get_course_competencies()`):** Created a centralized helper function in `lib.php` resolving official course competencies with strict deduplication by normalized shortname and case-insensitive alphabetical sorting.
+  - **Eliminated Duplicate Columns:** Prioritizes official Moodle course competencies linked in `{competency_coursecomp}` over orphan question bank mappings in `{qbank_comp_ext_qmap}`, resolving duplicate columns (e.g. duplicate `Operation` and `Troubleshooting`) and empty dashed (`-`) columns in:
+    - **Course Master Report Matrix:** `course_master_report.php`, `course_master_report_excel.php`, and `course_master_report_pdf.php`.
+    - **Group Competency Analysis:** `group_competency.php`, `group_competency_excel.php`, and `group_competency_pdf.php`.
+    - **Central Calculator:** `classes/competency_calculator.php` instance cache.
+    - **Selection Forms & Views:** `forms/selector_form.php`, `teacher_student_competency.php`, `student_competency_exams.php`, and `group_final_report.php` (fallback).
 - **Clean Numeric Grade Formatting & Calculation-Ready Excel Exports:**
   - **Grade Data Cell Clean-up (`templates/group_quiz_competency_page.mustache`):** Removed redundant `/ maxgrade` suffix from individual student rows and summary footer average. Cells now display clean numeric values (e.g. `8.1` instead of `8.1 / 10.0`) while preserving the reference max grade in the table header row (`Grade / 10.0`).
   - **Calculation-Ready Excel Exports (`group_quiz_competency_excel.php`, `group_exam_analytics_excel.php`, `group_final_report_excel.php`):** Exported quiz grades as native numbers using `write_number()` instead of string text. Enables instructors to perform direct calculations (`SUM`, `AVERAGE`) in spreadsheets without formula errors while preserving the max score in header columns.

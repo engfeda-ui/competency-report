@@ -141,13 +141,7 @@ foreach ($rawcomps as $rc) {
 }
 
 // 4. Group Competency Comparison Matrix.
-$compslist = $DB->get_records_sql("
-    SELECT DISTINCT c.id, c.shortname
-    FROM {qbank_comp_ext_qmap} m
-    JOIN {competency} c ON c.id = m.competencyid
-    WHERE m.courseid = :courseid
-    ORDER BY c.shortname ASC
-", ['courseid' => $courseid]);
+$compslist = local_comp_report_ext_get_course_competencies($courseid);
 $renderdata->matrix_headers = array_values($compslist);
 
 $groups = $DB->get_records('groups', ['courseid' => $courseid], 'name ASC');

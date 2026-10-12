@@ -24,6 +24,7 @@
  */
 
 require_once(__DIR__ . '/../../config.php');
+require_once(__DIR__ . '/lib.php');
 
 $courseid = required_param('courseid', PARAM_INT);
 $groupid = optional_param('groupid', 0, PARAM_INT);
@@ -87,14 +88,7 @@ $renderdata->has_group = true;
 
 if (!empty($students)) {
     // 3. Fetch mapped competencies list — scoped to this course (both quiz and practical competencies).
-    $competencies = (array) $DB->get_records_sql("
-        SELECT DISTINCT c.id, c.shortname
-          FROM {competency} c
-     LEFT JOIN {qbank_comp_ext_qmap} m ON m.competencyid = c.id AND m.courseid = :courseid1
-     LEFT JOIN {local_comp_report_ext_prac} p ON p.competencyid = c.id AND p.courseid = :courseid2
-         WHERE m.courseid IS NOT NULL OR p.courseid IS NOT NULL
-      ORDER BY c.shortname ASC
-    ", ['courseid1' => $courseid, 'courseid2' => $courseid]);
+    $competencies = local_comp_report_ext_get_course_competencies($courseid);
     $renderdata->competencies = array_values($competencies);
 
     // 4. Bulk-load student groups in this course to avoid N+1 queries.

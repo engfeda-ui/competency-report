@@ -118,12 +118,8 @@ class local_comp_report_ext_selector_form extends moodleform {
         $mform = $this->_form;
 
         $competencies = [0 => get_string('allcompetencies', 'local_comp_report_ext')];
-        $sql = "SELECT DISTINCT c.id, c.shortname
-                FROM {competency} c
-                JOIN {qbank_comp_ext_qmap} m ON m.competencyid = c.id
-                WHERE m.courseid = :courseid";
-
-        $records = $DB->get_records_sql($sql, ['courseid' => $courseid]);
+        require_once(__DIR__ . '/../lib.php');
+        $records = local_comp_report_ext_get_course_competencies($courseid);
         if ($records) {
             foreach ($records as $record) {
                 $competencies[$record->id] = $record->shortname;

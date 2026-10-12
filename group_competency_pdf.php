@@ -68,13 +68,7 @@ if ($studentrole) {
 }
 
 // 2. Fetch mapped competencies list - scoped to course.
-$competencies = (array) $DB->get_records_sql("
-    SELECT DISTINCT c.id, c.shortname
-    FROM {qbank_comp_ext_qmap} m
-    JOIN {competency} c ON c.id = m.competencyid
-    WHERE m.courseid = :courseid
-    ORDER BY c.shortname ASC
-", ['courseid' => $courseid]);
+$competencies = local_comp_report_ext_get_course_competencies($courseid);
 
 if (empty($competencies)) {
     throw new moodle_exception('nocompetencies', 'local_comp_report_ext');

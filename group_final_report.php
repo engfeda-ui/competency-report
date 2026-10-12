@@ -224,13 +224,8 @@ $getassessmentcompetencies = function ($asmt) use ($DB, $courseid) {
               ORDER BY c.shortname ASC";
         $comps = $DB->get_records_sql($sql, ['quizid' => (int)$asmt->quizid]);
         if (empty($comps)) {
-            // Fallback: mappings in course.
-            $fallbacksql = "SELECT DISTINCT c.id, c.shortname, c.idnumber
-                              FROM {qbank_comp_ext_qmap} m
-                              JOIN {competency} c ON c.id = m.competencyid
-                             WHERE m.courseid = :courseid
-                          ORDER BY c.shortname ASC";
-            $comps = $DB->get_records_sql($fallbacksql, ['courseid' => $courseid]);
+            // Fallback: official/mapped competencies in course.
+            $comps = local_comp_report_ext_get_course_competencies($courseid);
         }
         return (array)$comps;
     } else {

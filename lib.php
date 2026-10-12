@@ -1148,3 +1148,82 @@ function local_comp_report_ext_resolve_assessment_data(
     return [$rawgrades, $pctgrades, $retakeinfo, $compgrades, $maxgrade];
 }
 
+/**
+ * Fetch the official unique competencies for a course, avoiding duplicate names or orphan mappings.
+ *
+ * Priority order:
+ * 1. Official course competencies configured in {competency_coursecomp}.
+ * 2. Fallback to question bank mappings in {qbank_comp_ext_qmap} scoped to this course.
+ * In both cases, merges configured practical assessment competencies ({local_comp_report_ext_prac}),
+ * deduplicates by normalized shortname to guarantee zero duplicate columns (e.g. two "Operation"),
+ * and returns competencies sorted alphabetically by shortname.
+ *
+ * @param int $courseid The course ID.
+ * @return array Array of stdClass competency records indexed by id.
+ */
+function local_comp_report_ext_get_course_competencies(int $courseid): array {
+    global $DB;
+
+    // 1. Official course competencies linked in Moodle core.
+    $coursecomps = $DB->get_records_sql("
+        SELECT c.id, c.shortname, c.idnumber, c.description, c.descriptionformat
+          FROM {competency} c
+          JOIN {competency_coursecomp} cc ON cc.competencyid = c.id
+         WHERE cc.courseid = :courseid
+      ORDER BY c.shortname ASC
+    ", ['courseid' => $courseid]);
+
+    $competencies = [];
+    if (!empty($coursecomps)) {
+        $competencies = (array)$coursecomps;
+    } else {
+        // 2. Fallback: competencies with question mappings in this course.
+        $mappedcomps = $DB->get_records_sql("
+            SELECT DISTINCT c.id, c.shortname, c.idnumber, c.description, c.descriptionformat
+              FROM {competency} c
+              JOIN {qbank_comp_ext_qmap} m ON m.competencyid = c.id
+             WHERE m.courseid = :courseid
+          ORDER BY c.shortname ASC
+        ", ['courseid' => $courseid]);
+        if (!empty($mappedcomps)) {
+            $competencies = (array)$mappedcomps;
+        }
+    }
+
+    // 3. Merge practical competencies configured for this course.
+    $praccomps = $DB->get_records_sql("
+        SELECT DISTINCT c.id, c.shortname, c.idnumber, c.description, c.descriptionformat
+          FROM {local_comp_report_ext_prac} p
+          JOIN {competency} c ON c.id = p.competencyid
+         WHERE p.courseid = :courseid
+      ORDER BY c.shortname ASC
+    ", ['courseid' => $courseid]);
+    foreach ($praccomps as $cid => $comp) {
+        if (!isset($competencies[$cid])) {
+            $competencies[$cid] = $comp;
+        }
+    }
+
+    if (empty($competencies)) {
+        return [];
+    }
+
+    // 4. Strict deduplication by normalized shortname to eliminate duplicate columns.
+    $unique = [];
+    $seen = [];
+    foreach ($competencies as $cid => $comp) {
+        $normalized = trim(core_text::strtolower($comp->shortname));
+        if (!isset($seen[$normalized])) {
+            $seen[$normalized] = true;
+            $unique[$cid] = $comp;
+        }
+    }
+
+    // Sort alphabetically by shortname.
+    uasort($unique, function ($a, $b) {
+        return strcasecmp($a->shortname, $b->shortname);
+    });
+
+    return $unique;
+}
+

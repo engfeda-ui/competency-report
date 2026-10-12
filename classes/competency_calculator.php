@@ -132,36 +132,18 @@ class competency_calculator {
 
         $threshold = (float)(get_config('local_comp_report_ext', 'success_threshold') ?: 60.0);
 
-        // Fetch all competencies that have question mappings in this course
-        // (instance-cached; identical for every student).
+        // Fetch all competencies for this course (instance-cached; identical for every student).
         $compkey = $filtercompetencyid ?: 0;
         if (!isset($this->compscache[$compkey])) {
-            $compsql = "SELECT DISTINCT c.id, c.shortname, c.description, c.descriptionformat
-                          FROM {qbank_comp_ext_qmap} m
-                          JOIN {competency} c ON c.id = m.competencyid
-                         WHERE m.courseid = :courseid";
-            $params = ['courseid' => $this->courseid];
+            require_once(__DIR__ . '/../lib.php');
+            $allcoursecomps = local_comp_report_ext_get_course_competencies($this->courseid);
             if ($filtercompetencyid) {
-                $compsql .= ' AND c.id = :compid';
-                $params['compid'] = $filtercompetencyid;
-            }
-            $competencies = $DB->get_records_sql($compsql, $params);
-
-            // Also add competencies that appear only in practical assessments.
-            $pracsql = "SELECT DISTINCT c.id, c.shortname, c.description, c.descriptionformat
-                          FROM {local_comp_report_ext_prac} p
-                          JOIN {competency} c ON c.id = p.competencyid
-                         WHERE p.courseid = :courseid";
-            $pracparams = ['courseid' => $this->courseid];
-            if ($filtercompetencyid) {
-                $pracsql .= ' AND c.id = :compid';
-                $pracparams['compid'] = $filtercompetencyid;
-            }
-            $praccomps = $DB->get_records_sql($pracsql, $pracparams);
-            foreach ($praccomps as $cid => $comp) {
-                if (!isset($competencies[$cid])) {
-                    $competencies[$cid] = $comp;
+                $competencies = [];
+                if (isset($allcoursecomps[$filtercompetencyid])) {
+                    $competencies[$filtercompetencyid] = $allcoursecomps[$filtercompetencyid];
                 }
+            } else {
+                $competencies = $allcoursecomps;
             }
             $this->compscache[$compkey] = $competencies;
         }

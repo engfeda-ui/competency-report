@@ -152,14 +152,7 @@ $getcomps = function ($asmt) use ($DB, $courseid) {
             ['quizid' => (int)$asmt->quizid]
         );
         if (empty($comps)) {
-            $comps = $DB->get_records_sql(
-                "SELECT DISTINCT c.id, c.shortname
-                   FROM {qbank_comp_ext_qmap} m
-                   JOIN {competency} c ON c.id = m.competencyid
-                  WHERE m.courseid = :courseid
-               ORDER BY c.shortname ASC",
-                ['courseid' => $courseid]
-            );
+            $comps = local_comp_report_ext_get_course_competencies($courseid);
         }
         return (array)$comps;
     } else {

@@ -26,6 +26,7 @@
 
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->libdir . '/formslib.php');
+require_once(__DIR__ . '/lib.php');
 
 $courseid = required_param('courseid', PARAM_INT);
 $userid = optional_param('userid', 0, PARAM_INT);
@@ -61,12 +62,7 @@ foreach ($students as $s) {
     $studentoptions[$s->id] = fullname($s);
 }
 
-$competencies = $DB->get_records_sql("
-    SELECT DISTINCT c.id, c.shortname
-    FROM {qbank_comp_ext_qmap} m
-    JOIN {competency} c ON c.id = m.competencyid
-    WHERE m.courseid = :courseid
-    ORDER BY c.shortname", ['courseid' => $courseid]);
+$competencies = local_comp_report_ext_get_course_competencies($courseid);
 
 $compoptions = [0 => get_string('selectcompetency', 'local_comp_report_ext')];
 foreach ($competencies as $c) {

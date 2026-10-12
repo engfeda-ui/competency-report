@@ -24,6 +24,7 @@
  */
 
 require_once(__DIR__ . '/../../config.php');
+require_once(__DIR__ . '/lib.php');
 
 $courseid = required_param('courseid', PARAM_INT);
 $competencyid = optional_param('competencyid', 0, PARAM_INT);
@@ -47,12 +48,7 @@ $PAGE->set_heading(get_string('studentcompetencyexams', 'local_comp_report_ext')
 $PAGE->set_pagelayout('course');
 
 // 1. Fetch available competencies for the selection filter — scoped to this course.
-$compsraw = $DB->get_records_sql("
-    SELECT DISTINCT c.id, c.shortname
-    FROM {qbank_comp_ext_qmap} m
-    JOIN {competency} c ON c.id = m.competencyid
-    WHERE m.courseid = :courseid
-    ORDER BY c.shortname", ['courseid' => $courseid]);
+$compsraw = local_comp_report_ext_get_course_competencies($courseid);
 
 $competencies = [];
 foreach ($compsraw as $c) {
