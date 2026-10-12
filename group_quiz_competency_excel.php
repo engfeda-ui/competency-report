@@ -279,8 +279,7 @@ foreach ($students as $s) {
     // Quiz Grade.
     if (isset($graderecords[$s->id])) {
         $sgrade = (float)$graderecords[$s->id]->grade;
-        $gradestr = number_format($sgrade, 1) . ' / ' . number_format($maxgrade, 1);
-        $worksheet->write_string($row, $col++, $gradestr, $formatcell);
+        $worksheet->write_number($row, $col++, round($sgrade, 1), $formatcell);
         $totalgrades[] = $sgrade;
     } else {
         $worksheet->write_string($row, $col++, '—', $formatcell);
@@ -314,8 +313,7 @@ $worksheet->write_string($row, $col++, '', $formattotal);
 
 if (!empty($totalgrades)) {
     $avggrade = round(array_sum($totalgrades) / count($totalgrades), 1);
-    $avgstr = number_format($avggrade, 1) . ' / ' . number_format($maxgrade, 1);
-    $worksheet->write_string($row, $col++, $avgstr, $formattotal);
+    $worksheet->write_number($row, $col++, $avggrade, $formattotal);
 } else {
     $worksheet->write_string($row, $col++, '—', $formattotal);
 }

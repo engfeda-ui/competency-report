@@ -245,7 +245,7 @@ if ($quiz && !empty($students)) {
                 'att2'       => ($att2score !== null) ? number_format($att2score, 1) . '%' : '—',
                 'att3'       => ($att3score !== null) ? number_format($att3score, 1) . '%' : '—',
                 'finalscore' => number_format($scorepct, 1) . '%',
-                'finalgrade' => number_format($finalgradeval, 2) . ' / ' . number_format($quizmaxgrade, 2),
+                'finalgrade' => round($finalgradeval, 2),
                 'retakes'    => $retakecount,
                 'status'     => $statuslabel,
                 'tier'       => $tiername,
@@ -406,7 +406,8 @@ $wsroster->write_string($r, $c++, $att1lbl, $formatheader);
 $wsroster->write_string($r, $c++, 'Retake 1', $formatheader);
 $wsroster->write_string($r, $c++, 'Retake 2', $formatheader);
 $wsroster->write_string($r, $c++, 'Final Recorded %', $formatheader);
-$wsroster->write_string($r, $c++, 'Final Grade', $formatheader);
+$finalgradehdr = 'Final Grade / ' . number_format($quizmaxgrade, 1);
+$wsroster->write_string($r, $c++, $finalgradehdr, $formatheader);
 $wsroster->write_string($r, $c++, 'Retakes', $formatheader);
 $wsroster->write_string($r, $c++, 'Retake Status', $formatheader);
 $wsroster->write_string($r++, $c++, 'Performance Tier', $formatheader);
@@ -421,7 +422,7 @@ foreach ($studentlist as $s) {
     $wsroster->write_string($r, $c++, safe_excel_str($s['att2']), $formatcell);
     $wsroster->write_string($r, $c++, safe_excel_str($s['att3']), $formatcell);
     $wsroster->write_string($r, $c++, safe_excel_str($s['finalscore']), $formatcellbold);
-    $wsroster->write_string($r, $c++, safe_excel_str($s['finalgrade']), $formatcell);
+    $wsroster->write_number($r, $c++, $s['finalgrade'], $formatcell);
     $wsroster->write_number($r, $c++, $s['retakes'], $formatcell);
     $wsroster->write_string($r, $c++, safe_excel_str($s['status']), $formatcell);
     $wsroster->write_string($r++, $c++, safe_excel_str($s['tier']), $formatcell);

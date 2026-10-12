@@ -222,7 +222,7 @@ if ($quiz && !empty($students)) {
                 'att2'       => ($att2score !== null) ? number_format($att2score, 1) . '%' : '—',
                 'att3'       => ($att3score !== null) ? number_format($att3score, 1) . '%' : '—',
                 'finalscore' => number_format($scorepct, 1) . '%',
-                'finalgrade' => number_format($finalgradeval, 2) . ' / ' . number_format($quizmaxgrade, 2),
+                'finalgrade' => number_format($finalgradeval, 1),
                 'status'     => $statuslabel,
             ];
         }
@@ -308,7 +308,8 @@ $html .= '<th width="16%" align="left">' . get_string('group', 'local_comp_repor
 $html .= '<th width="10%" align="center">Attempt 1</th>';
 $html .= '<th width="10%" align="center">Retake 1</th>';
 $html .= '<th width="10%" align="center">Retake 2</th>';
-$html .= '<th width="12%" align="center">Final Grade</th>';
+$html .= '<th width="12%" align="center">Final Grade<br><span style="font-size:7pt; color:#cbd5e1;">(/'
+    . number_format($quizmaxgrade, 1) . ')</span></th>';
 $html .= '<th width="13%" align="center">Status</th>';
 $html .= '</tr></thead><tbody>';
 

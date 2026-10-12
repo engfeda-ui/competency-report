@@ -276,14 +276,16 @@ foreach ($students as $student) {
     // Final Exam Score (value).
     $finalraw = isset($finalrawgrades[$uid]) ? $finalrawgrades[$uid] : null;
     $finalpct = isset($finalpctgrades[$uid]) ? $finalpctgrades[$uid] : null;
-    $finalvalstr = '—';
     if ($finalraw !== null) {
-        $finalvalstr = number_format($finalraw, 1);
         if (!empty($finalretakeinfo[$uid]['is_retake'])) {
-            $finalvalstr .= ' (' . $finalretakeinfo[$uid]['label'] . ')';
+            $finalvalstr = number_format($finalraw, 1) . ' (' . $finalretakeinfo[$uid]['label'] . ')';
+            $worksheet->write_string($rowidx, $c++, local_comp_report_ext_safe_excel_str($finalvalstr), $formatcell);
+        } else {
+            $worksheet->write_number($rowidx, $c++, round($finalraw, 1), $formatcell);
         }
+    } else {
+        $worksheet->write_string($rowidx, $c++, '—', $formatcell);
     }
-    $worksheet->write_string($rowidx, $c++, local_comp_report_ext_safe_excel_str($finalvalstr), $formatcell);
 
     // Final Comps (%).
     foreach ($finalcomps as $cid => $comp) {
@@ -294,14 +296,16 @@ foreach ($students as $student) {
     // Oral Exam Score (value).
     $oralraw = isset($oralrawgrades[$uid]) ? $oralrawgrades[$uid] : null;
     $oralpct = isset($oralpctgrades[$uid]) ? $oralpctgrades[$uid] : null;
-    $oralvalstr = '—';
     if ($oralraw !== null) {
-        $oralvalstr = number_format($oralraw, 1);
         if (!empty($oralretakeinfo[$uid]['is_retake'])) {
-            $oralvalstr .= ' (' . $oralretakeinfo[$uid]['label'] . ')';
+            $oralvalstr = number_format($oralraw, 1) . ' (' . $oralretakeinfo[$uid]['label'] . ')';
+            $worksheet->write_string($rowidx, $c++, local_comp_report_ext_safe_excel_str($oralvalstr), $formatcell);
+        } else {
+            $worksheet->write_number($rowidx, $c++, round($oralraw, 1), $formatcell);
         }
+    } else {
+        $worksheet->write_string($rowidx, $c++, '—', $formatcell);
     }
-    $worksheet->write_string($rowidx, $c++, local_comp_report_ext_safe_excel_str($oralvalstr), $formatcell);
 
     // Oral Comps (%).
     foreach ($oralcomps as $cid => $comp) {

@@ -115,7 +115,7 @@
                                 {{/groupname}}
                             </td>
                             <td class="text-center" style="color: {{quiz_grade_color}}; font-weight: bold;">
-                                {{#quiz_grade}}{{quiz_grade}} / {{quiz_maxgrade}}{{/quiz_grade}}
+                                {{#quiz_grade}}{{quiz_grade}}{{/quiz_grade}}
                                 {{^quiz_grade}}-{{/quiz_grade}}
                             </td>
                             {{#scores}}
@@ -131,7 +131,7 @@
                     <tr class="table-secondary font-weight-bold">
                         <td>{{#str}}total, local_comp_report_ext{{/str}}</td>
                         <td class="text-center" style="color: {{avg_grade_color}};">
-                            {{#avg_grade}}{{avg_grade}} / {{quiz_maxgrade}}{{/avg_grade}}
+                            {{#avg_grade}}{{avg_grade}}{{/avg_grade}}
                             {{^avg_grade}}-{{/avg_grade}}
                         </td>
                         {{#totals}}
