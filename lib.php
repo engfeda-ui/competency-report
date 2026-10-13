@@ -1303,7 +1303,7 @@ function local_comp_report_ext_normalize_competency_name(string $name): string {
         return '';
     }
     // Replace connecting symbols with spaces.
-    $str = str_replace(['&', '+', '/', '\', '-', '_'], ' ', $str);
+    $str = str_replace(['&', '+', '/', '\\', '-', '_'], ' ', $str);
     // Split into alphanumeric words.
     $words = preg_split('/[^\p{L}\p{N}]+/u', $str, -1, PREG_SPLIT_NO_EMPTY);
     if (empty($words)) {
