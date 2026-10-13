@@ -70,14 +70,44 @@ $coursesql = "SELECT c.id, c.shortname,
                      GROUP BY s.questionattemptid) qas ON qas.questionattemptid = qa.id
               WHERE quiz.course = :courseid AND quiza.state = 'finished'";
 
+[$allcoursecomps, $aliasmap] = local_comp_report_ext_get_canonical_competencies($courseid);
+
+$params = [
+    'courseid'    => $courseid,
+    'subcourseid' => $courseid,
+    'mapcourseid' => $courseid,
+];
+
 if ($competency) {
-    $coursesql .= " AND c.id = :competencyid";
+    $targetcanid = $aliasmap[$competency] ?? (int)$competency;
+    $matchingids = [];
+    foreach ($aliasmap as $subid => $cid) {
+        if ($cid === $targetcanid) {
+            $matchingids[] = $subid;
+        }
+    }
+    [$compinsql, $compinparams] = $DB->get_in_or_equal($matchingids, SQL_PARAMS_NAMED, 'cid');
+    $coursesql .= " AND c.id " . $compinsql;
+    $params = array_merge($params, $compinparams);
 }
 $coursesql .= " GROUP BY c.id, c.shortname ORDER BY c.shortname ASC";
 
-$params = ['courseid' => $courseid, 'subcourseid' => $courseid, 'mapcourseid' => $courseid,
-    'competencyid' => $competency];
-$coursedata = $DB->get_records_sql($coursesql, $params);
+$rawcoursedata = $DB->get_records_sql($coursesql, $params);
+
+$coursedata = [];
+foreach ($rawcoursedata as $r) {
+    $canid = $aliasmap[$r->id] ?? (int)$r->id;
+    if (!isset($coursedata[$canid])) {
+        $coursedata[$canid] = (object)[
+            'id'        => $canid,
+            'shortname' => $allcoursecomps[$canid]->shortname ?? $r->shortname,
+            'attempts'  => 0.0,
+            'correct'   => 0.0,
+        ];
+    }
+    $coursedata[$canid]->attempts += (float)$r->attempts;
+    $coursedata[$canid]->correct  += (float)$r->correct;
+}
 
 $classdata = [];
 $studentdata = [];
@@ -91,6 +121,7 @@ if (!empty($coursedata) && $userid) {
         WHERE g.courseid = :courseid AND gm.userid = :userid
     ", ['courseid' => $courseid, 'userid' => $userid]);
 
+    $rawclassdata = [];
     if (!empty($usergroups)) {
         [$groupinsql, $groupparams] = $DB->get_in_or_equal($usergroups, SQL_PARAMS_NAMED, 'grp');
         $classsql = str_replace(
@@ -103,13 +134,8 @@ if (!empty($coursedata) && $userid) {
             "WHERE quiz.course = :courseid AND gm.groupid " . $groupinsql,
             $classsql
         );
-        $classparams = array_merge([
-            'courseid'     => $courseid,
-            'subcourseid'  => $courseid,
-            'mapcourseid'  => $courseid,
-            'competencyid' => $competency,
-        ], $groupparams);
-        $classdata = $DB->get_records_sql($classsql, $classparams);
+        $classparams = array_merge($params, $groupparams);
+        $rawclassdata = $DB->get_records_sql($classsql, $classparams);
     } else {
         $userdept = $DB->get_field('user', 'department', ['id' => $userid]);
         if (!empty($userdept)) {
@@ -123,14 +149,22 @@ if (!empty($coursedata) && $userid) {
                 "WHERE u.department = :dept AND quiz.course",
                 $classsql
             );
-            $classdata = $DB->get_records_sql($classsql, [
-                'courseid' => $courseid,
-                'subcourseid' => $courseid,
-                'mapcourseid' => $courseid,
-                'dept' => $userdept,
-                'competencyid' => $competency,
-            ]);
+            $rawclassdata = $DB->get_records_sql($classsql, array_merge($params, ['dept' => $userdept]));
         }
+    }
+
+    foreach ($rawclassdata as $r) {
+        $canid = $aliasmap[$r->id] ?? (int)$r->id;
+        if (!isset($classdata[$canid])) {
+            $classdata[$canid] = (object)[
+                'id'        => $canid,
+                'shortname' => $allcoursecomps[$canid]->shortname ?? $r->shortname,
+                'attempts'  => 0.0,
+                'correct'   => 0.0,
+            ];
+        }
+        $classdata[$canid]->attempts += (float)$r->attempts;
+        $classdata[$canid]->correct  += (float)$r->correct;
     }
 
     if (empty($classdata)) {
@@ -142,13 +176,20 @@ if (!empty($coursedata) && $userid) {
         "WHERE quiza.userid = :userid AND quiz.course",
         $coursesql
     );
-    $studentdata = $DB->get_records_sql($studentsql, [
-        'courseid' => $courseid,
-        'subcourseid' => $courseid,
-        'mapcourseid' => $courseid,
-        'userid' => $userid,
-        'competencyid' => $competency,
-    ]);
+    $rawstudentdata = $DB->get_records_sql($studentsql, array_merge($params, ['userid' => $userid]));
+    foreach ($rawstudentdata as $r) {
+        $canid = $aliasmap[$r->id] ?? (int)$r->id;
+        if (!isset($studentdata[$canid])) {
+            $studentdata[$canid] = (object)[
+                'id'        => $canid,
+                'shortname' => $allcoursecomps[$canid]->shortname ?? $r->shortname,
+                'attempts'  => 0.0,
+                'correct'   => 0.0,
+            ];
+        }
+        $studentdata[$canid]->attempts += (float)$r->attempts;
+        $studentdata[$canid]->correct  += (float)$r->correct;
+    }
 }
 
 /**

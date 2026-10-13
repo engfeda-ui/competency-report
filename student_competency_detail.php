@@ -73,32 +73,47 @@ $sql = "SELECT c.id, c.shortname, c.description,
         WHERE quiz.course = :courseid AND quiza.userid = :userid AND quiza.state = 'finished'
         GROUP BY c.id, c.shortname, c.description";
 
+[$allcoursecomps, $aliasmap] = local_comp_report_ext_get_canonical_competencies($courseid);
 $rows = $DB->get_records_sql($sql, ['courseid' => $courseid, 'subcourseid1' => $courseid, 'userid' => $userid]);
+
+// Group by canonical competency ID.
+$canonicalrows = [];
+foreach ($rows as $r) {
+    $canid = $aliasmap[$r->id] ?? (int)$r->id;
+    if (!isset($canonicalrows[$canid])) {
+        $canonicalrows[$canid] = [
+            'comp'      => $allcoursecomps[$canid] ?? $r,
+            'questions' => 0.0,
+            'correct'   => 0.0,
+        ];
+    }
+    $canonicalrows[$canid]['questions'] += (float)$r->questions;
+    $canonicalrows[$canid]['correct']   += (float)$r->correct;
+}
 
 // 2. Prepare success rates for AI processing.
 $rates = [];
-foreach ($rows as $r) {
-    $rates[$r->shortname] = $r->questions ? ($r->correct / $r->questions) * 100 : 0;
-}
-
-// 3. Fetch and prepare all course competencies and matrix data.
 $compheaders = [];
 $comptotals = [];
 $overallallquestions = 0.0;
 $overallallcorrect = 0.0;
 
-foreach ($rows as $r) {
-    $compheaders[$r->id] = (object)[
-        'id'          => (int)$r->id,
-        'shortname'   => $r->shortname,
-        'description' => strip_tags(html_entity_decode($r->description, ENT_QUOTES, 'UTF-8')),
+foreach ($canonicalrows as $canid => $cdata) {
+    $compobj = $cdata['comp'];
+    $q = $cdata['questions'];
+    $cor = $cdata['correct'];
+    $rates[$compobj->shortname] = ($q > 0) ? ($cor / $q) * 100 : 0;
+    $compheaders[$canid] = (object)[
+        'id'          => $canid,
+        'shortname'   => $compobj->shortname,
+        'description' => strip_tags(html_entity_decode($compobj->description ?? '', ENT_QUOTES, 'UTF-8')),
     ];
-    $comptotals[$r->id] = [
-        'questions' => (float)$r->questions,
-        'correct'   => (float)$r->correct,
+    $comptotals[$canid] = [
+        'questions' => $q,
+        'correct'   => $cor,
     ];
-    $overallallquestions += (float)$r->questions;
-    $overallallcorrect += (float)$r->correct;
+    $overallallquestions += $q;
+    $overallallcorrect   += $cor;
 }
 
 // 4. Fetch and prepare all course exams and attempts for this student.
@@ -167,7 +182,22 @@ if (!empty($bestattids)) {
           ) qas ON qas.questionattemptid = qa.id
          WHERE quiza.id $insql
       GROUP BY quiza.quiz, c.id";
-    $quizcompdata = $DB->get_records_sql($breakdownsql, $allinparams);
+    $rawquizcompdata = $DB->get_records_sql($breakdownsql, $allinparams);
+    $quizcompdata = [];
+    foreach ($rawquizcompdata as $rcd) {
+        $canid = $aliasmap[$rcd->compid] ?? (int)$rcd->compid;
+        $key = $rcd->quizid . '_' . $canid;
+        if (!isset($quizcompdata[$key])) {
+            $quizcompdata[$key] = (object)[
+                'quizid'    => $rcd->quizid,
+                'compid'    => $canid,
+                'total_q'   => 0.0,
+                'correct_q' => 0.0,
+            ];
+        }
+        $quizcompdata[$key]->total_q   += (float)$rcd->total_q;
+        $quizcompdata[$key]->correct_q += (float)$rcd->correct_q;
+    }
 }
 
 $qslabel = get_string('questions_abbr', 'local_comp_report_ext');

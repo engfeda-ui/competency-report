@@ -139,6 +139,7 @@ $getcomps = function ($asmt) use ($DB, $courseid) {
     if (!$asmt) {
         return [];
     }
+    [$allcoursecomps, $aliasmap] = local_comp_report_ext_get_canonical_competencies($courseid);
     if (!empty($asmt->quizid)) {
         $sql = "SELECT DISTINCT c.id, c.shortname
                   FROM {quiz_attempts} quiza
@@ -148,16 +149,44 @@ $getcomps = function ($asmt) use ($DB, $courseid) {
                   JOIN {competency} c          ON c.id = m.competencyid
                  WHERE quiza.quiz = :quizid
               ORDER BY c.shortname ASC";
-        $comps = $DB->get_records_sql($sql, ['quizid' => (int)$asmt->quizid]);
-        if (empty($comps)) {
-            $comps = local_comp_report_ext_get_course_competencies($courseid);
+        $rawcomps = $DB->get_records_sql($sql, ['quizid' => (int)$asmt->quizid]);
+        $comps = [];
+        foreach ($rawcomps as $rc) {
+            $canid = $aliasmap[$rc->id] ?? (int)$rc->id;
+            if (!isset($comps[$canid])) {
+                $comps[$canid] = $allcoursecomps[$canid] ?? $rc;
+            }
         }
-        return (array)$comps;
+        if (empty($comps)) {
+            $comps = $allcoursecomps;
+        }
+        uasort($comps, function ($a, $b) {
+            return strcasecmp($a->shortname, $b->shortname);
+        });
+        return $comps;
     } else {
-        return (array)$DB->get_records_sql(
-            "SELECT DISTINCT c.id, c.shortname FROM {local_comp_report_ext_prac} p JOIN {competency} c ON c.id = p.competencyid WHERE p.assessmentid = :asmtid AND p.courseid = :courseid ORDER BY c.shortname ASC",
+        $rawcomps = (array)$DB->get_records_sql(
+            "SELECT DISTINCT c.id, c.shortname
+               FROM {local_comp_report_ext_prac} p
+               JOIN {competency} c ON c.id = p.competencyid
+              WHERE p.assessmentid = :asmtid AND p.courseid = :courseid
+           ORDER BY c.shortname ASC",
             ['asmtid' => (int)$asmt->id, 'courseid' => $courseid]
         );
+        $comps = [];
+        foreach ($rawcomps as $rc) {
+            $canid = $aliasmap[$rc->id] ?? (int)$rc->id;
+            if (!isset($comps[$canid])) {
+                $comps[$canid] = $allcoursecomps[$canid] ?? $rc;
+            }
+        }
+        if (empty($comps)) {
+            $comps = $allcoursecomps;
+        }
+        uasort($comps, function ($a, $b) {
+            return strcasecmp($a->shortname, $b->shortname);
+        });
+        return $comps;
     }
 };
 

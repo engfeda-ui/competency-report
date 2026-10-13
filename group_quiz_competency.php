@@ -104,8 +104,10 @@ if ($quizid > 0) {
     $renderdata->has_data = !empty($students);
 
     if (!empty($students)) {
+        [$allcoursecomps, $aliasmap] = local_comp_report_ext_get_canonical_competencies($courseid);
+
         // Fetch Competencies linked to the specific quiz questions.
-        $competencies = (array)$DB->get_records_sql("
+        $rawquizcomps = (array)$DB->get_records_sql("
             SELECT DISTINCT c.id, c.shortname
             FROM {quiz_attempts} quiza
             JOIN {question_usages} qu ON qu.id = quiza.uniqueid
@@ -114,7 +116,18 @@ if ($quizid > 0) {
             JOIN {competency} c ON c.id = m.competencyid
             WHERE quiza.quiz = :quizid
             ORDER BY c.shortname", ['quizid' => $quizid]);
-        $renderdata->competencies = array_values($competencies);
+
+        $quizcomps = [];
+        foreach ($rawquizcomps as $rc) {
+            $canid = $aliasmap[$rc->id] ?? (int)$rc->id;
+            if (!isset($quizcomps[$canid])) {
+                $quizcomps[$canid] = $allcoursecomps[$canid] ?? $rc;
+            }
+        }
+        uasort($quizcomps, function ($a, $b) {
+            return strcasecmp($a->shortname, $b->shortname);
+        });
+        $renderdata->competencies = array_values($quizcomps);
 
         // Performance Data Calculation.
         $studentids = array_keys($students);
@@ -146,7 +159,12 @@ if ($quizid > 0) {
             GROUP BY quiza.userid, m.competencyid", $inparams);
 
         foreach ($rawscores as $rs) {
-            $scoremap[$rs->userid][$rs->competencyid] = ['att' => $rs->total_max, 'cor' => $rs->total_fraction];
+            $canid = $aliasmap[$rs->competencyid] ?? (int)$rs->competencyid;
+            if (!isset($scoremap[$rs->userid][$canid])) {
+                $scoremap[$rs->userid][$canid] = ['att' => 0.0, 'cor' => 0.0];
+            }
+            $scoremap[$rs->userid][$canid]['att'] += (float)$rs->total_max;
+            $scoremap[$rs->userid][$canid]['cor'] += (float)$rs->total_fraction;
         }
 
         // Fetch quiz max grade and per-student grades from quiz_grades table.

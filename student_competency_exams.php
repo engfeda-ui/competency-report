@@ -48,10 +48,10 @@ $PAGE->set_heading(get_string('studentcompetencyexams', 'local_comp_report_ext')
 $PAGE->set_pagelayout('course');
 
 // 1. Fetch available competencies for the selection filter — scoped to this course.
-$compsraw = local_comp_report_ext_get_course_competencies($courseid);
+[$allcoursecomps, $aliasmap] = local_comp_report_ext_get_canonical_competencies($courseid);
 
 $competencies = [];
-foreach ($compsraw as $c) {
+foreach ($allcoursecomps as $c) {
     $competencies[] = [
         'id' => $c->id,
         'shortname' => format_string($c->shortname),
@@ -67,8 +67,20 @@ $renderdata->rows = [];
 $renderdata->questiondetails = [];
 
 if ($competencyid) {
+    $targetcanid = $aliasmap[$competencyid] ?? $competencyid;
+    $aliasids = [];
+    foreach ($aliasmap as $aid => $canid) {
+        if ($canid == $targetcanid) {
+            $aliasids[] = $aid;
+        }
+    }
+    if (!in_array($targetcanid, $aliasids)) {
+        $aliasids[] = $targetcanid;
+    }
+    [$cinsql, $cinparams] = $DB->get_in_or_equal($aliasids, SQL_PARAMS_NAMED, 'cid');
+
     // 2. Fetch competency details if a specific one is selected.
-    if ($comp = $DB->get_record('competency', ['id' => $competencyid])) {
+    if ($comp = $DB->get_record('competency', ['id' => $targetcanid])) {
         $renderdata->description = format_text($comp->description, $comp->descriptionformat);
     }
 
@@ -93,18 +105,17 @@ if ($competencyid) {
                         GROUP BY s.questionattemptid
                    ) qas ON qas.questionattemptid = qa.id
                    WHERE quiz.course = :courseid
-                     AND m.competencyid = :competencyid
+                     AND m.competencyid $cinsql
                      AND quiza.userid = :userid
                      AND quiza.state = 'finished'
                    GROUP BY quiz.id, quiz.name
                    ORDER BY quiz.id";
 
-    $summaryrows = $DB->get_records_sql($sqlsummary, [
+    $summaryrows = $DB->get_records_sql($sqlsummary, array_merge([
         'courseid'     => $courseid,
         'subcourseid'  => $courseid,
-        'competencyid' => $competencyid,
         'userid'       => $USER->id,
-    ]);
+    ], $cinparams));
 
     foreach ($summaryrows as $r) {
         // Link added for quiz review.
@@ -121,17 +132,16 @@ if ($competencyid) {
                    JOIN {question_attempts} qa ON qa.questionusageid = qu.id
                    JOIN {question} q ON q.id = qa.questionid
                    INNER JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
-                   WHERE m.competencyid = :competencyid
+                   WHERE m.competencyid $cinsql
                      AND quiza.userid = :userid
                      AND quiza.state = 'finished'
                      AND quiz.course = :courseid
                    ORDER BY quiz.name ASC, qa.slot ASC";
 
-    $questions = $DB->get_records_sql($sqldetails, [
-        'competencyid' => $competencyid,
-        'userid' => $USER->id,
+    $questions = $DB->get_records_sql($sqldetails, array_merge([
+        'userid'   => $USER->id,
         'courseid' => $courseid,
-    ]);
+    ], $cinparams));
 
     foreach ($questions as $q) {
         // Switch to reviewquestion.php with slot parameter.

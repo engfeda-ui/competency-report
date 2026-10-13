@@ -66,6 +66,9 @@ class competency_calculator {
     /** @var array Instance-cached competency lists keyed by filtercompetencyid (0 = unfiltered) */
     private $compscache = [];
 
+    /** @var array|null Cached alias map [competencyid => canonicalid] */
+    private $aliasmap = null;
+
     /**
      * Constructor.
      *
@@ -73,6 +76,19 @@ class competency_calculator {
      */
     public function __construct(int $courseid) {
         $this->courseid = $courseid;
+    }
+
+    /**
+     * Get the alias map [competencyid => canonicalid] for this course.
+     *
+     * @return array
+     */
+    public function get_alias_map(): array {
+        if ($this->aliasmap === null) {
+            require_once(__DIR__ . '/../lib.php');
+            [, $this->aliasmap] = local_comp_report_ext_get_canonical_competencies($this->courseid);
+        }
+        return $this->aliasmap;
     }
 
     /**
@@ -136,11 +152,13 @@ class competency_calculator {
         $compkey = $filtercompetencyid ?: 0;
         if (!isset($this->compscache[$compkey])) {
             require_once(__DIR__ . '/../lib.php');
-            $allcoursecomps = local_comp_report_ext_get_course_competencies($this->courseid);
+            [$allcoursecomps, $aliasmap] = local_comp_report_ext_get_canonical_competencies($this->courseid);
+            $this->aliasmap = $aliasmap;
             if ($filtercompetencyid) {
                 $competencies = [];
-                if (isset($allcoursecomps[$filtercompetencyid])) {
-                    $competencies[$filtercompetencyid] = $allcoursecomps[$filtercompetencyid];
+                $canfilterid = $aliasmap[$filtercompetencyid] ?? $filtercompetencyid;
+                if (isset($allcoursecomps[$canfilterid])) {
+                    $competencies[$canfilterid] = $allcoursecomps[$canfilterid];
                 }
             } else {
                 $competencies = $allcoursecomps;
@@ -302,19 +320,35 @@ class competency_calculator {
                    AND m.courseid     = :courseid3
               GROUP BY quiza.userid, quiza.quiz, m.competencyid";
 
+        $aliasmap = $this->get_alias_map();
+
         $rs = $DB->get_recordset_sql($sql, array_merge($inparams, $inparams2, [
             'courseid'  => $this->courseid,
             'courseid2' => $this->courseid,
             'courseid3' => $this->courseid,
         ]));
 
-        $map = [];
+        $agg = [];
         foreach ($rs as $r) {
-            if ($r->maxf > 0) {
-                $map[(int)$r->userid][$r->quiz . '_' . $r->competencyid] = ($r->gotf / $r->maxf) * 100.0;
+            $canid = $aliasmap[$r->competencyid] ?? (int)$r->competencyid;
+            $uid   = (int)$r->userid;
+            $key   = $r->quiz . '_' . $canid;
+            if (!isset($agg[$uid][$key])) {
+                $agg[$uid][$key] = ['gotf' => 0.0, 'maxf' => 0.0];
             }
+            $agg[$uid][$key]['gotf'] += (float)$r->gotf;
+            $agg[$uid][$key]['maxf'] += (float)$r->maxf;
         }
         $rs->close();
+
+        $map = [];
+        foreach ($agg as $uid => $keys) {
+            foreach ($keys as $k => $totals) {
+                if ($totals['maxf'] > 0) {
+                    $map[$uid][$k] = ($totals['gotf'] / $totals['maxf']) * 100.0;
+                }
+            }
+        }
         return $map;
     }
 
@@ -334,6 +368,8 @@ class competency_calculator {
         [$insql, $inparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, 'uid');
         $inparams['courseid'] = $this->courseid;
 
+        $aliasmap = $this->get_alias_map();
+
         $rs = $DB->get_recordset_sql("
             SELECT studentid, assessmentid, competencyid, competency_percent
               FROM {local_comp_report_ext_prac}
@@ -343,7 +379,8 @@ class competency_calculator {
 
         $map = [];
         foreach ($rs as $r) {
-            $map[(int)$r->studentid][$r->assessmentid . '_' . $r->competencyid] = (float)$r->competency_percent;
+            $canid = $aliasmap[$r->competencyid] ?? (int)$r->competencyid;
+            $map[(int)$r->studentid][$r->assessmentid . '_' . $canid] = (float)$r->competency_percent;
         }
         $rs->close();
         return $map;
@@ -424,26 +461,45 @@ class competency_calculator {
             'courseid3' => $this->courseid,
         ]);
 
+        $aliasmap = $this->get_alias_map();
+        [$canonicalcomps, ] = local_comp_report_ext_get_canonical_competencies($this->courseid);
         $threshold = (float)(get_config('local_comp_report_ext', 'success_threshold') ?: 60.0);
         $rows = $DB->get_records_sql($sql, $params);
 
-        $result = [];
+        $agg = [];
         foreach ($rows as $row) {
-            if ($row->maxf <= 0) {
-                continue;
+            $canid = $aliasmap[$row->compid] ?? (int)$row->compid;
+            $uid   = (int)$row->userid;
+            if (!isset($agg[$uid][$canid])) {
+                $agg[$uid][$canid] = ['gotf' => 0.0, 'maxf' => 0.0];
             }
-            $pct = ($row->gotf / $row->maxf) * 100.0;
-            $result[(int)$row->userid][(int)$row->compid] = [
-                'competency' => (object)[
-                    'id'                => $row->compid,
-                    'shortname'         => $row->shortname,
-                    'description'       => $row->description,
-                    'descriptionformat' => $row->descriptionformat,
-                ],
-                'percent'    => round($pct, 1),
-                'passed'     => $pct >= $threshold,
-                'breakdown'  => [],
-            ];
+            $agg[$uid][$canid]['gotf'] += (float)$row->gotf;
+            $agg[$uid][$canid]['maxf'] += (float)$row->maxf;
+        }
+
+        $result = [];
+        foreach ($agg as $uid => $comps) {
+            foreach ($comps as $cid => $totals) {
+                if ($totals['maxf'] <= 0) {
+                    continue;
+                }
+                $compobj = $canonicalcomps[$cid] ?? null;
+                if (!$compobj) {
+                    continue;
+                }
+                $pct = ($totals['gotf'] / $totals['maxf']) * 100.0;
+                $result[$uid][$cid] = [
+                    'competency' => (object)[
+                        'id'                => $compobj->id,
+                        'shortname'         => $compobj->shortname,
+                        'description'       => $compobj->description ?? '',
+                        'descriptionformat' => $compobj->descriptionformat ?? 1,
+                    ],
+                    'percent'    => round($pct, 1),
+                    'passed'     => $pct >= $threshold,
+                    'breakdown'  => [],
+                ];
+            }
         }
         return $result;
     }
@@ -457,18 +513,20 @@ class competency_calculator {
      * @return array  Same structure as get_student_scores() but without breakdown.
      */
     private function legacy_plain_scores(int $userid, ?int $filtercompetencyid): array {
+        $canfilterid = $filtercompetencyid ? ($this->get_alias_map()[$filtercompetencyid] ?? $filtercompetencyid) : null;
+
         if ($this->legacyscorescache !== null) {
             $userres = $this->legacyscorescache[$userid] ?? [];
-            if ($filtercompetencyid) {
-                return isset($userres[$filtercompetencyid]) ? [$filtercompetencyid => $userres[$filtercompetencyid]] : [];
+            if ($canfilterid) {
+                return isset($userres[$canfilterid]) ? [$canfilterid => $userres[$canfilterid]] : [];
             }
             return $userres;
         }
 
         $single = $this->get_legacy_rates_bulk([$userid]);
         $userres = $single[$userid] ?? [];
-        if ($filtercompetencyid) {
-            return isset($userres[$filtercompetencyid]) ? [$filtercompetencyid => $userres[$filtercompetencyid]] : [];
+        if ($canfilterid) {
+            return isset($userres[$canfilterid]) ? [$canfilterid => $userres[$canfilterid]] : [];
         }
         return $userres;
     }

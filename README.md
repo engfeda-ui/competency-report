@@ -5,7 +5,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.27.5-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.27.6-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -83,6 +83,22 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 ---
 
 ## 📋 Changelog
+
+### v3.27.6 (2026101301) — 2026-10-13
+- **Canonical Competency Aliasing & Multi-Quiz Score Aggregation Engine:**
+  - **Single-Source Canonical Resolver (`local_comp_report_ext_get_canonical_competencies()`):** Built an architectural aliasing engine in `lib.php` returning `[$canonical, $aliasmap]`. Normalizes competencies by lowercased, trimmed name so duplicate competency entries (e.g. `Operation` vs `Operation`, `Troubleshooting` vs `troubleshooting`) are unified under a single canonical ID.
+  - **True Score Aggregation Across Aliased Competencies:** Instead of dropping marks from secondary IDs, scores are dynamically combined:
+    $$\text{Score} = \frac{\sum \text{fraction}}{\sum \text{maxfraction}} \times 100$$
+    Ensures that when different quizzes map questions to different historical competency IDs of the same name, student marks are aggregated together into ONE single column without losing any grades.
+  - **Comprehensive Report Suite Alignment:**
+    - `course_master_report.php`, `course_master_report_excel.php`, `course_master_report_pdf.php`: Grouped competency matrix and overall averages by canonical ID.
+    - `group_quiz_competency.php`, `group_quiz_competency_excel.php`, `group_quiz_competency_pdf.php`: Merged question scores across all aliased IDs.
+    - `group_final_report.php`, `group_final_report_excel.php`, `group_final_report_pdf.php`: Unified assessment competencies and weighted totals under canonical ID.
+    - `student_competency_detail.php`: Matrix and breakdown queries group questions under canonical competency ID.
+    - `student_competency_exams.php`: Exam review and question drill-down queries match all aliased competency IDs.
+    - `student_report.php` & `student_report_excel.php`: Student and class radar averages unified under canonical ID.
+    - `class_report.php` & `class_report_excel.php`: Course and group average rates aggregated by canonical ID.
+    - `classes/competency_calculator.php`: Core weighted calculator aggregates quiz and practical performance across all aliased IDs.
 
 ### v3.27.5 (2026101202) — 2026-10-12
 - **Official Course Competency Unification & Duplicate Column Elimination:**

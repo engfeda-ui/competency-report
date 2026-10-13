@@ -75,7 +75,8 @@ if ($studentrole) {
 // 2. Fetch mapped competencies list - scoped to this quiz.
 $competencies = [];
 if ($quizid > 0) {
-    $competencies = (array)$DB->get_records_sql("
+    [$allcoursecomps, $aliasmap] = local_comp_report_ext_get_canonical_competencies($courseid);
+    $rawquizcomps = (array)$DB->get_records_sql("
         SELECT DISTINCT c.id, c.shortname
           FROM {quiz_attempts} quiza
           JOIN {question_usages} qu ON qu.id = quiza.uniqueid
@@ -84,6 +85,18 @@ if ($quizid > 0) {
           JOIN {competency} c ON c.id = m.competencyid
          WHERE quiza.quiz = :quizid
       ORDER BY c.shortname ASC", ['quizid' => $quizid]);
+
+    $quizcomps = [];
+    foreach ($rawquizcomps as $rc) {
+        $canid = $aliasmap[$rc->id] ?? (int)$rc->id;
+        if (!isset($quizcomps[$canid])) {
+            $quizcomps[$canid] = $allcoursecomps[$canid] ?? $rc;
+        }
+    }
+    uasort($quizcomps, function ($a, $b) {
+        return strcasecmp($a->shortname, $b->shortname);
+    });
+    $competencies = $quizcomps;
 }
 
 if (empty($competencies)) {
@@ -140,10 +153,15 @@ if (!empty($students)) {
         GROUP BY quiza.userid, m.competencyid", $inparams);
 
     foreach ($rawscores as $rs) {
-        $scoremap[$rs->userid][$rs->competencyid] = [
-            'att' => (float)$rs->total_max,
-            'cor' => (float)$rs->total_fraction,
-        ];
+        $canid = $aliasmap[$rs->competencyid] ?? (int)$rs->competencyid;
+        if (!isset($scoremap[$rs->userid][$canid])) {
+            $scoremap[$rs->userid][$canid] = [
+                'att' => 0.0,
+                'cor' => 0.0,
+            ];
+        }
+        $scoremap[$rs->userid][$canid]['att'] += (float)$rs->total_max;
+        $scoremap[$rs->userid][$canid]['cor'] += (float)$rs->total_fraction;
     }
 
     // Quiz grades.

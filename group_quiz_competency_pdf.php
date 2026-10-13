@@ -67,7 +67,9 @@ if ($studentrole) {
 }
 
 // 2. Fetch mapped competencies list - scoped to selected quiz questions.
-$competencies = (array)$DB->get_records_sql("
+[$allcoursecomps, $aliasmap] = local_comp_report_ext_get_canonical_competencies($courseid);
+
+$rawquizcomps = (array)$DB->get_records_sql("
     SELECT DISTINCT c.id, c.shortname
     FROM {quiz_attempts} quiza
     JOIN {question_usages} qu ON qu.id = quiza.uniqueid
@@ -76,6 +78,18 @@ $competencies = (array)$DB->get_records_sql("
     JOIN {competency} c ON c.id = m.competencyid
     WHERE quiza.quiz = :quizid
     ORDER BY c.shortname", ['quizid' => $quizid]);
+
+$quizcomps = [];
+foreach ($rawquizcomps as $rc) {
+    $canid = $aliasmap[$rc->id] ?? (int)$rc->id;
+    if (!isset($quizcomps[$canid])) {
+        $quizcomps[$canid] = $allcoursecomps[$canid] ?? $rc;
+    }
+}
+uasort($quizcomps, function ($a, $b) {
+    return strcasecmp($a->shortname, $b->shortname);
+});
+$competencies = array_values($quizcomps);
 
 if (empty($competencies)) {
     throw new moodle_exception('noexamdata', 'local_comp_report_ext');
@@ -128,10 +142,12 @@ if (!empty($students)) {
     }
 
     foreach ($rawscores as $rs) {
-        $scoremap[$rs->userid][$rs->competencyid] = [
-            'att' => (float)$rs->total_max,
-            'cor' => (float)$rs->total_fraction,
-        ];
+        $canid = $aliasmap[$rs->competencyid] ?? (int)$rs->competencyid;
+        if (!isset($scoremap[$rs->userid][$canid])) {
+            $scoremap[$rs->userid][$canid] = ['att' => 0.0, 'cor' => 0.0];
+        }
+        $scoremap[$rs->userid][$canid]['att'] += (float)$rs->total_max;
+        $scoremap[$rs->userid][$canid]['cor'] += (float)$rs->total_fraction;
     }
 }
 

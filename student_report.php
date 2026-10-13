@@ -75,10 +75,28 @@ $sql = "SELECT c.id, c.shortname, c.description, c.descriptionformat,
         WHERE quiz.course = :courseid AND quiza.userid = :userid AND quiza.state = 'finished'
         GROUP BY c.id, c.shortname, c.description, c.descriptionformat";
 
-$rows = $DB->get_records_sql($sql, ['courseid' => $courseid, 'subcourseid1' => $courseid, 'userid' => $userid]);
+[$allcoursecomps, $aliasmap] = local_comp_report_ext_get_canonical_competencies($courseid);
+$rawrows = $DB->get_records_sql($sql, ['courseid' => $courseid, 'subcourseid1' => $courseid, 'userid' => $userid]);
+
+$canonicalrows = [];
+foreach ($rawrows as $r) {
+    $canid = $aliasmap[$r->id] ?? (int)$r->id;
+    if (!isset($canonicalrows[$canid])) {
+        $canonicalrows[$canid] = (object)[
+            'id'                => $canid,
+            'shortname'         => $allcoursecomps[$canid]->shortname ?? $r->shortname,
+            'description'       => $allcoursecomps[$canid]->description ?? $r->description,
+            'descriptionformat' => $allcoursecomps[$canid]->descriptionformat ?? $r->descriptionformat,
+            'questions'         => 0.0,
+            'correct'           => 0.0,
+        ];
+    }
+    $canonicalrows[$canid]->questions += (float)$r->questions;
+    $canonicalrows[$canid]->correct   += (float)$r->correct;
+}
+$rows = array_values($canonicalrows);
 
 // 2. Prepare Success Rates for AI Feedback.
-// These rates will be sent to the AI function to generate a personalized commentary.
 $rates = [];
 foreach ($rows as $r) {
     $rates[$r->shortname] = $r->questions ? ($r->correct / $r->questions) * 100 : 0;
@@ -110,9 +128,23 @@ $classavgrows = $DB->get_records_sql("
     GROUP BY c.id, c.shortname
 ", ['courseid' => $courseid, 'subcourseid2' => $courseid]);
 
-$classrates = [];
+$canonicalclass = [];
 foreach ($classavgrows as $cr) {
-    $classrates[$cr->shortname] = $cr->questions ? round(($cr->correct / $cr->questions) * 100, 1) : 0;
+    $canid = $aliasmap[$cr->id] ?? (int)$cr->id;
+    if (!isset($canonicalclass[$canid])) {
+        $canonicalclass[$canid] = [
+            'shortname' => $allcoursecomps[$canid]->shortname ?? $cr->shortname,
+            'questions' => 0.0,
+            'correct'   => 0.0,
+        ];
+    }
+    $canonicalclass[$canid]['questions'] += (float)$cr->questions;
+    $canonicalclass[$canid]['correct']   += (float)$cr->correct;
+}
+
+$classrates = [];
+foreach ($canonicalclass as $canid => $cc) {
+    $classrates[$cc['shortname']] = $cc['questions'] ? round(($cc['correct'] / $cc['questions']) * 100, 1) : 0;
 }
 
 // Build radar chart data (labels, student values, class avg values).

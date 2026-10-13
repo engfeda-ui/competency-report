@@ -57,11 +57,8 @@ $studentscount = $DB->count_records_sql("
 
 $groupscount = $DB->count_records('groups', ['courseid' => $courseid]);
 
-$compscount = $DB->count_records_sql("
-    SELECT COUNT(DISTINCT competencyid)
-    FROM {qbank_comp_ext_qmap}
-    WHERE courseid = :courseid
-", ['courseid' => $courseid]);
+[$compslist, $aliasmap] = local_comp_report_ext_get_canonical_competencies($courseid);
+$compscount = count($compslist);
 
 $quizzescount = $DB->count_records('quiz', ['course' => $courseid]);
 
@@ -102,9 +99,17 @@ $rawcomps = $DB->get_records_sql("
     ORDER BY c.shortname ASC
 ", ['courseid1' => $courseid, 'courseid2' => $courseid, 'courseid3' => $courseid]);
 
-// 4. Group Comparison Matrix.
-$compslist = local_comp_report_ext_get_course_competencies($courseid);
+$aggcomps = [];
+foreach ($rawcomps as $rc) {
+    $canid = $aliasmap[$rc->id] ?? (int)$rc->id;
+    if (!isset($aggcomps[$canid])) {
+        $aggcomps[$canid] = ['attempts' => 0.0, 'correct' => 0.0];
+    }
+    $aggcomps[$canid]['attempts'] += (float)$rc->attempts;
+    $aggcomps[$canid]['correct']  += (float)$rc->correct;
+}
 
+// 4. Group Comparison Matrix.
 $groups = $DB->get_records('groups', ['courseid' => $courseid], 'name ASC');
 
 $groupcompraw = $DB->get_records_sql("
@@ -142,10 +147,15 @@ $groupcompraw = $DB->get_records_sql("
 
 $groupmap = [];
 foreach ($groupcompraw as $gr) {
-    $groupmap[$gr->groupid][$gr->competencyid] = [
-        'att' => (float)$gr->total_max,
-        'cor' => (float)$gr->total_fraction,
-    ];
+    $canid = $aliasmap[$gr->competencyid] ?? (int)$gr->competencyid;
+    if (!isset($groupmap[$gr->groupid][$canid])) {
+        $groupmap[$gr->groupid][$canid] = [
+            'att' => 0.0,
+            'cor' => 0.0,
+        ];
+    }
+    $groupmap[$gr->groupid][$canid]['att'] += (float)$gr->total_max;
+    $groupmap[$gr->groupid][$canid]['cor'] += (float)$gr->total_fraction;
 }
 
 // -------------------------------------------------------------
@@ -216,19 +226,21 @@ $compshtml = '
         </tr>
     </thead>
     <tbody>';
-foreach ($rawcomps as $rc) {
+foreach ($compslist as $cid => $c) {
     $bgcolor = '#ffffff';
     $celltext = '-';
-    if ($rc->attempts > 0) {
-        $rate = ($rc->correct / $rc->attempts) * 100;
+    $att = $aggcomps[$cid]['attempts'] ?? 0.0;
+    $cor = $aggcomps[$cid]['correct'] ?? 0.0;
+    if ($att > 0) {
+        $rate = ($cor / $att) * 100;
         $celltext = '%' . number_format($rate, 1);
         $bgcolor = $rate >= 80 ? '#e6ffec' : ($rate >= 60 ? '#e6f2ff' : ($rate >= 40 ? '#fff9e6' : '#ffe6e6'));
     }
     $compshtml .= '
         <tr bgcolor="' . $bgcolor . '">
-            <td width="45%"><b>' . s($rc->shortname) . '</b></td>
-            <td width="15%" align="center">' . number_format($rc->attempts, 0) . '</td>
-            <td width="20%" align="center">' . number_format($rc->correct, 1) . '</td>
+            <td width="45%"><b>' . s($c->shortname) . '</b></td>
+            <td width="15%" align="center">' . number_format($att, 0) . '</td>
+            <td width="20%" align="center">' . number_format($cor, 1) . '</td>
             <td width="20%" align="center" style="font-weight: bold;">' . $celltext . '</td>
         </tr>';
 }

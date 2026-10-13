@@ -58,11 +58,8 @@ $renderdata->stats->students = $DB->count_records_sql("
 
 $renderdata->stats->groups = $DB->count_records('groups', ['courseid' => $courseid]);
 
-$renderdata->stats->competencies = $DB->count_records_sql("
-    SELECT COUNT(DISTINCT competencyid)
-    FROM {qbank_comp_ext_qmap}
-    WHERE courseid = :courseid
-", ['courseid' => $courseid]);
+[$compslist, $aliasmap] = local_comp_report_ext_get_canonical_competencies($courseid);
+$renderdata->stats->competencies = count($compslist);
 
 $renderdata->stats->quizzes = $DB->count_records('quiz', ['course' => $courseid]);
 
@@ -123,14 +120,26 @@ $rawcomps = $DB->get_records_sql("
     ORDER BY c.shortname ASC
 ", ['courseid1' => $courseid, 'courseid2' => $courseid, 'courseid3' => $courseid]);
 
-$renderdata->competencies = [];
+$aggcomps = [];
 foreach ($rawcomps as $rc) {
+    $canid = $aliasmap[$rc->id] ?? (int)$rc->id;
+    if (!isset($aggcomps[$canid])) {
+        $aggcomps[$canid] = ['attempts' => 0.0, 'correct' => 0.0];
+    }
+    $aggcomps[$canid]['attempts'] += (float)$rc->attempts;
+    $aggcomps[$canid]['correct']  += (float)$rc->correct;
+}
+
+$renderdata->competencies = [];
+foreach ($compslist as $cid => $c) {
     $row = new stdClass();
-    $row->shortname = $rc->shortname;
-    $row->attempts = number_format($rc->attempts, 0);
-    $row->correct = number_format($rc->correct, 1);
-    if ($rc->attempts > 0) {
-        $rate = ($rc->correct / $rc->attempts) * 100;
+    $row->shortname = $c->shortname;
+    $att = $aggcomps[$cid]['attempts'] ?? 0.0;
+    $cor = $aggcomps[$cid]['correct'] ?? 0.0;
+    $row->attempts = number_format($att, 0);
+    $row->correct  = number_format($cor, 1);
+    if ($att > 0) {
+        $rate = ($cor / $att) * 100;
         $row->rate = number_format($rate, 1);
         $row->color = ($rate >= 80) ? 'green' : (($rate >= 60) ? 'blue' : (($rate >= 40) ? 'orange' : 'red'));
     } else {
@@ -141,7 +150,6 @@ foreach ($rawcomps as $rc) {
 }
 
 // 4. Group Competency Comparison Matrix.
-$compslist = local_comp_report_ext_get_course_competencies($courseid);
 $renderdata->matrix_headers = array_values($compslist);
 
 $groups = $DB->get_records('groups', ['courseid' => $courseid], 'name ASC');
@@ -181,10 +189,15 @@ $groupcompraw = $DB->get_records_sql("
 
 $groupmap = [];
 foreach ($groupcompraw as $gr) {
-    $groupmap[$gr->groupid][$gr->competencyid] = [
-        'att' => (float)$gr->total_max,
-        'cor' => (float)$gr->total_fraction,
-    ];
+    $canid = $aliasmap[$gr->competencyid] ?? (int)$gr->competencyid;
+    if (!isset($groupmap[$gr->groupid][$canid])) {
+        $groupmap[$gr->groupid][$canid] = [
+            'att' => 0.0,
+            'cor' => 0.0,
+        ];
+    }
+    $groupmap[$gr->groupid][$canid]['att'] += (float)$gr->total_max;
+    $groupmap[$gr->groupid][$canid]['cor'] += (float)$gr->total_fraction;
 }
 
 $renderdata->matrix_rows = [];

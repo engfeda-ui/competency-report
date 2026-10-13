@@ -53,11 +53,8 @@ $studentscount = $DB->count_records_sql("
 
 $groupscount = $DB->count_records('groups', ['courseid' => $courseid]);
 
-$compscount = $DB->count_records_sql("
-    SELECT COUNT(DISTINCT competencyid)
-    FROM {qbank_comp_ext_qmap}
-    WHERE courseid = :courseid
-", ['courseid' => $courseid]);
+[$compslist, $aliasmap] = local_comp_report_ext_get_canonical_competencies($courseid);
+$compscount = count($compslist);
 
 $quizzescount = $DB->count_records('quiz', ['course' => $courseid]);
 
@@ -98,9 +95,17 @@ $rawcomps = $DB->get_records_sql("
     ORDER BY c.shortname ASC
 ", ['courseid1' => $courseid, 'courseid2' => $courseid, 'courseid3' => $courseid]);
 
-// 4. Group Comparison Matrix.
-$compslist = local_comp_report_ext_get_course_competencies($courseid);
+$aggcomps = [];
+foreach ($rawcomps as $rc) {
+    $canid = $aliasmap[$rc->id] ?? (int)$rc->id;
+    if (!isset($aggcomps[$canid])) {
+        $aggcomps[$canid] = ['attempts' => 0.0, 'correct' => 0.0];
+    }
+    $aggcomps[$canid]['attempts'] += (float)$rc->attempts;
+    $aggcomps[$canid]['correct']  += (float)$rc->correct;
+}
 
+// 4. Group Comparison Matrix.
 $groups = $DB->get_records('groups', ['courseid' => $courseid], 'name ASC');
 
 $groupcompraw = $DB->get_records_sql("
@@ -138,10 +143,15 @@ $groupcompraw = $DB->get_records_sql("
 
 $groupmap = [];
 foreach ($groupcompraw as $gr) {
-    $groupmap[$gr->groupid][$gr->competencyid] = [
-        'att' => (float)$gr->total_max,
-        'cor' => (float)$gr->total_fraction,
-    ];
+    $canid = $aliasmap[$gr->competencyid] ?? (int)$gr->competencyid;
+    if (!isset($groupmap[$gr->groupid][$canid])) {
+        $groupmap[$gr->groupid][$canid] = [
+            'att' => 0.0,
+            'cor' => 0.0,
+        ];
+    }
+    $groupmap[$gr->groupid][$canid]['att'] += (float)$gr->total_max;
+    $groupmap[$gr->groupid][$canid]['cor'] += (float)$gr->total_fraction;
 }
 
 /**
@@ -266,13 +276,13 @@ $ws2->set_column(1, 1, 30);
 $ws2->set_column(2, 4, 18);
 
 $idx = 1;
-foreach ($rawcomps as $rc) {
-    $att = (float)$rc->attempts;
-    $cor = (float)$rc->correct;
+foreach ($compslist as $cid => $c) {
+    $att = $aggcomps[$cid]['attempts'] ?? 0.0;
+    $cor = $aggcomps[$cid]['correct'] ?? 0.0;
     $crate = ($att > 0) ? round(($cor / $att) * 100, 1) : 0;
 
     $ws2->write_number($row, 0, $idx++, $formatcell);
-    $ws2->write_string($row, 1, safe_str($rc->shortname), $formatcellbold);
+    $ws2->write_string($row, 1, safe_str($c->shortname), $formatcellbold);
     $ws2->write_number($row, 2, round($att, 1), $formatcell);
     $ws2->write_number($row, 3, round($cor, 1), $formatcell);
     $ws2->write_string($row, 4, $crate . '%', $formatcell);

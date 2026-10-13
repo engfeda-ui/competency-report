@@ -1104,10 +1104,22 @@ function local_comp_report_ext_resolve_assessment_data(
                                    AND quiza.state = 'finished'
                               GROUP BY quiza.userid, m.competencyid";
                 $compquizrs = $DB->get_records_sql($compquizsql, array_merge($attinparams, $subparams));
+                [, $aliasmap] = local_comp_report_ext_get_canonical_competencies($courseid);
+                $rawcompagg = [];
                 foreach ($compquizrs as $r) {
-                    if ($r->total_max > 0) {
-                        $compgrades[(int)$r->userid][(int)$r->competencyid] =
-                            ($r->total_fraction / $r->total_max) * 100.0;
+                    $canid = $aliasmap[$r->competencyid] ?? (int)$r->competencyid;
+                    $uid   = (int)$r->userid;
+                    if (!isset($rawcompagg[$uid][$canid])) {
+                        $rawcompagg[$uid][$canid] = ['max' => 0.0, 'frac' => 0.0];
+                    }
+                    $rawcompagg[$uid][$canid]['max']  += (float)$r->total_max;
+                    $rawcompagg[$uid][$canid]['frac'] += (float)$r->total_fraction;
+                }
+                foreach ($rawcompagg as $uid => $comps) {
+                    foreach ($comps as $cid => $tot) {
+                        if ($tot['max'] > 0) {
+                            $compgrades[$uid][$cid] = ($tot['frac'] / $tot['max']) * 100.0;
+                        }
                     }
                 }
             }
@@ -1124,10 +1136,11 @@ function local_comp_report_ext_resolve_assessment_data(
             $pracsql,
             array_merge($inparams, ['pasmtid' => (int)$asmt->id, 'pcourseid' => $courseid])
         );
+        [, $aliasmap] = local_comp_report_ext_get_canonical_competencies($courseid);
         $userpracsums = [];
         foreach ($pracrs as $pr) {
             $uid = (int)$pr->studentid;
-            $cid = (int)$pr->competencyid;
+            $cid = $aliasmap[(int)$pr->competencyid] ?? (int)$pr->competencyid;
             $pct = (float)$pr->competency_percent;
             $compgrades[$uid][$cid] = $pct;
             $userpracsums[$uid][]   = $pct;
@@ -1149,81 +1162,124 @@ function local_comp_report_ext_resolve_assessment_data(
 }
 
 /**
- * Fetch the official unique competencies for a course, avoiding duplicate names or orphan mappings.
+ * Fetch official unique competencies and alias mapping for a course.
  *
- * Priority order:
- * 1. Official course competencies configured in {competency_coursecomp}.
- * 2. Fallback to question bank mappings in {qbank_comp_ext_qmap} scoped to this course.
- * In both cases, merges configured practical assessment competencies ({local_comp_report_ext_prac}),
- * deduplicates by normalized shortname to guarantee zero duplicate columns (e.g. two "Operation"),
- * and returns competencies sorted alphabetically by shortname.
+ * Scans official course competencies {competency_coursecomp}, question bank mappings
+ * {qbank_comp_ext_qmap}, and practical assessment competencies {local_comp_report_ext_prac}.
+ * Deduplicates by normalized shortname (trimmed, lowercase) and maps every duplicate
+ * or alias ID to a single canonical competency ID.
  *
  * @param int $courseid The course ID.
- * @return array Array of stdClass competency records indexed by id.
+ * @return array Tuple of [$canonicalcompetencies, $aliasmap]:
+ *               - $canonicalcompetencies: array of stdClass indexed by canonical id.
+ *               - $aliasmap: array [any_competency_id => canonical_competency_id].
  */
-function local_comp_report_ext_get_course_competencies(int $courseid): array {
+function local_comp_report_ext_get_canonical_competencies(int $courseid): array {
     global $DB;
 
+    // Static per-request memory cache.
+    static $cache = [];
+    if (isset($cache[$courseid])) {
+        return $cache[$courseid];
+    }
+
     // 1. Official course competencies linked in Moodle core.
-    $coursecomps = $DB->get_records_sql("
+    $coursecomps = (array)$DB->get_records_sql("
         SELECT c.id, c.shortname, c.idnumber, c.description, c.descriptionformat
           FROM {competency} c
           JOIN {competency_coursecomp} cc ON cc.competencyid = c.id
          WHERE cc.courseid = :courseid
-      ORDER BY c.shortname ASC
+      ORDER BY c.id ASC
     ", ['courseid' => $courseid]);
 
-    $competencies = [];
-    if (!empty($coursecomps)) {
-        $competencies = (array)$coursecomps;
-    } else {
-        // 2. Fallback: competencies with question mappings in this course.
-        $mappedcomps = $DB->get_records_sql("
-            SELECT DISTINCT c.id, c.shortname, c.idnumber, c.description, c.descriptionformat
-              FROM {competency} c
-              JOIN {qbank_comp_ext_qmap} m ON m.competencyid = c.id
-             WHERE m.courseid = :courseid
-          ORDER BY c.shortname ASC
-        ", ['courseid' => $courseid]);
-        if (!empty($mappedcomps)) {
-            $competencies = (array)$mappedcomps;
-        }
-    }
+    // 2. Competencies referenced in question mappings for this course.
+    $mappedcomps = (array)$DB->get_records_sql("
+        SELECT DISTINCT c.id, c.shortname, c.idnumber, c.description, c.descriptionformat
+          FROM {competency} c
+          JOIN {qbank_comp_ext_qmap} m ON m.competencyid = c.id
+         WHERE m.courseid = :courseid
+      ORDER BY c.id ASC
+    ", ['courseid' => $courseid]);
 
-    // 3. Merge practical competencies configured for this course.
-    $praccomps = $DB->get_records_sql("
+    // 3. Competencies configured in practical assessments for this course.
+    $praccomps = (array)$DB->get_records_sql("
         SELECT DISTINCT c.id, c.shortname, c.idnumber, c.description, c.descriptionformat
           FROM {local_comp_report_ext_prac} p
           JOIN {competency} c ON c.id = p.competencyid
          WHERE p.courseid = :courseid
-      ORDER BY c.shortname ASC
+      ORDER BY c.id ASC
     ", ['courseid' => $courseid]);
+
+    // Gather all unique raw competencies.
+    $allcomps = [];
+    foreach ($coursecomps as $cid => $comp) {
+        $allcomps[$cid] = $comp;
+    }
+    foreach ($mappedcomps as $cid => $comp) {
+        if (!isset($allcomps[$cid])) {
+            $allcomps[$cid] = $comp;
+        }
+    }
     foreach ($praccomps as $cid => $comp) {
-        if (!isset($competencies[$cid])) {
-            $competencies[$cid] = $comp;
+        if (!isset($allcomps[$cid])) {
+            $allcomps[$cid] = $comp;
         }
     }
 
-    if (empty($competencies)) {
-        return [];
+    if (empty($allcomps)) {
+        $cache[$courseid] = [[], []];
+        return $cache[$courseid];
     }
 
-    // 4. Strict deduplication by normalized shortname to eliminate duplicate columns.
-    $unique = [];
-    $seen = [];
-    foreach ($competencies as $cid => $comp) {
-        $normalized = trim(core_text::strtolower($comp->shortname));
-        if (!isset($seen[$normalized])) {
-            $seen[$normalized] = true;
-            $unique[$cid] = $comp;
+    // Group all competencies by normalized shortname.
+    $canonical  = [];
+    $aliasmap   = [];
+    $normgroups = [];
+
+    foreach ($allcomps as $cid => $comp) {
+        $norm = trim(core_text::strtolower($comp->shortname));
+        $normgroups[$norm][] = $comp;
+    }
+
+    foreach ($normgroups as $norm => $group) {
+        // Choose canonical record: prefer official course competency, else smallest ID.
+        $canonicalcomp = null;
+        foreach ($group as $c) {
+            if (isset($coursecomps[$c->id])) {
+                $canonicalcomp = $c;
+                break;
+            }
+        }
+        if ($canonicalcomp === null) {
+            $canonicalcomp = $group[0];
+        }
+
+        $canid = (int)$canonicalcomp->id;
+        $canonical[$canid] = $canonicalcomp;
+
+        // Map every ID in this normalized group to the canonical ID.
+        foreach ($group as $c) {
+            $aliasmap[(int)$c->id] = $canid;
         }
     }
 
-    // Sort alphabetically by shortname.
-    uasort($unique, function ($a, $b) {
+    // Sort canonical competencies alphabetically by shortname.
+    uasort($canonical, function ($a, $b) {
         return strcasecmp($a->shortname, $b->shortname);
     });
 
-    return $unique;
+    $cache[$courseid] = [$canonical, $aliasmap];
+    return $cache[$courseid];
+}
+
+/**
+ * Fetch the official unique competencies for a course, avoiding duplicate names or orphan mappings.
+ *
+ * @param int $courseid The course ID.
+ * @return array Array of stdClass competency records indexed by canonical id.
+ */
+function local_comp_report_ext_get_course_competencies(int $courseid): array {
+    [$canonical, ] = local_comp_report_ext_get_canonical_competencies($courseid);
+    return $canonical;
 }
 
