@@ -1237,7 +1237,7 @@ function local_comp_report_ext_get_canonical_competencies(int $courseid): array 
     $normgroups = [];
 
     foreach ($allcomps as $cid => $comp) {
-        $norm = trim(core_text::strtolower($comp->shortname));
+        $norm = local_comp_report_ext_normalize_competency_name($comp->shortname);
         $normgroups[$norm][] = $comp;
     }
 
@@ -1282,4 +1282,46 @@ function local_comp_report_ext_get_course_competencies(int $courseid): array {
     [$canonical, ] = local_comp_report_ext_get_canonical_competencies($courseid);
     return $canonical;
 }
-
+/**
+ * Normalize a competency shortname for canonical aliasing.
+ *
+ * Strips punctuation, replaces symbols like '&', '+', '/', '\', '-' with spaces,
+ * removes connector words ('and', 'the', 'of', 'و'), and sorts the remaining tokens.
+ *
+ * Examples:
+ *   "TESTING AND INSPECTION" -> "inspection testing"
+ *   "TESTING & INSPECTION"   -> "inspection testing"
+ *   "INSPECTION & TESTING"   -> "inspection testing"
+ *   "الفحص والاختبار"         -> "الاختبار الفحص"
+ *
+ * @param string $name
+ * @return string
+ */
+function local_comp_report_ext_normalize_competency_name(string $name): string {
+    $str = trim(core_text::strtolower($name));
+    if ($str === '') {
+        return '';
+    }
+    // Replace connecting symbols with spaces.
+    $str = str_replace(['&', '+', '/', '\', '-', '_'], ' ', $str);
+    // Split into alphanumeric words.
+    $words = preg_split('/[^\p{L}\p{N}]+/u', $str, -1, PREG_SPLIT_NO_EMPTY);
+    if (empty($words)) {
+        return $str;
+    }
+    $filtered = [];
+    foreach ($words as $w) {
+        // Strip leading Arabic 'و' if word length > 2
+        if (core_text::strlen($w) > 2 && core_text::substr($w, 0, 1) === 'و') {
+            $w = core_text::substr($w, 1);
+        }
+        if ($w !== 'and' && $w !== 'the' && $w !== 'of' && $w !== 'و') {
+            $filtered[] = $w;
+        }
+    }
+    if (empty($filtered)) {
+        $filtered = $words;
+    }
+    sort($filtered);
+    return implode(' ', $filtered);
+}
