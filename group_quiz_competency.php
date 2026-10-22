@@ -24,6 +24,7 @@
  */
 
 require_once(__DIR__ . '/../../config.php');
+require_once(__DIR__ . '/lib.php');
 
 // 1. Parameter Acquisition.
 $courseid = required_param('courseid', PARAM_INT);

@@ -24,6 +24,7 @@
  */
 
 require_once(__DIR__ . '/../../config.php');
+require_once(__DIR__ . '/lib.php');
 require_once($CFG->dirroot . '/local/comp_report_ext/forms/selector_form.php');
 
 $courseid = required_param('courseid', PARAM_INT);

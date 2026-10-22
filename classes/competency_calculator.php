@@ -42,6 +42,10 @@
 
 namespace local_comp_report_ext;
 
+defined('MOODLE_INTERNAL') || die();
+
+require_once(__DIR__ . '/../lib.php');
+
 /**
  * Weighted competency score calculator.
  *

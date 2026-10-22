@@ -24,6 +24,7 @@
  */
 
 require_once(__DIR__ . '/../../config.php');
+require_once(__DIR__ . '/lib.php');
 require_once(__DIR__ . '/ai.php'); // Include for AI commentary generation.
 
 $courseid = required_param('courseid', PARAM_INT);

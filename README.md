@@ -5,7 +5,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.27.7-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.27.8-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -83,6 +83,12 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 ---
 
 ## 📋 Changelog
+
+### v3.27.8 (2026102201) — 2026-10-22
+- **Fix Undefined Function in Standalone Report Pages (`lib.php` Inclusion):**
+  - Added explicit `require_once(__DIR__ . '/lib.php');` to standalone report and analysis entry pages (`group_quiz_competency.php`, `class_report.php`, `student_competency_detail.php`, `student_report.php`, `group_analytics_dashboard.php`, `group_assessment_distribution.php`, `assessment_setup.php`, `teacher_student_exam.php`, `student_exam.php`, `student_class.php`, `timeline.php`).
+  - Resolves fatal Moodle exception `Call to undefined function local_comp_report_ext_get_canonical_competencies()` occurring when selecting a specific quiz in the Group Performance Analysis view (`group_quiz_competency.php`).
+  - Added defensive top-level `require_once(__DIR__ . '/../lib.php');` in `classes/competency_calculator.php` to guarantee library availability when the calculator class is autoloaded across any context.
 
 ### v3.27.7 (2026101302) — 2026-10-13
 - **Intelligent Semantic Normalizer for Competency Names (`lib.php`):**
