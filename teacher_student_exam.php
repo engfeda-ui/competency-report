@@ -32,7 +32,12 @@ require_login($courseid);
 $context = context_course::instance($courseid);
 
 // Ensure the user has teacher-level report viewing capabilities.
-require_capability('mod/quiz:viewreports', $context);
+$canviewext  = has_capability('local/comp_report_ext:viewreports', $context);
+$canviewold  = has_capability('local/competency_report:viewreports', $context);
+$canviewquiz = has_capability('mod/quiz:viewreports', $context);
+if (!$canviewext && !$canviewold && !$canviewquiz) {
+    require_capability('local/comp_report_ext:viewreports', $context);
+}
 
 // Page configuration and navigation setup.
 $PAGE->set_url('/local/comp_report_ext/teacher_student_exam.php', ['courseid' => $courseid]);
@@ -58,51 +63,75 @@ if ($fromform = $mform->get_data()) {
     $data->quizid = $fromform->quizid; // Getting the quiz selection.
 
     if ($data->userid && $data->quizid) {
-        // Query to calculate competency performance for the specific student and quiz.
-        $sql = "SELECT c.id, c.shortname,
-                       SUM(qa.maxfraction) AS attempts,
-                       SUM(qas.fraction) AS correct
-                FROM {quiz_attempts} quiza
-                JOIN {question_usages} qu ON qu.id = quiza.uniqueid
-                JOIN {question_attempts} qa ON qa.questionusageid = qu.id
-                JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
-                JOIN {competency} c ON c.id = m.competencyid
-                JOIN (
-                    SELECT s.questionattemptid, MAX(s.fraction) AS fraction
-                      FROM {question_attempt_steps} s
-                      JOIN {question_attempts} qa2 ON qa2.id = s.questionattemptid
-                      JOIN {question_usages} qu2   ON qu2.id = qa2.questionusageid
-                      JOIN {quiz_attempts} qa3     ON qa3.uniqueid = qu2.id
-                     WHERE qa3.quiz = :subquizid
-                       AND qa3.userid = :subuserid
-                       AND qa3.state = 'finished'
-                     GROUP BY s.questionattemptid
-                ) qas ON qas.questionattemptid = qa.id
-                WHERE quiza.quiz = :quizid
-                  AND quiza.userid = :userid
-                  AND quiza.state = 'finished'
-                GROUP BY c.id, c.shortname
-                ORDER BY c.shortname ASC";
+        [$allcoursecomps, $aliasmap] = local_comp_report_ext_get_canonical_competencies($courseid);
 
-        $records = $DB->get_records_sql($sql, [
-            'quizid'    => $data->quizid,
-            'subquizid' => $data->quizid,
-            'userid'    => $data->userid,
-            'subuserid' => $data->userid,
-        ]);
+        // Fetch best attempt ID to prevent attempt duplicate multiplication.
+        $bestattempt = $DB->get_record_sql(
+            "SELECT id, sumgrades FROM {quiz_attempts}
+              WHERE quiz = :quizid AND userid = :userid AND state = 'finished'
+           ORDER BY sumgrades DESC, id DESC",
+            ['quizid' => $data->quizid, 'userid' => $data->userid],
+            IGNORE_MULTIPLE
+        );
 
-        foreach ($records as $r) {
-            $rawrate = $r->attempts ? ($r->correct / $r->attempts) * 100 : 0;
-            $rowclass = ($rawrate >= 70) ? 'table-success' : (($rawrate >= 50) ? 'table-warning' : 'table-danger');
+        if ($bestattempt) {
+            // Query to calculate competency performance for the specific student and quiz best attempt.
+            $sql = "SELECT c.id, c.shortname,
+                           SUM(qa.maxfraction) AS attempts,
+                           SUM(qas.fraction) AS correct
+                    FROM {quiz_attempts} quiza
+                    JOIN {question_usages} qu ON qu.id = quiza.uniqueid
+                    JOIN {question_attempts} qa ON qa.questionusageid = qu.id
+                    JOIN {qbank_comp_ext_qmap} m ON m.questionid = qa.questionid
+                    JOIN {competency} c ON c.id = m.competencyid
+                    JOIN (
+                        SELECT s.questionattemptid, MAX(s.fraction) AS fraction
+                          FROM {question_attempt_steps} s
+                          JOIN {question_attempts} qa2 ON qa2.id = s.questionattemptid
+                          JOIN {question_usages} qu2   ON qu2.id = qa2.questionusageid
+                          JOIN {quiz_attempts} qa3     ON qa3.uniqueid = qu2.id
+                         WHERE qa3.id = :bestattid2
+                           AND qa3.state = 'finished'
+                         GROUP BY s.questionattemptid
+                    ) qas ON qas.questionattemptid = qa.id
+                    WHERE quiza.id = :bestattid
+                      AND quiza.state = 'finished'
+                    GROUP BY c.id, c.shortname
+                    ORDER BY c.shortname ASC";
 
-            $data->rows[] = (object) [
-                'shortname' => s($r->shortname),
-                'attempts'  => number_format($r->attempts, 0),
-                'correct'   => number_format($r->correct, 1),
-                'rate'      => number_format($rawrate, 1),
-                'rowclass'  => $rowclass,
-                'raw_rate'  => round($rawrate, 1), // Added comma after last item to fix NormalizedArrays error.
-            ];
+            $records = $DB->get_records_sql($sql, [
+                'bestattid'  => $bestattempt->id,
+                'bestattid2' => $bestattempt->id,
+            ]);
+
+            // Group by canonical competency ID.
+            $canonicalrecords = [];
+            foreach ($records as $r) {
+                $canid = $aliasmap[$r->id] ?? (int)$r->id;
+                if (!isset($canonicalrecords[$canid])) {
+                    $canonicalrecords[$canid] = (object)[
+                        'shortname' => $allcoursecomps[$canid]->shortname ?? $r->shortname,
+                        'attempts'  => 0.0,
+                        'correct'   => 0.0,
+                    ];
+                }
+                $canonicalrecords[$canid]->attempts += (float)$r->attempts;
+                $canonicalrecords[$canid]->correct  += (float)$r->correct;
+            }
+
+            foreach ($canonicalrecords as $r) {
+                $rawrate = $r->attempts > 0 ? ($r->correct / $r->attempts) * 100 : 0;
+                $rowclass = ($rawrate >= 70) ? 'table-success' : (($rawrate >= 50) ? 'table-warning' : 'table-danger');
+
+                $data->rows[] = (object) [
+                    'shortname' => s($r->shortname),
+                    'attempts'  => number_format($r->attempts, 0),
+                    'correct'   => number_format($r->correct, 1),
+                    'rate'      => number_format($rawrate, 1),
+                    'rowclass'  => $rowclass,
+                    'raw_rate'  => round($rawrate, 1),
+                ];
+            }
         }
     }
 }

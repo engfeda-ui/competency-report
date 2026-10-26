@@ -34,9 +34,21 @@ $userid   = optional_param('userid', $USER->id, PARAM_INT);
 require_login($courseid);
 $context = context_course::instance($courseid);
 
-// Permission check: if the user is looking at someone else's report, they must have the report viewing capability.
+// Permission check: allow viewreports from local plugin or mod_quiz, or viewownreport for own profile.
+$canviewext  = has_capability('local/comp_report_ext:viewreports', $context);
+$canviewold  = has_capability('local/competency_report:viewreports', $context);
+$canviewquiz = has_capability('mod/quiz:viewreports', $context);
+
 if ($userid != $USER->id) {
-    require_capability('mod/quiz:viewreports', $context);
+    if (!$canviewext && !$canviewold && !$canviewquiz) {
+        require_capability('local/comp_report_ext:viewreports', $context);
+    }
+} else {
+    $canviewownext = has_capability('local/comp_report_ext:viewownreport', $context);
+    $canviewownold = has_capability('local/competency_report:viewownreport', $context);
+    if (!$canviewownext && !$canviewownold && !$canviewext && !$canviewold && !$canviewquiz) {
+        require_capability('local/comp_report_ext:viewownreport', $context);
+    }
 }
 
 $course  = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
@@ -68,6 +80,7 @@ $sql = "SELECT c.id, c.shortname, c.description,
               JOIN {quiz_attempts} qa3     ON qa3.uniqueid = qu2.id
               JOIN {quiz} q2               ON q2.id = qa3.quiz
              WHERE q2.course = :subcourseid1
+               AND qa3.userid = :subuserid
                AND qa3.state = 'finished'
              GROUP BY s.questionattemptid
         ) qas ON qas.questionattemptid = qa.id
@@ -75,7 +88,12 @@ $sql = "SELECT c.id, c.shortname, c.description,
         GROUP BY c.id, c.shortname, c.description";
 
 [$allcoursecomps, $aliasmap] = local_comp_report_ext_get_canonical_competencies($courseid);
-$rows = $DB->get_records_sql($sql, ['courseid' => $courseid, 'subcourseid1' => $courseid, 'userid' => $userid]);
+$rows = $DB->get_records_sql($sql, [
+    'courseid'     => $courseid,
+    'subcourseid1' => $courseid,
+    'subuserid'    => $userid,
+    'userid'       => $userid,
+]);
 
 // Group by canonical competency ID.
 $canonicalrows = [];
@@ -145,13 +163,14 @@ foreach ($allcoursequizzes as $cq) {
     }
 }
 
-// Fetch student's finished attempts breakdown per competency across all quizzes.
+// Fetch student's finished attempts breakdown per competency across all quizzes in this course.
 $userfinishedattempts = $DB->get_records_sql(
-    "SELECT quiz, MAX(id) AS bestattid
-       FROM {quiz_attempts}
-      WHERE userid = :userid AND state = 'finished'
-   GROUP BY quiz",
-    ['userid' => $userid]
+    "SELECT quiza.quiz, MAX(quiza.id) AS bestattid
+       FROM {quiz_attempts} quiza
+       JOIN {quiz} q ON q.id = quiza.quiz
+      WHERE quiza.userid = :userid AND quiza.state = 'finished' AND q.course = :courseid
+   GROUP BY quiza.quiz",
+    ['userid' => $userid, 'courseid' => $courseid]
 );
 
 $bestattids = array_map(fn($a) => (int)$a->bestattid, $userfinishedattempts);

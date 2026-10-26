@@ -34,7 +34,12 @@ $competencyid = optional_param('competencyid', 0, PARAM_INT);
 
 require_login($courseid);
 $context = context_course::instance($courseid);
-require_capability('mod/quiz:viewreports', $context);
+$canviewext  = has_capability('local/comp_report_ext:viewreports', $context);
+$canviewold  = has_capability('local/competency_report:viewreports', $context);
+$canviewquiz = has_capability('mod/quiz:viewreports', $context);
+if (!$canviewext && !$canviewold && !$canviewquiz) {
+    require_capability('local/comp_report_ext:viewreports', $context);
+}
 
 $PAGE->set_url('/local/comp_report_ext/teacher_student_competency.php', ['courseid' => $courseid]);
 $PAGE->set_title(get_string('teacherstudentcompetency', 'local_comp_report_ext'));
@@ -116,8 +121,21 @@ $renderdata->rows = [];
 $renderdata->questiondetails = [];
 
 if ($userid && $competencyid) {
+    [$allcoursecomps, $aliasmap] = local_comp_report_ext_get_canonical_competencies($courseid);
+    $targetcanid = $aliasmap[$competencyid] ?? $competencyid;
+    $aliasids = [];
+    foreach ($aliasmap as $aid => $canid) {
+        if ($canid == $targetcanid) {
+            $aliasids[] = $aid;
+        }
+    }
+    if (!in_array($targetcanid, $aliasids)) {
+        $aliasids[] = $targetcanid;
+    }
+    [$cinsql, $cinparams] = $DB->get_in_or_equal($aliasids, SQL_PARAMS_NAMED, 'cid');
+
     // 2. Fetch competency details if a specific one is selected.
-    if ($comp = $DB->get_record('competency', ['id' => $competencyid])) {
+    if ($comp = $DB->get_record('competency', ['id' => $targetcanid])) {
         $renderdata->description = format_text($comp->description, $comp->descriptionformat);
     }
 
@@ -137,10 +155,11 @@ if ($userid && $competencyid) {
                          JOIN {quiz_attempts} qa3     ON qa3.uniqueid = qu2.id
                          JOIN {quiz} q2               ON q2.id = qa3.quiz
                         WHERE q2.course = :subcourseid
+                          AND qa3.userid = :subuserid
                           AND qa3.state = 'finished'
                         GROUP BY s.questionattemptid
                    ) qas ON qas.questionattemptid = qa.id
-                   WHERE map.competencyid = :competencyid
+                   WHERE map.competencyid $cinsql
                      AND quiza.userid = :userid
                      AND quiz.course = :courseid
                      AND quiza.state = 'finished'
@@ -148,7 +167,12 @@ if ($userid && $competencyid) {
 
     $summaryrows = $DB->get_records_sql(
         $sqlsummary,
-        ['competencyid' => $competencyid, 'userid' => $userid, 'courseid' => $courseid, 'subcourseid' => $courseid]
+        array_merge($cinparams, [
+            'userid'       => $userid,
+            'subuserid'    => $userid,
+            'courseid'     => $courseid,
+            'subcourseid'  => $courseid,
+        ])
     );
 
     $tq = 0;
@@ -185,10 +209,19 @@ if ($userid && $competencyid) {
                    JOIN {question_attempts} qa ON qa.questionusageid = qu.id
                    JOIN {question} q ON q.id = qa.questionid
                    INNER JOIN {qbank_comp_ext_qmap} map ON map.questionid = qa.questionid
-                   WHERE map.competencyid = :competencyid AND quiza.userid = :userid AND quiza.state = 'finished'
+                   WHERE map.competencyid $cinsql
+                     AND quiza.userid = :userid
+                     AND quiza.state = 'finished'
+                     AND quiz.course = :courseid
                    ORDER BY quiz.name ASC, qa.slot ASC";
 
-    $questions = $DB->get_records_sql($sqldetails, ['competencyid' => $competencyid, 'userid' => $userid]);
+    $questions = $DB->get_records_sql(
+        $sqldetails,
+        array_merge($cinparams, [
+            'userid'   => $userid,
+            'courseid' => $courseid,
+        ])
+    );
 
     foreach ($questions as $q) {
         // Page and showall parameters removed.

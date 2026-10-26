@@ -5,7 +5,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v3.27.8-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
+[![Version](https://img.shields.io/badge/Version-v3.27.9-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency-report)
 
 A professional Moodle reporting engine that calculates and visualises student competency mastery based on historical quiz performance. By analysing student answers to questions mapped via `qbank_comp_ext`, this plugin provides a granular, actionable view of student strengths and learning gaps — with AI-powered feedback, PDF exports, and group-level analytics.
 
@@ -83,6 +83,16 @@ Navigate to **Site administration > Plugins > Local plugins > Competency Plugin*
 ---
 
 ## 📋 Changelog
+
+### v3.27.9 (2026102601) — 2026-10-26
+- **Comprehensive Capability Hardening & Cross-Report Access Unification:**
+  - **Unified Capability Checks Across All Views:** Resolved capability mismatches where users with `local/comp_report_ext:viewreports` or `local/competency_report:viewreports` encountered fatal access exceptions when clicking on individual student reports (`student_competency_detail.php`), exam drill-down views (`group_quiz_competency.php`, `teacher_student_competency.php`, `teacher_student_exam.php`), or exporting files (`group_quiz_competency_excel.php`, `group_quiz_competency_pdf.php`). All report entry points now accept `local/comp_report_ext:viewreports`, `local/competency_report:viewreports`, or `mod/quiz:viewreports`.
+  - **Student Self-Viewing & Teacher Fallback:** Updated `student_competency_detail.php`, `student_competency_exams.php`, `student_class.php`, `student_exam.php`, `student_report.php`, and `timeline.php` to seamlessly grant access to enrolled students for their own profiles while allowing educators and auditors with any report viewing capability to inspect any student profile.
+  - **Scope Hardening & Attempt Protection:**
+    - Scoped `userfinishedattempts` in `student_competency_detail.php` to the active course (`q.course = :courseid`) and added subquery user scoping (`qa3.userid = :subuserid`).
+    - Added missing `quiz.course = :courseid` scoping to detailed question attempts in `teacher_student_competency.php`.
+    - Integrated canonical competency alias expansion in `teacher_student_competency.php` and best-attempt selection in `teacher_student_exam.php` to eliminate multi-attempt inflation.
+  - **Clean PDF File Naming (`parent_pdf.php`):** Exported student PDF filenames now use student username / ID number (`clean_filename("student_report_{$ident}.pdf")`) instead of generic prefix.
 
 ### v3.27.8 (2026102201) — 2026-10-22
 - **Fix Undefined Function in Standalone Report Pages (`lib.php` Inclusion):**

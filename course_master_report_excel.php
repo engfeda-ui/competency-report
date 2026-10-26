@@ -32,7 +32,8 @@ require_login($courseid);
 $context = context_course::instance($courseid);
 $canviewext = has_capability('local/comp_report_ext:viewreports', $context);
 $canviewold = has_capability('local/competency_report:viewreports', $context);
-if (!$canviewext && !$canviewold) {
+$canupdate  = has_capability('moodle/course:update', $context);
+if (!$canviewext && !$canviewold && !$canupdate) {
     require_capability('local/comp_report_ext:viewreports', $context);
 }
 

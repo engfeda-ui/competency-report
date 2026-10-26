@@ -37,9 +37,10 @@ $oralasmtid  = optional_param('oralasmtid', 0, PARAM_INT);
 
 require_login($courseid);
 $context = context_course::instance($courseid);
-$canviewext = has_capability('local/comp_report_ext:viewreports', $context);
-$canviewold = has_capability('local/competency_report:viewreports', $context);
-if (!$canviewext && !$canviewold) {
+$canviewext  = has_capability('local/comp_report_ext:viewreports', $context);
+$canviewold  = has_capability('local/competency_report:viewreports', $context);
+$canviewquiz = has_capability('mod/quiz:viewreports', $context);
+if (!$canviewext && !$canviewold && !$canviewquiz) {
     require_capability('local/comp_report_ext:viewreports', $context);
 }
 

@@ -224,5 +224,7 @@ $pdf->Cell(0, 5, $legend, 0, 1);
 if (ob_get_length()) {
     ob_end_clean();
 }
-$pdf->Output("rapor_" . $student->idnumber . ".pdf", "I");
+$ident = !empty($student->username) ? $student->username : (!empty($student->idnumber) ? $student->idnumber : $student->id);
+$pdfname = clean_filename("student_report_" . $ident . ".pdf");
+$pdf->Output($pdfname, "I");
 exit;
